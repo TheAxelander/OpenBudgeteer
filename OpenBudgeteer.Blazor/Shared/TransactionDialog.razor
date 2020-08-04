@@ -1,0 +1,67 @@
+﻿@using OpenBudgeteer.Core.ViewModels
+@if (IsDialogVisible)
+ {
+     <div class="modal fade show" style=" display: block;">
+         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1000px">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h4 class="modal-title">@Title</h4>
+                     <button type="button" class="close" data-dismiss="modal" @onclick="OnClickCallback">&times;</button>
+                 </div>
+                 <div class="modal-body">
+                     @if (IsDialogLoading)
+                     {
+                         <div>Loading...</div>
+                     }
+                     else
+                     {
+                         <table class="table table-sm table-hover">
+                             <thead>
+                                 <tr>
+                                     <th style="text-align: right; width:110px">Date</th>
+                                     <th style="width:150px">Account</th>
+                                     <th style="width:250px">Payee</th>
+                                     <th>Memo</th>
+                                     <th style="text-align: right; width: 90px">Amount</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                                 @foreach (var transaction in DataContext.Transactions)
+                                 {
+                                     <tr>
+                                         <td style="text-align: right">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
+                                         <td>@transaction.SelectedAccount.Name</td>
+                                         <td>@transaction.Transaction.Payee</td>
+                                         <td>@transaction.Transaction.Memo</td>
+                                         <td style="text-align: right">@transaction.Transaction.Amount</td>
+                                     </tr>
+                                 }
+                             </tbody>
+                         </table>
+                     }
+                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="OnClickCallback">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+ }
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public TransactionViewModel DataContext { get; set; }
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public bool IsDialogLoading { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+}

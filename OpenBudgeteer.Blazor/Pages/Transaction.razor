@@ -1,0 +1,342 @@
+﻿@page "/transaction"
+
+@using OpenBudgeteer.Core.ViewModels
+@using OpenBudgeteer.Core.Common
+@using Microsoft.EntityFrameworkCore
+@using System.Drawing
+@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@inject DbContextOptions<DatabaseContext> DbContextOptions
+@inject YearMonthSelectorViewModel YearMonthDataContext
+
+<style>
+    .row-margin {
+        margin-bottom: 5px;
+    }
+
+    .btn-margin {
+        margin-bottom: 5px;
+    }
+
+    .btn-margin-left {
+        margin-left: 5px;
+    }
+
+    .input-right {
+        text-align: right;
+    }
+
+    .td-right {
+        text-align: right;
+    }
+
+    .td-button {
+        text-align: center;
+    }
+
+    .yearMonth-margin {
+        margin-left: 5px;
+    }
+</style>
+
+<div class="row">
+    <div class="col">
+        @if (_massEditEnabled)
+        {
+            <button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@SaveAllTransaction">Save all</button>
+            <button class="btn btn-sm btn-danger btn-margin btn-margin-left" @onclick="@CancelAllTransaction">Cancel all</button>
+        }
+        else
+        {
+            <button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@(() => _newTransactionEnabled = true)">Create Transaction</button>
+            <button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@EditAllTransaction">Edit all</button>
+        }
+    </div>
+    <YearMonthSelector DataContext="YearMonthDataContext" />
+</div>
+
+@if (_newTransactionEnabled)
+{
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th style="text-align: right; width:110px">Date</th>
+                <th style="width:150px">Account</th>
+                <th style="width:250px">Payee</th>
+                <th>Memo</th>
+                <th style="text-align: right; width: 90px">Amount</th>
+                <th style="width:400px">Buckets</th>
+                <th style="width:80px" />
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="td-right">
+                    <input class="form-control form-control-sm input-right" type="date" @bind="_dataContext.NewTransaction.Transaction.TransactionDate" />
+                </td>
+                <td>
+
+                    <select class="form-control form-control-sm" @onchange=@(e => _dataContext.NewTransaction.SelectedAccount = _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
+                        @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
+                        {
+                            if (account.AccountId == _dataContext.NewTransaction.SelectedAccount.AccountId)
+                            {
+                                <option selected value="@account.AccountId">@account.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@account.AccountId">@account.Name</option>
+                            }
+                        }
+                    </select>
+                </td>
+                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Transaction.Payee" /></td>
+                <td><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Transaction.Memo"></textarea></td>
+                <td class="td-right"><input class="form-control form-control-sm input-right" type="number" @bind="_dataContext.NewTransaction.Transaction.Amount" /></td>
+                <td>
+                    <table class="table" style="margin-bottom: auto">
+                        @foreach (var bucket in _dataContext.NewTransaction.Buckets)
+                        {
+                            <tr>
+                                <td>
+                                    <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
+                                            @onchange=@((ChangeEventArgs e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
+                                        @foreach (var availableBucket in bucket.AvailableBuckets)
+                                        {
+                                            if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
+                                            {
+                                                <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td style="width: 90px"><input class="form-control form-control-sm input-right" type="number" @bind="bucket.Amount" /></td>
+                                <td><button class="btn btn-sm btn-danger btn-margin" @onclick="@(() => bucket.DeleteBucket())">X</button></td>
+                            </tr>
+                        }
+                    </table>
+                </td>
+                <td class="td-button" style="vertical-align: middle;">
+                    <button class="btn btn-sm btn-primary btn-margin oi oi-check" @onclick="@(() => HandleResult(_dataContext.CreateItem()))"></button>
+                    <button class="btn btn-sm btn-danger btn-margin oi oi-x" @onclick="@CancelNewTransaction"></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+<table class="table table-sm table-hover">
+    <thead>
+    <tr>
+        <th style="text-align: right; width:110px">Date</th>
+        <th style="width:150px">Account</th>
+        <th style="width:250px">Payee</th>
+        <th>Memo</th>
+        <th style="text-align: right; width: 90px">Amount</th>
+        <th style="width:400px">Buckets</th>
+        <th style="width:80px" />
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var transaction in _dataContext.Transactions)
+    {
+        @if (transaction.InModification)
+        {
+            <tr>
+                <td class="td-right">
+                    <input class="form-control form-control-sm input-right" type="date" @bind="transaction.Transaction.TransactionDate" />
+                </td>
+                <td>
+
+                    <select class="form-control form-control-sm" @onchange=@(e => transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
+                        @foreach (var account in transaction.AvailableAccounts)
+                        {
+                            if (account.AccountId == transaction.SelectedAccount.AccountId)
+                            {
+                                <option selected value="@account.AccountId">@account.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@account.AccountId">@account.Name</option>
+                            }
+                        }
+                    </select>
+                </td>
+                <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
+                <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
+                <td class="td-right"><input class="form-control form-control-sm input-right" type="number" @bind="transaction.Transaction.Amount" /></td>
+                <td>
+                    <table class="table" style="margin-bottom: auto">
+                        @foreach (var bucket in transaction.Buckets)
+                        {
+                            <tr>
+                                <td>
+                                    <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
+                                            @onchange=@((ChangeEventArgs e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
+                                        @foreach (var availableBucket in bucket.AvailableBuckets)
+                                        {
+                                            if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
+                                            {
+                                                <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                            }
+                                            else
+                                            {
+                                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </td>
+                                <td style="width: 90px"><input class="form-control form-control-sm input-right" type="number" @bind="bucket.Amount" /></td>
+                                <td><button class="btn btn-sm btn-danger btn-margin" @onclick="@(() => bucket.DeleteBucket())">X</button></td>
+                            </tr>
+                        }
+                    </table>
+                </td>
+                <td class="td-button" style="vertical-align: middle;">
+                    <button class="btn btn-sm btn-primary btn-margin oi oi-check" @onclick="@(() => transaction.UpdateItem())"></button>
+                    <button class="btn btn-sm btn-danger btn-margin oi oi-x" @onclick="@(() => transaction.CancelModification())"></button>
+                </td>
+            </tr>
+        }
+        else
+        {
+            <tr @onmouseover="() => transaction.IsHovered = true" @onmouseout="() => transaction.IsHovered = false">
+                <td class="td-right">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
+                <td>@transaction.SelectedAccount.Name</td>
+                <td>@transaction.Transaction.Payee</td>
+                <td>@transaction.Transaction.Memo</td>
+                <td class="td-right">@transaction.Transaction.Amount</td>
+                <td>
+                    @foreach (var bucket in transaction.Buckets)
+                    {
+                        <div class="row" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color); border-radius: 25px; margin: 0; margin-bottom: 5px">
+                            <div class="col">@bucket.SelectedBucket.Name</div>
+                            <div class="col-md-auto td-right">@bucket.Amount</div>
+                        </div>
+                    }
+                </td>
+                <td class="td-button" style="text-align: right; vertical-align: middle">
+                    @if (transaction.IsHovered)
+                    {
+                        <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => transaction.StartModification())"></button>
+                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
+                    }
+                </td>
+            </tr>
+        }
+    }
+    </tbody>
+</table>
+
+@if (_isDeleteTransactionModalDialogVisible)
+{
+    <div class="modal fade show" style="display: block;">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Delete Transaction</h4>
+                    <button type="button" class="close" data-dismiss="modal" @onclick="@(() => _isDeleteTransactionModalDialogVisible = false)">&times;</button>
+                </div>
+                <div class="modal-body">
+                    Do you really want to delete this Transaction?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="@(DeleteTransaction)">Yes</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(CancelDeleteTransaction)">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+<ErrorMessageDialog 
+    Title="Transaction" 
+    Message="@_errorModalDialogMessage" 
+    IsDialogVisible="@_isErrorModalDialogVisible"
+    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
+
+@code {
+    TransactionViewModel _dataContext;
+    bool _newTransactionEnabled;
+    bool _massEditEnabled;
+
+    bool _isDeleteTransactionModalDialogVisible;
+    TransactionViewModelItem _transactionToBeDeleted;
+
+    bool _isErrorModalDialogVisible;
+    string _errorModalDialogMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
+
+        HandleResult(await _dataContext.LoadDataAsync());
+        _dataContext.ViewModelReloadRequired += async (sender) =>
+        {
+            HandleResult(await _dataContext.LoadDataAsync());
+            base.StateHasChanged();
+        };
+
+        YearMonthDataContext.SelectedYearMonthChanged += async (sender) =>
+        {
+            HandleResult(await _dataContext.LoadDataAsync());
+            base.StateHasChanged();
+        };
+    }
+
+    void CancelNewTransaction()
+    {
+        _newTransactionEnabled = false;
+        _dataContext.ResetNewTransaction();
+    }
+
+    void EditAllTransaction()
+    {
+        _massEditEnabled = true;
+        _dataContext.EditAllTransaction();
+    }
+
+    void SaveAllTransaction()
+    {
+        _massEditEnabled = false;
+        HandleResult(_dataContext.SaveAllTransaction());
+    }
+
+    void CancelAllTransaction()
+    {
+        _massEditEnabled = false;
+        _dataContext.CancelAllTransaction();
+    }
+
+    void HandleTransactionDeletionRequest(TransactionViewModelItem transaction)
+    {
+        _transactionToBeDeleted = transaction;
+        _isDeleteTransactionModalDialogVisible = true;
+    }
+
+    void CancelDeleteTransaction()
+    {
+        _isDeleteTransactionModalDialogVisible = false;
+        _transactionToBeDeleted = null;
+    }
+
+    void DeleteTransaction()
+    {
+        _isDeleteTransactionModalDialogVisible = false;
+        HandleResult(_transactionToBeDeleted.DeleteItem());
+    }
+
+    void HandleResult(Tuple<bool, string> result)
+    {
+        var (success, errorMessage) = result;
+        if (!success)
+        {
+            _errorModalDialogMessage = errorMessage;
+            _isErrorModalDialogVisible = true;
+        }
+    }
+}

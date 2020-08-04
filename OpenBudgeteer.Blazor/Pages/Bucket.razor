@@ -1,0 +1,386 @@
+﻿@page "/bucket"
+@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.ViewModels
+@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@using Microsoft.EntityFrameworkCore
+@using System.Drawing
+@using System.Globalization
+@inject DbContextOptions<DatabaseContext> DbContextOptions
+@inject YearMonthSelectorViewModel YearMonthDataContext
+
+<style>
+    .hr-divider {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    .span-header {
+        font-weight: bold;
+    }
+    .div-margin-bottom {
+        margin-bottom: 15px;
+    }
+    .btn-margin-left {
+        margin-left: 5px;
+    }
+    .btn-margin-bottom {
+        margin-bottom: 5px;
+    }
+    .btn-margin-top {
+        margin-top: 5px;
+    }
+    .yearMonth-margin {
+        margin-left: 5px;
+    }
+</style>
+
+<div class="row" style="margin: 15px 0; max-width: 1300px">
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/refund.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Income</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.Income.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/cash-in-hand.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Expenses</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.Expenses.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/exchange.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Month Balance</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.MonthBalance.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/merchant-account.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Bank Balance</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.BankBalance.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="w-100">
+        <hr/>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/banknotes.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Budget</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.Budget.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/receive-cash.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Pending Want</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.PendingWant.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/money-bag-euro.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Remaining Budget</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.RemainingBudget.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+    <div class="col div-margin-bottom">
+        <div class="row">
+            <div class="col-md-auto no-gutters">
+                <img src="https://img.icons8.com/officel/60/000000/high-priority.png"/>
+            </div>
+            <div class="col" style="text-align: center">
+                <span class="span-header">Negative Bucket Balance</span>
+                <hr class="hr-divider"/>
+                <span>@_dataContext.NegativeBucketBalance.ToString("C", CultureInfo.CurrentCulture)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="row">
+    <div class="col">
+        <button class="btn btn-sm btn-primary btn-margin-bottom btn-margin-left" @onclick="@CreateGroup">Create Bucket Group</button>
+        <button class="btn btn-sm btn-primary btn-margin-bottom btn-margin-left" @onclick="@DistributeBudget">Distribute Budget</button>
+    </div>
+    <YearMonthSelector DataContext="YearMonthDataContext"/>
+</div>
+
+
+<table class="table table-sm table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Bucket</th>
+            <th style="text-align: right; width: 90px">Balance</th>
+            <th style="text-align: right; width: 90px">InOut</th>
+            <th style="text-align: right; width: 90px">Want</th>
+            <th style="text-align: right; width: 90px">In</th>
+            <th style="text-align: right; width: 90px">Activity</th>
+            <th style="width:370px">Details</th>
+        </tr>
+    </thead>
+</table>
+
+@foreach (var bucketGroup in _dataContext.BucketGroups)
+{
+    <table class="table table-sm">
+        <thead>
+            <tr @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
+                @if (bucketGroup.InModification)
+                {
+                    <th colspan="6"><input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/></th>
+                    <th style="text-align: right; width: 250px">
+                        <button class="btn btn-sm btn-primary btn-margin" @onclick="@(() => bucketGroup.SaveModification())">Ok</button>
+                        <button class="btn btn-sm btn-danger btn-margin" @onclick="@(() => bucketGroup.CancelModification())">Cancel</button>
+                    </th>
+                }
+                else
+                {
+                    <th><h5>@bucketGroup.BucketGroup.Name</h5></th>
+                    <th style="text-align: right; width: 90px"><h5>@bucketGroup.TotalBalance.ToString("N2")</h5></th>
+                    <th style="width: 90px"></th>                                                                                            
+                    <th style="width: 90px"></th>
+                    <th style="width: 90px"></th>
+                    <th style="width: 90px"></th>
+                    <th colspan="2" style="text-align: right; vertical-align: middle; width: 370px">
+                        @if (bucketGroup.IsHovered)
+                        {
+                            <button class="btn btn-sm btn-margin btn-primary oi oi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
+                            <button class="btn btn-sm btn-margin btn-danger oi oi-trash" @onclick="@(() => bucketGroup.DeleteGroup())"></button>
+                            <button class="btn btn-sm btn-margin btn-primary oi oi-plus" @onclick="@(() => CreateBucket(bucketGroup))"></button>
+                        }
+                    </th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var bucket in bucketGroup.Buckets)
+            {
+                <tr @onmouseover="() => bucket.IsHovered = true" @onmouseout="() => bucket.IsHovered = false">
+                    <td>
+                        @if (bucket.Bucket.IsInactive)
+                        {
+                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">
+                                @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Bucket.Name</div>    
+                        }
+                    </td> 
+                    <td style="text-align: right; width: 90px">@bucket.Balance.ToString("N2")</td>
+                    <td style="width: 90px">
+                        <input class="form-control form-control-sm" style="text-align: right;" type="number"
+                               @bind="bucket.InOut"
+                               @onkeyup="@(args => InOut_Changed(bucket, args))"/>
+                    </td>
+                    <td style="text-align: right; width: 90px">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("N2"))</td>
+                    <td style="text-align: right; width: 90px">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
+                    <td style="text-align: right; width: 90px">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
+                    <td style="width: 250px">
+                        @if (bucket.IsProgressbarVisible)
+                        {
+                            <div class="row">
+                                <div class="col">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: @bucket.Progress%;" aria-valuenow="@bucket.Progress" aria-valuemin="0" aria-valuemax="100">
+                                            @bucket.Progress%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col" style="font-size: .75rem; text-align: center">
+                                    @bucket.Details
+                                </div>
+                            </div>
+                        }
+                    </td>
+                    <td style="vertical-align: middle; width: 120px">
+                        @if (bucket.IsHovered)
+                        {
+                            <button class="btn btn-sm btn-margin btn-primary oi oi-list" @onclick="@(() => DisplayBucketTransactions(bucket))"></button>
+                            <button class="btn btn-sm btn-margin btn-primary oi oi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
+                            <button class="btn btn-sm btn-margin btn-danger oi oi-trash" @onclick="@(() => CloseBucket(bucket))"></button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<EditBucketDialog 
+    Title="Edit Bucket"
+    DataContext="@_editBucketDialogDataContext"
+    IsDialogVisible="@_isEditBucketModalDialogVisible"
+    OnCancelClickCallback="@(() => CancelEditBucketDialog())"
+    OnSaveClickCallback="@(() => SaveAndCloseEditBucketDialog())"/>
+
+<TransactionDialog 
+    Title="Bucket Transactions" 
+    DataContext="@_transactionModalDialogDataContext" 
+    IsDialogVisible="@_isTransactionModalDialogVisible" 
+    IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
+    OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
+
+<ErrorMessageDialog 
+    Title="Bucket" 
+    Message="@_errorModalDialogMessage" 
+    IsDialogVisible="@_isErrorModalDialogVisible"
+    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
+
+@code {
+    BucketViewModel _dataContext;
+
+    BucketViewModelItem _editBucketDialogDataContext;
+    bool _isEditBucketModalDialogVisible;
+
+    TransactionViewModel _transactionModalDialogDataContext;
+    bool _isTransactionModalDialogVisible;
+    bool _isTransactionModalDialogDataContextLoading;
+
+    bool _isErrorModalDialogVisible;
+    string _errorModalDialogMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dataContext = new BucketViewModel(DbContextOptions, YearMonthDataContext);
+
+        HandleResult(await _dataContext.LoadDataAsync());
+        _dataContext.ViewModelReloadRequired += async sender =>
+        {
+            HandleResult(await _dataContext.LoadDataAsync());
+            StateHasChanged();
+        };
+
+        YearMonthDataContext.SelectedYearMonthChanged += async sender => 
+        {
+            HandleResult(await _dataContext.LoadDataAsync());
+            StateHasChanged();
+        };
+    }
+
+    void CreateGroup()
+    {
+        HandleResult(_dataContext.CreateGroup());
+    }
+
+    void DistributeBudget()
+    {
+        HandleResult(_dataContext.DistributeBudget());
+    }
+
+    void CreateBucket(BucketGroupViewModelItem bucketGroup)
+    {
+        var newBucket = bucketGroup.CreateBucket();
+        ShowEditBucketDialog(newBucket);
+    }
+
+    void ShowEditBucketDialog(BucketViewModelItem bucket)
+    {
+        _editBucketDialogDataContext = bucket;
+        _isEditBucketModalDialogVisible = true;
+    }
+
+    void SaveAndCloseEditBucketDialog()
+    {
+        _isEditBucketModalDialogVisible = false;
+        SaveChanges(_editBucketDialogDataContext);
+    }
+
+    async void CancelEditBucketDialog()
+    {
+        _isEditBucketModalDialogVisible = false;
+        HandleResult(await _dataContext.LoadDataAsync());
+        StateHasChanged();
+    }
+
+    void SaveChanges(BucketViewModelItem bucket)
+    {
+        HandleResult(_dataContext.SaveChanges(bucket));
+        StateHasChanged();
+    }
+
+    void CloseBucket(BucketViewModelItem bucket)
+    {
+        HandleResult(_dataContext.CloseBucket(bucket));
+        StateHasChanged();
+    }
+
+    void HandleResult(Tuple<bool, string> result)
+    {
+        var (success, errorMessage) = result;
+        if (!success)
+        {
+            _errorModalDialogMessage = errorMessage;
+            _isErrorModalDialogVisible = true;
+        }
+    }
+
+    void InOut_Changed(BucketViewModelItem bucket, KeyboardEventArgs args)
+    {
+        var result = bucket.HandleInOutInput(args.Key);
+        if (result.Item1)
+        {
+            HandleResult(_dataContext.UpdateBalanceFigures());
+            StateHasChanged();
+        }
+        else
+        {
+            HandleResult(result);
+        }
+    }
+
+    async void DisplayBucketTransactions(BucketViewModelItem bucket)
+    {
+        _isTransactionModalDialogVisible = true;
+        _isTransactionModalDialogDataContextLoading = true;
+
+        _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
+        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket));
+
+        _isTransactionModalDialogDataContextLoading = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>c146cdfd-f78c-4fb3-8be0-4e15e589371a</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <AssemblyName>OpenBudgeteer</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20200608152200_DecimalPrecision.cs" />
+    <Compile Remove="Migrations\20200608152200_DecimalPrecision.Designer.cs" />
+    <Compile Remove="Migrations\20200612082043_FixedBucketVersion.cs" />
+    <Compile Remove="Migrations\20200612082043_FixedBucketVersion.Designer.cs" />
+    <Compile Remove="Migrations\20200701131446_TransactionDateTime.cs" />
+    <Compile Remove="Migrations\20200701131446_TransactionDateTime.Designer.cs" />
+    <Compile Remove="Migrations\20200707141411_ImportProfileDateNumberFormat.cs" />
+    <Compile Remove="Migrations\20200707141411_ImportProfileDateNumberFormat.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChartJs.Blazor" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.5" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.1" />
+    <PackageReference Include="Tewr.Blazor.FileReader" Version="1.6.0.20166" />
+    <PackageReference Include="TinyCsvParser" Version="2.5.2" />
+  </ItemGroup>
+
+  <Import Project="..\OpenBudgeteer.Core\OpenBudgeteer.Core.projitems" Label="Shared" />
+
+</Project>

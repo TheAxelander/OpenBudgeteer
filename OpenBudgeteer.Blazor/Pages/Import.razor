@@ -1,0 +1,469 @@
+﻿@page "/import"
+
+@using OpenBudgeteer.Core.ViewModels
+@using OpenBudgeteer.Core.Common
+@using Microsoft.EntityFrameworkCore
+@using System.IO
+@using System.Text
+@using global::Blazor.FileReader
+@using OpenBudgeteer.Core.Models
+@inject DbContextOptions<DatabaseContext> DbContextOptions
+@inject IFileReaderService FileReaderService
+
+<style>
+    .div-margin-top {
+        margin-top: 15px;
+    }
+    .btn-margin-top {
+        margin-top: 5px;
+    }
+</style>
+
+<div>
+    <h5>Step 1: Select File</h5>
+    <div class="input-group" style="max-width: 1000px">
+        <div class="custom-file">
+            <input type="file" class="custom-file-input" id="fileUpload" @ref=_inputElement @onchange=@HandleFileSelection>
+            <label class="custom-file-label" for="fileUpload">@_selectedFileName</label>
+        </div>
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="button" @onclick=ReadFileAsync>Open File</button>
+        </div>
+    </div>
+</div>
+
+@if (_step2Enabled)
+{
+    <div class="div-margin-top">
+        <h5>Step 2: Select Import Profile</h5>
+        <div>
+            @if (_step4Enabled)
+            {
+                <button class="btn btn-sm btn-primary btn-margin-top" @onclick=@(() => HandleResult(_dataContext.CreateProfile()))>Create Profile</button>
+            }
+            @if (_dataContext.SelectedImportProfile != null && _dataContext.SelectedImportProfile.ImportProfileId != 0)
+            {
+                <button class="btn btn-sm btn-primary btn-margin-top" @onclick=@(() => HandleResult(_dataContext.SaveProfile()))>Save Profile</button>
+                <button class="btn btn-sm btn-danger btn-margin-top" @onclick=@(() => HandleResult(_dataContext.DeleteProfile()))>Delete Profile</button>
+            }
+        </div>
+        <div class="div-margin-top" style="width: 300px">
+            <div class="form-group">
+                <select class="form-control form-control-sm" @onchange=@ImportProfile_SelectionChanged>
+                    <option value="@_placeholderItemId">---Select Import Profile---</option>
+                    @foreach (var importProfile in _dataContext.AvailableImportProfiles)
+                    {
+                        if (_dataContext.SelectedImportProfile != null && importProfile.ImportProfileId == _dataContext.SelectedImportProfile.ImportProfileId)
+                        {
+                            <option selected value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
+                        }
+                        else
+                        {
+                            <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Profile Name:</label>
+                <input class="form-control form-control-sm" type="text" @bind="_dataContext.ProfileName"/>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col">
+                        <label>Delimiter:</label>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.Delimiter"/>
+                    </div>
+                    <div class="col">
+                        <label>Text qualifier:</label>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.TextQualifier"/>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col">
+                        <label>Date format:</label>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.DateFormat"/>
+                        <p><small>e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy</small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col">
+                        <label>Number format:</label>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.NumberFormat"/>
+                        <p><small>Use BCP 47 language tag like en-US or de-DE</small></p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col">
+                        <label>Header Row:</label>
+                        <input class="form-control form-control-sm" type="number" @bind="_dataContext.HeaderRow"/>
+                    </div>
+                    <div class="col-auto align-self-end">
+                        <button class="btn btn-sm btn-primary" @onclick=LoadHeaders>Load Header</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Target Account:</label>
+                <select class="form-control form-control-sm" @onchange=@TargetAccount_SelectionChanged>
+                    <option value="@_placeholderItemId">---Select Target Account---</option>
+                    @foreach (var account in _dataContext.AvailableAccounts)
+                    {
+                        if (account.AccountId == _dataContext.SelectedAccount.AccountId)
+                        {
+                            <option selected value="@account.AccountId">@account.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@account.AccountId">@account.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_step3Enabled)
+{
+    <div class="div-margin-top">
+        <h5>Step 3: Modify Column Mapping</h5>
+        <div class="row">
+            <div class="col">
+                <label>Transaction Date:</label>
+                <select class="form-control form-control-sm" @onchange=@TransactionDateColumn_SelectionChanged>
+                    <option value="@_placeholderItemValue">---Select Column---</option>
+                    @foreach (var column in _dataContext.IdentifiedColumns)
+                    {
+                        if (column == _dataContext.TransactionDateColumn)
+                        {
+                            <option selected value="@column">@column</option>
+                        }
+                        else
+                        {
+                            <option value="@column">@column</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col">
+                <label>Payee (optional):</label>
+                <select class="form-control form-control-sm" @onchange=@PayeeColumn_SelectionChanged>
+                    <option value="@_placeholderItemValue">---Select Column---</option>
+                    @foreach (var column in _dataContext.IdentifiedColumns)
+                    {
+                        if (column == _dataContext.PayeeColumn)
+                        {
+                            <option selected value="@column">@column</option>
+                        }
+                        else
+                        {
+                            <option value="@column">@column</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col">
+                <label>Memo:</label>
+                <select class="form-control form-control-sm" @onchange=@MemoColumn_SelectionChanged>
+                    <option value="@_placeholderItemValue">---Select Column---</option>
+                    @foreach (var column in _dataContext.IdentifiedColumns)
+                    {
+                        if (column == _dataContext.MemoColumn)
+                        {
+                            <option selected value="@column">@column</option>
+                        }
+                        else
+                        {
+                            <option value="@column">@column</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col">
+                <label>Amount:</label>
+                <select class="form-control form-control-sm" @onchange=@AmountColumn_SelectionChanged>
+                    <option value="@_placeholderItemValue">---Select Column---</option>
+                    @foreach (var column in _dataContext.IdentifiedColumns)
+                    {
+                        if (column == _dataContext.AmountColumn)
+                        {
+                            <option selected value="@column">@column</option>
+                        }
+                        else
+                        {
+                            <option value="@column">@column</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+}
+
+@if (_step4Enabled)
+{
+    <div class="div-margin-top">
+        <h5>Step 4: Validate and Import Data</h5>
+        <button class="btn btn-sm btn-primary btn-margin-top" @onclick=ValidateData>Validate Data</button>
+        @if (_dataContext.ValidRecords > 0)
+        {
+            <button class="btn btn-sm btn-primary btn-margin-top" @onclick=ImportData>Import Data</button>
+        }
+        <div>
+            <p>Total Records: @_dataContext.TotalRecords</p>
+            <p>Valid Records: @_dataContext.ValidRecords</p>
+            <p>Records with errors: @_dataContext.RecordsWithErrors</p>
+            @if (_validationErrorMessage != string.Empty)
+            {
+                <p style="color: red">Error message: @_validationErrorMessage</p>
+            }
+        </div>
+    </div>
+
+    @if (_dataContext.ParsedRecords.Any(i => i.IsValid))
+    {
+        <h5>Preview (Valid Records)</h5>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th style="text-align: right; width:110px">Date</th>
+                    <th style="width:150px">Account</th>
+                    <th style="width:250px">Payee</th>
+                    <th>Memo</th>
+                    <th style="text-align: right; width: 90px">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in _dataContext.ParsedRecords.Where(i => i.IsValid))
+                {
+                    <tr>
+                        <td class="td-right">@transaction.Result.TransactionDate.ToShortDateString()</td>
+                        <td>@_dataContext.SelectedAccount.Name</td>
+                        <td>@transaction.Result.Payee</td>
+                        <td>@transaction.Result.Memo</td>
+                        <td class="td-right">@transaction.Result.Amount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    
+    @if (_dataContext.ParsedRecords.Any(i => !i.IsValid))
+    {
+        <h5>Records with error:</h5>
+        <table class="table table-sm table-hover">
+            <thead>
+                <tr>
+                    <th style="text-align: right; width:50px">Row</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            @foreach (var transaction in _dataContext.ParsedRecords.Where(i => !i.IsValid))
+            {
+                <tr>
+                    <td style="text-align: right">@transaction.RowIndex</td>
+                    <td>
+                        <div>@transaction.Error.Value</div>
+                        <div>@transaction.Error.UnmappedRow</div>
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+}
+
+<div class="div-margin-top">
+    <h5>File Content:</h5>
+    <textarea class="form-control form-control-sm" rows="30" @bind="_dataContext.FileText"></textarea>
+</div>
+
+@if (_isConfirmationModalDialogVisible)
+ {
+     <div class="modal fade show" style=" display: block;">
+         <div class="modal-dialog modal-dialog-scrollable">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h4 class="modal-title">Import Transactions</h4>
+                     <button type="button" class="close" data-dismiss="modal" @onclick="@(() => _isConfirmationModalDialogVisible = false)">&times;</button>
+                 </div>
+                 <div class="modal-body">
+                     @_importConfirmationMessage
+                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(() => _isConfirmationModalDialogVisible = false)">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+ }
+
+<ErrorMessageDialog 
+    Title="Import" 
+    Message="@_errorModalDialogMessage" 
+    IsDialogVisible="@_isErrorModalDialogVisible"
+    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
+
+@code {
+    ImportDataViewModel _dataContext;
+    ElementReference _inputElement;
+
+    readonly int _placeholderItemId = -1;
+    readonly string _placeholderItemValue = "___PlaceholderItem___";
+
+    string _selectedFileName = "Choose File";
+
+    bool _step2Enabled;
+    bool _step3Enabled;
+    bool _step4Enabled;
+
+    string _validationErrorMessage = string.Empty;
+
+    bool _isConfirmationModalDialogVisible;
+    string _importConfirmationMessage;
+
+    bool _isErrorModalDialogVisible;
+    string _errorModalDialogMessage;
+
+    protected override void OnInitialized()
+    {
+        _dataContext = new ImportDataViewModel(DbContextOptions);
+        HandleResult(_dataContext.LoadData());
+    }
+
+    void HandleFileSelection(ChangeEventArgs e)
+    {
+        try
+        {
+            _selectedFileName = e.Value.ToString()?.Split('\\').Last();
+        }
+        catch
+        {
+            _selectedFileName = "Choose File";
+        }
+    }
+
+    async Task ReadFileAsync()
+    {
+        var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
+        if (file == null) return;
+        HandleResult(await _dataContext.HandleOpenFileAsync(await file.OpenReadAsync()));
+        _step2Enabled = true;
+    }
+
+    void LoadProfile()
+    {
+        // Workaround for setting the SelectedImportProfile as the first item is always selected but doesn't trigger OnChange
+        if (_dataContext.SelectedImportProfile == null && _dataContext.AvailableImportProfiles.Count > 0)
+        {
+            _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.First();
+        }
+        var result = _dataContext.LoadProfile();
+        if (result.Item1)
+        {
+            _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId != 0;
+            CheckColumnMapping();    
+        }
+        else
+        {
+            HandleResult(result);    
+        }
+    }
+
+    void LoadHeaders()
+    {
+        var result = _dataContext.LoadHeaders();
+        if (result.Item1)
+        {
+            _step3Enabled = true;
+        }
+        else
+        {
+            HandleResult(result);
+        }
+    }
+
+    void CheckColumnMapping()
+    {
+        _step4Enabled = false;
+        if (string.IsNullOrEmpty(_dataContext.TransactionDateColumn) || _dataContext.TransactionDateColumn == _placeholderItemValue) return;
+        // Make Payee optional
+        //if (string.IsNullOrEmpty(_dataContext.PayeeColumn) || _dataContext.PayeeColumn == _placeholderItemValue) return;
+        if (string.IsNullOrEmpty(_dataContext.MemoColumn) || _dataContext.MemoColumn == _placeholderItemValue) return;
+        if (string.IsNullOrEmpty(_dataContext.AmountColumn) || _dataContext.AmountColumn == _placeholderItemValue) return;
+        _step4Enabled = true;
+        ValidateData();
+    }
+
+    void ValidateData()
+    {
+        _validationErrorMessage = _dataContext.ValidateData();
+    }
+
+    void ImportData()
+    {
+        var result = _dataContext.ImportData();
+        _importConfirmationMessage = result.Item2;
+        _isConfirmationModalDialogVisible = true;
+    }
+
+    void ImportProfile_SelectionChanged(ChangeEventArgs e)
+    {
+        _step3Enabled = false;
+        _step4Enabled = false;
+        var value = Convert.ToInt32(e.Value);
+        _dataContext.SelectedImportProfile = value == _placeholderItemId ? new ImportProfile() : _dataContext.AvailableImportProfiles.First(i => i.ImportProfileId == value);
+        if (_dataContext.SelectedImportProfile != null) LoadProfile();
+    }
+
+    void TargetAccount_SelectionChanged(ChangeEventArgs e)
+    {
+        var value = Convert.ToInt32(e.Value);
+        _dataContext.SelectedAccount = value == _placeholderItemId ? null : _dataContext.AvailableAccounts.First(i => i.AccountId == value);
+    }
+
+    void TransactionDateColumn_SelectionChanged(ChangeEventArgs e)
+    {
+        var value = Convert.ToString(e.Value);
+        _dataContext.TransactionDateColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        CheckColumnMapping();
+    }
+
+    void PayeeColumn_SelectionChanged(ChangeEventArgs e)
+    {
+        var value = Convert.ToString(e.Value);
+        _dataContext.PayeeColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        CheckColumnMapping();
+    }
+
+    void MemoColumn_SelectionChanged(ChangeEventArgs e)
+    {
+        var value = Convert.ToString(e.Value);
+        _dataContext.MemoColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        CheckColumnMapping();
+    }
+
+    void AmountColumn_SelectionChanged(ChangeEventArgs e)
+    {
+        var value = Convert.ToString(e.Value);
+        _dataContext.AmountColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        CheckColumnMapping();
+    }
+
+    void HandleResult(Tuple<bool, string> result)
+    {
+        var (success, errorMessage) = result;
+        if (!success)
+        {
+            _errorModalDialogMessage = errorMessage;
+            _isErrorModalDialogVisible = true;
+        }
+    }
+}

@@ -1,0 +1,148 @@
+﻿@page "/account"
+
+@using OpenBudgeteer.Core.ViewModels
+@using OpenBudgeteer.Core.Common
+@using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@using System.Globalization
+@inject DbContextOptions<DatabaseContext> DbContextOptions
+
+<style>
+    .flex-container {
+        display: flex;
+        flex-direction: row;
+    }
+    .btn-margin {
+        margin: 5px 5px 5px 0px;
+    }
+</style>
+
+@if (_dataContext == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="flex-container">
+        <button class="btn btn-sm btn-primary btn-margin" @onclick="CreateNewAccount">New account</button>
+    </div>
+
+    <div class="row">
+        @foreach (var account in _dataContext.Accounts)
+        {
+            <div class="col-3" style="padding: 15px">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@account.Account.Name</h5>
+                        <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
+                        <button class="btn btn-sm btn-primary" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
+                        <button class="btn btn-sm btn-primary" @onclick="@(() => EditAccount(account))">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="@(() => CloseAccount(account))">Close</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<EditAccountDialog
+    Title="@_editAccountDialogTitle"
+    DataContext="@_editAccountDialogDataContext"
+    IsDialogVisible="@_isEditAccountModalDialogVisible"
+    OnSaveClickCallback="@(() => SaveChanges(_editAccountDialogDataContext))"
+    OnCancelClickCallback="@(() => CancelChanges())"/>
+
+<TransactionDialog 
+    Title="Account Transactions" 
+    DataContext="@_transactionModalDialogDataContext" 
+    IsDialogVisible="@_isTransactionModalDialogVisible" 
+    IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
+    OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
+
+<ErrorMessageDialog 
+    Title="Account" 
+    Message="@_errorModalDialogMessage" 
+    IsDialogVisible="@_isErrorModalDialogVisible"
+    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
+
+@code {
+    AccountViewModel _dataContext;
+    TransactionViewModel _transactionModalDialogDataContext;
+
+    bool _isEditAccountModalDialogVisible;
+    string _editAccountDialogTitle;
+    AccountViewModelItem _editAccountDialogDataContext;
+
+
+    bool _isTransactionModalDialogVisible;
+    bool _isTransactionModalDialogDataContextLoading;
+
+    bool _isErrorModalDialogVisible;
+    string _errorModalDialogMessage;
+
+    protected override void OnInitialized()
+    {
+        _dataContext = new AccountViewModel(DbContextOptions);
+        _dataContext.LoadData();
+        _dataContext.ViewModelReloadRequired += sender =>
+        {
+            _dataContext.LoadData();
+            StateHasChanged();
+        };
+        HandleResult(new Tuple<bool, string>(true, ""));
+    }
+
+    private void CreateNewAccount()
+    {
+        _editAccountDialogTitle = "New Account";
+        _editAccountDialogDataContext = _dataContext.PrepareNewAccount();
+        _isEditAccountModalDialogVisible = true;
+    }
+
+    private void EditAccount(AccountViewModelItem account)
+    {
+        _editAccountDialogTitle = "Edit Account";
+        _editAccountDialogDataContext = account;
+        _isEditAccountModalDialogVisible = true;
+    }
+
+
+    private void SaveChanges(AccountViewModelItem account)
+    {
+        _isEditAccountModalDialogVisible = false;
+        HandleResult(account.CreateUpdateItem());
+    }
+
+    private void CancelChanges()
+    {
+        _isEditAccountModalDialogVisible = false;
+        _dataContext.CancelEditMode();
+    }
+
+    private void CloseAccount(AccountViewModelItem account)
+    {
+        HandleResult(account.CloseItem());
+    }
+
+    void HandleResult(Tuple<bool, string> result)
+    {
+        var (success, errorMessage) = result;
+        if (!success)
+        {
+            _errorModalDialogMessage = errorMessage;
+            _isErrorModalDialogVisible = true;
+        }
+    }
+
+    async void DisplayAccountTransactions(AccountViewModelItem account)
+    {
+        _isTransactionModalDialogVisible = true;
+        _isTransactionModalDialogDataContextLoading = true;
+
+        _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, new YearMonthSelectorViewModel());
+        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(account.Account));
+
+        _isTransactionModalDialogDataContextLoading = false;
+        StateHasChanged();
+    }
+}

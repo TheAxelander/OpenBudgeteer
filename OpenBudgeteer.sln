@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29424.173
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OpenBudgeteer.Core", "OpenBudgeteer.Core\OpenBudgeteer.Core.shproj", "{CC22A1E2-FA88-417C-A402-69526C33D2F4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenBudgeteer.Blazor", "OpenBudgeteer.Blazor\OpenBudgeteer.Blazor.csproj", "{0A5C2CAD-5438-4D2C-9C17-1ADF5C9AA9D3}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		OpenBudgeteer.Core\OpenBudgeteer.Core.projitems*{0a5c2cad-5438-4d2c-9c17-1adf5c9aa9d3}*SharedItemsImports = 5
+		OpenBudgeteer.Core\OpenBudgeteer.Core.projitems*{cc22a1e2-fa88-417c-a402-69526c33d2f4}*SharedItemsImports = 13
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A5C2CAD-5438-4D2C-9C17-1ADF5C9AA9D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A5C2CAD-5438-4D2C-9C17-1ADF5C9AA9D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A5C2CAD-5438-4D2C-9C17-1ADF5C9AA9D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A5C2CAD-5438-4D2C-9C17-1ADF5C9AA9D3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F95D78BC-1413-4526-8D05-F39ECAA9A937}
+	EndGlobalSection
+EndGlobal
