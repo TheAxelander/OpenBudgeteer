@@ -15,14 +15,14 @@ You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/
 | Connection:Password | Database password | MyOpenBudgeteerPassword |
 
 ```
-docker run -d --name='openbudgeteer' 
-    -e 'Connection:Server'='192.168.178.100' 
-    -e 'Connection:Port'='3306' 
-    -e 'Connection:Database'='MyOpenBudgeteerDb' 
-    -e 'Connection:User'='MyOpenBudgeteerUser' 
-    -e 'Connection:Password'='MyOpenBudgeteerPassword' 
-    -p '6100:80/tcp' 
-    'axelander/openbudgeteer:latest' 
+docker run -d --name='openbudgeteer' \
+    -e 'Connection:Server'='192.168.178.100' \
+    -e 'Connection:Port'='3306' \
+    -e 'Connection:Database'='MyOpenBudgeteerDb' \
+    -e 'Connection:User'='MyOpenBudgeteerUser' \
+    -e 'Connection:Password'='MyOpenBudgeteerPassword' \
+    -p '6100:80/tcp' \
+    'axelander/openbudgeteer:latest'
 ```
 
 If you don't change the Port Mapping you can access the App with Port `80`. Otherwise like above example it can be accessed with Port `6100`
@@ -32,14 +32,14 @@ If you don't change the Port Mapping you can access the App with Port `80`. Othe
 A Pre-Release version can be used with the Tag `pre-release`
 
 ```
-docker run -d --name='openbudgeteer' 
-    -e 'Connection:Server'='192.168.178.100' 
-    -e 'Connection:Port'='3306' 
-    -e 'Connection:Database'='MyOpenBudgeteerDb' 
-    -e 'Connection:User'='MyOpenBudgeteerUser' 
-    -e 'Connection:Password'='MyOpenBudgeteerPassword' 
-    -p '6100:80/tcp' 
-    'axelander/openbudgeteer:pre-release' 
+docker run -d --name='openbudgeteer' \
+    -e 'Connection:Server'='192.168.178.100' \
+    -e 'Connection:Port'='3306' \
+    -e 'Connection:Database'='MyOpenBudgeteerDb' \
+    -e 'Connection:User'='MyOpenBudgeteerUser' \
+    -e 'Connection:Password'='MyOpenBudgeteerPassword' \
+    -p '6100:80/tcp' \
+    'axelander/openbudgeteer:pre-release'
 ```
 
 ## How to use
