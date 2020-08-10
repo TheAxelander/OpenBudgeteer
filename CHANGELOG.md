@@ -1,3 +1,7 @@
+### 1.1 ()
+
+* Test
+
 ### 1.0 (2020-08-10)
 
 * First major release
