@@ -1,3 +1,8 @@
+### 1.0 (2020-08-10)
+
+* First major release
+* Repository now Open Source
+
 ### 0.12 (2020-08-04)
 
 * [Add] Current version number and database name to header
