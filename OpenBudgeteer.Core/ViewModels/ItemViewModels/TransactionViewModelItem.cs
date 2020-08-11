@@ -65,11 +65,15 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
         private TransactionViewModelItem _oldTransactionViewModelItem;
 
-        public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
+        public TransactionViewModelItem()
         {
             Transaction = new BankTransaction();
             Buckets = new ObservableCollection<PartialBucketViewModelItem>();
             AvailableAccounts = new ObservableCollection<Account>();
+        }
+
+        public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel) : this()
+        {
             _dbOptions = dbOptions;
             _yearMonthViewModel = yearMonthViewModel;
 
@@ -150,7 +154,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 var account = dbContext.Account.First(i => i.AccountId == transaction.AccountId);
-                if (account.IsActive == 0)
+                if (account != null && account.IsActive == 0)
                 {
                     account.Name += " (Inactive)";
                     AvailableAccounts.Add(account);
@@ -162,6 +166,28 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             
         }
 
+        public TransactionViewModelItem(BucketMovement bucketMovement) : this()
+        {
+            // Simulate a BankTransaction based on BucketMovement
+            Transaction = new BankTransaction
+            {
+                TransactionId = 0,
+                AccountId = 0,
+                Amount = bucketMovement.Amount,
+                Memo = "Bucket Movement",
+                Payee = string.Empty,
+                TransactionDate = bucketMovement.MovementDate,
+            };
+
+            // Simulate Account
+            SelectedAccount = new Account
+            {
+                AccountId = 0,
+                IsActive = 1,
+                Name = string.Empty
+            };
+        }
+
         public static async Task<TransactionViewModelItem> CreateAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
         {
             return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction));
@@ -170,6 +196,11 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public static async Task<TransactionViewModelItem> CreateWithoutBucketsAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
         {
             return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction, false));
+        }
+
+        public static async Task<TransactionViewModelItem> CreateFromBucketMovementAsync(BucketMovement bucketMovement)
+        {
+            return await Task.Run(() => new TransactionViewModelItem(bucketMovement));
         }
 
         private void CheckBucketAssignments(object sender, AmountChangedArgs changedArgs)

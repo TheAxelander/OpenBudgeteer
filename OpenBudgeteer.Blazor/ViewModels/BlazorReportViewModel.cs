@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Linq;
 using System.Threading.Tasks;
 using ChartJs.Blazor.ChartJS.BarChart;
-using ChartJs.Blazor.ChartJS.BarChart.Axes;
-using ChartJs.Blazor.ChartJS.Common;
 using ChartJs.Blazor.ChartJS.Common.Axes;
 using ChartJs.Blazor.ChartJS.Common.Axes.Ticks;
 using ChartJs.Blazor.ChartJS.Common.Enums;
@@ -18,7 +15,6 @@ using ChartJs.Blazor.Util;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.ViewModels;
-using Point = ChartJs.Blazor.ChartJS.Common.Point;
 
 namespace OpenBudgeteer.Blazor.ViewModels
 {

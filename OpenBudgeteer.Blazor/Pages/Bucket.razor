@@ -262,6 +262,7 @@
     DataContext="@_transactionModalDialogDataContext" 
     IsDialogVisible="@_isTransactionModalDialogVisible" 
     IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
+    CurrentBucket ="@_transactionModalDialogBucket"
     OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
 
 <ErrorMessageDialog 
@@ -277,6 +278,7 @@
     bool _isEditBucketModalDialogVisible;
 
     TransactionViewModel _transactionModalDialogDataContext;
+    OpenBudgeteer.Core.Models.Bucket _transactionModalDialogBucket;
     bool _isTransactionModalDialogVisible;
     bool _isTransactionModalDialogDataContextLoading;
 
@@ -378,7 +380,8 @@
         _isTransactionModalDialogDataContextLoading = true;
 
         _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
-        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket));
+        _transactionModalDialogBucket = bucket.Bucket;
+        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket, true));
 
         _isTransactionModalDialogDataContextLoading = false;
         StateHasChanged();

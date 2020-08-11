@@ -1,4 +1,6 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
+@using OpenBudgeteer.Core.Models
+
 @if (IsDialogVisible)
  {
      <div class="modal fade show" style=" display: block;">
@@ -15,6 +17,11 @@
                      }
                      else
                      {
+                         @if (CurrentBucket != null)
+                         {
+						    <input checked="checked" type="checkbox" @onchange="HideBucketMovementCheckboxClicked"/>
+                            <label>Show Bucket Movements</label>
+                         }
                          <table class="table table-sm table-hover">
                              <thead>
                                  <tr>
@@ -62,6 +69,16 @@
     [Parameter]
     public bool IsDialogLoading { get; set; }
 
+	[Parameter]
+    public Bucket CurrentBucket { get; set; }
+
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    private async void HideBucketMovementCheckboxClicked(ChangeEventArgs eventArgs)
+    {
+        await DataContext.LoadDataAsync(CurrentBucket, (bool)eventArgs.Value);
+        StateHasChanged();
+    }
+
 }
