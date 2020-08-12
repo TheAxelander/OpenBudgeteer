@@ -66,17 +66,17 @@
             </div>
             <div class="form-group">
                 <label>Profile Name:</label>
-                <input class="form-control form-control-sm" type="text" @bind="_dataContext.ProfileName"/>
+                <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.ProfileName"/>
             </div>
             <div class="form-group">
                 <div class="row">
                     <div class="col">
                         <label>Delimiter:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.Delimiter"/>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.Delimiter"/>
                     </div>
                     <div class="col">
                         <label>Text qualifier:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.TextQualifier"/>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.TextQualifier"/>
                     </div>
                 </div>
             </div>
@@ -84,7 +84,7 @@
                 <div class="row">
                     <div class="col">
                         <label>Date format:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.DateFormat"/>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.DateFormat"/>
                         <p><small>e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy</small></p>
                     </div>
                 </div>
@@ -93,7 +93,7 @@
                 <div class="row">
                     <div class="col">
                         <label>Number format:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.NumberFormat"/>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.NumberFormat"/>
                         <p><small>Use BCP 47 language tag like en-US or de-DE</small></p>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                 <div class="row">
                     <div class="col">
                         <label>Header Row:</label>
-                        <input class="form-control form-control-sm" type="number" @bind="_dataContext.HeaderRow"/>
+                        <input class="form-control form-control-sm" type="number" @bind="_dataContext.SelectedImportProfile.HeaderRow"/>
                     </div>
                     <div class="col-auto align-self-end">
                         <button class="btn btn-sm btn-primary" @onclick=LoadHeaders>Load Header</button>
@@ -141,7 +141,7 @@
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
-                        if (column == _dataContext.TransactionDateColumn)
+                        if (column == _dataContext.SelectedImportProfile.TransactionDateColumnName)
                         {
                             <option selected value="@column">@column</option>
                         }
@@ -158,7 +158,7 @@
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
-                        if (column == _dataContext.PayeeColumn)
+                        if (column == _dataContext.SelectedImportProfile.PayeeColumnName)
                         {
                             <option selected value="@column">@column</option>
                         }
@@ -175,7 +175,7 @@
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
-                        if (column == _dataContext.MemoColumn)
+                        if (column == _dataContext.SelectedImportProfile.MemoColumnName)
                         {
                             <option selected value="@column">@column</option>
                         }
@@ -192,7 +192,7 @@
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
-                        if (column == _dataContext.AmountColumn)
+                        if (column == _dataContext.SelectedImportProfile.AmountColumnName)
                         {
                             <option selected value="@column">@column</option>
                         }
@@ -352,6 +352,12 @@
 
     async Task ReadFileAsync()
     {
+        _step2Enabled = false;
+        _step3Enabled = false;
+        _step4Enabled = false;
+        _dataContext.SelectedImportProfile = new ImportProfile();
+        _dataContext.SelectedAccount = new Core.Models.Account();
+
         var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
         if (file == null) return;
         HandleResult(await _dataContext.HandleOpenFileAsync(await file.OpenReadAsync()));
@@ -369,7 +375,8 @@
         if (result.Item1)
         {
             _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId != 0;
-            CheckColumnMapping();    
+            CheckColumnMapping();  
+            StateHasChanged();
         }
         else
         {
@@ -393,11 +400,14 @@
     void CheckColumnMapping()
     {
         _step4Enabled = false;
-        if (string.IsNullOrEmpty(_dataContext.TransactionDateColumn) || _dataContext.TransactionDateColumn == _placeholderItemValue) return;
+        if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.TransactionDateColumnName) || 
+            _dataContext.SelectedImportProfile.TransactionDateColumnName == _placeholderItemValue) return;
         // Make Payee optional
         //if (string.IsNullOrEmpty(_dataContext.PayeeColumn) || _dataContext.PayeeColumn == _placeholderItemValue) return;
-        if (string.IsNullOrEmpty(_dataContext.MemoColumn) || _dataContext.MemoColumn == _placeholderItemValue) return;
-        if (string.IsNullOrEmpty(_dataContext.AmountColumn) || _dataContext.AmountColumn == _placeholderItemValue) return;
+        if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.MemoColumnName) || 
+            _dataContext.SelectedImportProfile.MemoColumnName == _placeholderItemValue) return;
+        if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.AmountColumnName) || 
+            _dataContext.SelectedImportProfile.AmountColumnName == _placeholderItemValue) return;
         _step4Enabled = true;
         ValidateData();
     }
@@ -432,28 +442,28 @@
     void TransactionDateColumn_SelectionChanged(ChangeEventArgs e)
     {
         var value = Convert.ToString(e.Value);
-        _dataContext.TransactionDateColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        _dataContext.SelectedImportProfile.TransactionDateColumnName = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
         CheckColumnMapping();
     }
 
     void PayeeColumn_SelectionChanged(ChangeEventArgs e)
     {
         var value = Convert.ToString(e.Value);
-        _dataContext.PayeeColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        _dataContext.SelectedImportProfile.PayeeColumnName = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
         CheckColumnMapping();
     }
 
     void MemoColumn_SelectionChanged(ChangeEventArgs e)
     {
         var value = Convert.ToString(e.Value);
-        _dataContext.MemoColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        _dataContext.SelectedImportProfile.MemoColumnName = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
         CheckColumnMapping();
     }
 
     void AmountColumn_SelectionChanged(ChangeEventArgs e)
     {
         var value = Convert.ToString(e.Value);
-        _dataContext.AmountColumn = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        _dataContext.SelectedImportProfile.AmountColumnName = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
         CheckColumnMapping();
     }
 

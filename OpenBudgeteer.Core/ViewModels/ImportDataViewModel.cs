@@ -63,76 +63,6 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _selectedImportProfile, value);
         }
 
-        private string _profileName;
-        public string ProfileName
-        {
-            get => _profileName;
-            set => Set(ref _profileName, value);
-        }
-
-        private int _headerRow;
-        public int HeaderRow
-        {
-            get => _headerRow;
-            set => Set(ref _headerRow, value);
-        }
-
-        private char _delimiter;
-        public char Delimiter
-        {
-            get => _delimiter;
-            set => Set(ref _delimiter, value);
-        }
-
-        private char _textQualifier;
-        public char TextQualifier
-        {
-            get => _textQualifier;
-            set => Set(ref _textQualifier, value);
-        }
-
-        private string _dateFormat;
-        public string DateFormat
-        {
-            get => _dateFormat;
-            set => Set(ref _dateFormat, value);
-        }
-
-        private string _numberFormat;
-        public string NumberFormat
-        {
-            get => _numberFormat;
-            set => Set(ref _numberFormat, value);
-        }
-
-        private string _transactionDateColumn;
-        public string TransactionDateColumn
-        {
-            get => _transactionDateColumn;
-            set => Set(ref _transactionDateColumn, value);
-        }
-
-        private string _payeeColumn;
-        public string PayeeColumn
-        {
-            get => _payeeColumn;
-            set => Set(ref _payeeColumn, value);
-        }
-
-        private string _memoColumn;
-        public string MemoColumn
-        {
-            get => _memoColumn;
-            set => Set(ref _memoColumn, value);
-        }
-
-        private string _amountColumn;
-        public string AmountColumn
-        {
-            get => _amountColumn;
-            set => Set(ref _amountColumn, value);
-        }
-
         private int _totalRecords;
         public int TotalRecords
         {
@@ -285,7 +215,6 @@ namespace OpenBudgeteer.Core.ViewModels
             try
             {
                 ResetLoadedProfileData();
-                ProfileName = SelectedImportProfile.ProfileName;
                 IsColumnMappingSettingVisible = true;
 
                 // Set target Account
@@ -294,11 +223,6 @@ namespace OpenBudgeteer.Core.ViewModels
                     SelectedAccount = AvailableAccounts.First(i => i.AccountId == SelectedImportProfile.AccountId);
                 }
 
-                HeaderRow = SelectedImportProfile.HeaderRow;
-                Delimiter = SelectedImportProfile.Delimiter;
-                TextQualifier = SelectedImportProfile.TextQualifier;
-                DateFormat = SelectedImportProfile.DateFormat;
-                NumberFormat = SelectedImportProfile.NumberFormat;
                 var (success, errorMessage) = LoadHeaders();
                 if (!success) throw new Exception(errorMessage);
 
@@ -320,17 +244,13 @@ namespace OpenBudgeteer.Core.ViewModels
             {
                 // Set ComboBox selection for Column Mapping
                 IdentifiedColumns.Clear();
-                var headerLine = _fileLines[HeaderRow - 1];
-                var columns = headerLine.Split(Delimiter);
+                var headerLine = _fileLines[SelectedImportProfile.HeaderRow - 1];
+                var columns = headerLine.Split(SelectedImportProfile.Delimiter);
                 foreach (var column in columns)
                 {
                     if (column != string.Empty)
-                        IdentifiedColumns.Add(column.Trim(TextQualifier)); // Exclude TextQualifier
+                        IdentifiedColumns.Add(column.Trim(SelectedImportProfile.TextQualifier)); // Exclude TextQualifier
                 }
-                AmountColumn = SelectedImportProfile.AmountColumnName;
-                MemoColumn = SelectedImportProfile.MemoColumnName;
-                PayeeColumn = SelectedImportProfile.PayeeColumnName;
-                TransactionDateColumn = SelectedImportProfile.TransactionDateColumnName;
             }
             catch (Exception e)
             {
@@ -341,17 +261,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         private void ResetLoadedProfileData()
         {
-            ProfileName = string.Empty;
             SelectedAccount = new Account();
-            HeaderRow = 0;
-            Delimiter = char.MinValue;
-            DateFormat = string.Empty;
-            NumberFormat = string.Empty;
-            TextQualifier = char.MinValue;
-            AmountColumn = string.Empty;
-            MemoColumn = string.Empty;
-            PayeeColumn = string.Empty;
-            TransactionDateColumn = string.Empty;
             IsColumnMappingSettingVisible = false;
             ParsedRecords.Clear();
             TotalRecords = 0;
@@ -363,33 +273,18 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             try
             {
-                // Create a new interim Import Profile considering unsaved changes (e.g. in column mapping)
-                var interimProfile = new ImportProfile()
-                {
-                    AccountId = SelectedAccount.AccountId,
-                    HeaderRow = HeaderRow,
-                    Delimiter = Delimiter,
-                    TextQualifier = TextQualifier,
-                    DateFormat = DateFormat,
-                    NumberFormat = NumberFormat,
-                    TransactionDateColumnName = TransactionDateColumn,
-                    PayeeColumnName = PayeeColumn,
-                    MemoColumnName = MemoColumn,
-                    AmountColumnName = AmountColumn
-                };
-
                 // Pre-Load Data for verification
                 // Initialize CsvReader
-                var options = new Options(TextQualifier, '\\', Delimiter);
+                var options = new Options(SelectedImportProfile.TextQualifier, '\\', SelectedImportProfile.Delimiter);
                 var tokenizer = new RFC4180Tokenizer(options);
                 var csvParserOptions = new CsvParserOptions(true, tokenizer);
                 var csvReaderOptions = new CsvReaderOptions(new[] { Environment.NewLine });
-                var csvMapper = new CsvBankTransactionMapping(interimProfile, IdentifiedColumns);
+                var csvMapper = new CsvBankTransactionMapping(SelectedImportProfile, IdentifiedColumns);
                 var csvParser = new CsvParser<BankTransaction>(csvParserOptions, csvMapper);
 
                 // Read File and Skip rows based on HeaderRow
                 var stringBuilder = new StringBuilder();
-                for (int i = interimProfile.HeaderRow-1; i < _fileLines.Length; i++)
+                for (int i = SelectedImportProfile.HeaderRow-1; i < _fileLines.Length; i++)
                 {
                     stringBuilder.AppendLine(_fileLines[i]);
                 }
@@ -470,29 +365,15 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             try
             {
-                if (string.IsNullOrEmpty(ProfileName)) throw new Exception("Profile Name must not be empty.");
+                if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) throw new Exception("Profile Name must not be empty.");
 
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
-                    var newProfile = new ImportProfile()
-                    {
-                        ImportProfileId = 0,
-                        ProfileName = ProfileName,
-                        AccountId = SelectedAccount.AccountId,
-                        HeaderRow = HeaderRow,
-                        Delimiter = Delimiter,
-                        TextQualifier = TextQualifier,
-                        DateFormat = DateFormat,
-                        NumberFormat = NumberFormat,
-                        AmountColumnName = AmountColumn,
-                        MemoColumnName = MemoColumn,
-                        PayeeColumnName = PayeeColumn,
-                        TransactionDateColumnName = TransactionDateColumn
-                    };
-                    if (dbContext.CreateImportProfile(newProfile) == 0)
+                    SelectedImportProfile.ImportProfileId = 0;
+                    if (dbContext.CreateImportProfile(SelectedImportProfile) == 0)
                         throw new Exception("Profile could not be created in database.");
                     LoadAvailableProfiles();
-                    SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == newProfile.ImportProfileId);
+                    SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
                 }                
             }
             catch (Exception e)
@@ -506,29 +387,14 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             try
             {
-                if (string.IsNullOrEmpty(ProfileName)) throw new Exception("Profile Name must not be empty.");
+                if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) throw new Exception("Profile Name must not be empty.");
 
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
-                    var currentProfile = new ImportProfile()
-                    {
-                        ImportProfileId = SelectedImportProfile.ImportProfileId,
-                        ProfileName = ProfileName,
-                        AccountId = SelectedAccount.AccountId,
-                        HeaderRow = HeaderRow,
-                        Delimiter = Delimiter,
-                        TextQualifier = TextQualifier,
-                        DateFormat = DateFormat,
-                        NumberFormat = NumberFormat,
-                        AmountColumnName = AmountColumn,
-                        MemoColumnName = MemoColumn,
-                        PayeeColumnName = PayeeColumn,
-                        TransactionDateColumnName = TransactionDateColumn
-                    };
-                    dbContext.UpdateImportProfile(currentProfile);
+                    dbContext.UpdateImportProfile(SelectedImportProfile);
 
                     LoadAvailableProfiles();
-                    SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == currentProfile.ImportProfileId);
+                    SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
                 }                
             }
             catch (Exception e)
