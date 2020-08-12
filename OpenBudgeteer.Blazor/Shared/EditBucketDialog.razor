@@ -3,7 +3,7 @@
 @if (IsDialogVisible)
  {
      <div class="modal fade show" style=" display: block;">
-         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 500px">
+         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 600px">
              <div class="modal-content">
                  <div class="modal-header">
                      <h4 class="modal-title">@Title</h4>
@@ -14,22 +14,40 @@
                          <label>Name:</label>
                          <input class="form-control form-control-sm" type="text" @bind="DataContext.Bucket.Name"/>
                      </div>
-                     <div class="form-group">
-                         <label>Bucket Type:</label>
-                         <select class="form-control form-control-sm" @onchange=@(e => DataContext.BucketVersion.BucketType = Convert.ToInt32(e.Value))>
-                             @foreach (var bucketType in DataContext.AvailableBucketTypes)
-                             {
-                                 var position = DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1;
-                                 if (DataContext.BucketVersion.BucketType == position)
+                     <div class="row">
+                         <div class="col form-group">
+                             <label>Bucket Type:</label>
+                             <select class="form-control form-control-sm" @onchange=@(e => DataContext.BucketVersion.BucketType = Convert.ToInt32(e.Value))>
+                                 @foreach (var bucketType in DataContext.AvailableBucketTypes)
                                  {
-                                     <option selected value="@position">@bucketType</option>
+                                     var position = DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1;
+                                     if (DataContext.BucketVersion.BucketType == position)
+                                     {
+                                         <option selected value="@position">@bucketType</option>
+                                     }
+                                     else
+                                     {
+                                         <option value="@position">@bucketType</option>
+                                     }
                                  }
-                                 else
+                             </select>
+                         </div>
+						  <div class="col form-group">
+                             <label>Bucket Group:</label>
+                             <select class="form-control form-control-sm" @onchange=@(e => DataContext.Bucket.BucketGroupId = Convert.ToInt32(e.Value))>
+                                 @foreach (var bucketGroup in DataContext.AvailableBucketGroups)
                                  {
-                                     <option value="@position">@bucketType</option>
+                                     if (bucketGroup.BucketGroupId == DataContext.Bucket.BucketGroupId)
+                                     {
+                                         <option selected value="@bucketGroup.BucketGroupId">@bucketGroup.Name</option>
+                                     }
+                                     else
+                                     {
+                                         <option value="@bucketGroup.BucketGroupId">@bucketGroup.Name</option>
+                                     }
                                  }
-                             }
-                         </select>
+                             </select>
+                         </div>
                      </div>
                      <div class="row">
                          <div class="col form-group">
