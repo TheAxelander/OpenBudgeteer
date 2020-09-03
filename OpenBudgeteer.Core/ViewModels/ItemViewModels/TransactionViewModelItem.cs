@@ -452,5 +452,70 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
            
             return new Tuple<bool, string>(true, string.Empty);
         }
+
+        public void ProposeBucket()
+        {
+            var proposal = CheckMappingRules();
+            if (proposal == null) return;
+            Buckets.Clear();
+            Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel, proposal, Transaction.Amount));
+        }
+
+        private Bucket CheckMappingRules()
+        {
+            var targetBucketId = 0;
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                foreach (var ruleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
+                {
+                    using (var mappingRuleDbContext = new DatabaseContext(_dbOptions))
+                    {
+                        if (mappingRuleDbContext.MappingRule
+                            .Where(i => i.BucketRuleSetId == ruleSet.BucketRuleSetId)
+                            .All(DoesRuleApply))
+                        {
+                            targetBucketId = ruleSet.TargetBucketId;
+                            break;
+                        }
+                    }
+                }
+
+                return targetBucketId != 0 ? dbContext.Bucket.First(i => i.BucketId == targetBucketId) : null;
+            }
+
+            bool DoesRuleApply(MappingRule mappingRule)
+            {
+                switch (mappingRule.ComparisionType)
+                {
+                    case 1:
+                        return mappingRule.ComparisionValue == GetFieldValue(mappingRule.ComparisionField);
+                    case 2:
+                        return mappingRule.ComparisionValue != GetFieldValue(mappingRule.ComparisionField);
+                    case 3:
+                        return GetFieldValue(mappingRule.ComparisionField).Contains(mappingRule.ComparisionValue);
+                    case 4:
+                        return !GetFieldValue(mappingRule.ComparisionField).Contains(mappingRule.ComparisionValue);
+                }
+
+                return false;
+            }
+
+            string GetFieldValue(int comparisionField)
+            {
+                switch (comparisionField)
+                {
+                    case 1:
+                        return Transaction.AccountId.ToString();
+                    case 2:
+                        return Transaction.Payee;
+                    case 3:
+                        return Transaction.Memo;
+                    case 4:
+                        return Transaction.Amount.ToString();
+                    default:
+                        return null;
+                }
+            }
+        }
     }
 }

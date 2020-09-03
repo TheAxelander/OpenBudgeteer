@@ -49,6 +49,7 @@
         {
             <button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@(() => _newTransactionEnabled = true)">Create Transaction</button>
             <button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@EditAllTransaction">Edit all</button>
+			<button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@ProposeBuckets">Propose Buckets</button>
         }
     </div>
     <YearMonthSelector DataContext="YearMonthDataContext" />
@@ -231,27 +232,12 @@
     </tbody>
 </table>
 
-@if (_isDeleteTransactionModalDialogVisible)
-{
-    <div class="modal fade show" style="display: block;">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Delete Transaction</h4>
-                    <button type="button" class="close" data-dismiss="modal" @onclick="@(() => _isDeleteTransactionModalDialogVisible = false)">&times;</button>
-                </div>
-                <div class="modal-body">
-                    Do you really want to delete this Transaction?
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="@(DeleteTransaction)">Yes</button>
-                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(CancelDeleteTransaction)">No</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
+<DeleteConfirmationDialog 
+    Title="Delete Transaction" 
+    Message="Do you really want to delete this Transaction?" 
+    IsDialogVisible="@_isDeleteTransactionModalDialogVisible"
+    OnDeleteClickCallback="DeleteTransaction"
+    OnCancelClickCallback="CancelDeleteTransaction"/>
 
 <ErrorMessageDialog 
     Title="Transaction" 
@@ -298,6 +284,12 @@
     {
         _massEditEnabled = true;
         _dataContext.EditAllTransaction();
+    }
+
+    void ProposeBuckets()
+    {
+        _dataContext.ProposeBuckets();
+        if (_dataContext.Transactions.Any(i => i.InModification)) _massEditEnabled = true;
     }
 
     void SaveAllTransaction()

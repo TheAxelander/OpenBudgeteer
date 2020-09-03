@@ -18,6 +18,8 @@ namespace OpenBudgeteer.Core.Common
         public DbSet<BucketVersion> BucketVersion { get; set; }
         public DbSet<BudgetedTransaction> BudgetedTransaction { get; set; }
         public DbSet<ImportProfile> ImportProfile { get; set; }
+        public DbSet<BucketRuleSet> BucketRuleSet { get; set; }
+        public DbSet<MappingRule> MappingRule { get; set; }
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options) { }
 
@@ -92,6 +94,24 @@ namespace OpenBudgeteer.Core.Common
         public int CreateImportProfiles(IEnumerable<ImportProfile> importProfiles)
         {
             ImportProfile.AddRange(importProfiles);
+            return SaveChanges();
+        }
+
+        public int CreateBucketRuleSet(BucketRuleSet bucketRuleSet)
+            => CreateBucketRuleSets(new List<BucketRuleSet>() { bucketRuleSet });
+
+        public int CreateBucketRuleSets(IEnumerable<BucketRuleSet> bucketRuleSets)
+        {
+            BucketRuleSet.AddRange(bucketRuleSets);
+            return SaveChanges();
+        }
+
+        public int CreateMappingRule(MappingRule mappingRule)
+            => CreateMappingRules(new List<MappingRule>() { mappingRule });
+
+        public int CreateMappingRules(IEnumerable<MappingRule> mappingRules)
+        {
+            MappingRule.AddRange(mappingRules);
             return SaveChanges();
         }
 
@@ -232,6 +252,36 @@ namespace OpenBudgeteer.Core.Common
             return SaveChanges();
         }
 
+        public int UpdateBucketRuleSet(BucketRuleSet bucketRuleSet)
+            => UpdateBucketRuleSets(new List<BucketRuleSet>() { bucketRuleSet });
+
+        public int UpdateBucketRuleSets(IEnumerable<BucketRuleSet> bucketRuleSets)
+        {
+            foreach (var bucketRuleSet in bucketRuleSets)
+            {
+                var dbBucketRuleSet = BucketRuleSet.First(i => i.BucketRuleSetId == bucketRuleSet.BucketRuleSetId);
+                dbBucketRuleSet.Priority = bucketRuleSet.Priority;
+                dbBucketRuleSet.Name = bucketRuleSet.Name;
+                dbBucketRuleSet.TargetBucketId = bucketRuleSet.TargetBucketId;
+            }
+            return SaveChanges();
+        }
+
+        public int UpdateMappingRule(MappingRule mappingRule)
+            => UpdateMappingRules(new List<MappingRule>() { mappingRule });
+
+        public int UpdateMappingRules(IEnumerable<MappingRule> mappingRules)
+        {
+            foreach (var mappingRule in mappingRules)
+            {
+                var dbMappingRule = MappingRule.First(i => i.MappingRuleId == mappingRule.MappingRuleId);
+                dbMappingRule.ComparisionField = mappingRule.ComparisionField;
+                dbMappingRule.ComparisionType = mappingRule.ComparisionType;
+                dbMappingRule.ComparisionValue = mappingRule.ComparisionValue;
+            }
+            return SaveChanges();
+        }
+
         #endregion
 
         #region Delete
@@ -305,6 +355,24 @@ namespace OpenBudgeteer.Core.Common
         public int DeleteImportProfiles(IEnumerable<ImportProfile> importProfiles)
         {
             ImportProfile.RemoveRange(importProfiles);
+            return SaveChanges();
+        }
+
+        public int DeleteBucketRuleSet(BucketRuleSet bucketRuleSet)
+            => DeleteBucketRuleSets(new List<BucketRuleSet>() { bucketRuleSet });
+
+        public int DeleteBucketRuleSets(IEnumerable<BucketRuleSet> bucketRuleSets)
+        {
+            BucketRuleSet.RemoveRange(bucketRuleSets);
+            return SaveChanges();
+        }
+
+        public int DeleteMappingRule(MappingRule mappingRule)
+            => DeleteMappingRules(new List<MappingRule>() { mappingRule });
+
+        public int DeleteMappingRules(IEnumerable<MappingRule> mappingRules)
+        {
+            MappingRule.RemoveRange(mappingRules);
             return SaveChanges();
         }
 

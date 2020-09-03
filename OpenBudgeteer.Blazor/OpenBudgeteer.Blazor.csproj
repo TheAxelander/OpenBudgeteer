@@ -16,6 +16,14 @@
     <Compile Remove="Migrations\20200701131446_TransactionDateTime.Designer.cs" />
     <Compile Remove="Migrations\20200707141411_ImportProfileDateNumberFormat.cs" />
     <Compile Remove="Migrations\20200707141411_ImportProfileDateNumberFormat.Designer.cs" />
+    <Compile Remove="Migrations\20200814120506_AutomaticBucketAssignment.cs" />
+    <Compile Remove="Migrations\20200814120506_AutomaticBucketAssignment.Designer.cs" />
+    <Compile Remove="Migrations\20200818091835_foobar.cs" />
+    <Compile Remove="Migrations\20200818091835_foobar.Designer.cs" />
+    <Compile Remove="Migrations\20200818091949_AutomaticBucketAssignment.cs" />
+    <Compile Remove="Migrations\20200818091949_AutomaticBucketAssignment.Designer.cs" />
+    <Compile Remove="Migrations\20200818093918_AutomaticBucketAssignment.cs" />
+    <Compile Remove="Migrations\20200818093918_AutomaticBucketAssignment.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

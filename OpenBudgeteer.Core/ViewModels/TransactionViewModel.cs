@@ -226,5 +226,18 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             ViewModelReloadRequired?.Invoke(this);
         }
+
+        public void ProposeBuckets()
+        {
+            foreach (var transaction in Transactions)
+            {
+                // Check on "No Selection" Bucket
+                if (transaction.Buckets.First().SelectedBucket.BucketId == 0)
+                {
+                    transaction.StartModification();
+                    transaction.ProposeBucket();
+                }
+            }
+        }
     }
 }
