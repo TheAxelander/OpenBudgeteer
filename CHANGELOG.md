@@ -1,6 +1,11 @@
-### 1.1 ()
+### 1.1 (2020-09-03)
 
-* Test
+* [Add] Added Rule set for automatic Bucket assignments #5
+* [Add] Enabled movement of Buckets to other Bucket Groups
+* [Add] Enabled movement of Bucket Groups #7
+* [Changed] Moved Bucket Movements to Transaction Dialog #1
+* [Changed] Opening a new file resets previous Import selection and settings
+* [Changed] Optimized Y-Axis Ticks for Month Bucket Expenses on Report Page
 
 ### 1.0 (2020-08-10)
 
