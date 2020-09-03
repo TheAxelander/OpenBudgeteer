@@ -83,31 +83,87 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _oldBucketGroup = null;
         }
 
-        public void SaveModification()
+        public Tuple<bool,string> SaveModification()
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            try
             {
-                dbContext.UpdateBucketGroup(BucketGroup);
+                using (var dbContext = new DatabaseContext(_dbOptions))
+                {
+                    dbContext.UpdateBucketGroup(BucketGroup);
+                }
+                ViewModelReloadRequired?.Invoke(this);
+                InModification = false;
+                _oldBucketGroup = null;
             }
-            ViewModelReloadRequired?.Invoke(this);
-            InModification = false;
-            _oldBucketGroup = null;
+            catch (Exception e)
+            {
+                return new Tuple<bool, string>(false, $"Unable to write changes to database: {e.Message}");
+            }
+            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public void DeleteGroup()
+        public Tuple<bool,string> DeleteGroup()
         {
-            if (Buckets.Count > 0)
+            try
             {
-                //TODO: Display Message that there are still Buckets in that group
-            }
-            else
-            {
+                if (Buckets.Count > 0) throw new Exception("Groups with Buckets cannot be deleted.");
+
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
                     dbContext.DeleteBucketGroup(BucketGroup);
                 }
                 ViewModelReloadRequired?.Invoke(this);
             }
+            catch (Exception e)
+            {
+                return new Tuple<bool, string>(false, $"Unable to delete Bucket Group: {e.Message}");
+            }
+            return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        public Tuple<bool,string> MoveGroup(int positions)
+        {
+            if (positions == 0) return new Tuple<bool, string>(true, string.Empty);
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                using (var transaction = dbContext.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var bucketGroupCount = dbContext.BucketGroup.Count();
+                        var targetPosition = BucketGroup.Position + positions;
+                        if (targetPosition < 1) targetPosition = 1;
+                        if (targetPosition > bucketGroupCount) targetPosition = bucketGroupCount;
+                        if (targetPosition == BucketGroup.Position) return new Tuple<bool, string>(true, string.Empty); // Group is already at the end or top. No further action
+                        // Move Group in an interim List
+                        var existingBucketGroups = new ObservableCollection<BucketGroup>();
+                        foreach (var bucketGroup in dbContext.BucketGroup.OrderBy(i => i.Position))
+                        {
+                            existingBucketGroups.Add(bucketGroup);
+                        }
+                        existingBucketGroups.Move(BucketGroup.Position-1, targetPosition-1);
+                        
+                        // Update Position number
+                        var newPosition = 1;
+                        foreach (var bucketGroup in existingBucketGroups)
+                        {
+                            bucketGroup.Position = newPosition;
+                            dbContext.UpdateBucketGroup(bucketGroup);
+                            newPosition++;
+                        }
+
+                        transaction.Commit();
+                        ViewModelReloadRequired?.Invoke(this);
+                    }
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        return new Tuple<bool, string>(false, $"Unable to move Bucket Group: {e.Message}");
+                    }
+                }
+            }
+            
+            return new Tuple<bool, string>(true, string.Empty);
         }
 
         public BucketViewModelItem CreateBucket()
