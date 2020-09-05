@@ -502,19 +502,27 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
             string GetFieldValue(int comparisionField)
             {
+                string result;
                 switch (comparisionField)
                 {
                     case 1:
-                        return Transaction.AccountId.ToString();
+                        result = Transaction.AccountId.ToString();
+                        break;
                     case 2:
-                        return Transaction.Payee;
+                        result = Transaction.Payee;
+                        break;
                     case 3:
-                        return Transaction.Memo;
+                        result = Transaction.Memo;
+                        break;
                     case 4:
-                        return Transaction.Amount.ToString();
+                        result = Transaction.Amount.ToString();
+                        break;
                     default:
-                        return null;
+                        result = null;
+                        break;
                 }
+
+                return result ?? string.Empty;
             }
         }
     }
