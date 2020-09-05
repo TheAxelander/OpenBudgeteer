@@ -1,4 +1,4 @@
-### 1.1 (2020-09-03)
+### 1.1 (2020-09-05)
 
 * [Add] Added Rule set for automatic Bucket assignments #5
 * [Add] Enabled movement of Buckets to other Bucket Groups
