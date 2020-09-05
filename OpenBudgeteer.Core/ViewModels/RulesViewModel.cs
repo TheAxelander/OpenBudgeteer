@@ -52,7 +52,7 @@ namespace OpenBudgeteer.Core.ViewModels
                     RuleSets.Clear();
                     using (var dbContext = new DatabaseContext(_dbOptions))
                     {
-                        foreach (var bucketRuleSet in dbContext.BucketRuleSet)
+                        foreach (var bucketRuleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
                         {
                             RuleSets.Add(new RuleSetViewModelItem(_dbOptions, bucketRuleSet));
                         }
@@ -85,6 +85,15 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             NewRuleSet = new RuleSetViewModelItem(_dbOptions);
             NewRuleSet.MappingRules.Add(new MappingRuleViewModelItem(_dbOptions, new MappingRule()));
+        }
+
+        public Tuple<bool, string> SaveRuleSetItem(RuleSetViewModelItem ruleSet)
+        {
+            var result = ruleSet.CreateUpdateRuleSetItem();
+            if (!result.Item1) return result;
+            RuleSets = new ObservableCollection<RuleSetViewModelItem>(RuleSets.OrderBy(i => i.RuleSet.Priority));
+
+            return result;
         }
 
         public Tuple<bool, string> DeleteRuleSetItem(RuleSetViewModelItem ruleSet)
@@ -135,6 +144,7 @@ namespace OpenBudgeteer.Core.ViewModels
                         if (!success) throw new Exception(message);
                     }
                     dbTransaction.Commit();
+                    RuleSets = new ObservableCollection<RuleSetViewModelItem>(RuleSets.OrderBy(i => i.RuleSet.Priority));
                 }
                 catch (Exception e)
                 {

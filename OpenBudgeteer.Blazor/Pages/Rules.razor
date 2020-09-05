@@ -207,7 +207,7 @@
                     }
                 </td>
                 <td class="td-button" style="text-align: right; vertical-align: middle;">
-                    <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(ruleSet.CreateUpdateRuleSetItem()))"></button>
+					<button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => ruleSet.CancelModification())"></button>
                 </td>
             </tr>
