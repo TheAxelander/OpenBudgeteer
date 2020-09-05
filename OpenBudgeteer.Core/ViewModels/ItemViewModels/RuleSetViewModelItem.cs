@@ -143,6 +143,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     {
                         if (RuleSet.BucketRuleSetId == 0)
                         {
+                            // CREATE
                             if (dbContext.CreateBucketRuleSet(RuleSet) == 0)
                                 throw new Exception("Rule could not be created in database.");
                             foreach (var mappingRule in MappingRules)
@@ -152,10 +153,15 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         }
                         else
                         {
+                            // UPDATE
                             dbContext.DeleteMappingRules(dbContext.MappingRule.Where(i =>
                                 i.BucketRuleSetId == RuleSet.BucketRuleSetId));
 
                             dbContext.UpdateBucketRuleSet(RuleSet);
+                            foreach (var mappingRule in MappingRules)
+                            {
+                                mappingRule.GenerateRuleOutput();
+                            }
                         }
 
                         dbContext.CreateMappingRules(MappingRules.Select(i => i.MappingRule).ToList());

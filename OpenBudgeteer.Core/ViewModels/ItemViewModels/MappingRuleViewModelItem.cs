@@ -33,15 +33,15 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public MappingRuleViewModelItem(DbContextOptions<DatabaseContext> dbOptions, MappingRule mappingRule) : this(dbOptions)
         {
             MappingRule = mappingRule;
-            RuleOutput =
+            GenerateRuleOutput();
+        }
+
+        public void GenerateRuleOutput()
+        {
+            RuleOutput = MappingRule == null ? string.Empty :
                 $"{MappingRule.ComparisonFieldOutput} " +
                 $"{MappingRule.ComparisionTypeOutput} " +
                 $"{MappingRule.ComparisionValue}";
-        }
-
-        public void DeleteMappingRule()
-        {
-            throw new NotImplementedException();
         }
     }
 }
