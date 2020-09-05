@@ -68,6 +68,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public RuleSetViewModelItem(DbContextOptions<DatabaseContext> dbOptions) : this()
         {
             _dbOptions = dbOptions;
+            AvailableBuckets.Add(new Bucket
+            {
+                BucketId = 0,
+                BucketGroupId = 0,
+                Name = "No Selection"
+            });
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 foreach (var availableBucket in dbContext.Bucket.Where(i => i.BucketId <= 2))

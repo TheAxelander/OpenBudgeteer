@@ -59,7 +59,14 @@
                             @onchange=@(e => HandleTargetBucketSelectionChanged(_dataContext.NewRuleSet, Convert.ToInt32(e.Value)))>
                         @foreach (var availableBucket in _dataContext.NewRuleSet.AvailableBuckets)
                         {
-                            <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                            if (_dataContext.NewRuleSet.TargetBucket.BucketId == availableBucket.BucketId)
+                            {
+								<option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                            }
+                            else
+                            {
+                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>    
+                            }
                         }
                     </select>
                 </td>
