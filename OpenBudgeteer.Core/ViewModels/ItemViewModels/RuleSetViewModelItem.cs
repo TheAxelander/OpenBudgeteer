@@ -70,9 +70,18 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _dbOptions = dbOptions;
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                foreach (var bucket in dbContext.Bucket)
+                foreach (var availableBucket in dbContext.Bucket.Where(i => i.BucketId <= 2))
                 {
-                    AvailableBuckets.Add(bucket);
+                    AvailableBuckets.Add(availableBucket);
+                }
+
+                var query = dbContext.Bucket
+                    .Where(i => i.BucketId > 2 && !i.IsInactive)
+                    .OrderBy(i => i.Name);
+
+                foreach (var availableBucket in query.ToList())
+                {
+                    AvailableBuckets.Add(availableBucket);
                 }
             }
         }
