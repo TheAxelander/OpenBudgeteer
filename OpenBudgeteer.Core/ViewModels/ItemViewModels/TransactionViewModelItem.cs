@@ -485,16 +485,17 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
             bool DoesRuleApply(MappingRule mappingRule)
             {
+                var cleanedComparisionValue = mappingRule.ComparisionValue.ToLower();
                 switch (mappingRule.ComparisionType)
                 {
                     case 1:
-                        return mappingRule.ComparisionValue == GetFieldValue(mappingRule.ComparisionField);
+                        return cleanedComparisionValue == GetFieldValue(mappingRule.ComparisionField);
                     case 2:
-                        return mappingRule.ComparisionValue != GetFieldValue(mappingRule.ComparisionField);
+                        return cleanedComparisionValue != GetFieldValue(mappingRule.ComparisionField);
                     case 3:
-                        return GetFieldValue(mappingRule.ComparisionField).Contains(mappingRule.ComparisionValue);
+                        return GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue);
                     case 4:
-                        return !GetFieldValue(mappingRule.ComparisionField).Contains(mappingRule.ComparisionValue);
+                        return !GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue);
                 }
 
                 return false;
@@ -522,7 +523,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         break;
                 }
 
-                return result ?? string.Empty;
+                return result == null ? string.Empty : result.ToLower();
             }
         }
     }
