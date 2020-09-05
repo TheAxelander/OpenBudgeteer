@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Linq;
 using System.Threading.Tasks;
 using ChartJs.Blazor.ChartJS.BarChart;
 using ChartJs.Blazor.ChartJS.BarChart.Axes;
-using ChartJs.Blazor.ChartJS.Common;
 using ChartJs.Blazor.ChartJS.Common.Axes;
 using ChartJs.Blazor.ChartJS.Common.Axes.Ticks;
 using ChartJs.Blazor.ChartJS.Common.Enums;
@@ -18,7 +16,6 @@ using ChartJs.Blazor.Util;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.ViewModels;
-using Point = ChartJs.Blazor.ChartJS.Common.Point;
 
 namespace OpenBudgeteer.Blazor.ViewModels
 {
@@ -81,6 +78,28 @@ namespace OpenBudgeteer.Blazor.ViewModels
                 }
             };
 
+        protected BarConfig DefaultBucketExpensesBarConfig
+        {
+            get
+            {
+                var result = this.DefaultBarConfig;
+                result.Options.Scales = new BarScales
+                {
+                    YAxes = new List<CartesianAxis>
+                    {
+                        new BarLinearCartesianAxis
+                        {
+                            Ticks = new LinearCartesianTicks
+                            {
+                                Min = 0
+                            }
+                        }
+                    }
+                };
+                return result;
+            }
+        }
+        
         protected LineConfig DefaultTImeLineConfig =>
             new LineConfig
             {
@@ -296,7 +315,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
             MonthBucketExpensesConfigs.Clear();
             foreach (var result in await LoadMonthExpensesBucketAsync())
             {
-                var newConfig = DefaultBarConfig;
+                var newConfig = DefaultBucketExpensesBarConfig;
                 newConfig.Options.Title.Display = false;
 
                 var expensesResults = new List<object>();

@@ -81,13 +81,17 @@ namespace OpenBudgeteer.Core.ViewModels
             return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public async Task<Tuple<bool, string>> LoadDataAsync(Bucket bucket)
+        public async Task<Tuple<bool, string>> LoadDataAsync(Bucket bucket, bool withMovements)
         {
             try
             {
                 Transactions.Clear();
+
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
+                    var transactionTasks = new List<Task<TransactionViewModelItem>>();
+
+                    // Get all BankTransaction
                     var results = dbContext.BankTransaction
                         .Join(
                             dbContext.BudgetedTransaction,
@@ -102,14 +106,25 @@ namespace OpenBudgeteer.Core.ViewModels
                         .OrderByDescending(i => i.BankTransaction.TransactionDate)
                         .ToList();
 
-                    var transactionTasks = new List<Task<TransactionViewModelItem>>();
-
                     foreach (var result in results)
                     {
                         transactionTasks.Add(TransactionViewModelItem.CreateWithoutBucketsAsync(_dbOptions, _yearMonthViewModel, result.BankTransaction));
                     }
 
-                    foreach (var transaction in await Task.WhenAll(transactionTasks))
+                    if (withMovements)
+                    {
+                        // Get Bucket Movements
+                        var bucketMovements = dbContext.BucketMovement
+                                .Where(i => i.BucketId == bucket.BucketId)
+                                .ToList();
+                        foreach (var bucketMovement in bucketMovements)
+                        {
+                            transactionTasks.Add(TransactionViewModelItem.CreateFromBucketMovementAsync(bucketMovement));
+                        }
+                    }
+
+                    foreach (var transaction in (await Task.WhenAll(transactionTasks))
+                        .OrderByDescending(i => i.Transaction.TransactionDate))
                     {
                         transaction.ViewModelReloadRequired += sender => ViewModelReloadRequired?.Invoke(this);
                         Transactions.Add(transaction);
@@ -210,6 +225,19 @@ namespace OpenBudgeteer.Core.ViewModels
         public void CancelAllTransaction()
         {
             ViewModelReloadRequired?.Invoke(this);
+        }
+
+        public void ProposeBuckets()
+        {
+            foreach (var transaction in Transactions)
+            {
+                // Check on "No Selection" Bucket
+                if (transaction.Buckets.First().SelectedBucket.BucketId == 0)
+                {
+                    transaction.StartModification();
+                    transaction.ProposeBucket();
+                }
+            }
         }
     }
 }

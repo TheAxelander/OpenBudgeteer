@@ -169,7 +169,7 @@
                 {
                     <th colspan="6"><input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/></th>
                     <th style="text-align: right; width: 250px">
-                        <button class="btn btn-sm btn-primary btn-margin" @onclick="@(() => bucketGroup.SaveModification())">Ok</button>
+                        <button class="btn btn-sm btn-primary btn-margin" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
                         <button class="btn btn-sm btn-danger btn-margin" @onclick="@(() => bucketGroup.CancelModification())">Cancel</button>
                     </th>
                 }
@@ -185,7 +185,9 @@
                         @if (bucketGroup.IsHovered)
                         {
                             <button class="btn btn-sm btn-margin btn-primary oi oi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
-                            <button class="btn btn-sm btn-margin btn-danger oi oi-trash" @onclick="@(() => bucketGroup.DeleteGroup())"></button>
+                            <button class="btn btn-sm btn-margin btn-primary oi oi-arrow-top" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
+                            <button class="btn btn-sm btn-margin btn-primary oi oi-arrow-bottom" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
+                            <button class="btn btn-sm btn-margin btn-danger oi oi-trash" @onclick="@(() => HandleResult(bucketGroup.DeleteGroup()))"></button>
                             <button class="btn btn-sm btn-margin btn-primary oi oi-plus" @onclick="@(() => CreateBucket(bucketGroup))"></button>
                         }
                     </th>
@@ -262,6 +264,7 @@
     DataContext="@_transactionModalDialogDataContext" 
     IsDialogVisible="@_isTransactionModalDialogVisible" 
     IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
+    CurrentBucket ="@_transactionModalDialogBucket"
     OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
 
 <ErrorMessageDialog 
@@ -277,6 +280,7 @@
     bool _isEditBucketModalDialogVisible;
 
     TransactionViewModel _transactionModalDialogDataContext;
+    OpenBudgeteer.Core.Models.Bucket _transactionModalDialogBucket;
     bool _isTransactionModalDialogVisible;
     bool _isTransactionModalDialogDataContextLoading;
 
@@ -378,7 +382,8 @@
         _isTransactionModalDialogDataContextLoading = true;
 
         _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
-        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket));
+        _transactionModalDialogBucket = bucket.Bucket;
+        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket, true));
 
         _isTransactionModalDialogDataContextLoading = false;
         StateHasChanged();

@@ -136,6 +136,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _availableColors, value);
         }
 
+        private ObservableCollection<BucketGroup> _availableBucketGroups;
+        public ObservableCollection<BucketGroup> AvailableBucketGroups
+        {
+            get => _availableBucketGroups;
+            set => Set(ref _availableBucketGroups, value);
+        }
 
         public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
         public delegate void ViewModelReloadRequiredHandler(BucketViewModelItem sender);
@@ -146,6 +152,15 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
         public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions)
         {
+            _dbOptions = dbOptions;
+            AvailableBucketGroups = new ObservableCollection<BucketGroup>();
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                foreach (var item in dbContext.BucketGroup)
+                {
+                    AvailableBucketGroups.Add(item);
+                }
+            }
             AvailableBucketTypes = new ObservableCollection<string>()
             {
                 "Standard Bucket",
@@ -155,7 +170,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             };
             GetKnownColors();
             InModification = false;
-            _dbOptions = dbOptions;
 
             void GetKnownColors()
             {
@@ -428,6 +442,8 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
         public Tuple<bool,string> SaveChanges()
         {
+            var forceViewModelReload = false;
+
             if (_isNewlyCreatedBucket)
             {
                 // Create new Bucket
@@ -450,7 +466,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                                                     $"Bucket ID: {newBucketVersion.BucketId}");
 
                             transaction.Commit();
-                            //ViewModelReloadRequired?.Invoke(this);
+                            ViewModelReloadRequired?.Invoke(this);
                         }
                         catch (Exception e)
                         {
@@ -468,8 +484,13 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 {
                     var dbBucket = dbContext.Bucket.First(i => i.BucketId == Bucket.BucketId);
                     if (dbBucket.Name != Bucket.Name ||
-                        dbBucket.ColorCode != Bucket.ColorCode)
+                        dbBucket.ColorCode != Bucket.ColorCode ||
+                        dbBucket.BucketGroupId != Bucket.BucketGroupId)
                     {
+                        // BucketGroup update requires special handling as ViewModel needs to trigger reload
+                        // to force re-rendering of Blazor Page
+                        if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
+
                         if (dbContext.UpdateBucket(Bucket) == 0)
                             return new Tuple<bool, string>(false, 
                                 $"Error during database update: Unable to update Bucket.{Environment.NewLine}" +
@@ -537,6 +558,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             }
             InModification = false;
             CalculateValues();
+            if (forceViewModelReload) ViewModelReloadRequired?.Invoke(this);
             return new Tuple<bool, string>(true, string.Empty);
         }
 

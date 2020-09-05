@@ -65,11 +65,15 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
         private TransactionViewModelItem _oldTransactionViewModelItem;
 
-        public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
+        public TransactionViewModelItem()
         {
             Transaction = new BankTransaction();
             Buckets = new ObservableCollection<PartialBucketViewModelItem>();
             AvailableAccounts = new ObservableCollection<Account>();
+        }
+
+        public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel) : this()
+        {
             _dbOptions = dbOptions;
             _yearMonthViewModel = yearMonthViewModel;
 
@@ -150,7 +154,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 var account = dbContext.Account.First(i => i.AccountId == transaction.AccountId);
-                if (account.IsActive == 0)
+                if (account != null && account.IsActive == 0)
                 {
                     account.Name += " (Inactive)";
                     AvailableAccounts.Add(account);
@@ -162,6 +166,28 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             
         }
 
+        public TransactionViewModelItem(BucketMovement bucketMovement) : this()
+        {
+            // Simulate a BankTransaction based on BucketMovement
+            Transaction = new BankTransaction
+            {
+                TransactionId = 0,
+                AccountId = 0,
+                Amount = bucketMovement.Amount,
+                Memo = "Bucket Movement",
+                Payee = string.Empty,
+                TransactionDate = bucketMovement.MovementDate,
+            };
+
+            // Simulate Account
+            SelectedAccount = new Account
+            {
+                AccountId = 0,
+                IsActive = 1,
+                Name = string.Empty
+            };
+        }
+
         public static async Task<TransactionViewModelItem> CreateAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
         {
             return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction));
@@ -170,6 +196,11 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public static async Task<TransactionViewModelItem> CreateWithoutBucketsAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
         {
             return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction, false));
+        }
+
+        public static async Task<TransactionViewModelItem> CreateFromBucketMovementAsync(BucketMovement bucketMovement)
+        {
+            return await Task.Run(() => new TransactionViewModelItem(bucketMovement));
         }
 
         private void CheckBucketAssignments(object sender, AmountChangedArgs changedArgs)
@@ -420,6 +451,80 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             ViewModelReloadRequired?.Invoke(this);
            
             return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        public void ProposeBucket()
+        {
+            var proposal = CheckMappingRules();
+            if (proposal == null) return;
+            Buckets.Clear();
+            Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel, proposal, Transaction.Amount));
+        }
+
+        private Bucket CheckMappingRules()
+        {
+            var targetBucketId = 0;
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                foreach (var ruleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
+                {
+                    using (var mappingRuleDbContext = new DatabaseContext(_dbOptions))
+                    {
+                        if (mappingRuleDbContext.MappingRule
+                            .Where(i => i.BucketRuleSetId == ruleSet.BucketRuleSetId)
+                            .All(DoesRuleApply))
+                        {
+                            targetBucketId = ruleSet.TargetBucketId;
+                            break;
+                        }
+                    }
+                }
+
+                return targetBucketId != 0 ? dbContext.Bucket.First(i => i.BucketId == targetBucketId) : null;
+            }
+
+            bool DoesRuleApply(MappingRule mappingRule)
+            {
+                var cleanedComparisionValue = mappingRule.ComparisionValue.ToLower();
+                switch (mappingRule.ComparisionType)
+                {
+                    case 1:
+                        return cleanedComparisionValue == GetFieldValue(mappingRule.ComparisionField);
+                    case 2:
+                        return cleanedComparisionValue != GetFieldValue(mappingRule.ComparisionField);
+                    case 3:
+                        return GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue);
+                    case 4:
+                        return !GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue);
+                }
+
+                return false;
+            }
+
+            string GetFieldValue(int comparisionField)
+            {
+                string result;
+                switch (comparisionField)
+                {
+                    case 1:
+                        result = Transaction.AccountId.ToString();
+                        break;
+                    case 2:
+                        result = Transaction.Payee;
+                        break;
+                    case 3:
+                        result = Transaction.Memo;
+                        break;
+                    case 4:
+                        result = Transaction.Amount.ToString();
+                        break;
+                    default:
+                        result = null;
+                        break;
+                }
+
+                return result == null ? string.Empty : result.ToLower();
+            }
         }
     }
 }

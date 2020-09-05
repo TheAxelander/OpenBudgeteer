@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Common;
 
 namespace OpenBudgeteer.Blazor.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseServiceModelSnapshot : ModelSnapshot
+    [Migration("20200822152402_AutomaticBucketAssignment")]
+    partial class AutomaticBucketAssignment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
