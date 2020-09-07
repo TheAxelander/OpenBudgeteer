@@ -84,7 +84,13 @@ namespace OpenBudgeteer.Core.ViewModels
         public void ResetNewRuleSet()
         {
             NewRuleSet = new RuleSetViewModelItem(_dbOptions);
-            NewRuleSet.MappingRules.Add(new MappingRuleViewModelItem(_dbOptions, new MappingRule()));
+            // Defaults required because if initial selection in UI will not be updated by User
+            // then binding will not update these properties
+            NewRuleSet.MappingRules.Add(new MappingRuleViewModelItem(_dbOptions, new MappingRule()
+            {
+                ComparisionField = 1,
+                ComparisionType = 1
+            }));
         }
 
         public Tuple<bool, string> SaveRuleSetItem(RuleSetViewModelItem ruleSet)
