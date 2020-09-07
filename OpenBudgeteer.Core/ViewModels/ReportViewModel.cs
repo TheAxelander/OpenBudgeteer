@@ -221,12 +221,23 @@ namespace OpenBudgeteer.Core.ViewModels
                                     .ToList();
 
                                 // Collect results
+                                if (queryResults.Count == 0) continue; // No data available. Nothing to add
                                 newReportRecord.BucketName = bucket.Name;
+                                var reportInsertMonth = queryResults.First().YearMonth;
                                 foreach (var queryResult in queryResults)
                                 {
+                                    // Create empty MonthlyResults in case no data for specific months are available
+                                    while (queryResult.YearMonth != reportInsertMonth)
+                                    {
+                                        newReportRecord.MonthlyResults.Add(new Tuple<DateTime, decimal>(
+                                            reportInsertMonth,
+                                            0));
+                                        reportInsertMonth = reportInsertMonth.AddMonths(1);
+                                    }
                                     newReportRecord.MonthlyResults.Add(new Tuple<DateTime, decimal>(
-                                        queryResult.YearMonth,
-                                        queryResult.Balance));    
+                                            queryResult.YearMonth,
+                                            queryResult.Balance));
+                                    reportInsertMonth = reportInsertMonth.AddMonths(1);
                                 }
                             }
                             result.Add(newReportRecord);
