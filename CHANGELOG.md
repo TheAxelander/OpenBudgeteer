@@ -1,3 +1,9 @@
+### 1.1.1 (2020-09-07)
+
+* [Fixed] Wrong creation of data for new Rules if the initial selection was used #13
+* [Fixed] Missing months for Monthly Bucket Expenses Reports in case of no data #14
+* [Fixed] Crashes on Report Page due to display split of Monthly Bucket Expenses Reports #15
+
 ### 1.1 (2020-09-05)
 
 * [Add] Added Rule set for automatic Bucket assignments #5
