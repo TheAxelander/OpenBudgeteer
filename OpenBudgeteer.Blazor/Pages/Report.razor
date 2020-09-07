@@ -88,6 +88,6 @@
 
         int halfIndex = _dataContext.MonthBucketExpensesConfigs.Count / 2;
         _monthBucketExpensesConfigsLeft.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(0,halfIndex));
-        _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(halfIndex,halfIndex+1));
+        _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(halfIndex,_dataContext.MonthBucketExpensesConfigs.Count - halfIndex));
     }
 }
