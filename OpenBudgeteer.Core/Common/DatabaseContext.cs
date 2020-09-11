@@ -141,11 +141,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var bankTransaction in bankTransactions)
             {
                 var dbBankTransaction = BankTransaction.First(i => i.TransactionId == bankTransaction.TransactionId);
-                dbBankTransaction.AccountId = bankTransaction.AccountId;
-                dbBankTransaction.Amount = bankTransaction.Amount;
-                dbBankTransaction.Memo = bankTransaction.Memo;
-                dbBankTransaction.Payee = bankTransaction.Payee;
-                dbBankTransaction.TransactionDate = bankTransaction.TransactionDate;
+                Entry(dbBankTransaction).CurrentValues.SetValues(bankTransaction);
             }
             return SaveChanges();
         }
@@ -158,12 +154,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var bucket in buckets)
             {
                 var dbBucket = Bucket.First(i => i.BucketId == bucket.BucketId);
-                dbBucket.Name = bucket.Name;
-                dbBucket.BucketGroupId = bucket.BucketGroupId;
-                dbBucket.ColorCode = bucket.ColorCode;
-                dbBucket.IsInactive = bucket.IsInactive;
-                dbBucket.IsInactiveFrom = bucket.IsInactiveFrom;
-                dbBucket.ValidFrom = bucket.ValidFrom;
+                Entry(dbBucket).CurrentValues.SetValues(bucket);
             }
             return SaveChanges();
         }
@@ -176,8 +167,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var bucketGroup in bucketGroups)
             {
                 var dbBucketGroup = BucketGroup.First(i => i.BucketGroupId == bucketGroup.BucketGroupId);
-                dbBucketGroup.Name = bucketGroup.Name;
-                dbBucketGroup.Position = bucketGroup.Position;
+                Entry(dbBucketGroup).CurrentValues.SetValues(bucketGroup);
             }
             return SaveChanges();
         }
@@ -190,9 +180,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var bucketMovement in bucketMovements)
             {
                 var dbBucketMovement = BucketMovement.First(i => i.BucketMovementId == bucketMovement.BucketMovementId);
-                dbBucketMovement.Amount = bucketMovement.Amount;
-                dbBucketMovement.BucketId = bucketMovement.BucketId;
-                dbBucketMovement.MovementDate = bucketMovement.MovementDate;
+                Entry(dbBucketMovement).CurrentValues.SetValues(bucketMovement);
             }
             return SaveChanges();
         }
@@ -205,12 +193,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var bucketVersion in bucketVersions)
             {
                 var dbBucketVersion = BucketVersion.First(i => i.BucketVersionId == bucketVersion.BucketVersionId);
-                dbBucketVersion.BucketType = bucketVersion.BucketType;
-                dbBucketVersion.BucketTypeXParam = bucketVersion.BucketTypeXParam;
-                dbBucketVersion.BucketTypeYParam = bucketVersion.BucketTypeYParam;
-                dbBucketVersion.BucketTypeZParam = bucketVersion.BucketTypeZParam;
-                dbBucketVersion.Notes = bucketVersion.Notes;
-                dbBucketVersion.ValidFrom = bucketVersion.ValidFrom;
+                Entry(dbBucketVersion).CurrentValues.SetValues(bucketVersion);
             }
             return SaveChanges();
         }
@@ -223,8 +206,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var budgetedTransaction in budgetedTransactions)
             {
                 var dbBudgetedTransaction = BudgetedTransaction.First(i => i.BudgetedTransactionId == budgetedTransaction.BudgetedTransactionId);
-                dbBudgetedTransaction.Amount = budgetedTransaction.Amount;
-                dbBudgetedTransaction.BucketId = budgetedTransaction.BucketId;
+                Entry(dbBudgetedTransaction).CurrentValues.SetValues(budgetedTransaction);
             }
             return SaveChanges();
         }
@@ -237,17 +219,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var importProfile in importProfiles)
             {
                 var dbImportProfile = ImportProfile.First(i => i.ImportProfileId == importProfile.ImportProfileId);
-                dbImportProfile.AccountId = importProfile.AccountId;
-                dbImportProfile.ProfileName = importProfile.ProfileName;
-                dbImportProfile.HeaderRow = importProfile.HeaderRow;
-                dbImportProfile.Delimiter = importProfile.Delimiter;
-                dbImportProfile.TextQualifier = importProfile.TextQualifier;
-                dbImportProfile.DateFormat = importProfile.DateFormat;
-                dbImportProfile.NumberFormat = importProfile.NumberFormat;
-                dbImportProfile.AmountColumnName = importProfile.AmountColumnName;
-                dbImportProfile.MemoColumnName = importProfile.MemoColumnName;
-                dbImportProfile.PayeeColumnName = importProfile.PayeeColumnName;
-                dbImportProfile.TransactionDateColumnName = importProfile.TransactionDateColumnName;
+                Entry(dbImportProfile).CurrentValues.SetValues(importProfile);
             }
             return SaveChanges();
         }
@@ -260,9 +232,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var bucketRuleSet in bucketRuleSets)
             {
                 var dbBucketRuleSet = BucketRuleSet.First(i => i.BucketRuleSetId == bucketRuleSet.BucketRuleSetId);
-                dbBucketRuleSet.Priority = bucketRuleSet.Priority;
-                dbBucketRuleSet.Name = bucketRuleSet.Name;
-                dbBucketRuleSet.TargetBucketId = bucketRuleSet.TargetBucketId;
+                Entry(dbBucketRuleSet).CurrentValues.SetValues(bucketRuleSet);
             }
             return SaveChanges();
         }
@@ -275,9 +245,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var mappingRule in mappingRules)
             {
                 var dbMappingRule = MappingRule.First(i => i.MappingRuleId == mappingRule.MappingRuleId);
-                dbMappingRule.ComparisionField = mappingRule.ComparisionField;
-                dbMappingRule.ComparisionType = mappingRule.ComparisionType;
-                dbMappingRule.ComparisionValue = mappingRule.ComparisionValue;
+                Entry(dbMappingRule).CurrentValues.SetValues(mappingRule);
             }
             return SaveChanges();
         }
