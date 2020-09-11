@@ -163,17 +163,30 @@ namespace OpenBudgeteer.Core.ViewModels
             {
                 BucketGroupId = 0,
                 Name = "New Bucket Group",
-                Position = newPosition
+                Position = 1
             };
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
+                foreach (var bucketGroup in BucketGroups)
+                {
+                    bucketGroup.BucketGroup.Position++;
+                    dbContext.UpdateBucketGroup(bucketGroup.BucketGroup);
+                }
                 if (dbContext.CreateBucketGroup(newGroup) == 0) 
                     return new Tuple<bool, string>(false, "Unable to write changes to database"); 
             }
-            BucketGroups.Add(new BucketGroupViewModelItem(_dbOptions, newGroup, _yearMonthViewModel.CurrentMonth)
+
+            var newBucketGroupViewModelItem =
+                new BucketGroupViewModelItem(_dbOptions, newGroup, _yearMonthViewModel.CurrentMonth)
+                {
+                    InModification = true
+
+                };
+            newBucketGroupViewModelItem.ViewModelReloadRequired += (sender) =>
             {
-                InModification = true
-            });
+                ViewModelReloadRequired?.Invoke(this);
+            };
+            BucketGroups.Insert(0, newBucketGroupViewModelItem);
             return new Tuple<bool, string>(true, string.Empty);
         }
 
