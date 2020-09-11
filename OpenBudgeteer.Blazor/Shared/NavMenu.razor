@@ -3,57 +3,60 @@
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href="#">OpenBudgeteer</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                    <span class="oi oi-home" aria-hidden="true"></span> Home
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="account">
-                    <span class="oi oi-credit-card" aria-hidden="true"></span> Account
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="transaction">
-                    <span class="oi oi-transfer" aria-hidden="true"></span> Transaction
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="bucket">
-                    <span class="oi oi-box" aria-hidden="true"></span> Bucket
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="import">
-                    <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Import
-                </NavLink>
-            </li>
-            <li class="nav-item">
-                <NavLink class="nav-link" href="report">
-                    <span class="oi oi-bar-chart" aria-hidden="true"></span> Report
-                </NavLink>
-            </li>
-			<li class="nav-item">
-                <NavLink class="nav-link" href="rules">
-                    <span class="oi oi-script" aria-hidden="true"></span> Rules
-                </NavLink>
-            </li>
-        </ul>
-        <div class="navbar-text" style="margin-right: 15px">
-            <span>
-                Database: @CurrentDatabase
-            </span>
+    <div class="row" style="width: 1500px; margin: auto">
+        <div class="col-md-auto">
+            <a class="navbar-brand" href="#">OpenBudgeteer</a>
         </div>
-        <div class="navbar-text">
-            <span>
-                Version: 1.1.1 (<a href="https://gitlab.com/Axelander/openbudgeteer/-/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
-            </span>
+        <div class="col">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="oi oi-home" aria-hidden="true"></span> Home
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="account">
+                        <span class="oi oi-credit-card" aria-hidden="true"></span> Account
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="transaction">
+                        <span class="oi oi-transfer" aria-hidden="true"></span> Transaction
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="bucket">
+                        <span class="oi oi-box" aria-hidden="true"></span> Bucket
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="import">
+                        <span class="oi oi-data-transfer-upload" aria-hidden="true"></span> Import
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="report">
+                        <span class="oi oi-bar-chart" aria-hidden="true"></span> Report
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="rules">
+                        <span class="oi oi-script" aria-hidden="true"></span> Rules
+                    </NavLink>
+                </li>
+            </ul>
+        </div>
+	    <div class="col-md-auto">
+            <div class="navbar-text" style="margin-right: 15px">
+                <span>
+                    Database: @CurrentDatabase
+                </span>
+            </div>
+            <div class="navbar-text">
+                <span>
+                    Version: 1.1.1 (<a href="https://gitlab.com/Axelander/openbudgeteer/-/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
+                </span>
+            </div>
         </div>
     </div>
 </nav>

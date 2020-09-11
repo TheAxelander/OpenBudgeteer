@@ -92,6 +92,8 @@ namespace OpenBudgeteer.Core.ViewModels
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
 
+        private bool _defaultCollapseState; // Keep Collapse State e.g. after YearMonth change of ViewModel reload
+
         public BucketViewModel(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
         {
             _dbOptions = dbOptions;
@@ -112,6 +114,7 @@ namespace OpenBudgeteer.Core.ViewModels
                     foreach (var bucketGroup in bucketGroups)
                     {
                         var newBucketGroup = new BucketGroupViewModelItem(_dbOptions, bucketGroup, _yearMonthViewModel.CurrentMonth);
+                        newBucketGroup.IsCollapsed = _defaultCollapseState;
                         newBucketGroup.ViewModelReloadRequired += (sender) =>
                         {
                             ViewModelReloadRequired?.Invoke(this);
@@ -268,6 +271,15 @@ namespace OpenBudgeteer.Core.ViewModels
             }
             return new Tuple<bool, string>(true, string.Empty);
             
+        }
+
+        public void ChangeBucketGroupCollapse(bool collapse = true)
+        {
+            _defaultCollapseState = collapse;
+            foreach (var bucketGroup in BucketGroups)
+            {
+                bucketGroup.IsCollapsed = collapse;
+            }
         }
 
         public Tuple<bool, string> SaveChanges(BucketViewModelItem bucket)

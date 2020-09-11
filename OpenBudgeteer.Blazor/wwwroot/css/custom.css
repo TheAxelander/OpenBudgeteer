@@ -1,0 +1,37 @@
+﻿/* App specific styles
+-------------------------------------------------- */
+button.header-action-button {
+    margin-top: 5px;
+    margin-right: 5px;
+	margin-bottom: 5px;
+}
+input.number-input {
+    text-align: right;
+}
+table .header-row td, table .header-row th {
+    border-top: none;
+	font-size: 1rem;
+}
+.col-numbers {
+    text-align: right;
+}
+.col-buttons {
+    text-align: right;
+}
+
+/* Overwrite site styles*/
+html, body {
+    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #f3f5f7;
+    color: #212529;
+}
+
+/* Overwrite bootstrap styles */
+.table td, .table tbody td, .table th, .table thead th {
+    vertical-align: middle;
+}
+
+.table-sm td, .table-sm th {
+    padding: .2rem;
+    font-size: .9rem;
+}

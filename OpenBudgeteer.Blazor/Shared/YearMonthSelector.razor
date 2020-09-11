@@ -2,17 +2,14 @@
 @using OpenBudgeteer.Core.Common
 
 <style>
-    .btn-margin-bottom {
-        margin-bottom: 5px;
-    }
-    .yearMonth-margin {
+    .element-margin {
         margin-left: 5px;
     }
 </style>
 
-<div class="col-md-auto d-flex justify-content-end">
-    <button class="btn btn-sm btn-primary btn-margin-bottom" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
-    <select class="form-control form-control-sm yearMonth-margin" style="width: auto" @onchange=@SelectedMonth_SelectionChanged>
+<div class="col-md-auto d-flex justify-content-end align-items-center">
+    <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
+    <select class="form-control form-control-sm element-margin" style="width: auto" @onchange=@SelectedMonth_SelectionChanged>
         @foreach (var month in DataContext.Months)
         {
             if (month == DataContext.SelectedMonth)
@@ -25,8 +22,8 @@
             }
         }
     </select>
-    <input class="form-control form-control-sm yearMonth-margin" style="text-align: right; width: 50px" type="text" @bind="DataContext.SelectedYear" />
-    <button class="btn btn-sm btn-primary btn-margin-bottom yearMonth-margin" @onclick="@(DataContext.NextMonth)">&gt;</button>
+    <input class="form-control form-control-sm element-margin" style="text-align: right; width: 50px" type="text" @bind="DataContext.SelectedYear" />
+    <button class="btn btn-sm btn-primary element-margin" @onclick="@(DataContext.NextMonth)">&gt;</button>
 </div>
 
 @code {

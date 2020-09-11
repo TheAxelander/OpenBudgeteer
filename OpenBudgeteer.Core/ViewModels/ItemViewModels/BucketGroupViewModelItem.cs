@@ -32,6 +32,13 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _isHovered, value);
         }
 
+        private bool _isCollapsed;
+        public bool IsCollapsed
+        {
+            get => _isCollapsed;
+            set => Set(ref _isCollapsed, value);
+        }
+
         private ObservableCollection<BucketViewModelItem> _buckets;
         public ObservableCollection<BucketViewModelItem> Buckets
         {
