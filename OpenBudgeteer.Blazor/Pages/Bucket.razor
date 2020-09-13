@@ -188,10 +188,16 @@
         <tr class="header-row" @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
             @if (bucketGroup.InModification)
             {
-                <th colspan="6"><input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/></th>
-                <th class="col-buttons" style="width: 250px">
-                    <button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
-                    <button class="btn btn-sm btn-danger" @onclick="@(() => bucketGroup.CancelModification())">Cancel</button>
+                <th colspan="8">
+                    <div class="row" style="max-width: 500px">
+                        <div class="col">
+							<input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/>
+                        </div>
+                        <div class="col-3 col-buttons">
+							<button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
+                            <button class="btn btn-sm btn-danger" @onclick="@(() => bucketGroup.CancelModification())">Cancel</button>
+                        </div>
+                    </div>
                 </th>
             }
             else
