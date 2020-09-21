@@ -69,7 +69,7 @@
     {
         _dataContext = new AccountViewModel(DbContextOptions);
         _dataContext.LoadData();
-        _dataContext.ViewModelReloadRequired += sender =>
+        _dataContext.ViewModelReloadRequired += (sender, args) =>
         {
             _dataContext.LoadData();
             StateHasChanged();
@@ -95,7 +95,7 @@
     private void SaveChanges(AccountViewModelItem account)
     {
         _isEditAccountModalDialogVisible = false;
-        HandleResult(account.CreateUpdateItem());
+        HandleResult(account.CreateUpdateAccount());
     }
 
     private void CancelChanges()
@@ -106,7 +106,7 @@
 
     private void CloseAccount(AccountViewModelItem account)
     {
-        HandleResult(account.CloseItem());
+        HandleResult(account.CloseAccount());
     }
 
     void HandleResult(Tuple<bool, string> result)

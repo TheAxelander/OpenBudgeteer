@@ -231,13 +231,13 @@
         _dataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
 
         HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async (sender) =>
+        _dataContext.ViewModelReloadRequired += async (sender, args) =>
         {
             HandleResult(await _dataContext.LoadDataAsync());
             base.StateHasChanged();
         };
 
-        YearMonthDataContext.SelectedYearMonthChanged += async (sender) =>
+        YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) =>
         {
             HandleResult(await _dataContext.LoadDataAsync());
             base.StateHasChanged();

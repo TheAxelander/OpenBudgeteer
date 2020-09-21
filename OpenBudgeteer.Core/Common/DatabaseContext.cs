@@ -127,8 +127,7 @@ namespace OpenBudgeteer.Core.Common
             foreach (var account in accounts)
             {
                 var dbAccount = Account.First(i => i.AccountId == account.AccountId);
-                dbAccount.Name = account.Name;
-                dbAccount.IsActive = account.IsActive;
+                Entry(dbAccount).CurrentValues.SetValues(account);
             }
             return SaveChanges();
         }

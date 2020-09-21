@@ -35,3 +35,7 @@ html, body {
     padding: .2rem;
     font-size: .9rem;
 }
+
+.modal-dialog-scrollable {
+    max-height: calc(100% - 3.5rem - 3.5rem); /* Additional 3.5rem for static footer  */
+}

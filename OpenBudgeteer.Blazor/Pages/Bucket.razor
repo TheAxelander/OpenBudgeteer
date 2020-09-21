@@ -220,7 +220,7 @@
                         <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
                         <button class="btn btn-sm btn-primary oi oi-arrow-top" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
                         <button class="btn btn-sm btn-primary oi oi-arrow-bottom" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
-                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleResult(bucketGroup.DeleteGroup()))"></button>
+                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleResult(_dataContext.DeleteGroup(bucketGroup)))"></button>
                         <button class="btn btn-sm btn-primary oi oi-plus" @onclick="@(() => CreateBucket(bucketGroup))"></button>
                     }
                 </th>
@@ -337,13 +337,13 @@
         _dataContext = new BucketViewModel(DbContextOptions, YearMonthDataContext);
 
         HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async sender =>
+        _dataContext.ViewModelReloadRequired += async (sender, args) =>
         {
             HandleResult(await _dataContext.LoadDataAsync());
             StateHasChanged();
         };
 
-        YearMonthDataContext.SelectedYearMonthChanged += async sender => 
+        YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) => 
         {
             HandleResult(await _dataContext.LoadDataAsync());
             StateHasChanged();

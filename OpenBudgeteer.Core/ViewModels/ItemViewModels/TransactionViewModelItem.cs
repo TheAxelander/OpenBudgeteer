@@ -58,8 +58,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _availableAccounts, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(ViewModelBase sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
@@ -431,7 +430,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             if (!result)
             {
                 // Trigger page reload as DB Update was not successfully
-                ViewModelReloadRequired?.Invoke(this);
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
 
                 return new Tuple<bool, string>(false, message);
             }
@@ -444,11 +443,8 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public Tuple<bool, string> DeleteItem()
         {
             var (result, message) = DeleteTransaction();
-            if (!result)
-            {
-                return new Tuple<bool, string>(false, message);
-            }
-            ViewModelReloadRequired?.Invoke(this);
+            if (!result) return new Tuple<bool, string>(false, message);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
            
             return new Tuple<bool, string>(true, string.Empty);
         }

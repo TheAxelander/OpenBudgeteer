@@ -11,9 +11,7 @@ namespace OpenBudgeteer.Core.Common.EventClasses
     /// </summary>
     public class DeleteAssignmentRequestArgs : EventArgs
     {
-        public PartialBucketViewModelItem Source { get; set; }
-
-        public DeleteAssignmentRequestArgs() { }
+        public PartialBucketViewModelItem Source { get; private set; }
 
         public DeleteAssignmentRequestArgs(PartialBucketViewModelItem source)
         {

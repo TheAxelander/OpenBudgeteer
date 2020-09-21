@@ -11,6 +11,8 @@ using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Internal;
+using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels
 {
@@ -86,8 +88,7 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _months, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(ViewModelBase sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
@@ -107,41 +108,41 @@ namespace OpenBudgeteer.Core.ViewModels
             try
             {
                 BucketGroups.Clear();
-                using (var bucketGroupDbContext = new DatabaseContext(_dbOptions))
+                using (var dbContext = new DatabaseContext(_dbOptions))
                 {
-                    var bucketGroups = bucketGroupDbContext.BucketGroup.OrderBy(i => i.Position);
+                    var bucketGroups = dbContext.BucketGroup
+                        .OrderBy(i => i.Position)
+                        .ToList();
 
                     foreach (var bucketGroup in bucketGroups)
                     {
                         var newBucketGroup = new BucketGroupViewModelItem(_dbOptions, bucketGroup, _yearMonthViewModel.CurrentMonth);
                         newBucketGroup.IsCollapsed = _defaultCollapseState;
-                        newBucketGroup.ViewModelReloadRequired += (sender) =>
+                        newBucketGroup.ViewModelReloadRequired += (sender, args) =>
                         {
-                            ViewModelReloadRequired?.Invoke(this);
+                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         };
-                        using (var bucketDbContext = new DatabaseContext(_dbOptions))
-                        {
-                            var buckets = bucketDbContext.Bucket
+                        var buckets = dbContext.Bucket
                                 .Where(i => i.BucketGroupId == newBucketGroup.BucketGroup.BucketGroupId)
-                                .OrderBy(i => i.Name);
+                                .OrderBy(i => i.Name)
+                                .ToList();
 
-                            var bucketItemTasks = new List<Task<BucketViewModelItem>>();
+                        var bucketItemTasks = new List<Task<BucketViewModelItem>>();
 
-                            foreach (var bucket in buckets)
+                        foreach (var bucket in buckets)
+                        {
+                            if (bucket.ValidFrom > _yearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
+                            if (bucket.IsInactive && bucket.IsInactiveFrom <= _yearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
+                            bucketItemTasks.Add(BucketViewModelItem.CreateAsync(_dbOptions, bucket, _yearMonthViewModel.CurrentMonth));
+                        }
+
+                        foreach (var bucket in await Task.WhenAll(bucketItemTasks))
+                        {
+                            bucket.ViewModelReloadRequired += (sender, args) =>
                             {
-                                if (bucket.ValidFrom > _yearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
-                                if (bucket.IsInactive && bucket.IsInactiveFrom <= _yearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
-                                bucketItemTasks.Add(BucketViewModelItem.CreateAsync(_dbOptions, bucket, _yearMonthViewModel.CurrentMonth));
-                            }
-
-                            foreach (var bucket in await Task.WhenAll(bucketItemTasks))
-                            {
-                                bucket.ViewModelReloadRequired += (sender) =>
-                                {
-                                    ViewModelReloadRequired?.Invoke(this);
-                                };
-                                newBucketGroup.Buckets.Add(bucket);
-                            }
+                                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
+                            };
+                            newBucketGroup.Buckets.Add(bucket);
                         }
                         BucketGroups.Add(newBucketGroup);
                     }
@@ -182,11 +183,47 @@ namespace OpenBudgeteer.Core.ViewModels
                     InModification = true
 
                 };
-            newBucketGroupViewModelItem.ViewModelReloadRequired += (sender) =>
+            newBucketGroupViewModelItem.ViewModelReloadRequired += (sender, args) =>
             {
-                ViewModelReloadRequired?.Invoke(this);
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
             };
             BucketGroups.Insert(0, newBucketGroupViewModelItem);
+            return new Tuple<bool, string>(true, string.Empty);
+        }
+
+        public Tuple<bool, string> DeleteGroup(BucketGroupViewModelItem bucketGroup)
+        {
+            var index = BucketGroups.IndexOf(bucketGroup) + 1;
+            var bucketGroupsToMove = BucketGroups.ToList().GetRange(index, BucketGroups.Count - index);
+
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                using (var transaction = dbContext.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        var result = bucketGroup.DeleteGroup();
+                        if (!result.Item1) throw new Exception(result.Item2);
+
+                        var dbBucketGroups = new List<BucketGroup>();
+                        foreach (var bucketGroupViewModelItem in bucketGroupsToMove)
+                        {
+                            bucketGroupViewModelItem.BucketGroup.Position -= 1;
+                            dbBucketGroups.Add(bucketGroupViewModelItem.BucketGroup);
+                        }
+
+                        dbContext.UpdateBucketGroups(dbBucketGroups);
+                        transaction.Commit();
+                    }
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        return new Tuple<bool, string>(false, e.Message);
+                    }
+                }
+            }
+
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             return new Tuple<bool, string>(true, string.Empty);
         }
 
@@ -221,7 +258,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 }
             }
             //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             return new Tuple<bool, string>(true, string.Empty);
         }
 
@@ -242,19 +279,14 @@ namespace OpenBudgeteer.Core.ViewModels
                     var results = dbContext.BankTransaction
                         .Join(
                             dbContext.BudgetedTransaction,
-                            bankTransaction => bankTransaction.TransactionId,
-                            budgetedTransaction => budgetedTransaction.TransactionId,
-                            (bankTransaction, budgetedTransaction) => new
-                            {
-                                TransactionId = bankTransaction.TransactionId,
-                                TransactionDate = bankTransaction.TransactionDate,
-                                Amount = budgetedTransaction.Amount,
-                                BucketId = budgetedTransaction.BucketId
-                            })
+                            i => i.TransactionId,
+                            j => j.TransactionId,
+                            (bankTransaction, budgetedTransaction) => new { bankTransaction, budgetedTransaction })
                         .Where(i =>
-                            i.BucketId != 2 &&
-                            i.TransactionDate.Year == _yearMonthViewModel.SelectedYear &&
-                            i.TransactionDate.Month == _yearMonthViewModel.SelectedMonth)
+                            i.budgetedTransaction.BucketId != 2 &&
+                            i.bankTransaction.TransactionDate.Year == _yearMonthViewModel.SelectedYear &&
+                            i.bankTransaction.TransactionDate.Month == _yearMonthViewModel.SelectedMonth)
+                        .Select(i => i.budgetedTransaction)
                         .ToList();
 
                     Income = results
@@ -267,9 +299,10 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     MonthBalance = Income + Expenses;
                     BankBalance = dbContext.BankTransaction
-                        .ToList()
                         .Where(i => i.TransactionDate < _yearMonthViewModel.CurrentMonth.AddMonths(1))
+                        .ToList()
                         .Sum(i => i.Amount);
+
 
                     Budget = BankBalance - BucketGroups.Sum(i => i.TotalBalance);
 
@@ -282,8 +315,8 @@ namespace OpenBudgeteer.Core.ViewModels
             {
                 return new Tuple<bool, string>(false, $"Error during Balance recalculation: {e.Message}");
             }
+
             return new Tuple<bool, string>(true, string.Empty);
-            
         }
 
         public void ChangeBucketGroupCollapse(bool collapse = true)

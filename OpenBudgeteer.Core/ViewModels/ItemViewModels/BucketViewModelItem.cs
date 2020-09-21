@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 {
@@ -143,8 +144,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _availableBucketGroups, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(BucketViewModelItem sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly bool _isNewlyCreatedBucket;
         private readonly DateTime _currentYearMonth;
@@ -185,7 +185,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
         public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, DateTime yearMonth) : this(dbOptions)
         {
-            _currentYearMonth = yearMonth;
+            _currentYearMonth = new DateTime(yearMonth.Year, yearMonth.Month, 1);
             BucketVersion = new BucketVersion()
             {
                 BucketId = 0,
@@ -230,12 +230,14 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             InOut = 0;
             
             // Get latest BucketVersion based on passed parameter
-            using (var bucketVersionDbContext = new DatabaseContext(_dbOptions))
+            using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var bucketVersions = bucketVersionDbContext.BucketVersion
-                    .Where(i => i.BucketId == Bucket.BucketId).ToList();
-                var orderedBucketVersions = bucketVersions.OrderByDescending(i => i.ValidFrom);
-                foreach (var bucketVersion in orderedBucketVersions)
+                var bucketVersions = dbContext.BucketVersion
+                    .Where(i => i.BucketId == Bucket.BucketId)
+                    .OrderByDescending(i => i.ValidFrom)
+                    .ToList();
+                //var orderedBucketVersions = bucketVersions.OrderByDescending(i => i.ValidFrom);
+                foreach (var bucketVersion in bucketVersions)
                 {
                     if (bucketVersion.ValidFrom > _currentYearMonth) continue;
                     BucketVersion = bucketVersion;
@@ -247,72 +249,65 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             #region Balance
 
             // Get all Transactions for this Bucket until passed yearMonth
-            using (var bucketTransactionsDbContext = new DatabaseContext(_dbOptions))
+            using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var bucketTransactionsSql =
-                    $"SELECT a.* FROM {nameof(BudgetedTransaction)} a " +
-                    $"INNER JOIN {nameof(BankTransaction)} b ON a.{nameof(BudgetedTransaction.TransactionId)} = b.{nameof(BankTransaction.TransactionId)} " +
-                    $"WHERE a.{nameof(BudgetedTransaction.BucketId)} = {Bucket.BucketId} " +
-                    $"AND b.{nameof(BankTransaction.TransactionDate)} < '{_currentYearMonth.AddMonths(1):yyyy-MM}-01'";
-                var bucketTransactions = bucketTransactionsDbContext.BudgetedTransaction.FromSqlRaw(bucketTransactionsSql);
+                Balance += dbContext.BudgetedTransaction
+                    .Join(dbContext.BankTransaction,
+                        i => i.TransactionId,
+                        j => j.TransactionId,
+                        ((budgetedTransaction, bankTransaction) => new { budgetedTransaction, bankTransaction }))
+                    .Where(i => i.budgetedTransaction.BucketId == Bucket.BucketId &&
+                                i.bankTransaction.TransactionDate < _currentYearMonth.AddMonths(1))
+                    .Select(i => i.budgetedTransaction)
+                    .ToList()
+                    .Sum(i => i.Amount);
 
-                foreach (BudgetedTransaction bucketTransaction in bucketTransactions)
-                {
-                    Balance += bucketTransaction.Amount;
-                }
-            }
-            using (var bucketMovementsDbContext = new DatabaseContext(_dbOptions))
-            {
-                var bucketMovementsSql =
-                    $"SELECT a.* FROM {nameof(BucketMovement)} a " +
-                    $"WHERE a.{nameof(BucketMovement.BucketId)} = {Bucket.BucketId} " +
-                    $"AND a.{nameof(BucketMovement.MovementDate)} < '{_currentYearMonth.AddMonths(1):yyyy-MM}-01'";
-                var bucketMovements = bucketMovementsDbContext.BucketMovement.FromSqlRaw(bucketMovementsSql);
-
-                foreach (BucketMovement bucketMovement in bucketMovements)
-                {
-                    Balance += bucketMovement.Amount;
-                }
+                Balance += dbContext.BucketMovement
+                    .Where(i => i.BucketId == Bucket.BucketId &&
+                                i.MovementDate < _currentYearMonth.AddMonths(1))
+                    .ToList()
+                    .Sum(i => i.Amount);
             }
 
             #endregion
 
             #region In & Activity
 
-            using (var bucketTransactionsDbContext = new DatabaseContext(_dbOptions))
+            using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var bucketTransactionsCurrentMonthSql =
-                    $"SELECT a.* FROM {nameof(BudgetedTransaction)} a " +
-                    $"INNER JOIN {nameof(BankTransaction)} b ON a.{nameof(BudgetedTransaction.TransactionId)} = b.{nameof(BankTransaction.TransactionId)} " +
-                    $"WHERE a.{nameof(BudgetedTransaction.BucketId)} = {Bucket.BucketId} " +
-                    $"AND b.{nameof(BankTransaction.TransactionDate)} LIKE '{_currentYearMonth:yyyy-MM}%'";
-                var bucketTransactionsCurrentMonth =
-                    bucketTransactionsDbContext.BudgetedTransaction.FromSqlRaw(bucketTransactionsCurrentMonthSql);
-
-                foreach (BudgetedTransaction bucketTransaction in bucketTransactionsCurrentMonth)
+                var bucketTransactionsCurrentMonth = dbContext.BudgetedTransaction
+                    .Join(dbContext.BankTransaction,
+                        i => i.TransactionId,
+                        j => j.TransactionId,
+                        ((budgetedTransaction, bankTransaction) => new {budgetedTransaction, bankTransaction}))
+                    .Where(i => i.budgetedTransaction.BucketId == Bucket.BucketId &&
+                                i.bankTransaction.TransactionDate.Year == _currentYearMonth.Year &&
+                                i.bankTransaction.TransactionDate.Month == _currentYearMonth.Month)
+                    .Select(i => i.budgetedTransaction)
+                    .ToList();
+                
+                foreach (var bucketTransaction in bucketTransactionsCurrentMonth)
                 {
                     if (bucketTransaction.Amount < 0)
                         Activity += bucketTransaction.Amount;
                     else
                         In += bucketTransaction.Amount;
                 }
-            }
-            using (var bucketMovementsDbContext = new DatabaseContext(_dbOptions))
-            {
-                var bucketMovementsCurrentMonthSql =
-                    $"SELECT a.* FROM {nameof(BucketMovement)} a " +
-                    $"WHERE a.{nameof(BucketMovement.BucketId)} = {Bucket.BucketId} " +
-                    $"AND a.{nameof(BucketMovement.MovementDate)} LIKE '{_currentYearMonth:yyyy-MM}%'";
-                var bucketMovementsCurrentMonth = bucketMovementsDbContext.BucketMovement.FromSqlRaw(bucketMovementsCurrentMonthSql);
 
-                foreach (BucketMovement bucketMovement in bucketMovementsCurrentMonth)
+                var bucketMovementsCurrentMonth = dbContext.BucketMovement
+                    .Where(i => i.BucketId == Bucket.BucketId &&
+                                i.MovementDate.Year == _currentYearMonth.Year &&
+                                i.MovementDate.Month == _currentYearMonth.Month)
+                    .ToList();
+
+                foreach (var bucketMovement in bucketMovementsCurrentMonth)
                 {
                     if (bucketMovement.Amount < 0)
                         Activity += bucketMovement.Amount;
                     else
                         In += bucketMovement.Amount;
                 }
-            }            
+            }
 
             #endregion
 
@@ -436,7 +431,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     }
                 }
             }            
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             return new Tuple<bool, string>(true, string.Empty);
         }
 
@@ -466,12 +461,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                                                     $"Bucket ID: {newBucketVersion.BucketId}");
 
                             transaction.Commit();
-                            ViewModelReloadRequired?.Invoke(this);
+                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         }
                         catch (Exception e)
                         {
                             transaction.Rollback();
-                            ViewModelReloadRequired?.Invoke(this);
+                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                             return new Tuple<bool, string>(false, $"Error during database update: {e.Message}");
                         }
                     }
@@ -549,7 +544,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                             catch (Exception e)
                             {
                                 transaction.Rollback();
-                                ViewModelReloadRequired?.Invoke(this);
+                                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                                 return new Tuple<bool, string>(false, $"Error during database update: {e.Message}");
                             }
                         }
@@ -558,14 +553,14 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             }
             InModification = false;
             CalculateValues();
-            if (forceViewModelReload) ViewModelReloadRequired?.Invoke(this);
+            if (forceViewModelReload) ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             return new Tuple<bool, string>(true, string.Empty);
         }
 
         public void CancelChanges()
         {
             InModification = false;
-            ViewModelReloadRequired?.Invoke(this); // force Re-load to get old values back
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this)); // force Re-load to get old values back
         }
 
         public Tuple<bool,string> HandleInOutInput(string key)

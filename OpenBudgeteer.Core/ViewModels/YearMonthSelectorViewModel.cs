@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
+using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels
 {
@@ -25,7 +26,7 @@ namespace OpenBudgeteer.Core.ViewModels
             set
             {
                 Set(ref _selectedMonth, value);
-                if (!_yearMontIsChanging) SelectedYearMonthChanged?.Invoke(this);
+                if (!_yearMontIsChanging) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
             }
         }
 
@@ -36,7 +37,7 @@ namespace OpenBudgeteer.Core.ViewModels
             set
             {
                 Set(ref _selectedYear, value);
-                if (!_yearMontIsChanging) SelectedYearMonthChanged?.Invoke(this);
+                if (!_yearMontIsChanging) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
             }
         }
 
@@ -49,8 +50,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         public DateTime CurrentMonth => new DateTime(SelectedYear, SelectedMonth, 1);
 
-        public event SelectedYearMonthChangedHandler SelectedYearMonthChanged;
-        public delegate void SelectedYearMonthChangedHandler(ViewModelBase sender);
+        public event EventHandler<ViewModelReloadEventArgs> SelectedYearMonthChanged;
 
         private bool _yearMontIsChanging;
 
@@ -70,7 +70,7 @@ namespace OpenBudgeteer.Core.ViewModels
             SelectedYear = newYearMonth.Year;
             SelectedMonth = newYearMonth.Month;
             _yearMontIsChanging = false;
-            SelectedYearMonthChanged?.Invoke(this);
+            SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 }

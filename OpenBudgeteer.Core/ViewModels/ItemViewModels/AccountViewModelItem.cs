@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -44,9 +45,8 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _inModification, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(ViewModelBase sender);
-
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
+        
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
         public AccountViewModelItem(DbContextOptions<DatabaseContext> dbOptions)
@@ -59,7 +59,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _account = account;
         }
 
-        public Tuple<bool, string> CreateUpdateItem()
+        public Tuple<bool, string> CreateUpdateAccount()
         {
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
@@ -68,12 +68,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 {
                     return new Tuple<bool, string>(false, "Unable to save changes to database");
                 }
-                ViewModelReloadRequired?.Invoke(this);
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 return new Tuple<bool, string>(true, string.Empty);
             }
         }
 
-        public Tuple<bool, string> CloseItem()
+        public Tuple<bool, string> CloseAccount()
         {
             if (Balance != 0) return new Tuple<bool, string>(false, "Balance must be 0 to close an Account");
 
@@ -85,7 +85,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 {
                     return new Tuple<bool, string>(false, "Unable to save changes to database");
                 }
-                ViewModelReloadRequired?.Invoke(this);
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 return new Tuple<bool, string>(true, string.Empty);
             }
         }

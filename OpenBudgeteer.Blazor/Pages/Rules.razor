@@ -250,7 +250,7 @@
         _dataContext = new RulesViewModel(DbContextOptions);
 
         HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async (sender) =>
+        _dataContext.ViewModelReloadRequired += async (sender, args) =>
         {
             HandleResult(await _dataContext.LoadDataAsync());
             base.StateHasChanged();

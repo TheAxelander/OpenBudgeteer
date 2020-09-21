@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 {
@@ -53,8 +54,8 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _inModification, value);
         }
         
-        internal event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        internal delegate void ViewModelReloadRequiredHandler(BucketGroupViewModelItem sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
+
         internal DateTime CurrentMonth;
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private BucketGroup _oldBucketGroup;
@@ -98,7 +99,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 {
                     dbContext.UpdateBucketGroup(BucketGroup);
                 }
-                ViewModelReloadRequired?.Invoke(this);
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 InModification = false;
                 _oldBucketGroup = null;
             }
@@ -119,7 +120,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 {
                     dbContext.DeleteBucketGroup(BucketGroup);
                 }
-                ViewModelReloadRequired?.Invoke(this);
             }
             catch (Exception e)
             {
@@ -160,7 +160,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         }
 
                         transaction.Commit();
-                        ViewModelReloadRequired?.Invoke(this);
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                     }
                     catch (Exception e)
                     {
@@ -176,11 +176,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public BucketViewModelItem CreateBucket()
         {
             var newBucket = new BucketViewModelItem(_dbOptions, BucketGroup, CurrentMonth);
-            newBucket.ViewModelReloadRequired += (sender) =>
-            {
-                // Hand over ViewModel changes
-                ViewModelReloadRequired?.Invoke(this);
-            };
+            // Hand over ViewModel changes
+            newBucket.ViewModelReloadRequired += (sender, args) =>
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             Buckets.Add(newBucket);
             return newBucket;
         }
