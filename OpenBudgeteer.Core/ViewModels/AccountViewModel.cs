@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 
@@ -21,8 +22,7 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _accounts, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(ViewModelBase sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
@@ -62,7 +62,8 @@ namespace OpenBudgeteer.Core.ViewModels
                     newAccountItem.In = newIn;
                     newAccountItem.Out = newOut;
 
-                    newAccountItem.ViewModelReloadRequired += sender => ViewModelReloadRequired?.Invoke(this);
+                    newAccountItem.ViewModelReloadRequired += (sender, args) => 
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                     Accounts.Add(newAccountItem);
                 }
             }
@@ -77,13 +78,14 @@ namespace OpenBudgeteer.Core.ViewModels
                 In = 0,
                 Out = 0
             };
-            result.ViewModelReloadRequired += sender => ViewModelReloadRequired?.Invoke(this);
+            result.ViewModelReloadRequired += (sender, args) =>
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
             return result;
         }
 
         public void CancelEditMode()
         {
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 }

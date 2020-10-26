@@ -5,8 +5,8 @@
 @using Microsoft.EntityFrameworkCore
 @using System.IO
 @using System.Text
-@using global::Blazor.FileReader
 @using OpenBudgeteer.Core.Models
+@using Tewr.Blazor.FileReader
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject IFileReaderService FileReaderService
 
@@ -21,7 +21,7 @@
 
 <div>
     <h5>Step 1: Select File</h5>
-    <div class="input-group" style="max-width: 1000px">
+    <div class="input-group">
         <div class="custom-file">
             <input type="file" class="custom-file-input" id="fileUpload" @ref=_inputElement @onchange=@HandleFileSelection>
             <label class="custom-file-label" for="fileUpload">@_selectedFileName</label>
@@ -47,69 +47,28 @@
                 <button class="btn btn-sm btn-danger btn-margin-top" @onclick=@(() => HandleResult(_dataContext.DeleteProfile()))>Delete Profile</button>
             }
         </div>
-        <div class="div-margin-top" style="width: 300px">
-            <div class="form-group">
-                <select class="form-control form-control-sm" @onchange=@ImportProfile_SelectionChanged>
-                    <option value="@_placeholderItemId">---Select Import Profile---</option>
-                    @foreach (var importProfile in _dataContext.AvailableImportProfiles)
+        <div class="div-margin-top form-group" style="max-width: 300px">
+            <select class="form-control form-control-sm" @onchange=@ImportProfile_SelectionChanged>
+                <option value="@_placeholderItemId">---Select Import Profile---</option>
+                @foreach (var importProfile in _dataContext.AvailableImportProfiles)
+                {
+                    if (_dataContext.SelectedImportProfile != null && importProfile.ImportProfileId == _dataContext.SelectedImportProfile.ImportProfileId)
                     {
-                        if (_dataContext.SelectedImportProfile != null && importProfile.ImportProfileId == _dataContext.SelectedImportProfile.ImportProfileId)
-                        {
-                            <option selected value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
-                        }
-                        else
-                        {
-                            <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
-                        }
+                        <option selected value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
                     }
-                </select>
-            </div>
-            <div class="form-group">
+                    else
+                    {
+                        <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="row div-margin-top">
+            <div class="col form-group">
                 <label>Profile Name:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.ProfileName"/>
             </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col">
-                        <label>Delimiter:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.Delimiter"/>
-                    </div>
-                    <div class="col">
-                        <label>Text qualifier:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.TextQualifier"/>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col">
-                        <label>Date format:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.DateFormat"/>
-                        <p><small>e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy</small></p>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col">
-                        <label>Number format:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.NumberFormat"/>
-                        <p><small>Use BCP 47 language tag like en-US or de-DE</small></p>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col">
-                        <label>Header Row:</label>
-                        <input class="form-control form-control-sm" type="number" @bind="_dataContext.SelectedImportProfile.HeaderRow"/>
-                    </div>
-                    <div class="col-auto align-self-end">
-                        <button class="btn btn-sm btn-primary" @onclick=LoadHeaders>Load Header</button>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
+            <div class="col form-group">
                 <label>Target Account:</label>
                 <select class="form-control form-control-sm" @onchange=@TargetAccount_SelectionChanged>
                     <option value="@_placeholderItemId">---Select Target Account---</option>
@@ -125,6 +84,37 @@
                         }
                     }
                 </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col form-group">
+                <label>Delimiter:</label>
+                <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.Delimiter"/>
+            </div>
+            <div class="col form-group">
+                <label>Text qualifier:</label>
+                <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.TextQualifier"/>
+            </div>
+            <div class="col form-group">
+                <label>Date format:</label>
+                <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.DateFormat"/>
+                <p><small>e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy</small></p>
+            </div>
+            <div class="col form-group">
+                <label>Number format:</label>
+                <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.NumberFormat"/>
+                <p><small>Use BCP 47 language tag like en-US or de-DE</small></p>
+            </div>
+            <div class="col form-group">
+                <div class="row">
+                    <div class="col">
+                        <label>Header Row:</label>
+                        <input class="form-control form-control-sm" type="number" @bind="_dataContext.SelectedImportProfile.HeaderRow"/>
+                    </div>
+                    <div class="col-auto align-self-end">
+                        <button class="btn btn-sm btn-primary" style="margin-top: 5px" @onclick=LoadHeaders>Load Header</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -232,8 +222,8 @@
         <h5>Preview (Valid Records)</h5>
         <table class="table table-sm table-hover">
             <thead>
-                <tr>
-                    <th style="text-align: right; width:110px">Date</th>
+                <tr class="header-row">
+                    <th style="text-align: right; width:100px">Date</th>
                     <th style="width:150px">Account</th>
                     <th style="width:250px">Payee</th>
                     <th>Memo</th>

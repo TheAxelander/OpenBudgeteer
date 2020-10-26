@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels
 {
@@ -30,8 +31,7 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _transactions, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(ViewModelBase sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
@@ -69,7 +69,8 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     foreach (var transaction in await Task.WhenAll(transactionTasks))
                     {
-                        transaction.ViewModelReloadRequired += sender => ViewModelReloadRequired?.Invoke(this);
+                        transaction.ViewModelReloadRequired += (sender, args) => 
+                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
                 }
@@ -126,7 +127,8 @@ namespace OpenBudgeteer.Core.ViewModels
                     foreach (var transaction in (await Task.WhenAll(transactionTasks))
                         .OrderByDescending(i => i.Transaction.TransactionDate))
                     {
-                        transaction.ViewModelReloadRequired += sender => ViewModelReloadRequired?.Invoke(this);
+                        transaction.ViewModelReloadRequired += (sender, args) =>
+                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
                 }
@@ -160,7 +162,8 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     foreach (var transaction in await Task.WhenAll(transactionTasks))
                     {
-                        transaction.ViewModelReloadRequired += sender => ViewModelReloadRequired?.Invoke(this);
+                        transaction.ViewModelReloadRequired += (sender, args) =>
+                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
                 }
@@ -181,7 +184,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 return new Tuple<bool, string>(false, message);
             }
             ResetNewTransaction();
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             
             return new Tuple<bool, string>(true, string.Empty);
         }
@@ -224,7 +227,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         public void CancelAllTransaction()
         {
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
 
         public void ProposeBuckets()

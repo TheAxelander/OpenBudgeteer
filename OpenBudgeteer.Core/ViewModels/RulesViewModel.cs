@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 
@@ -27,8 +28,7 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _ruleSets, value);
         }
 
-        public event ViewModelReloadRequiredHandler ViewModelReloadRequired;
-        public delegate void ViewModelReloadRequiredHandler(ViewModelBase sender);
+        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
@@ -76,7 +76,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 return new Tuple<bool, string>(false, message);
             }
             ResetNewRuleSet();
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
 
             return new Tuple<bool, string>(true, string.Empty);
         }
@@ -163,7 +163,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         public void CancelAllRules()
         {
-            ViewModelReloadRequired?.Invoke(this);
+            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 }

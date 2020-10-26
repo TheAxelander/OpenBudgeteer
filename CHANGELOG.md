@@ -1,3 +1,11 @@
+### 1.2 (2020-10-26)
+
+* [Add] Enable collapse of Bucket Groups
+* [Changed] Overall style changes with new font and colors
+* [Changed] Newly created Bucket Groups will be created on the first position
+* [Changed] Style for Bucket Group modification
+* [Fixed] Unable to move newly created Bucket Groups #16
+
 ### 1.1.1 (2020-09-07)
 
 * [Fixed] Wrong creation of data for new Rules if the initial selection was used #13
@@ -29,8 +37,8 @@
 * [Changed] Redesign Balance details on Bucket Page
 * [Changed] Removed Page Titles
 * [Changed] Changed ConnectionString setup for Docker (Splitted full ConnectionString into several pieces for User, Password etc.)
-* [Changed] Removed Blazor in Assembly name (now ```OpenBudgeteer.dll```)
-* [Changed] HTML Title from ```OpenBudgeteer.Blazor``` to ```OpenBudgeteer```
+* [Changed] Removed Blazor in Assembly name (now `OpenBudgeteer.dll`)
+* [Changed] HTML Title from `OpenBudgeteer.Blazor` to `OpenBudgeteer`
 * [Fixed] Database update on Number and Date format for Import Profile
 * [Fixed] Total Pending Want update after Bucket Creation and Deletion
 * [Fixed] YearMonthSelector styles and alignment on Bucket Page

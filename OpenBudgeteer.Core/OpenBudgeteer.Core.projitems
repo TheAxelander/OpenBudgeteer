@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Common\DatabaseContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\EventClasses\AmountChangedArgs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\EventClasses\DeleteAssignmentRequestArgs.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Common\EventClasses\ViewModelReloadEventArgs.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Common\MonthOutputConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\Account.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\BankTransaction.cs" />

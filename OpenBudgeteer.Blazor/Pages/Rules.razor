@@ -8,34 +8,16 @@
 @using OpenBudgeteer.Core.Models
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
-<style>
-	.btn-margin-bottom {
-        margin-bottom: 5px;
-    }
-    .btn-margin-left {
-        margin-left: 5px;
-    }
-    .td-right {
-        text-align: right;
-    }
-    .td-button {
-        text-align: center;
-    }
-	.input-right {
-        text-align: right;
-    }
-</style>
-
 <div class="row">
     @if (_massEditEnabled)
     {
-        <button class="btn btn-sm btn-primary btn-margin btn-margin-left" @onclick="@SaveAllRules">Save all</button>
-        <button class="btn btn-sm btn-danger btn-margin btn-margin-left" @onclick="@CancelAllRules">Cancel all</button>
+        <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllRules">Save all</button>
+        <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllRules">Cancel all</button>
     }
     else
     {
-        <button class="btn btn-sm btn-primary btn-margin-bottom btn-margin-left" @onclick="@(() => _newMappingRuleSetIsEnabled = true)">Create Rule</button>
-        <button class="btn btn-sm btn-primary btn-margin-bottom btn-margin-left" @onclick="@EditAllRules">Edit all</button>
+        <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newMappingRuleSetIsEnabled = true)">Create Rule</button>
+        <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllRules">Edit all</button>
     }
 </div>
 
@@ -52,7 +34,7 @@
         </thead>
         <tbody>
             <tr>
-                <td class="td-right"><input class="form-control form-control-sm input-right" type="number" @bind="_dataContext.NewRuleSet.RuleSet.Priority" /></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.RuleSet.Name" /></td>
                 <td>
                     <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)"
@@ -116,7 +98,7 @@
                         </div>
                     }
                 </td>
-                <td class="td-button" style="text-align: right; vertical-align: middle;">
+                <td class="col-buttons">
                     <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.CreateNewRuleSet()))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@CancelNewBucketRule"></button>
                 </td>
@@ -140,7 +122,7 @@
         @if (ruleSet.InModification)
         {
             <tr>
-                <td class="td-right"><input class="form-control form-control-sm input-right" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.RuleSet.Name" /></td>
                 <td>
                     <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)"
@@ -206,7 +188,7 @@
                         </div>
                     }
                 </td>
-                <td class="td-button" style="text-align: right; vertical-align: middle;">
+                <td class="col-buttons">
 					<button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => ruleSet.CancelModification())"></button>
                 </td>
@@ -215,7 +197,7 @@
         else
         {
             <tr @onmouseover="() => ruleSet.IsHovered = true" @onmouseout="() => ruleSet.IsHovered = false">
-                <td class="td-right">@ruleSet.RuleSet.Priority</td>
+                <td class="col-numbers">@ruleSet.RuleSet.Priority</td>
                 <td>@ruleSet.RuleSet.Name</td>
                 <td><div style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color); border-radius: 25px; padding: 5px 10px">@ruleSet.TargetBucket.Name</div></td>
                 <td>
@@ -226,7 +208,7 @@
                         }
                     </ul>
                 </td>
-                <td class="td-button" style="text-align: right; vertical-align: middle">
+                <td class="col-buttons">
                     @if (ruleSet.IsHovered)
                     {
                         <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => ruleSet.StartModification())"></button>
@@ -268,7 +250,7 @@
         _dataContext = new RulesViewModel(DbContextOptions);
 
         HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async (sender) =>
+        _dataContext.ViewModelReloadRequired += async (sender, args) =>
         {
             HandleResult(await _dataContext.LoadDataAsync());
             base.StateHasChanged();

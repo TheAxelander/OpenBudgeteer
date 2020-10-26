@@ -47,13 +47,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _availableBuckets, value);
         }
 
-        public event AmountChangedHandler AmountChanged;
-        public event DeleteAssignmentRequestHandler DeleteAssignmentRequest;
-
-        public delegate void AmountChangedHandler(object sender, AmountChangedArgs changedArgs);
-        public delegate void DeleteAssignmentRequestHandler(object sender,
-            DeleteAssignmentRequestArgs deleteRequestArgs);
-
+        public event EventHandler<AmountChangedArgs> AmountChanged;
+        public event EventHandler<DeleteAssignmentRequestArgs> DeleteAssignmentRequest;
+        
         public PartialBucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
         {
             AvailableBuckets = new ObservableCollection<Bucket>();

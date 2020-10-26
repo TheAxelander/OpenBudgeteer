@@ -11,11 +11,9 @@ namespace OpenBudgeteer.Core.Common.EventClasses
     /// </summary>
     public class AmountChangedArgs : EventArgs
     {
-        public PartialBucketViewModelItem Source { get; set; }
+        public PartialBucketViewModelItem Source { get; private set; }
 
-        public decimal NewAmount { get; set; }
-
-        public AmountChangedArgs() { }
+        public decimal NewAmount { get; private set; }
 
         public AmountChangedArgs(PartialBucketViewModelItem source, decimal newAmount)
         {

@@ -7,43 +7,28 @@
 @using System.Globalization
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
-<style>
-    .flex-container {
-        display: flex;
-        flex-direction: row;
-    }
-    .btn-margin {
-        margin: 5px 5px 5px 0px;
-    }
-</style>
-
-@if (_dataContext == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="flex-container">
-        <button class="btn btn-sm btn-primary btn-margin" @onclick="CreateNewAccount">New account</button>
+<div class="row">
+    <div class="col">
+        <button class="btn btn-sm btn-primary header-action-button" @onclick="CreateNewAccount">New account</button>
     </div>
+</div>
 
-    <div class="row">
-        @foreach (var account in _dataContext.Accounts)
-        {
-            <div class="col-3" style="padding: 15px">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@account.Account.Name</h5>
-                        <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
-                        <button class="btn btn-sm btn-primary" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
-                        <button class="btn btn-sm btn-primary" @onclick="@(() => EditAccount(account))">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="@(() => CloseAccount(account))">Close</button>
-                    </div>
+<div class="row">
+    @foreach (var account in _dataContext.Accounts)
+    {
+        <div class="col-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">@account.Account.Name</h5>
+                    <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
+                    <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
+                    <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => EditAccount(account))">Edit</button>
+                    <button class="btn btn-sm btn-danger header-action-button" @onclick="@(() => CloseAccount(account))">Close</button>
                 </div>
             </div>
-        }
-    </div>
-}
+        </div>
+    }
+</div>
 
 <EditAccountDialog
     Title="@_editAccountDialogTitle"
@@ -84,7 +69,7 @@ else
     {
         _dataContext = new AccountViewModel(DbContextOptions);
         _dataContext.LoadData();
-        _dataContext.ViewModelReloadRequired += sender =>
+        _dataContext.ViewModelReloadRequired += (sender, args) =>
         {
             _dataContext.LoadData();
             StateHasChanged();
@@ -110,7 +95,7 @@ else
     private void SaveChanges(AccountViewModelItem account)
     {
         _isEditAccountModalDialogVisible = false;
-        HandleResult(account.CreateUpdateItem());
+        HandleResult(account.CreateUpdateAccount());
     }
 
     private void CancelChanges()
@@ -121,7 +106,7 @@ else
 
     private void CloseAccount(AccountViewModelItem account)
     {
-        HandleResult(account.CloseItem());
+        HandleResult(account.CloseAccount());
     }
 
     void HandleResult(Tuple<bool, string> result)
