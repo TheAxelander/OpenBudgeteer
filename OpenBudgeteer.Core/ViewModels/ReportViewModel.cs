@@ -175,7 +175,7 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             return await Task.Run(() =>
             {
-                var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month + 1, 1);
+                var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1);
                 var result = new List<MonthlyBucketExpensesReportViewModelItem>();
 
                 using (var dbContext = new DatabaseContext(_dbOptions))
