@@ -1,3 +1,7 @@
+### 1.2.1 (2020-12-14)
+
+* [Fixed] Crash on Report Page due to wrong DateTime creation
+
 ### 1.2 (2020-10-26)
 
 * [Add] Enable collapse of Bucket Groups
