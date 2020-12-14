@@ -4,10 +4,11 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ## Installation (Docker)
 
-You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a MySQL database which can be achieved by passing the following variables:
+You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing the following variables:
 
 | Variable | Description | Example |
 | --- | --- | --- |
+| Connection:Provider | Type of database that should be used | mysql |
 | Connection:Server | IP Address to MySQL Server | 192.168.178.100 |
 | Connection:Port| Port to MySQL Server | 3306 |
 | Connection:Database | Database name | MyOpenBudgeteerDb |
@@ -16,6 +17,7 @@ You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/
 
 ```
 docker run -d --name='openbudgeteer' \
+    -e 'Connection:Provider'='mysql' \
     -e 'Connection:Server'='192.168.178.100' \
     -e 'Connection:Port'='3306' \
     -e 'Connection:Database'='MyOpenBudgeteerDb' \
@@ -25,6 +27,15 @@ docker run -d --name='openbudgeteer' \
     'axelander/openbudgeteer:latest'
 ```
 
+Alternatively you can use a local `Sqlite` database using the below settings:
+
+```
+docker run -d --name='openbudgeteer' \
+    -e 'Connection:Provider'='sqlite' \
+    -v '/my/local/path:/app/database'  \
+    -p '6100:80/tcp' \
+    'axelander/openbudgeteer:latest'
+```
 If you don't change the Port Mapping you can access the App with Port `80`. Otherwise like above example it can be accessed with Port `6100`
 
 ### Pre-release Version (Docker)
@@ -33,6 +44,7 @@ A Pre-Release version can be used with the Tag `pre-release`
 
 ```
 docker run -d --name='openbudgeteer' \
+    -e 'Connection:Provider'='mysql' \
     -e 'Connection:Server'='192.168.178.100' \
     -e 'Connection:Port'='3306' \
     -e 'Connection:Database'='MyOpenBudgeteerDb' \
