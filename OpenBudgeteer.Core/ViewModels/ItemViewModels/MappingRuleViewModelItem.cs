@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -10,6 +10,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
     public class MappingRuleViewModelItem : ViewModelBase
     {
         private MappingRule _mappingRule;
+        /// <summary>
+        /// Reference to model object in the database
+        /// </summary>
         public MappingRule MappingRule
         {
             get => _mappingRule;
@@ -17,6 +20,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private string _ruleOutput;
+        /// <summary>
+        /// Helper property to generate a readable output for <see cref="MappingRule"/>
+        /// </summary>
         public string RuleOutput
         {
             get => _ruleOutput;
@@ -25,17 +31,29 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
         public MappingRuleViewModelItem(DbContextOptions<DatabaseContext> dbOptions)
         {
             _dbOptions = dbOptions;
         }
 
+        /// <summary>
+        /// Initialize ViewModel with an existing <see cref="MappingRule"/> object
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="mappingRule">MappingRule instance</param>
         public MappingRuleViewModelItem(DbContextOptions<DatabaseContext> dbOptions, MappingRule mappingRule) : this(dbOptions)
         {
             MappingRule = mappingRule;
             GenerateRuleOutput();
         }
 
+        /// <summary>
+        /// Translates <see cref="MappingRule"/> object into a readable format
+        /// </summary>
         public void GenerateRuleOutput()
         {
             RuleOutput = MappingRule == null ? string.Empty :

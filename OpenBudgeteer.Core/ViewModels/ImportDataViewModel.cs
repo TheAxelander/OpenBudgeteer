@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common;
 using TinyCsvParser;
 using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
@@ -21,6 +22,15 @@ namespace OpenBudgeteer.Core.ViewModels
     {
         private class CsvBankTransactionMapping : CsvMapping<BankTransaction>
         {
+            /// <summary>
+            /// Definition on how CSV columns should be mapped to <see cref="ImportProfile"/>
+            /// </summary>
+            /// <remarks>
+            /// <see cref="ImportProfile"/> instance and collection of columns will be used to identify columnIndex for
+            /// CSV mapping
+            /// </remarks>
+            /// <param name="importProfile">Instance required for CSV column name</param>
+            /// <param name="identifiedColumns">Collection of all CSV columns</param>
             public CsvBankTransactionMapping(ImportProfile importProfile, IEnumerable<string> identifiedColumns) : base()
             {
                 // TODO Add User Input for CultureInfo for Amount & TransactionDate conversion
@@ -36,6 +46,9 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private string _filePath;
+        /// <summary>
+        /// Path to the file which should be imported
+        /// </summary>
         public string FilePath
         {
             get => _filePath;
@@ -43,6 +56,9 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private string _fileText;
+        /// <summary>
+        /// Readonly content of the file
+        /// </summary>
         public string FileText
         {
             get => _fileText;
@@ -50,6 +66,9 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private Account _selectedAccount;
+        /// <summary>
+        /// Target <see cref="Account"/> for which all imported <see cref="BankTransaction"/> should be added
+        /// </summary>
         public Account SelectedAccount
         {
             get => _selectedAccount;
@@ -57,6 +76,9 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private ImportProfile _selectedImportProfile;
+        /// <summary>
+        /// Selected profile with import settings from the database
+        /// </summary>
         public ImportProfile SelectedImportProfile
         {
             get => _selectedImportProfile;
@@ -64,72 +86,83 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private int _totalRecords;
+        /// <summary>
+        /// Number of records identified in the file
+        /// </summary>
         public int TotalRecords
         {
             get => _totalRecords;
-            set => Set(ref _totalRecords, value);
+            private set => Set(ref _totalRecords, value);
         }
 
         private int _recordsWithErrors;
+        /// <summary>
+        /// Number of records where import will fail or has failed
+        /// </summary>
         public int RecordsWithErrors
         {
             get => _recordsWithErrors;
-            set => Set(ref _recordsWithErrors, value);
+            private set => Set(ref _recordsWithErrors, value);
         }
 
         private int _validRecords;
+        /// <summary>
+        /// Number of records where import will be or was successful
+        /// </summary>
         public int ValidRecords
         {
             get => _validRecords;
-            set => Set(ref _validRecords, value);
-        }
-
-        private bool _isModificationEnabled;
-        public bool IsModificationEnabled
-        {
-            get => _isModificationEnabled;
-            set => Set(ref _isModificationEnabled, value);
-        }
-
-        private bool _isColumnMappingSettingVisible;
-        public bool IsColumnMappingSettingVisible
-        {
-            get => _isColumnMappingSettingVisible;
-            set => Set(ref _isColumnMappingSettingVisible, value);
+            private set => Set(ref _validRecords, value);
         }
 
         private ObservableCollection<ImportProfile> _availableImportProfiles;
+        /// <summary>
+        /// Available <see cref="ImportProfile"/> in the database
+        /// </summary>
         public ObservableCollection<ImportProfile> AvailableImportProfiles
         {
             get => _availableImportProfiles;
-            set => Set(ref _availableImportProfiles, value);
+            private set => Set(ref _availableImportProfiles, value);
         }
 
         private ObservableCollection<Account> _availableAccounts;
+        /// <summary>
+        /// Helper collection to list all available <see cref="Account"/> in the database
+        /// </summary>
         public ObservableCollection<Account> AvailableAccounts
         {
             get => _availableAccounts;
-            set => Set(ref _availableAccounts, value);
+            private set => Set(ref _availableAccounts, value);
         }
 
         private ObservableCollection<string> _identifiedColumns;
+        /// <summary>
+        /// Collection of columns that have been identified in the CSV file
+        /// </summary>
         public ObservableCollection<string> IdentifiedColumns
         {
             get => _identifiedColumns;
-            set => Set(ref _identifiedColumns, value);
+            private set => Set(ref _identifiedColumns, value);
         }
 
         private ObservableCollection<CsvMappingResult<BankTransaction>> _parsedRecords;
+        /// <summary>
+        /// Results of <see cref="TinyCsvParser"/>
+        /// </summary>
         public ObservableCollection<CsvMappingResult<BankTransaction>> ParsedRecords
         {
             get => _parsedRecords;
-            set => Set(ref _parsedRecords, value);
+            private set => Set(ref _parsedRecords, value);
         }
         
         private bool _isProfileValid;
         private string[] _fileLines;
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
         public ImportDataViewModel(DbContextOptions<DatabaseContext> dbOptions)
         {
             AvailableImportProfiles = new ObservableCollection<ImportProfile>();
@@ -141,7 +174,11 @@ namespace OpenBudgeteer.Core.ViewModels
             _dbOptions = dbOptions;
         }
 
-        public Tuple<bool, string> LoadData()
+        /// <summary>
+        /// Initialize ViewModel and load data from database
+        /// </summary>
+        /// <returns></returns>
+        public ViewModelOperationResult LoadData()
         {
             try
             {
@@ -153,34 +190,58 @@ namespace OpenBudgeteer.Core.ViewModels
                         AvailableAccounts.Add(account);
                     }
                 }
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
             }           
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool, string> HandleOpenFile(string[] dialogResults)
+        /// <summary>
+        /// Open a file based on <see cref="FilePath"/> and read its content
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult HandleOpenFile()
         {
             try
             {
-                if (!dialogResults.Any()) return new Tuple<bool, string>(true, string.Empty);
-                FilePath = dialogResults[0];
                 FileText = File.ReadAllText(FilePath, Encoding.GetEncoding(1252));
                 _fileLines = File.ReadAllLines(FilePath, Encoding.GetEncoding(1252));
 
-                IsModificationEnabled = true;
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
-            
         }
 
-        public async Task<Tuple<bool, string>> HandleOpenFileAsync(Stream stream)
+        /// <summary>
+        /// Open a file based on results of an OpenFileDialog and read its content
+        /// </summary>
+        /// <param name="dialogResults">OpenFileDialog results</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult HandleOpenFile(string[] dialogResults)
+        {
+            try
+            {
+                if (!dialogResults.Any()) return new ViewModelOperationResult(true);
+                FilePath = dialogResults[0];
+                return HandleOpenFile();
+            }
+            catch (Exception e)
+            {
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Open a file based on a <see cref="Stream"/> and read its content
+        /// </summary>
+        /// <param name="stream">Stream to the file</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> HandleOpenFileAsync(Stream stream)
         {
             try
             {
@@ -200,22 +261,23 @@ namespace OpenBudgeteer.Core.ViewModels
                 FileText = stringBuilder.ToString();
                 _fileLines = newLines.ToArray();
 
-                IsModificationEnabled = true;
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Unable to open file: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to open file: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
-            
         }
 
-        public Tuple<bool, string> LoadProfile()
+        /// <summary>
+        /// Loads all settings based on <see cref="SelectedImportProfile"/>
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult LoadProfile()
         {
             try
             {
                 ResetLoadedProfileData();
-                IsColumnMappingSettingVisible = true;
 
                 // Set target Account
                 if (AvailableAccounts.Any(i => i.AccountId == SelectedImportProfile.AccountId))
@@ -223,22 +285,26 @@ namespace OpenBudgeteer.Core.ViewModels
                     SelectedAccount = AvailableAccounts.First(i => i.AccountId == SelectedImportProfile.AccountId);
                 }
 
-                var (success, errorMessage) = LoadHeaders();
-                if (!success) throw new Exception(errorMessage);
+                var result = LoadHeaders();
+                if (!result.IsSuccessful) throw new Exception(result.Message);
 
                 ValidateData();
-
                 _isProfileValid = true;
+
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
                 _isProfileValid = false;
-                return new Tuple<bool, string>(false, $"Unable to load Profile: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to load Profile: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool, string> LoadHeaders()
+        /// <summary>
+        /// Reads column headers from the loaded file
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult LoadHeaders()
         {
             try
             {
@@ -251,25 +317,36 @@ namespace OpenBudgeteer.Core.ViewModels
                     if (column != string.Empty)
                         IdentifiedColumns.Add(column.Trim(SelectedImportProfile.TextQualifier)); // Exclude TextQualifier
                 }
+                
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Unable to load Headers: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to load Headers: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
+        /// <summary>
+        /// Reset all figures and parsed records
+        /// </summary>
         private void ResetLoadedProfileData()
         {
             SelectedAccount = new Account();
-            IsColumnMappingSettingVisible = false;
             ParsedRecords.Clear();
             TotalRecords = 0;
             RecordsWithErrors = 0;
             ValidRecords = 0;
         }
 
-        public string ValidateData()
+        /// <summary>
+        /// Reads the file and parses the content to a set of <see cref="BankTransaction"/>.
+        /// Results will be stored in <see cref="ParsedRecords"/>
+        /// </summary>
+        /// <remarks>
+        /// Sets also figures of the ViewModel like <see cref="TotalRecords"/> or <see cref="ValidRecords"/>
+        /// </remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult ValidateData()
         {
             try
             {
@@ -303,7 +380,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 ValidRecords = parsedResults.Count(i => i.IsValid);
 
                 if (ValidRecords > 0) _isProfileValid = true;
-                return string.Empty;
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
@@ -311,16 +388,21 @@ namespace OpenBudgeteer.Core.ViewModels
                 RecordsWithErrors = 0;
                 ValidRecords = 0;
                 ParsedRecords.Clear();
-                return e.Message;
+                return new ViewModelOperationResult(false, e.Message);
             }
         }
 
-        public Tuple<bool, string> ImportData()
+        /// <summary>
+        /// Uses data from <see cref="ParsedRecords"/> to store it in the database
+        /// </summary>
+        /// <remarks>
+        /// This method will call <see cref="ValidateData"/>
+        /// </remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult ImportData()
         {
-            if (!_isProfileValid) 
-                return new Tuple<bool, string>(false, "Unable to Import Data as current settings are invalid.");
-
-            var importedCount = 0;
+            if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
+            
             ValidateData();
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
@@ -328,6 +410,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 {
                     try
                     {
+                        var importedCount = 0;
                         var newRecords = new List<BankTransaction>();
                         foreach (var parsedRecord in ParsedRecords.Where(i => i.IsValid))
                         {
@@ -336,19 +419,22 @@ namespace OpenBudgeteer.Core.ViewModels
                             newRecords.Add(newRecord);
                         }
                         importedCount = dbContext.CreateBankTransactions(newRecords);
+                        
                         transaction.Commit();
+                        return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Unable to Import Data. Error message: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
                     }
                 }
             }
-            
-            return new Tuple<bool, string>(true, $"Successfully imported {importedCount} records.");
         }
 
+        /// <summary>
+        /// Helper method to load <see cref="ImportProfile"/> from the database
+        /// </summary>
         private void LoadAvailableProfiles()
         {
             AvailableImportProfiles.Clear();
@@ -361,7 +447,11 @@ namespace OpenBudgeteer.Core.ViewModels
             }
         }
 
-        public Tuple<bool, string> CreateProfile()
+        /// <summary>
+        /// Creates a new <see cref="ImportProfile"/> in the database based on <see cref="SelectedImportProfile"/> data
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CreateProfile()
         {
             try
             {
@@ -374,16 +464,21 @@ namespace OpenBudgeteer.Core.ViewModels
                         throw new Exception("Profile could not be created in database.");
                     LoadAvailableProfiles();
                     SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
-                }                
+                }    
+                
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Unable to create Import Profile: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to create Import Profile: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool, string> SaveProfile()
+        /// <summary>
+        /// Updates data of the current <see cref="SelectedImportProfile"/> in the database
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult SaveProfile()
         {
             try
             {
@@ -395,16 +490,21 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     LoadAvailableProfiles();
                     SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
-                }                
+                }        
+                
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Unable to save Import Profile: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to save Import Profile: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool, string> DeleteProfile()
+        /// <summary>
+        /// Deletes the <see cref="ImportProfile"/> in the database based on <see cref="SelectedImportProfile"/>
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult DeleteProfile()
         {
             try
             {
@@ -414,12 +514,13 @@ namespace OpenBudgeteer.Core.ViewModels
                 }                
                 ResetLoadedProfileData();
                 LoadAvailableProfiles();
+
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Unable to delete Import Profile: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to delete Import Profile: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
     }
 }

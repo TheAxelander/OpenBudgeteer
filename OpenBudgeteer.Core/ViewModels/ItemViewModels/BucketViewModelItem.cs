@@ -1,4 +1,4 @@
-﻿using OpenBudgeteer.Core.Common;
+﻿using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -16,6 +17,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
     public class BucketViewModelItem : ViewModelBase
     {
         private Bucket _bucket;
+        /// <summary>
+        /// Reference to model object in the database
+        /// </summary>
         public Bucket Bucket
         {
             get => _bucket;
@@ -23,6 +27,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private BucketVersion _bucketVersion;
+        /// <summary>
+        /// Reference to model object in the database
+        /// </summary>
         public BucketVersion BucketVersion
         {
             get => _bucketVersion;
@@ -101,7 +108,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
         private bool _isProgressBarVisible;
         /// <summary>
-        /// Sets the visibility of the ProgressBar if <see cref="BucketVersion.BucketType"/> 3 or 4
+        /// Helper property to set the visibility of the ProgressBar if <see cref="BucketVersion.BucketType"/> 3 or 4
         /// </summary>
         public bool IsProgressbarVisible
         {
@@ -110,6 +117,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _isHovered;
+        /// <summary>
+        /// Helper property to check if the cursor hovers over the entry in the UI
+        /// </summary>
         public bool IsHovered
         {
             get => _isHovered;
@@ -117,6 +127,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _inModification;
+        /// <summary>
+        /// Helper property to check if the Bucket is currently modified
+        /// </summary>
         public bool InModification
         {
             get => _inModification;
@@ -124,6 +137,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<string> _availableBucketTypes;
+        /// <summary>
+        /// Helper collection to list BucketTypes explanations
+        /// </summary>
         public ObservableCollection<string> AvailableBucketTypes
         {
             get => _availableBucketTypes;
@@ -131,6 +147,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<Color> _availableColors;
+        /// <summary>
+        /// Helper collection to list available System colors
+        /// </summary>
         public ObservableCollection<Color> AvailableColors
         {
             get => _availableColors;
@@ -138,18 +157,29 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<BucketGroup> _availableBucketGroups;
+        /// <summary>
+        /// Helper collection to list available <see cref="BucketGroup"/> where this Bucket can be assigned to
+        /// </summary>
         public ObservableCollection<BucketGroup> AvailableBucketGroups
         {
             get => _availableBucketGroups;
             set => Set(ref _availableBucketGroups, value);
         }
 
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly bool _isNewlyCreatedBucket;
         private readonly DateTime _currentYearMonth;
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
         public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions)
         {
             _dbOptions = dbOptions;
@@ -183,6 +213,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             }
         }
 
+        /// <summary>
+        /// Initialize ViewModel based on a specific YearMonth
+        /// </summary>
+        /// <remarks>Creates an initial <see cref="BucketVersion"/></remarks>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonth">YearMonth that should be used</param>
         public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, DateTime yearMonth) : this(dbOptions)
         {
             _currentYearMonth = new DateTime(yearMonth.Year, yearMonth.Month, 1);
@@ -195,6 +231,14 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             };
         }
 
+        /// <summary>
+        /// Initialize ViewModel based on an existing <see cref="BucketGroup"/> object and a specific YearMonth
+        /// </summary>
+        /// <remarks>Creates an initial <see cref="Bucket"/> in active modification mode</remarks>
+        /// <remarks>Creates an initial <see cref="BucketVersion"/></remarks>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="bucketGroup">BucketGroup instance</param>
+        /// <param name="yearMonth">YearMonth that should be used</param>
         public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, BucketGroup bucketGroup, DateTime yearMonth) : this(dbOptions, yearMonth)
         {
             _isNewlyCreatedBucket = true;
@@ -210,17 +254,34 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             };
         }
 
+        /// <summary>
+        /// Initialize ViewModel based on an existing <see cref="Bucket"/> object and a specific YearMonth
+        /// </summary>
+        /// <remarks>Runs <see cref="CalculateValues"/> to get latest <see cref="BucketVersion"/></remarks>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="bucket">Bucket instance</param>
+        /// <param name="yearMonth">YearMonth that should be used</param>
         public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, Bucket bucket, DateTime yearMonth) : this(dbOptions, yearMonth)
         {
             Bucket = bucket;
             CalculateValues();
         }
 
+        /// <summary>
+        /// Creates and returns a new ViewModel based on an existing <see cref="Bucket"/> object and a specific YearMonth
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="bucket">Bucket instance</param>
+        /// <param name="yearMonth">YearMonth that should be used</param>
+        /// <returns>New ViewModel instance</returns>
         public static async Task<BucketViewModelItem> CreateAsync(DbContextOptions<DatabaseContext> dbOptions, Bucket bucket, DateTime yearMonth)
         {
             return await Task.Run(() => new BucketViewModelItem(dbOptions, bucket, yearMonth));
         }
 
+        /// <summary>
+        /// Identifies latest <see cref="BucketVersion"/> based on <see cref="_currentYearMonth"/> and calculates all figures
+        /// </summary>
         private void CalculateValues()
         {
             Balance = 0;
@@ -375,15 +436,26 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             #endregion
         }
 
+        /// <summary>
+        /// Activates modification mode
+        /// </summary>
         public void EditBucket()
         {
             InModification = true;
         }
 
-        public Tuple<bool, string> CloseBucket()
+        /// <summary>
+        /// Updates a record in the database based on <see cref="Bucket"/> object to set it as inactive. In case there
+        /// are no <see cref="BankTransaction"/> nor <see cref="BucketMovement"/> assigned to it, it will be deleted
+        /// completely from the database (including <see cref="BucketVersion"/>)
+        /// </summary>
+        /// <remarks>Bucket will be set to inactive for the next month</remarks>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CloseBucket()
         {
-            if (Bucket.IsInactive) return new Tuple<bool, string>(false, "Bucket has been already set to inactive");
-            if (Balance != 0) return new Tuple<bool, string>(false, "Balance must be 0 to close a Bucket");
+            if (Bucket.IsInactive) return new ViewModelOperationResult(false, "Bucket has been already set to inactive");
+            if (Balance != 0) return new ViewModelOperationResult(false, "Balance must be 0 to close a Bucket");
             
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
@@ -427,145 +499,180 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Error during database update: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
                     }
                 }
             }            
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true, true);
         }
 
-        public Tuple<bool,string> SaveChanges()
+        /// <summary>
+        /// Creates or updates a record in the database based on <see cref="Bucket"/> object
+        /// </summary>
+        /// <remarks>Creates also a new <see cref="BucketVersion"/> record in the database</remarks>
+        /// <remarks>
+        /// Recalculates figures after database operations in case <see cref="ViewModelReloadRequired"/> has not been triggered
+        /// </remarks>
+        /// <remarks>Can trigger <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CreateOrUpdateBucket()
         {
-            var forceViewModelReload = false;
-
-            if (_isNewlyCreatedBucket)
-            {
-                // Create new Bucket
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    using (var transaction = dbContext.Database.BeginTransaction())
-                    {
-                        try
-                        {
-                            if (dbContext.CreateBucket(Bucket) == 0)
-                                throw new Exception("Unable to create new Bucket.");
-
-                            var newBucketVersion = BucketVersion;
-                            newBucketVersion.BucketId = Bucket.BucketId;
-                            newBucketVersion.Version = 1;
-                            newBucketVersion.ValidFrom = _currentYearMonth;
-                            if (dbContext.CreateBucketVersion(newBucketVersion) == 0) 
-                                throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
-                                                    $"{Environment.NewLine}" +
-                                                    $"Bucket ID: {newBucketVersion.BucketId}");
-
-                            transaction.Commit();
-                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-                        }
-                        catch (Exception e)
-                        {
-                            transaction.Rollback();
-                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-                            return new Tuple<bool, string>(false, $"Error during database update: {e.Message}");
-                        }
-                    }
-                }                
-            }
-            else
-            {
-                // Check on Bucket changes and update database
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    var dbBucket = dbContext.Bucket.First(i => i.BucketId == Bucket.BucketId);
-                    if (dbBucket.Name != Bucket.Name ||
-                        dbBucket.ColorCode != Bucket.ColorCode ||
-                        dbBucket.BucketGroupId != Bucket.BucketGroupId)
-                    {
-                        // BucketGroup update requires special handling as ViewModel needs to trigger reload
-                        // to force re-rendering of Blazor Page
-                        if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
-
-                        if (dbContext.UpdateBucket(Bucket) == 0)
-                            return new Tuple<bool, string>(false, 
-                                $"Error during database update: Unable to update Bucket.{Environment.NewLine}" +
-                                $"{Environment.NewLine}" +
-                                $"Bucket ID: {Bucket.BucketId}");
-                    }
-                }
-
-                // Check on BucketVersion changes and create new BucketVersion
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    var dbBucketVersion =
-                        dbContext.BucketVersion.First(i => i.BucketVersionId == BucketVersion.BucketVersionId);
-                    if (dbBucketVersion.BucketType != BucketVersion.BucketType ||
-                        dbBucketVersion.BucketTypeXParam != BucketVersion.BucketTypeXParam ||
-                        dbBucketVersion.BucketTypeYParam != BucketVersion.BucketTypeYParam ||
-                        dbBucketVersion.BucketTypeZParam != BucketVersion.BucketTypeZParam ||
-                        dbBucketVersion.Notes != BucketVersion.Notes)
-                    {
-                        using (var transaction = dbContext.Database.BeginTransaction())
-                        {
-                            try
-                            {
-                                if (dbContext.BucketVersion.Any(i => i.BucketId == BucketVersion.BucketId && i.Version > BucketVersion.Version))
-                                    throw new Exception("Cannot create new Version as already a newer Version exists");
-
-                                var modifiedVersion = BucketVersion;
-                                if (BucketVersion.ValidFrom == _currentYearMonth)
-                                {
-                                    // Bucket Version modified in the same month,
-                                    // so just update the version instead of creating a new version
-                                    if (dbContext.UpdateBucketVersion(modifiedVersion) == 0)
-                                        throw new Exception($"Unable to update Bucket Version.{Environment.NewLine}" +
-                                                            $"{Environment.NewLine}" +
-                                                            $"Bucket Version ID: {modifiedVersion.BucketVersionId}" +
-                                                            $"Bucket ID: {modifiedVersion.BucketId}" +
-                                                            $"Bucket Version: {modifiedVersion.Version}" +
-                                                            $"Bucket Version Start Date: {modifiedVersion.ValidFrom.ToShortDateString()}");
-                                }
-                                else
-                                {
-                                    modifiedVersion.Version++;
-                                    modifiedVersion.BucketVersionId = 0;
-                                    modifiedVersion.ValidFrom = _currentYearMonth;
-                                    if (dbContext.CreateBucketVersion(modifiedVersion) == 0)
-                                        throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
-                                                            $"{Environment.NewLine}" +
-                                                            $"Bucket ID: {modifiedVersion.BucketId}" +
-                                                            $"Bucket Version: {modifiedVersion.Version}" +
-                                                            $"Bucket Version Start Date: {modifiedVersion.ValidFrom.ToShortDateString()}");
-                                }
-
-                                transaction.Commit();
-                                //ViewModelReloadRequired?.Invoke(this);
-                            }
-                            catch (Exception e)
-                            {
-                                transaction.Rollback();
-                                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-                                return new Tuple<bool, string>(false, $"Error during database update: {e.Message}");
-                            }
-                        }
-                    }
-                }                
-            }
+            var result = _isNewlyCreatedBucket ? CreateBucket() : UpdateBucket();
+            if (!result.IsSuccessful || result.ViewModelReloadInvoked) return result;
             InModification = false;
             CalculateValues();
-            if (forceViewModelReload) ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true);
         }
 
+        /// <summary>
+        /// Creates a new record in the database based on <see cref="Bucket"/> object
+        /// </summary>
+        /// <remarks>Creates also a new <see cref="BucketVersion"/> record in the database</remarks>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult CreateBucket()
+        {
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                using (var transaction = dbContext.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        if (dbContext.CreateBucket(Bucket) == 0)
+                            throw new Exception("Unable to create new Bucket.");
+
+                        var newBucketVersion = BucketVersion;
+                        newBucketVersion.BucketId = Bucket.BucketId;
+                        newBucketVersion.Version = 1;
+                        newBucketVersion.ValidFrom = _currentYearMonth;
+                        if (dbContext.CreateBucketVersion(newBucketVersion) == 0)
+                            throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
+                                                $"{Environment.NewLine}" +
+                                                $"Bucket ID: {newBucketVersion.BucketId}");
+
+                        transaction.Commit();
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(true, true);
+                    }
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(
+                            false, 
+                            $"Error during database update: {e.Message}", 
+                            true);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates a record in the database based on <see cref="Bucket"/> object
+        /// </summary>
+        /// <remarks>Creates also a new <see cref="BucketVersion"/> record in the database</remarks>
+        /// <remarks>Can trigger <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult UpdateBucket()
+        {
+            var forceViewModelReload = false;
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                using (var transaction = dbContext.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        // Check on Bucket changes and update database
+                        var dbBucket = dbContext.Bucket.First(i => i.BucketId == Bucket.BucketId);
+                        if (dbBucket.Name != Bucket.Name ||
+                            dbBucket.ColorCode != Bucket.ColorCode ||
+                            dbBucket.BucketGroupId != Bucket.BucketGroupId)
+                        {
+                            // BucketGroup update requires special handling as ViewModel needs to trigger reload
+                            // to force re-rendering of Blazor Page
+                            if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
+
+                            if (dbContext.UpdateBucket(Bucket) == 0)
+                                throw new Exception($"Error during database update: Unable to update Bucket.{Environment.NewLine}" +
+                                                    $"{Environment.NewLine}" +
+                                                    $"Bucket ID: {Bucket.BucketId}");
+                        }
+
+                        // Check on BucketVersion changes and create new BucketVersion
+                        var dbBucketVersion =
+                            dbContext.BucketVersion.First(i => i.BucketVersionId == BucketVersion.BucketVersionId);
+                        if (dbBucketVersion.BucketType != BucketVersion.BucketType ||
+                            dbBucketVersion.BucketTypeXParam != BucketVersion.BucketTypeXParam ||
+                            dbBucketVersion.BucketTypeYParam != BucketVersion.BucketTypeYParam ||
+                            dbBucketVersion.BucketTypeZParam != BucketVersion.BucketTypeZParam ||
+                            dbBucketVersion.Notes != BucketVersion.Notes)
+                        {
+                            if (dbContext.BucketVersion.Any(i =>
+                                i.BucketId == BucketVersion.BucketId && i.Version > BucketVersion.Version))
+                                throw new Exception("Cannot create new Version as already a newer Version exists");
+
+                            if (BucketVersion.ValidFrom == _currentYearMonth)
+                            {
+                                // Bucket Version modified in the same month,
+                                // so just update the version instead of creating a new version
+                                if (dbContext.UpdateBucketVersion(BucketVersion) == 0)
+                                    throw new Exception($"Unable to update Bucket Version.{Environment.NewLine}" +
+                                                        $"{Environment.NewLine}" +
+                                                        $"Bucket Version ID: {BucketVersion.BucketVersionId}" +
+                                                        $"Bucket ID: {BucketVersion.BucketId}" +
+                                                        $"Bucket Version: {BucketVersion.Version}" +
+                                                        $"Bucket Version Start Date: {BucketVersion.ValidFrom.ToShortDateString()}");
+                            }
+                            else
+                            {
+                                BucketVersion.Version++;
+                                BucketVersion.BucketVersionId = 0;
+                                BucketVersion.ValidFrom = _currentYearMonth;
+                                if (dbContext.CreateBucketVersion(BucketVersion) == 0)
+                                    throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
+                                                        $"{Environment.NewLine}" +
+                                                        $"Bucket ID: {BucketVersion.BucketId}" +
+                                                        $"Bucket Version: {BucketVersion.Version}" +
+                                                        $"Bucket Version Start Date: {BucketVersion.ValidFrom.ToShortDateString()}");
+                            }
+                        }
+                        transaction.Commit();
+                        if (forceViewModelReload) ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(true, true);
+                    }
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(
+                            false,
+                            $"Error during database update: {e.Message}",
+                            true);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Triggers <see cref="ViewModelReloadRequired"/> to cancel all modifications
+        /// </summary>
         public void CancelChanges()
         {
             InModification = false;
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this)); // force Re-load to get old values back
         }
 
-        public Tuple<bool,string> HandleInOutInput(string key)
+        /// <summary>
+        /// Helper method to create a new <see cref="BucketMovement"/> record in the database based on User input
+        /// </summary>
+        /// <remarks>Creation starts once Enter key is pressed</remarks>
+        /// <remarks>Recalculates figures after database operations</remarks>
+        /// <param name="key">Pressed key</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult HandleInOutInput(string key)
         {
-            if (key != "Enter") return new Tuple<bool, string>(true, string.Empty);
+            if (key != "Enter") return new ViewModelOperationResult(true);
             try
             {
                 using (var dbContext = new DatabaseContext(_dbOptions))
@@ -580,12 +687,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 }
                 //ViewModelReloadRequired?.Invoke(this);
                 CalculateValues();
+                return new ViewModelOperationResult(true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during database update: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
     }
 }

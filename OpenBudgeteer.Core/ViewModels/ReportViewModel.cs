@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 
@@ -17,11 +17,25 @@ namespace OpenBudgeteer.Core.ViewModels
     {
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
         public ReportViewModel(DbContextOptions<DatabaseContext> dbOptions)
         {
             _dbOptions = dbOptions;
         }
 
+        /// <summary>
+        /// Loads a set of balances per month from the database
+        /// </summary>
+        /// <remarks>Considers only <see cref="BankTransaction"/> within a month</remarks>
+        /// <param name="months">Number of months that should be loaded</param>
+        /// <returns>
+        /// Collection of <see cref="Tuple"/> containing
+        /// Item1: <see cref="DateTime"/> representing the month
+        /// Item2: <see cref="decimal"/> representing the balance
+        /// </returns>
         public async Task<List<Tuple<DateTime, decimal>>> LoadMonthBalancesAsync(int months = 24)
         {
             return await Task.Run(() =>
@@ -53,6 +67,16 @@ namespace OpenBudgeteer.Core.ViewModels
             });
         }
 
+        /// <summary>
+        /// Loads a set of income and expenses per month from the database
+        /// </summary>
+        /// <param name="months">Number of months that should be loaded</param>
+        /// <returns>
+        /// Collection of <see cref="Tuple"/> containing
+        /// Item1: <see cref="DateTime"/> representing the month
+        /// Item2: <see cref="decimal"/> representing the income
+        /// Item3: <see cref="decimal"/> representing the expenses
+        /// </returns>
         public async Task<List<Tuple<DateTime, decimal, decimal>>> LoadMonthIncomeExpensesAsync(int months = 24)
         {
             return await Task.Run(() =>
@@ -100,6 +124,15 @@ namespace OpenBudgeteer.Core.ViewModels
             });
         }
 
+        /// <summary>
+        /// Loads a set of income and expenses per year from the database
+        /// </summary>
+        /// <param name="years">Number of years that should be loaded</param>
+        /// Collection of <see cref="Tuple"/> containing
+        /// Item1: <see cref="DateTime"/> representing the year
+        /// Item2: <see cref="decimal"/> representing the income
+        /// Item3: <see cref="decimal"/> representing the expenses
+        /// </returns>
         public async Task<List<Tuple<DateTime, decimal, decimal>>> LoadYearIncomeExpensesAsync(int years = 5)
         {
             return await Task.Run(() =>
@@ -147,6 +180,16 @@ namespace OpenBudgeteer.Core.ViewModels
             });
         }
 
+        /// <summary>
+        /// Loads a set of balances per month from the database showing the progress of the overall bank balance
+        /// </summary>
+        /// <remarks>Considers all <see cref="BankTransaction"/> from the past</remarks>
+        /// <param name="months">Number of months that should be loaded</param>
+        /// <returns>
+        /// Collection of <see cref="Tuple"/> containing
+        /// Item1: <see cref="DateTime"/> representing the month
+        /// Item2: <see cref="decimal"/> representing the balance
+        /// </returns>
         public async Task<List<Tuple<DateTime, decimal>>> LoadBankBalancesAsync(int months = 24)
         {
             return await Task.Run(() =>
@@ -171,6 +214,13 @@ namespace OpenBudgeteer.Core.ViewModels
             });
         }
 
+        /// <summary>
+        /// Loads a set of expenses of a <see cref="Bucket"/> per month from the database
+        /// </summary>
+        /// <param name="month">Number of months that should be loaded</param>
+        /// <returns>
+        /// Collection of ViewModelItems containing information about a <see cref="Bucket"/> and its expenses per month
+        /// </returns>
         public async Task<List<MonthlyBucketExpensesReportViewModelItem>> LoadMonthExpensesBucketAsync(int month = 12)
         {
             return await Task.Run(() =>
