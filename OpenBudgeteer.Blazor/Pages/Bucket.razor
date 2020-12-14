@@ -1,10 +1,11 @@
 ﻿@page "/bucket"
-@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using Microsoft.EntityFrameworkCore
 @using System.Drawing
 @using System.Globalization
+@using OpenBudgeteer.Core.Common
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
@@ -397,12 +398,11 @@
         StateHasChanged();
     }
 
-    void HandleResult(Tuple<bool, string> result)
+    void HandleResult(ViewModelOperationResult result)
     {
-        var (success, errorMessage) = result;
-        if (!success)
+        if (!result.IsSuccessful)
         {
-            _errorModalDialogMessage = errorMessage;
+            _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
         }
     }
@@ -410,7 +410,7 @@
     void InOut_Changed(BucketViewModelItem bucket, KeyboardEventArgs args)
     {
         var result = bucket.HandleInOutInput(args.Key);
-        if (result.Item1)
+        if (result.IsSuccessful)
         {
             HandleResult(_dataContext.UpdateBalanceFigures());
             StateHasChanged();

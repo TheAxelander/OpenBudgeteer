@@ -87,7 +87,7 @@ namespace OpenBudgeteer.Core.Models
 
         private decimal _bucketTypeYParam;
         /// <summary>
-        /// Parameter for a Amount values. For BucketType:
+        /// Parameter for an Amount value. For BucketType:
         /// <para>
         /// 1 - 0<br />
         /// 2-3 - decimal Amount<br />
@@ -103,7 +103,7 @@ namespace OpenBudgeteer.Core.Models
 
         private DateTime _bucketTypeZParam;
         /// <summary>
-        /// Parameter for date values. For BucketType:
+        /// Parameter for target date value. For BucketType:
         /// <para>
         /// 1-2 - string.Empty<br />
         /// 3 - DateTime First target date<br />

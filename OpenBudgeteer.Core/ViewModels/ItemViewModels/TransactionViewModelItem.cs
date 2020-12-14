@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 using System;
@@ -8,15 +8,16 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 {
-    /// <summary>
-    /// ViewModel for each Transaction Item
-    /// </summary>
     public class TransactionViewModelItem : ViewModelBase
     {
         private BankTransaction _transaction;
+        /// <summary>
+        /// Reference to model object in the database
+        /// </summary>
         public BankTransaction Transaction
         {
             get => _transaction;
@@ -24,6 +25,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private Account _selectedAccount;
+        /// <summary>
+        /// Account where the Transaction is assigned to
+        /// </summary>
         public Account SelectedAccount
         {
             get => _selectedAccount;
@@ -31,6 +35,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _inModification;
+        /// <summary>
+        /// Helper property to check if the Transaction is currently modified
+        /// </summary>
         public bool InModification
         {
             get => _inModification;
@@ -38,6 +45,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _isHovered;
+        /// <summary>
+        /// Helper property to check if the cursor hovers over the entry in the UI
+        /// </summary>
         public bool IsHovered
         {
             get => _isHovered;
@@ -45,6 +55,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<PartialBucketViewModelItem> _buckets;
+        /// <summary>
+        /// Collection of Buckets which are assigned to this Transaction
+        /// </summary>
         public ObservableCollection<PartialBucketViewModelItem> Buckets
         {
             get => _buckets;
@@ -52,18 +65,28 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<Account> _availableAccounts;
+        /// <summary>
+        /// Helper collection to list all existing Account
+        /// </summary>
         public ObservableCollection<Account> AvailableAccounts
         {
             get => _availableAccounts;
             set => Set(ref _availableAccounts, value);
         }
 
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
         private TransactionViewModelItem _oldTransactionViewModelItem;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
         public TransactionViewModelItem()
         {
             Transaction = new BankTransaction();
@@ -71,6 +94,11 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             AvailableAccounts = new ObservableCollection<Account>();
         }
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
         public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel) : this()
         {
             _dbOptions = dbOptions;
@@ -96,6 +124,13 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             SelectedAccount = AvailableAccounts.First();
         }
 
+        /// <summary>
+        /// Initialize ViewModel with an existing <see cref="BankTransaction"/> object
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
+        /// <param name="transaction">Transaction instance</param>
+        /// <param name="withBuckets">Include assigned Buckets</param>
         public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction, bool withBuckets = true) : this(dbOptions, yearMonthViewModel)
         {
             if (withBuckets)
@@ -114,7 +149,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                             using (var bucketDbContext = new DatabaseContext(_dbOptions))
                             {
                                 var newItem = new PartialBucketViewModelItem(_dbOptions,
-                                    _yearMonthViewModel,
+                                    _yearMonthViewModel.CurrentMonth,
                                     bucketDbContext.Bucket.FirstOrDefault(i => i.BucketId == assignedBucket.BucketId),
                                     assignedBucket.Amount);
                                 newItem.SelectedBucketOutput =
@@ -126,7 +161,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     else
                     {
                         // Most likely an imported Transaction where Bucket assignment still needs to be done
-                        var newItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel, new Bucket() { BucketId = 0 }, transaction.Amount);
+                        var newItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket() { BucketId = 0 }, transaction.Amount);
                         Buckets.Add(newItem);
                     }
                 }
@@ -165,6 +200,10 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             
         }
 
+        /// <summary>
+        /// Initialize ViewModel and transform passed <see cref="BucketMovement"/> into a <see cref="BankTransaction"/>
+        /// </summary>
+        /// <param name="bucketMovement">BucketMovement which will be transformed</param>
         public TransactionViewModelItem(BucketMovement bucketMovement) : this()
         {
             // Simulate a BankTransaction based on BucketMovement
@@ -187,21 +226,47 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             };
         }
 
+        /// <summary>
+        /// Initialize and return a new ViewModel based on an existing <see cref="BankTransaction"/> object including
+        /// assigned Buckets
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
+        /// <param name="transaction">Transaction instance</param>
+        /// <returns>New ViewModel instance</returns>
         public static async Task<TransactionViewModelItem> CreateAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
         {
             return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction));
         }
 
+        /// <summary>
+        /// Initialize and return a new ViewModel based on an existing <see cref="BankTransaction"/> object without
+        /// assigned Buckets
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
+        /// <param name="transaction">Transaction instance</param>
+        /// <returns>New ViewModel instance</returns>
         public static async Task<TransactionViewModelItem> CreateWithoutBucketsAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
         {
             return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction, false));
         }
 
+        /// <summary>
+        /// Create and return a new ViewModel and transform passed <see cref="BucketMovement"/> into a <see cref="BankTransaction"/>
+        /// </summary>
+        /// <param name="bucketMovement">BucketMovement which will be transformed</param>
+        /// <returns>New ViewModel instance</returns>
         public static async Task<TransactionViewModelItem> CreateFromBucketMovementAsync(BucketMovement bucketMovement)
         {
             return await Task.Run(() => new TransactionViewModelItem(bucketMovement));
         }
 
+        /// <summary>
+        /// Event that checks amount for all assigned Buckets and creates or removes an "empty item"
+        /// </summary>
+        /// <param name="sender">Object that has triggered the event</param>
+        /// <param name="changedArgs">Event Arguments about changed amount</param>
         private void CheckBucketAssignments(object sender, AmountChangedArgs changedArgs)
         {
             // Check if this current event was triggered while updating the amount for the "emptyItem"
@@ -257,6 +322,11 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             }
         }
 
+        /// <summary>
+        /// Event that handles the deletion of teh requested Bucket
+        /// </summary>
+        /// <param name="sender">Object that has triggered the event</param>
+        /// <param name="args">Event Arguments about deletion request</param>
         private void DeleteRequestedBucketAssignment(object sender, DeleteAssignmentRequestArgs args)
         {
             // Prevent deletion all last remaining BucketAssignment
@@ -266,55 +336,28 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             }
         }
 
+        /// <summary>
+        /// Creates an "empty item" with the passed amount
+        /// </summary>
+        /// <param name="amount">Amount that will be assigned to the Bucket</param>
         private void AddEmptyBucketItem(decimal amount)
         {
             // All items have a valid Bucket assignment, create a new "empty item"
-            var emptyItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel, new Bucket(), amount);
+            var emptyItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket(), amount);
             emptyItem.AmountChanged += CheckBucketAssignments;
             emptyItem.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
             Buckets.Add(emptyItem);
         }
 
-        private Tuple<bool, string> CreateUpdateTransaction()
+        /// <summary>
+        /// Creates or updates a record in the database based on <see cref="Transaction"/> object
+        /// </summary>
+        /// <remarks>(Re)Creates also <see cref="BudgetedTransaction"/> records for each assigned Bucket</remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult CreateOrUpdateTransaction()
         {
-            // Consistency and Validity Checks
-            if (Transaction == null) return new Tuple<bool, string>(false, "Errors in Transaction object.");
-            if (SelectedAccount == null || SelectedAccount.AccountId == 0) return new Tuple<bool, string>(false, "No Bank account selected.");
-            //if (string.IsNullOrEmpty(Transaction.TransactionDate))
-            //    return new Tuple<bool, string>(false, "Transaction date is missing.");
-            //if (string.IsNullOrEmpty(transaction.Transaction.Memo))
-            //    return new Tuple<bool, string>(false, "Transaction Memo is missing.");
-            if (Buckets.Count == 0)
-                return new Tuple<bool, string>(false, "No Bucket assigned to this Transaction.");
-
-            decimal assignedAmount = 0;
-            var skipBucketAssignment = false;
-            foreach (var assignedBucket in Buckets)
-            {
-                if (assignedBucket.SelectedBucket == null)
-                {
-                    return new Tuple<bool, string>(false, "Pending Bucket assignment for this Transaction.");
-                }
-
-                if (assignedBucket.SelectedBucket.BucketId == 0)
-                {
-                    if (assignedBucket.SelectedBucket.Name == "No Selection")
-                    {
-                        // Imported Transaction where Bucket assignment is pending
-                        // Allow Transaction Update but Skip DB Updates for Bucket assignment
-                        skipBucketAssignment = true;
-                    }
-                    else
-                    {
-                        return new Tuple<bool, string>(false, "Pending Bucket assignment for this Transaction.");
-                    }
-                }
-                assignedAmount += assignedBucket.Amount;
-            }
-
-            if (assignedAmount != Transaction.Amount)
-                return new Tuple<bool, string>(false,
-                    "Amount between Bucket assignment and Transaction not consistent.");
+            var result = PerformConsistencyCheck(out var skipBucketAssignment);
+            if (!result.IsSuccessful) return result;
 
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
@@ -332,7 +375,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
                             // Delete all previous bucket assignments for transaction
                             var budgetedTransactions = dbContext.BudgetedTransaction
-
                                 .Where(i => i.TransactionId == transactionId);
                             dbContext.DeleteBudgetedTransactions(budgetedTransactions);
                         }
@@ -360,19 +402,66 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         }
 
                         transaction.Commit();
+                        return new ViewModelOperationResult(true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Errors during database update: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
                     }
                 }
             }            
-
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        private Tuple<bool, string> DeleteTransaction()
+        /// <summary>
+        /// Executes several data consistency checks (e.g. Bucket assignment, pending amount etc.) to see if changes
+        /// can be stored in the database 
+        /// </summary>
+        /// <param name="skipBucketAssignment">Exclude checks on Bucket assignment</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult PerformConsistencyCheck(out bool skipBucketAssignment)
+        {
+            decimal assignedAmount = 0;
+            skipBucketAssignment = false;
+
+            // Consistency and Validity Checks
+            if (Transaction == null) return new ViewModelOperationResult(false, "Errors in Transaction object.");
+            if (SelectedAccount == null || SelectedAccount.AccountId == 0) return new ViewModelOperationResult(false, "No Bank account selected.");
+            if (Buckets.Count == 0) return new ViewModelOperationResult(false, "No Bucket assigned to this Transaction.");
+            
+            foreach (var assignedBucket in Buckets)
+            {
+                if (assignedBucket.SelectedBucket == null)
+                    return new ViewModelOperationResult(false, "Pending Bucket assignment for this Transaction.");
+
+                if (assignedBucket.SelectedBucket.BucketId == 0)
+                {
+                    if (assignedBucket.SelectedBucket.Name == "No Selection")
+                    {
+                        // Imported Transaction where Bucket assignment is pending
+                        // Allow Transaction Update but Skip DB Updates for Bucket assignment
+                        skipBucketAssignment = true;
+                    }
+                    else
+                    {
+                        return new ViewModelOperationResult(false, "Pending Bucket assignment for this Transaction.");
+                    }
+                }
+
+                assignedAmount += assignedBucket.Amount;
+            }
+
+            if (assignedAmount != Transaction.Amount) return new ViewModelOperationResult(false, "Amount between Bucket assignment and Transaction not consistent.");
+
+            return new ViewModelOperationResult(true);
+        }
+
+        /// <summary>
+        /// Removes a record in the database based on <see cref="Transaction"/> object
+        /// </summary>
+        /// <remarks>Removes also all its assigned Buckets</remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult DeleteTransaction()
         {
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
@@ -385,19 +474,19 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
                         // Delete all previous bucket assignments for transaction
                         var budgetedTransactions = dbContext.BudgetedTransaction
-
                             .Where(i => i.TransactionId == Transaction.TransactionId);
                         dbContext.DeleteBudgetedTransactions(budgetedTransactions);
+
                         transaction.Commit();
+                        return new ViewModelOperationResult(true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Errors during database update: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
                     }
                 }
             }            
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
         public void StartModification()
@@ -415,38 +504,37 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _oldTransactionViewModelItem = null;
         }
 
-        public Tuple<bool, string> CreateItem()
+        public ViewModelOperationResult CreateItem()
         {
-            Transaction.TransactionId = 0; // Triggers CREATE during CreateUpdateTransaction()
-            return CreateUpdateTransaction();
+            Transaction.TransactionId = 0; // Triggers CREATE during CreateOrUpdateTransaction()
+            return CreateOrUpdateTransaction();
         }
 
-        public Tuple<bool, string> UpdateItem()
+        public ViewModelOperationResult UpdateItem()
         {
-            if (Transaction.TransactionId < 1)
-                return new Tuple<bool, string>(false, "Transaction needs to be created first in database");
+            if (Transaction.TransactionId < 1) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
 
-            var (result, message) = CreateUpdateTransaction();
-            if (!result)
+            var result = CreateOrUpdateTransaction();
+            if (!result.IsSuccessful)
             {
                 // Trigger page reload as DB Update was not successfully
                 ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
 
-                return new Tuple<bool, string>(false, message);
+                return new ViewModelOperationResult(false, result.Message, true);
             }
             _oldTransactionViewModelItem = null;
             InModification = false;
 
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true);
         }
 
-        public Tuple<bool, string> DeleteItem()
+        public ViewModelOperationResult DeleteItem()
         {
-            var (result, message) = DeleteTransaction();
-            if (!result) return new Tuple<bool, string>(false, message);
+            var result = DeleteTransaction();
+            if (!result.IsSuccessful) return result;
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
            
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true, true);
         }
 
         public void ProposeBucket()
@@ -454,7 +542,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             var proposal = CheckMappingRules();
             if (proposal == null) return;
             Buckets.Clear();
-            Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel, proposal, Transaction.Amount));
+            Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, proposal, Transaction.Amount));
         }
 
         private Bucket CheckMappingRules()

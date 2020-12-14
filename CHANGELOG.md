@@ -1,3 +1,8 @@
+### 1.3 (xxxx-xx-xx)
+
+* [Add] Support for Sqlite databases #2
+* [Add] Unit Tests (not full coverage yet)
+
 ### 1.2.1 (2020-12-14)
 
 * [Fixed] Crash on Report Page due to wrong DateTime creation
