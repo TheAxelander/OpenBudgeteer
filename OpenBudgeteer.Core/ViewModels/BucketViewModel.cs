@@ -6,12 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Internal;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels
@@ -19,75 +20,99 @@ namespace OpenBudgeteer.Core.ViewModels
     public class BucketViewModel : ViewModelBase
     {
         private decimal _income;
+        /// <summary>
+        /// Money that has been added to a Bucket
+        /// </summary>
         public decimal Income
         {
             get => _income;
-            set => Set(ref _income, value);
+            private set => Set(ref _income, value);
         }
 
         private decimal _expenses;
+        /// <summary>
+        /// Money that has been moved out of the Bucket
+        /// </summary>
         public decimal Expenses
         {
             get => _expenses;
-            set => Set(ref _expenses, value);
+            private set => Set(ref _expenses, value);
         }
 
         private decimal _monthBalance;
+        /// <summary>
+        /// Combined Income and Expenses in a specific month
+        /// </summary>
         public decimal MonthBalance
         {
             get => _monthBalance;
-            set => Set(ref _monthBalance, value);
+            private set => Set(ref _monthBalance, value);
         }
 
         private decimal _budget;
+        /// <summary>
+        /// Available Money in a specific month
+        /// </summary>
         public decimal Budget
         {
             get => _budget;
-            set => Set(ref _budget, value);
+            private set => Set(ref _budget, value);
         }
 
         private decimal _bankBalance;
+        /// <summary>
+        /// Money available on all bank accounts
+        /// </summary>
         public decimal BankBalance
         {
             get => _bankBalance;
-            set => Set(ref _bankBalance, value);
+            private set => Set(ref _bankBalance, value);
         }
 
         private decimal _pendingWant;
+        /// <summary>
+        /// Money expected to be added to a Bucket in a specific month
+        /// </summary>
         public decimal PendingWant
         {
             get => _pendingWant;
-            set => Set(ref _pendingWant, value);
+            private set => Set(ref _pendingWant, value);
         }
 
         private decimal _remainingBudget;
+        /// <summary>
+        /// Remaining Money in a specific month. Includes Want and negative Balances
+        /// </summary>
         public decimal RemainingBudget
         {
             get => _remainingBudget;
-            set => Set(ref _remainingBudget, value);
+            private set => Set(ref _remainingBudget, value);
         }
 
         private decimal _negativeBucketBalance;
+        /// <summary>
+        /// Sum of all Bucket Balances where the number is negative
+        /// </summary>
         public decimal NegativeBucketBalance
         {
             get => _negativeBucketBalance;
-            set => Set(ref _negativeBucketBalance, value);
+            private set => Set(ref _negativeBucketBalance, value);
         }
 
         private ObservableCollection<BucketGroupViewModelItem> _bucketGroups;
+        /// <summary>
+        /// Collection of Groups which contains a set of Buckets
+        /// </summary>
         public ObservableCollection<BucketGroupViewModelItem> BucketGroups
         {
             get => _bucketGroups;
-            set => Set(ref _bucketGroups, value);
+            private set => Set(ref _bucketGroups, value);
         }
 
-        private ObservableCollection<int> _months;
-        public ObservableCollection<int> Months
-        {
-            get => _months;
-            set => Set(ref _months, value);
-        }
-
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
@@ -95,6 +120,11 @@ namespace OpenBudgeteer.Core.ViewModels
 
         private bool _defaultCollapseState; // Keep Collapse State e.g. after YearMonth change of ViewModel reload
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
         public BucketViewModel(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
         {
             _dbOptions = dbOptions;
@@ -103,7 +133,11 @@ namespace OpenBudgeteer.Core.ViewModels
             //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
         }
 
-        public async Task<Tuple<bool,string>> LoadDataAsync()
+        /// <summary>
+        /// Initialize ViewModel and load data from database
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> LoadDataAsync()
         {
             try
             {
@@ -147,19 +181,23 @@ namespace OpenBudgeteer.Core.ViewModels
                         BucketGroups.Add(newBucketGroup);
                     }
                 }
-                var (success, errorMessage) = UpdateBalanceFigures();
-                if (!success) throw new Exception(errorMessage);
+                var result = UpdateBalanceFigures();
+                if (!result.IsSuccessful) throw new Exception(result.Message);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true);
         }
 
-        public Tuple<bool,string> CreateGroup()
+        /// <summary>
+        /// Creates an initial <see cref="BucketGroup"/> and adds it to ViewModel and Database.
+        /// Will be added on first position and updates all other <see cref="BucketGroup"/> Positions accordingly
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CreateGroup()
         {
-            var newPosition = BucketGroups.Count == 0 ? 1 : BucketGroups.Last().BucketGroup.Position + 1;
             var newGroup = new BucketGroup
             {
                 BucketGroupId = 0,
@@ -173,8 +211,7 @@ namespace OpenBudgeteer.Core.ViewModels
                     bucketGroup.BucketGroup.Position++;
                     dbContext.UpdateBucketGroup(bucketGroup.BucketGroup);
                 }
-                if (dbContext.CreateBucketGroup(newGroup) == 0) 
-                    return new Tuple<bool, string>(false, "Unable to write changes to database"); 
+                if (dbContext.CreateBucketGroup(newGroup) == 0) return new ViewModelOperationResult(false, "Unable to write changes to database");
             }
 
             var newBucketGroupViewModelItem =
@@ -188,10 +225,17 @@ namespace OpenBudgeteer.Core.ViewModels
                 ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
             };
             BucketGroups.Insert(0, newBucketGroupViewModelItem);
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true);
         }
 
-        public Tuple<bool, string> DeleteGroup(BucketGroupViewModelItem bucketGroup)
+        /// <summary>
+        /// Starts deletion process in the passed <see cref="BucketGroupViewModelItem"/> and updates positions of
+        /// all other <see cref="BucketGroup"/> accordingly
+        /// </summary>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <param name="bucketGroup">Instance that needs to be deleted</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult DeleteGroup(BucketGroupViewModelItem bucketGroup)
         {
             var index = BucketGroups.IndexOf(bucketGroup) + 1;
             var bucketGroupsToMove = BucketGroups.ToList().GetRange(index, BucketGroups.Count - index);
@@ -202,9 +246,9 @@ namespace OpenBudgeteer.Core.ViewModels
                 {
                     try
                     {
-                        var result = bucketGroup.DeleteGroup();
-                        if (!result.Item1) throw new Exception(result.Item2);
-
+                        if (bucketGroup.Buckets.Count > 0) throw new Exception("Groups with Buckets cannot be deleted.");
+                        dbContext.DeleteBucketGroup(bucketGroup.BucketGroup);
+                        
                         var dbBucketGroups = new List<BucketGroup>();
                         foreach (var bucketGroupViewModelItem in bucketGroupsToMove)
                         {
@@ -213,21 +257,27 @@ namespace OpenBudgeteer.Core.ViewModels
                         }
 
                         dbContext.UpdateBucketGroups(dbBucketGroups);
+                        
                         transaction.Commit();
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, e.Message);
+                        return new ViewModelOperationResult(false, e.Message);
                     }
                 }
             }
-
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool, string> DistributeBudget()
+        /// <summary>
+        /// Put money into all Buckets according to their Want. Saves the results to the database.
+        /// </summary>
+        /// <remarks>Doesn't consider any available Budget figures.</remarks>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult DistributeBudget()
         {
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
@@ -244,25 +294,29 @@ namespace OpenBudgeteer.Core.ViewModels
                         {
                             if (bucket.Want == 0) continue;
                             bucket.InOut = bucket.Want;
-                            var (success, errorMessage) = bucket.HandleInOutInput("Enter");
-                            if (!success) throw new Exception(errorMessage);
+                            var result = bucket.HandleInOutInput("Enter");
+                            if (!result.IsSuccessful) throw new Exception(result.Message);
                         }
+
                         transaction.Commit();
+                        //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
+                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Error during Budget distribution: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Error during Budget distribution: {e.Message}");
                     }
-                    
                 }
             }
-            //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool,string> UpdateBalanceFigures()
+        /// <summary>
+        /// Re-calculates figures of the ViewModel like Budget and Balances
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult UpdateBalanceFigures()
         {
             try
             {
@@ -313,12 +367,16 @@ namespace OpenBudgeteer.Core.ViewModels
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during Balance recalculation: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during Balance recalculation: {e.Message}");
             }
 
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true);
         }
 
+        /// <summary>
+        /// Helper methode to set Collapse status for all <see cref="BucketGroup"/>
+        /// </summary>
+        /// <param name="collapse">New collapse status</param>
         public void ChangeBucketGroupCollapse(bool collapse = true)
         {
             _defaultCollapseState = collapse;
@@ -328,17 +386,30 @@ namespace OpenBudgeteer.Core.ViewModels
             }
         }
 
-        public Tuple<bool, string> SaveChanges(BucketViewModelItem bucket)
+        /// <summary>
+        /// Helper method to start Save process for the passed <see cref="BucketViewModelItem"/>
+        /// </summary>
+        /// <remarks>Triggers also update of ViewModel figures</remarks>
+        /// <param name="bucket"><see cref="BucketViewModelItem"/> instance with modifications</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult SaveChanges(BucketViewModelItem bucket)
         {
-            var result = bucket.SaveChanges();
-            if (!result.Item1) return result;
+            var result = bucket.CreateOrUpdateBucket();
+            if (!result.IsSuccessful) return result;
             return UpdateBalanceFigures();
         }
 
-        public Tuple<bool, string> CloseBucket(BucketViewModelItem bucket)
+        /// <summary>
+        /// Helper method to start Deletion process for the passed <see cref="BucketViewModelItem"/>
+        /// </summary>
+        /// <remarks>Triggers also update of ViewModel figures</remarks>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <param name="bucket"><see cref="BucketViewModelItem"/> instance with containing <see cref="Bucket"/> to be closed</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CloseBucket(BucketViewModelItem bucket)
         {
             var result = bucket.CloseBucket();
-            if (!result.Item1) return result;
+            if (!result.IsSuccessful) return result;
             return UpdateBalanceFigures();
         }
     }

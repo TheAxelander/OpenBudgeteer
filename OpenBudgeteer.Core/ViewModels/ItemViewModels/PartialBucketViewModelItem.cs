@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 using System;
@@ -11,11 +11,14 @@ using System.Text;
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 {
     /// <summary>
-    /// ViewModel to handle the multi-assignment of Buckets to one <see cref="BankTransaction"/>
+    /// Helper ViewModel to handle the multi-assignment of Buckets to one <see cref="BankTransaction"/>
     /// </summary>
     public class PartialBucketViewModelItem : ViewModelBase
     {
         private Bucket _selectedBucket;
+        /// <summary>
+        /// Affected Bucket
+        /// </summary>
         public Bucket SelectedBucket
         {
             get => _selectedBucket;
@@ -23,6 +26,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private string _selectedBucketOutput;
+        /// <summary>
+        /// Helper property to generate an output for the Bucket including the assigned amount
+        /// </summary>
         public string SelectedBucketOutput
         {
             get => _selectedBucketOutput;
@@ -30,6 +36,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private decimal _amount;
+        /// <summary>
+        /// Money that will be assigned to this Bucket
+        /// </summary>
         public decimal Amount
         {
             get => _amount;
@@ -41,25 +50,38 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<Bucket> _availableBuckets;
+        /// <summary>
+        /// Helper collection with all available Buckets
+        /// </summary>
         public ObservableCollection<Bucket> AvailableBuckets
         {
             get => _availableBuckets;
             set => Set(ref _availableBuckets, value);
         }
 
+        /// <summary>
+        /// EventHandler which should be invoked once amount assigned to this Bucket has been changed. Can be used
+        /// to start further consistency checks and other calculations based on this change 
+        /// </summary>
         public event EventHandler<AmountChangedArgs> AmountChanged;
+        /// <summary>
+        /// EventHandler which should be invoked in case this instance should start its deletion process. Can be used
+        /// in case the way how this instance will be deleted is handled outside of this class
+        /// </summary>
         public event EventHandler<DeleteAssignmentRequestArgs> DeleteAssignmentRequest;
         
-        public PartialBucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonth">Current YearMonth</param>
+        public PartialBucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, DateTime yearMonth)
         {
-            AvailableBuckets = new ObservableCollection<Bucket>();
-            // Add empty Bucket for empty pre-selection
-            AvailableBuckets.Add(new Bucket
+            AvailableBuckets = new ObservableCollection<Bucket>
             {
-                BucketId = 0,
-                BucketGroupId = 0,
-                Name = "No Selection"
-            });
+                new Bucket {BucketId = 0, BucketGroupId = 0, Name = "No Selection"}
+            };
+            // Add empty Bucket for empty pre-selection
             using (var dbContext = new DatabaseContext(dbOptions))
             {
                 foreach (var availableBucket in dbContext.Bucket.Where(i => i.BucketId <= 2))
@@ -69,9 +91,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
                 var query = dbContext.Bucket
                     .Where(i => i.BucketId > 2 &&
-                                i.ValidFrom <= yearMonthViewModel.CurrentMonth &&
+                                i.ValidFrom <= yearMonth &&
                                 (i.IsInactive == false ||
-                                 (i.IsInactive && i.IsInactiveFrom > yearMonthViewModel.CurrentMonth)))
+                                 (i.IsInactive && i.IsInactiveFrom > yearMonth)))
                     .OrderBy(i => i.Name);
 
                 foreach (var availableBucket in query.ToList())
@@ -82,7 +104,14 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             SelectedBucket = AvailableBuckets.First();
         }
 
-        public PartialBucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel,  Bucket bucket, decimal amount) : this(dbOptions, yearMonthViewModel)
+        /// <summary>
+        /// Initialize ViewModel based on an existing <see cref="Bucket"/> object and the final amount to be assigned
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonth">Current YearMonth</param>
+        /// <param name="bucket">Bucket instance</param>
+        /// <param name="amount">Amount to be assigned to this Bucket</param>
+        public PartialBucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, DateTime yearMonth,  Bucket bucket, decimal amount) : this(dbOptions, yearMonth)
         {
             Amount = amount;
             foreach (var availableBucket in AvailableBuckets)
@@ -96,6 +125,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             if (SelectedBucket == null) SelectedBucket = AvailableBuckets.First();
         }
 
+        /// <summary>
+        /// Triggers <see cref="DeleteAssignmentRequest"/>
+        /// </summary>
         public void DeleteBucket()
         {
             DeleteAssignmentRequest?.Invoke(this, new DeleteAssignmentRequestArgs(this));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 
@@ -11,6 +12,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
     public class AccountViewModelItem : ViewModelBase
     {
         private Account _account;
+        /// <summary>
+        /// Reference to model object in the database
+        /// </summary>
         public Account Account
         {
             get => _account;
@@ -18,6 +22,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private decimal _balance;
+        /// <summary>
+        /// Total account balance
+        /// </summary>
         public decimal Balance
         {
             get => _balance;
@@ -25,6 +32,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private decimal _in;
+        /// <summary>
+        /// Total income of the account
+        /// </summary>
         public decimal In
         {
             get => _in;
@@ -32,61 +42,74 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private decimal _out;
+        /// <summary>
+        /// Total expenses of the account
+        /// </summary>
         public decimal Out
         {
             get => _out;
             set => Set(ref _out, value);
         }
 
-        private bool _inModification;
-        public bool InModification
-        {
-            get => _inModification;
-            set => Set(ref _inModification, value);
-        }
-
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
         
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
         public AccountViewModelItem(DbContextOptions<DatabaseContext> dbOptions)
         {
             _dbOptions = dbOptions;
         }
 
+        /// <summary>
+        /// Initialize ViewModel with an existing <see cref="Account"/> object
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="account">Account instance</param>
         public AccountViewModelItem(DbContextOptions<DatabaseContext> dbOptions, Account account) : this(dbOptions)
         {
             _account = account;
         }
 
-        public Tuple<bool, string> CreateUpdateAccount()
+        /// <summary>
+        /// Creates or updates a record in the database based on <see cref="Account"/> object
+        /// </summary>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CreateUpdateAccount()
         {
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 var result = Account.AccountId == 0 ? dbContext.CreateAccount(Account) : dbContext.UpdateAccount(Account);
-                if (result == 0)
-                {
-                    return new Tuple<bool, string>(false, "Unable to save changes to database");
-                }
+                if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
                 ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-                return new Tuple<bool, string>(true, string.Empty);
+                return new ViewModelOperationResult(true, true);
             }
         }
 
-        public Tuple<bool, string> CloseAccount()
+        /// <summary>
+        /// Sets Inactive flag for a record in the database based on <see cref="Account"/> object.
+        /// </summary>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CloseAccount()
         {
-            if (Balance != 0) return new Tuple<bool, string>(false, "Balance must be 0 to close an Account");
+            if (Balance != 0) return new ViewModelOperationResult(false, "Balance must be 0 to close an Account");
 
             Account.IsActive = 0;
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 var result = dbContext.UpdateAccount(Account);
-                if (result == 0)
-                {
-                    return new Tuple<bool, string>(false, "Unable to save changes to database");
-                }
+                if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
                 ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-                return new Tuple<bool, string>(true, string.Empty);
+                return new ViewModelOperationResult(true, true);
             }
         }
     }

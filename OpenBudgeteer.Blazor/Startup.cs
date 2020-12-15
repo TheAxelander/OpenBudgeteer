@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.ViewModels;
 using Tewr.Blazor.FileReader;
 
@@ -36,20 +36,52 @@ namespace OpenBudgeteer.Blazor
             services.AddFileReaderService();
             services.AddScoped<YearMonthSelectorViewModel>();
             var configurationSection = Configuration.GetSection("Connection");
-            var connectionString = $"Server={configurationSection?["Server"]};" +
+            var provider = configurationSection?["Provider"];
+            string connectionString;
+            switch (provider)
+            {
+                case "mysql":
+                    connectionString = $"Server={configurationSection?["Server"]};" +
                                    $"Port={configurationSection?["Port"]};" +
                                    $"Database={configurationSection?["Database"]};" +
                                    $"User={configurationSection?["User"]};" +
                                    $"Password={configurationSection?["Password"]}";
-            services.AddDbContext<DatabaseContext>(options => options.UseMySql(
-                    connectionString, 
-                    b => b.MigrationsAssembly("OpenBudgeteer")), 
-                ServiceLifetime.Transient);
+                    
+                    services.AddDbContext<DatabaseContext>(options => options.UseMySql(
+                            connectionString,
+                            b => b.MigrationsAssembly("OpenBudgeteer.Core")),
+                        ServiceLifetime.Transient);
+
+                    // Check on Pending Db Migrations
+                    var mySqlDbContext = new MySqlDatabaseContextFactory().CreateDbContext(Configuration);
+                    if (mySqlDbContext.Database.GetPendingMigrations().Any()) mySqlDbContext.Database.Migrate();
+                    
+                    break;
+                case "sqlite":
+#if DEBUG
+                    connectionString = "Data Source=openbudgeteer.db";
+#else
+                    connectionString = "Data Source=database/openbudgeteer.db";
+#endif
+                    services.AddDbContext<DatabaseContext>(options => options.UseSqlite(
+                            connectionString,
+                            b => b.MigrationsAssembly("OpenBudgeteer.Core")),
+                        ServiceLifetime.Transient);
+
+                    // Check on Pending Db Migrations
+                    var sqliteDbContext = new SqliteDatabaseContextFactory().CreateDbContext(connectionString);
+                    if (sqliteDbContext.Database.GetPendingMigrations().Any()) sqliteDbContext.Database.Migrate();
+
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Database provider {provider} not supported");
+            }
+            
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DatabaseContext dbContext)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -73,7 +105,6 @@ namespace OpenBudgeteer.Blazor
                 endpoints.MapFallbackToPage("/_Host");
             });
 
-            if (dbContext.Database.GetPendingMigrations().Any()) dbContext.Database.Migrate();
             // TODO Get Culture from Settings
             var cultureInfo = new CultureInfo("de-DE");
             CultureInfo.DefaultThreadCurrentCulture = cultureInfo;

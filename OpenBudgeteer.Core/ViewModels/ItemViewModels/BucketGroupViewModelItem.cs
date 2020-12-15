@@ -1,4 +1,4 @@
-﻿using OpenBudgeteer.Core.Common;
+﻿using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -13,6 +14,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
     public class BucketGroupViewModelItem : ViewModelBase
     {
         private BucketGroup _bucketGroup;
+        /// <summary>
+        /// Reference to model object in the database
+        /// </summary>
         public BucketGroup BucketGroup
         {
             get => _bucketGroup;
@@ -20,6 +24,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private decimal _totalBalance;
+        /// <summary>
+        /// Balance of all Buckets assigned to the BucketGroup
+        /// </summary>
         public decimal TotalBalance
         {
             get => _totalBalance;
@@ -27,6 +34,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _isHovered;
+        /// <summary>
+        /// Helper property to check if the cursor hovers over the entry in the UI
+        /// </summary>
         public bool IsHovered
         {
             get => _isHovered;
@@ -34,6 +44,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _isCollapsed;
+        /// <summary>
+        /// Helper property to check if the list of assigned Buckets is collapsed
+        /// </summary>
         public bool IsCollapsed
         {
             get => _isCollapsed;
@@ -41,6 +54,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private ObservableCollection<BucketViewModelItem> _buckets;
+        /// <summary>
+        /// Collection of Buckets assigned to this BucketGroup
+        /// </summary>
         public ObservableCollection<BucketViewModelItem> Buckets
         {
             get => _buckets;
@@ -48,18 +64,29 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         }
 
         private bool _inModification;
+        /// <summary>
+        /// Helper property to check if the BucketGroup is currently modified
+        /// </summary>
         public bool InModification
         {
             get => _inModification;
             set => Set(ref _inModification, value);
         }
         
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
-        internal DateTime CurrentMonth;
+        private readonly DateTime _currentMonth;
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private BucketGroup _oldBucketGroup;
 
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
         public BucketGroupViewModelItem(DbContextOptions<DatabaseContext> dbOptions)
         {
             Buckets = new ObservableCollection<BucketViewModelItem>();
@@ -67,12 +94,21 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _dbOptions = dbOptions;
         }
 
+        /// <summary>
+        /// Initialize ViewModel based on an existing <see cref="BucketGroup"/> object and a specific YearMonth
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="bucketGroup">BucketGroup instance</param>
+        /// <param name="currentMonth">YearMonth that should be used</param>
         public BucketGroupViewModelItem(DbContextOptions<DatabaseContext> dbOptions, BucketGroup bucketGroup, DateTime currentMonth) : this(dbOptions)
         {
             BucketGroup = bucketGroup;
-            CurrentMonth = currentMonth;
+            _currentMonth = currentMonth;
         }
 
+        /// <summary>
+        /// Helper method to start modification process and creating a backup of current values
+        /// </summary>
         public void StartModification()
         {
             _oldBucketGroup = new BucketGroup()
@@ -84,6 +120,9 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             InModification = true;
         }
 
+        /// <summary>
+        /// Stops modification and restores previous values
+        /// </summary>
         public void CancelModification()
         {
             BucketGroup = _oldBucketGroup;
@@ -91,7 +130,12 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _oldBucketGroup = null;
         }
 
-        public Tuple<bool,string> SaveModification()
+        /// <summary>
+        /// Updates a record in the database based on <see cref="BucketGroup"/> object
+        /// </summary>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult SaveModification()
         {
             try
             {
@@ -99,38 +143,27 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 {
                     dbContext.UpdateBucketGroup(BucketGroup);
                 }
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 InModification = false;
                 _oldBucketGroup = null;
+                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                return new ViewModelOperationResult(true, true);
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Unable to write changes to database: {e.Message}");
+                return new ViewModelOperationResult(false, $"Unable to write changes to database: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool,string> DeleteGroup()
+        /// <summary>
+        /// Moves the position of the BucketGroup according to the passed value. Updates positions for all other
+        /// BucketGroups accordingly
+        /// </summary>
+        /// <param name="positions">Number of positions that BucketGroup needs to be moved</param>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult MoveGroup(int positions)
         {
-            try
-            {
-                if (Buckets.Count > 0) throw new Exception("Groups with Buckets cannot be deleted.");
-
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    dbContext.DeleteBucketGroup(BucketGroup);
-                }
-            }
-            catch (Exception e)
-            {
-                return new Tuple<bool, string>(false, $"Unable to delete Bucket Group: {e.Message}");
-            }
-            return new Tuple<bool, string>(true, string.Empty);
-        }
-
-        public Tuple<bool,string> MoveGroup(int positions)
-        {
-            if (positions == 0) return new Tuple<bool, string>(true, string.Empty);
+            if (positions == 0) return new ViewModelOperationResult(true);
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 using (var transaction = dbContext.Database.BeginTransaction())
@@ -141,7 +174,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         var targetPosition = BucketGroup.Position + positions;
                         if (targetPosition < 1) targetPosition = 1;
                         if (targetPosition > bucketGroupCount) targetPosition = bucketGroupCount;
-                        if (targetPosition == BucketGroup.Position) return new Tuple<bool, string>(true, string.Empty); // Group is already at the end or top. No further action
+                        if (targetPosition == BucketGroup.Position) return new ViewModelOperationResult(true); // Group is already at the end or top. No further action
                         // Move Group in an interim List
                         var existingBucketGroups = new ObservableCollection<BucketGroup>();
                         foreach (var bucketGroup in dbContext.BucketGroup.OrderBy(i => i.Position))
@@ -161,21 +194,20 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
                         transaction.Commit();
                         ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
+                        return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Unable to move Bucket Group: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Unable to move Bucket Group: {e.Message}");
                     }
                 }
             }
-            
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
         public BucketViewModelItem CreateBucket()
         {
-            var newBucket = new BucketViewModelItem(_dbOptions, BucketGroup, CurrentMonth);
+            var newBucket = new BucketViewModelItem(_dbOptions, BucketGroup, _currentMonth);
             // Hand over ViewModel changes
             newBucket.ViewModelReloadRequired += (sender, args) =>
                 ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));

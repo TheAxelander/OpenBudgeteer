@@ -1,9 +1,10 @@
 ﻿@page "/transaction"
 
 @using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Common.Database
 @using Microsoft.EntityFrameworkCore
 @using System.Drawing
+@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
@@ -292,12 +293,11 @@
         HandleResult(_transactionToBeDeleted.DeleteItem());
     }
 
-    void HandleResult(Tuple<bool, string> result)
+    void HandleResult(ViewModelOperationResult result)
     {
-        var (success, errorMessage) = result;
-        if (!success)
+        if (!result.IsSuccessful)
         {
-            _errorModalDialogMessage = errorMessage;
+            _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
         }
     }
