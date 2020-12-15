@@ -1,4 +1,4 @@
-### 1.3 (xxxx-xx-xx)
+### 1.3 (2020-12-15)
 
 * [Add] Support for Sqlite databases #2
 * [Add] Unit Tests (not full coverage yet)
