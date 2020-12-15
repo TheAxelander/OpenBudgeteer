@@ -8,37 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Migrations\20200608152200_DecimalPrecision.cs" />
-    <Compile Remove="Migrations\20200608152200_DecimalPrecision.Designer.cs" />
-    <Compile Remove="Migrations\20200612082043_FixedBucketVersion.cs" />
-    <Compile Remove="Migrations\20200612082043_FixedBucketVersion.Designer.cs" />
-    <Compile Remove="Migrations\20200701131446_TransactionDateTime.cs" />
-    <Compile Remove="Migrations\20200701131446_TransactionDateTime.Designer.cs" />
-    <Compile Remove="Migrations\20200707141411_ImportProfileDateNumberFormat.cs" />
-    <Compile Remove="Migrations\20200707141411_ImportProfileDateNumberFormat.Designer.cs" />
-    <Compile Remove="Migrations\20200814120506_AutomaticBucketAssignment.cs" />
-    <Compile Remove="Migrations\20200814120506_AutomaticBucketAssignment.Designer.cs" />
-    <Compile Remove="Migrations\20200818091835_foobar.cs" />
-    <Compile Remove="Migrations\20200818091835_foobar.Designer.cs" />
-    <Compile Remove="Migrations\20200818091949_AutomaticBucketAssignment.cs" />
-    <Compile Remove="Migrations\20200818091949_AutomaticBucketAssignment.Designer.cs" />
-    <Compile Remove="Migrations\20200818093918_AutomaticBucketAssignment.cs" />
-    <Compile Remove="Migrations\20200818093918_AutomaticBucketAssignment.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="ChartJs.Blazor" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="3.1.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.1.2" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.1" />
     <PackageReference Include="Tewr.Blazor.FileReader" Version="2.0.0.20242" />
-    <PackageReference Include="TinyCsvParser" Version="2.5.2" />
   </ItemGroup>
 
-  <Import Project="..\OpenBudgeteer.Core\OpenBudgeteer.Core.projitems" Label="Shared" />
+  <ItemGroup>
+    <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
+  </ItemGroup>
 
 </Project>

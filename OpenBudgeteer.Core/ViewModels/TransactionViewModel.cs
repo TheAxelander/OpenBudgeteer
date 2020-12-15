@@ -1,4 +1,4 @@
-﻿using OpenBudgeteer.Core.Common;
+﻿using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels
@@ -18,6 +19,9 @@ namespace OpenBudgeteer.Core.ViewModels
     public class TransactionViewModel : ViewModelBase
     {
         private TransactionViewModelItem _newTransaction;
+        /// <summary>
+        /// Helper property to handle creation of a new <see cref="BankTransaction"/>
+        /// </summary>
         public TransactionViewModelItem NewTransaction
         {
             get => _newTransaction;
@@ -25,17 +29,29 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private ObservableCollection<TransactionViewModelItem> _transactions;
+        /// <summary>
+        /// Collection of loaded Transactions
+        /// </summary>
         public ObservableCollection<TransactionViewModelItem> Transactions
         {
             get => _transactions;
             set => Set(ref _transactions, value);
         }
 
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
 
+        /// <summary>
+        /// Basic Constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
         public TransactionViewModel(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
         {
             _dbOptions = dbOptions;
@@ -45,7 +61,11 @@ namespace OpenBudgeteer.Core.ViewModels
             //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
         }
 
-        public async Task<Tuple<bool, string>> LoadDataAsync()
+        /// <summary>
+        /// Initialize ViewModel and load data from database
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> LoadDataAsync()
         {
             try
             {
@@ -73,16 +93,24 @@ namespace OpenBudgeteer.Core.ViewModels
                             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
+
+                    return new ViewModelOperationResult(true);
                 }
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public async Task<Tuple<bool, string>> LoadDataAsync(Bucket bucket, bool withMovements)
+        /// <summary>
+        /// Initialize ViewModel and load data from database but only for <see cref="BankTransaction"/> assigned to the
+        /// passed <see cref="Bucket"/>. Optionally <see cref="BucketMovement"/> will be transformed to <see cref="BankTransaction"/>
+        /// </summary>
+        /// <param name="bucket">Bucket for which Transactions should be loaded</param>
+        /// <param name="withMovements">Include <see cref="BucketMovement"/> which will be transformed to <see cref="BankTransaction"/></param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> LoadDataAsync(Bucket bucket, bool withMovements)
         {
             try
             {
@@ -131,16 +159,23 @@ namespace OpenBudgeteer.Core.ViewModels
                             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
+
+                    return new ViewModelOperationResult(true);
                 }
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public async Task<Tuple<bool, string>> LoadDataAsync(Account account)
+        /// <summary>
+        /// Initialize ViewModel and load data from database but only for <see cref="BankTransaction"/> assigned to the
+        /// passed <see cref="Account"/>
+        /// </summary>
+        /// <param name="account">Account for which Transactions should be loaded</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> LoadDataAsync(Account account)
         {
             try
             {
@@ -166,35 +201,44 @@ namespace OpenBudgeteer.Core.ViewModels
                             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
+
+                    return new ViewModelOperationResult(true);
                 }
             }
             catch (Exception e)
             {
-                return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
-        public Tuple<bool, string> CreateItem()
+        /// <summary>
+        /// Starts creation process based on <see cref="NewTransaction"/>
+        /// </summary>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CreateItem()
         {
-            NewTransaction.Transaction.TransactionId = 0; // Triggers CREATE during CreateUpdateTransaction()
-            var (result, message) = NewTransaction.CreateItem();
-            if (!result)
-            {
-                return new Tuple<bool, string>(false, message);
-            }
+            NewTransaction.Transaction.TransactionId = 0;
+            var result = NewTransaction.CreateItem();
+            if (!result.IsSuccessful) return result;
             ResetNewTransaction();
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true, true);
         }
 
+        /// <summary>
+        /// Helper method to reset values of <see cref="NewTransaction"/>
+        /// </summary>
         public void ResetNewTransaction()
         {
             NewTransaction = new TransactionViewModelItem(_dbOptions, _yearMonthViewModel);
-            NewTransaction.Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel));
+            NewTransaction.Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth));
         }
 
+        /// <summary>
+        /// Helper method to start modification process for all Transactions
+        /// </summary>
         public void EditAllTransaction()
         {
             foreach (var transaction in Transactions)
@@ -203,7 +247,11 @@ namespace OpenBudgeteer.Core.ViewModels
             }
         }
 
-        public Tuple<bool, string> SaveAllTransaction()
+        /// <summary>
+        /// Starts update process for all Transactions
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult SaveAllTransaction()
         {
             using (var dbTransaction = new DatabaseContext(_dbOptions).Database.BeginTransaction())
             {
@@ -211,25 +259,32 @@ namespace OpenBudgeteer.Core.ViewModels
                 {
                     foreach (var transaction in Transactions)
                     {
-                        (bool success, string message) = transaction.UpdateItem();
-                        if (!success) throw new Exception(message);
+                        var result = transaction.UpdateItem();
+                        if (!result.IsSuccessful) throw new Exception(result.Message);
                     }
                     dbTransaction.Commit();
+                    return new ViewModelOperationResult(true);
                 }
                 catch (Exception e)
                 {
                     dbTransaction.Rollback();
-                    return new Tuple<bool, string>(false, e.Message);
+                    return new ViewModelOperationResult(false, e.Message);
                 }
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
+        /// <summary>
+        /// Triggers <see cref="ViewModelReloadRequired"/> to cancel all changes to all Transactions
+        /// </summary>
         public void CancelAllTransaction()
         {
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
 
+        /// <summary>
+        /// Starts process to propose the right <see cref="Bucket"/> for all Transactions
+        /// </summary>
+        /// <remarks>Sets all Transactions into Modification Mode in case they have a "No Selection" Bucket</remarks>
         public void ProposeBuckets()
         {
             foreach (var transaction in Transactions)

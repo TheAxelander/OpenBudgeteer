@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
@@ -15,6 +16,9 @@ namespace OpenBudgeteer.Core.ViewModels
     public class RulesViewModel : ViewModelBase
     {
         private RuleSetViewModelItem _newRuleSet;
+        /// <summary>
+        /// Helper property to handle setup of a new <see cref="BucketRuleSet"/>
+        /// </summary>
         public RuleSetViewModelItem NewRuleSet
         {
             get => _newRuleSet;
@@ -22,28 +26,39 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         private ObservableCollection<RuleSetViewModelItem> _ruleSets;
+        /// <summary>
+        /// Collection of all <see cref="BucketRuleSet"/> from the database
+        /// </summary>
         public ObservableCollection<RuleSetViewModelItem> RuleSets
         {
             get => _ruleSets;
             set => Set(ref _ruleSets, value);
         }
 
+        /// <summary>
+        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
+        /// e.g. due to various database record changes 
+        /// </summary>
         public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
-        public RulesViewModel()
-        {
-            RuleSets = new ObservableCollection<RuleSetViewModelItem>();
-        }
-
-        public RulesViewModel(DbContextOptions<DatabaseContext> dbOptions) : this()
+        /// <summary>
+        /// Basic constructor
+        /// </summary>
+        /// <param name="dbOptions">Options to connect to a database</param>
+        public RulesViewModel(DbContextOptions<DatabaseContext> dbOptions)
         {
             _dbOptions = dbOptions;
+            RuleSets = new ObservableCollection<RuleSetViewModelItem>();
             ResetNewRuleSet();
         }
         
-        public async Task<Tuple<bool, string>> LoadDataAsync()
+        /// <summary>
+        /// Initialize ViewModel and load data from database
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> LoadDataAsync()
         {
             return await Task.Run(() =>
             {
@@ -57,30 +72,35 @@ namespace OpenBudgeteer.Core.ViewModels
                             RuleSets.Add(new RuleSetViewModelItem(_dbOptions, bucketRuleSet));
                         }
                     }
+
+                    return new ViewModelOperationResult(true);
                 }
                 catch (Exception e)
                 {
-                    return new Tuple<bool, string>(false, $"Error during loading: {e.Message}");
+                    return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
                 }
-                return new Tuple<bool, string>(true, string.Empty);
-                
             });
         }
 
-        public Tuple<bool, string> CreateNewRuleSet()
+        /// <summary>
+        /// Starts creation process based on <see cref="NewRuleSet"/>
+        /// </summary>
+        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult CreateNewRuleSet()
         {
             NewRuleSet.RuleSet.BucketRuleSetId = 0;
-            var (result, message) = NewRuleSet.CreateUpdateRuleSetItem();
-            if (!result)
-            {
-                return new Tuple<bool, string>(false, message);
-            }
+            var result = NewRuleSet.CreateUpdateRuleSetItem();
+            if (!result.IsSuccessful) return result;
             ResetNewRuleSet();
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
 
-            return new Tuple<bool, string>(true, string.Empty);
+            return new ViewModelOperationResult(true, true);
         }
 
+        /// <summary>
+        /// Helper method to reset values of <see cref="NewRuleSet"/>
+        /// </summary>
         public void ResetNewRuleSet()
         {
             NewRuleSet = new RuleSetViewModelItem(_dbOptions);
@@ -93,43 +113,55 @@ namespace OpenBudgeteer.Core.ViewModels
             }));
         }
 
-        public Tuple<bool, string> SaveRuleSetItem(RuleSetViewModelItem ruleSet)
+        /// <summary>
+        /// Starts Creation or Update process for the passed <see cref="RuleSetViewModelItem"/>
+        /// </summary>
+        /// <remarks>Updates <see cref="RuleSets"/> collection</remarks>
+        /// <param name="ruleSet">Instance that needs to be created or updated</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult SaveRuleSetItem(RuleSetViewModelItem ruleSet)
         {
             var result = ruleSet.CreateUpdateRuleSetItem();
-            if (!result.Item1) return result;
+            if (!result.IsSuccessful) return result;
             RuleSets = new ObservableCollection<RuleSetViewModelItem>(RuleSets.OrderBy(i => i.RuleSet.Priority));
 
             return result;
         }
 
-        public Tuple<bool, string> DeleteRuleSetItem(RuleSetViewModelItem ruleSet)
+        /// <summary>
+        /// Starts Deletion process for the passed <see cref="RuleSetViewModelItem"/> including all its <see cref="MappingRule"/>
+        /// </summary>
+        /// <remarks>Updates <see cref="RuleSets"/> collection</remarks>
+        /// <param name="ruleSet">Instance that needs to be deleted</param>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult DeleteRuleSetItem(RuleSetViewModelItem ruleSet)
         {
-            var result = new Tuple<bool, string>(true, string.Empty);
-
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 using (var dbTransaction = dbContext.Database.BeginTransaction())
                 {
                     try
                     {
-                        dbContext.DeleteMappingRules(dbContext.MappingRule.Where(i =>
-                            i.BucketRuleSetId == ruleSet.RuleSet.BucketRuleSetId));
+                        dbContext.DeleteMappingRules(dbContext.MappingRule
+                            .Where(i => i.BucketRuleSetId == ruleSet.RuleSet.BucketRuleSetId));
                         dbContext.DeleteBucketRuleSet(ruleSet.RuleSet);
                         dbTransaction.Commit();
                         RuleSets.Remove(ruleSet);
+
+                        return new ViewModelOperationResult(true);
                     }
                     catch (Exception e)
                     {
                         dbTransaction.Rollback();
-                        return new Tuple<bool, string>(false, $"Errors during database update: {e.Message}");
+                        return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
                     }
                 }
-
             }
-
-            return result;
         }
 
+        /// <summary>
+        /// Helper method to start Modification process for all <see cref="BucketRuleSet"/>
+        /// </summary>
         public void EditAllRules()
         {
             foreach (var ruleSet in RuleSets)
@@ -138,7 +170,12 @@ namespace OpenBudgeteer.Core.ViewModels
             }
         }
 
-        public Tuple<bool, string> SaveAllRules()
+        /// <summary>
+        /// Starts the Creation or Update process for all <see cref="BucketRuleSet"/>
+        /// </summary>
+        /// <remarks>Updates <see cref="RuleSets"/> collection</remarks>
+        /// <returns>Object which contains information and results of this method</returns>
+        public ViewModelOperationResult SaveAllRules()
         {
             using (var dbTransaction = new DatabaseContext(_dbOptions).Database.BeginTransaction())
             {
@@ -146,21 +183,25 @@ namespace OpenBudgeteer.Core.ViewModels
                 {
                     foreach (var ruleSet in RuleSets)
                     {
-                        (bool success, string message) = ruleSet.CreateUpdateRuleSetItem();
-                        if (!success) throw new Exception(message);
+                        var result = ruleSet.CreateUpdateRuleSetItem();
+                        if (!result.IsSuccessful) throw new Exception(result.Message);
                     }
                     dbTransaction.Commit();
                     RuleSets = new ObservableCollection<RuleSetViewModelItem>(RuleSets.OrderBy(i => i.RuleSet.Priority));
+
+                    return new ViewModelOperationResult(true);
                 }
                 catch (Exception e)
                 {
                     dbTransaction.Rollback();
-                    return new Tuple<bool, string>(false, e.Message);
+                    return new ViewModelOperationResult(false, e.Message);
                 }
             }
-            return new Tuple<bool, string>(true, string.Empty);
         }
 
+        /// <summary>
+        /// Triggers <see cref="ViewModelReloadRequired"/> to cancel all changes to all <see cref="BucketRuleSet"/>
+        /// </summary>
         public void CancelAllRules()
         {
             ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));

@@ -1,10 +1,11 @@
 ﻿@page "/import"
 
 @using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Common.Database
 @using Microsoft.EntityFrameworkCore
 @using System.IO
 @using System.Text
+@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Models
 @using Tewr.Blazor.FileReader
 @inject DbContextOptions<DatabaseContext> DbContextOptions
@@ -362,7 +363,7 @@
             _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.First();
         }
         var result = _dataContext.LoadProfile();
-        if (result.Item1)
+        if (result.IsSuccessful)
         {
             _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId != 0;
             CheckColumnMapping();  
@@ -377,7 +378,7 @@
     void LoadHeaders()
     {
         var result = _dataContext.LoadHeaders();
-        if (result.Item1)
+        if (result.IsSuccessful)
         {
             _step3Enabled = true;
         }
@@ -404,13 +405,13 @@
 
     void ValidateData()
     {
-        _validationErrorMessage = _dataContext.ValidateData();
+        _validationErrorMessage = _dataContext.ValidateData().Message;
     }
 
     void ImportData()
     {
         var result = _dataContext.ImportData();
-        _importConfirmationMessage = result.Item2;
+        _importConfirmationMessage = result.Message;
         _isConfirmationModalDialogVisible = true;
     }
 
@@ -457,12 +458,11 @@
         CheckColumnMapping();
     }
 
-    void HandleResult(Tuple<bool, string> result)
+    void HandleResult(ViewModelOperationResult result)
     {
-        var (success, errorMessage) = result;
-        if (!success)
+        if (!result.IsSuccessful)
         {
-            _errorModalDialogMessage = errorMessage;
+            _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
         }
     }

@@ -1,10 +1,11 @@
 ﻿@page "/rules"
 
 @using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using System.Drawing
+@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Models
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
@@ -305,12 +306,11 @@
         HandleResult(_dataContext.DeleteRuleSetItem(_ruleSetToBeDeleted));
     }
 
-    void HandleResult(Tuple<bool, string> result)
+    void HandleResult(ViewModelOperationResult result)
     {
-        var (success, errorMessage) = result;
-        if (!success)
+        if (!result.IsSuccessful)
         {
-            _errorModalDialogMessage = errorMessage;
+            _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
         }
     }
