@@ -15,23 +15,27 @@
 
 <div class="row">
     <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig" />
+		<h4 class="report-chart-header">Month Balances</h4>
+        <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
     </div>
     <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsLineChart Config="@_dataContext.BankBalancesConfig" />
-    </div>
-</div>
-<div class="row">
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig" />
-    </div>
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig" />
+		<h4 class="report-chart-header">Bank Balances</h4>
+        <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
     </div>
 </div>
 <div class="row">
     <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <h4 style="color: gray; font-weight: bold; margin: 10px; text-align: center">Bucket Monthly Expenses</h4>
+		<h4 class="report-chart-header">Income & Expenses per Month</h4>
+        <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
+    </div>
+    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
+		<h4 class="report-chart-header">Income & Expenses per Year</h4>
+        <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+    </div>
+</div>
+<div class="row">
+    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
+        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
         @foreach (var config in _monthBucketExpensesConfigsLeft)
         {
             <h5 style="color: gray; font-weight: bold">@config.Item1</h5>
@@ -41,7 +45,7 @@
         }
     </div>
     <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <h4 style="color: gray; font-weight: bold; margin: 10px; text-align: center">Bucket Monthly Expenses</h4>
+        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
         @foreach (var config in _monthBucketExpensesConfigsRight)
         {
             <h5 style="color: gray; font-weight: bold">@config.Item1</h5>

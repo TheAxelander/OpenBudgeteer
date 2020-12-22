@@ -3,6 +3,7 @@
 * [Changed] Core and Blazor Frontend updated to .Net 5.0
 * [Changed] File Preview on Import Page now read-only
 * [Changed] Misc small visual updates and fixes on Import Page
+* [Changed] Consistent Chart Header styles on Report Page
 
 ### 1.3 (2020-12-15)
 

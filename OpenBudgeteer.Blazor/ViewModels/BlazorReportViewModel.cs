@@ -63,8 +63,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
                 {
                     Title = new OptionsTitle
                     {
-                        Display = true,
-                        FontSize = 25
+                        Display = false
                     },
                     Animation = new ArcAnimation
                     {
@@ -107,8 +106,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
                 {
                     Title = new OptionsTitle
                     {
-                        Display = true,
-                        FontSize = 25
+                        Display = false
                     },
                     Legend = new Legend
                     {

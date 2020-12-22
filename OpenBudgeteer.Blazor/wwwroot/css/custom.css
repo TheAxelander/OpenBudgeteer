@@ -18,6 +18,13 @@ table .header-row td, table .header-row th {
 .col-buttons {
     text-align: right;
 }
+.report-chart-header {
+    color: gray;
+    font-weight: bold;
+    margin: 10px;
+    text-align: center
+}
+    
 
 /* Overwrite site styles*/
 html, body {
