@@ -1,3 +1,8 @@
+### 1.4 (20xx-xx-xx)
+
+* [Changed] Core and Blazor Frontend updated to .Net 5.0
+* [Changed] File Preview on Import Page now read-only
+
 ### 1.3 (2020-12-15)
 
 * [Add] Support for Sqlite databases #2

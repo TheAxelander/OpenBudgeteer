@@ -7,7 +7,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenBudgeteer.Blazor", "Ope
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenBudgeteer.Core", "OpenBudgeteer.Core\OpenBudgeteer.Core.csproj", "{B2969681-AC0D-4570-9043-46DBDAF11B18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Test", "OpenBudgeteer.Core.Test\OpenBudgeteer.Core.Test.csproj", "{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenBudgeteer.Core.Test", "OpenBudgeteer.Core.Test\OpenBudgeteer.Core.Test.csproj", "{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86A25C9F-8B53-47CC-B032-AF705FE284A2}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
