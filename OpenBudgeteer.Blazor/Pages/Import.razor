@@ -40,32 +40,33 @@
         <div>
             @if (_step4Enabled)
             {
-                <button class="btn btn-sm btn-primary btn-margin-top" @onclick=@(() => HandleResult(_dataContext.CreateProfile()))>Create Profile</button>
+                <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile()))>Create Profile</button>
             }
             @if (_dataContext.SelectedImportProfile != null && _dataContext.SelectedImportProfile.ImportProfileId != 0)
             {
-                <button class="btn btn-sm btn-primary btn-margin-top" @onclick=@(() => HandleResult(_dataContext.SaveProfile()))>Save Profile</button>
-                <button class="btn btn-sm btn-danger btn-margin-top" @onclick=@(() => HandleResult(_dataContext.DeleteProfile()))>Delete Profile</button>
+                <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.SaveProfile()))>Save Profile</button>
+                <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => HandleResult(_dataContext.DeleteProfile()))>Delete Profile</button>
             }
-        </div>
-        <div class="div-margin-top form-group" style="max-width: 300px">
-            <select class="form-control form-control-sm" @onchange=@ImportProfile_SelectionChanged>
-                <option value="@_placeholderItemId">---Select Import Profile---</option>
-                @foreach (var importProfile in _dataContext.AvailableImportProfiles)
-                {
-                    if (_dataContext.SelectedImportProfile != null && importProfile.ImportProfileId == _dataContext.SelectedImportProfile.ImportProfileId)
-                    {
-                        <option selected value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
-                    }
-                    else
-                    {
-                        <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
-                    }
-                }
-            </select>
         </div>
         <div class="row div-margin-top">
             <div class="col form-group">
+				<label>Import Profile:</label>
+                <select class="form-control form-control-sm" @onchange=@ImportProfile_SelectionChanged>
+                    <option value="@_placeholderItemId">---Select Import Profile---</option>
+                    @foreach (var importProfile in _dataContext.AvailableImportProfiles)
+                    {
+                        if (_dataContext.SelectedImportProfile != null && importProfile.ImportProfileId == _dataContext.SelectedImportProfile.ImportProfileId)
+                        {
+                            <option selected value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
+                        }
+                        else
+                        {
+                            <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
+                        }
+                    }
+                </select>
+            </div>
+			<div class="col form-group">
                 <label>Profile Name:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.ProfileName"/>
             </div>
@@ -202,27 +203,28 @@
 {
     <div class="div-margin-top">
         <h5>Step 4: Validate and Import Data</h5>
-        <button class="btn btn-sm btn-primary btn-margin-top" @onclick=ValidateData>Validate Data</button>
+        <button class="btn btn-sm btn-primary header-action-button" @onclick=ValidateData>Validate Data</button>
         @if (_dataContext.ValidRecords > 0)
         {
-            <button class="btn btn-sm btn-primary btn-margin-top" @onclick=ImportData>Import Data</button>
+            <button class="btn btn-sm btn-primary header-action-button" @onclick=ImportData>Import Data</button>
         }
         <div>
-            <p>Total Records: @_dataContext.TotalRecords</p>
-            <p>Valid Records: @_dataContext.ValidRecords</p>
-            <p>Records with errors: @_dataContext.RecordsWithErrors</p>
+            <span>Total Records: @_dataContext.TotalRecords</span><br/>
+            <span>Valid Records: @_dataContext.ValidRecords</span><br/>
+            <span>Records with errors: @_dataContext.RecordsWithErrors</span>
             @if (_validationErrorMessage != string.Empty)
             {
-                <p style="color: red">Error message: @_validationErrorMessage</p>
+                <span style="color: red">Error message: @_validationErrorMessage</span>
             }
         </div>
     </div>
 
     @if (_dataContext.ParsedRecords.Any(i => i.IsValid))
     {
-        <h5>Preview (Valid Records)</h5>
-        <table class="table table-sm table-hover">
-            <thead>
+		<div class="div-margin-top">
+            <h5>Preview (Valid Records)</h5>
+            <table class="table table-sm table-hover">
+                <thead>
                 <tr class="header-row">
                     <th style="text-align: right; width:100px">Date</th>
                     <th style="width:150px">Account</th>
@@ -230,43 +232,46 @@
                     <th>Memo</th>
                     <th style="text-align: right; width: 90px">Amount</th>
                 </tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 @foreach (var transaction in _dataContext.ParsedRecords.Where(i => i.IsValid))
                 {
                     <tr>
-                        <td class="td-right">@transaction.Result.TransactionDate.ToShortDateString()</td>
+                        <td class="col-numbers">@transaction.Result.TransactionDate.ToShortDateString()</td>
                         <td>@_dataContext.SelectedAccount.Name</td>
                         <td>@transaction.Result.Payee</td>
                         <td>@transaction.Result.Memo</td>
-                        <td class="td-right">@transaction.Result.Amount</td>
+                        <td class="col-numbers">@transaction.Result.Amount</td>
                     </tr>
                 }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+		</div>
     }
     
     @if (_dataContext.ParsedRecords.Any(i => !i.IsValid))
     {
-        <h5>Records with error:</h5>
-        <table class="table table-sm table-hover">
-            <thead>
+		<div class="div-margin-top">
+            <h5>Records with error:</h5>
+            <table class="table table-sm table-hover">
+                <thead>
                 <tr>
                     <th style="text-align: right; width:50px">Row</th>
                     <th>Details</th>
                 </tr>
-            </thead>
-            @foreach (var transaction in _dataContext.ParsedRecords.Where(i => !i.IsValid))
-            {
-                <tr>
-                    <td style="text-align: right">@transaction.RowIndex</td>
-                    <td>
-                        <div>@transaction.Error.Value</div>
-                        <div>@transaction.Error.UnmappedRow</div>
-                    </td>
-                </tr>
-            }
-        </table>
+                </thead>
+                @foreach (var transaction in _dataContext.ParsedRecords.Where(i => !i.IsValid))
+                {
+                    <tr>
+                        <td class="col-numbers">@transaction.RowIndex</td>
+                        <td>
+                            <div>@transaction.Error.Value</div>
+                            <div>@transaction.Error.UnmappedRow</div>
+                        </td>
+                    </tr>
+                }
+            </table>
+		</div>
     }
 }
 
