@@ -18,11 +18,18 @@ table .header-row td, table .header-row th {
 .col-buttons {
     text-align: right;
 }
+.report-chart-box {
+    width: 900px;
+    border-width: thick;
+    border-color: gray;
+    margin: 5px;
+    border-style: solid;
+}
 .report-chart-header {
     color: gray;
     font-weight: bold;
     margin: 10px;
-    text-align: center
+    text-align: center;
 }
     
 
