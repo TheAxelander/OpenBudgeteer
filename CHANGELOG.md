@@ -5,6 +5,7 @@
 * [Changed] Misc small visual updates and fixes on Import Page
 * [Changed] Consistent Chart Header styles on Report Page
 * [Fixed] Reworked UI update handling to fix issues on refreshing data #22
+* [Fixed] Missing Target Account update for newly created or updated Import Profiles #23
 
 ### 1.3 (2020-12-15)
 
