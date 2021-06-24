@@ -431,6 +431,7 @@
     {
         var value = Convert.ToInt32(e.Value);
         _dataContext.SelectedAccount = value == _placeholderItemId ? null : _dataContext.AvailableAccounts.First(i => i.AccountId == value);
+        _dataContext.SelectedImportProfile.AccountId = _dataContext.SelectedAccount?.AccountId ?? 0;
     }
 
     void TransactionDateColumn_SelectionChanged(ChangeEventArgs e)
