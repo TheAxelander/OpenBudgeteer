@@ -109,12 +109,6 @@ namespace OpenBudgeteer.Core.ViewModels
             private set => Set(ref _bucketGroups, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
 
@@ -152,10 +146,6 @@ namespace OpenBudgeteer.Core.ViewModels
                     {
                         var newBucketGroup = new BucketGroupViewModelItem(_dbOptions, bucketGroup, _yearMonthViewModel.CurrentMonth);
                         newBucketGroup.IsCollapsed = _defaultCollapseState;
-                        newBucketGroup.ViewModelReloadRequired += (sender, args) =>
-                        {
-                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
-                        };
                         var buckets = dbContext.Bucket
                                 .Where(i => i.BucketGroupId == newBucketGroup.BucketGroup.BucketGroupId)
                                 .OrderBy(i => i.Name)
@@ -172,10 +162,6 @@ namespace OpenBudgeteer.Core.ViewModels
 
                         foreach (var bucket in await Task.WhenAll(bucketItemTasks))
                         {
-                            bucket.ViewModelReloadRequired += (sender, args) =>
-                            {
-                                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
-                            };
                             newBucketGroup.Buckets.Add(bucket);
                         }
                         BucketGroups.Add(newBucketGroup);
@@ -218,12 +204,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 new BucketGroupViewModelItem(_dbOptions, newGroup, _yearMonthViewModel.CurrentMonth)
                 {
                     InModification = true
-
                 };
-            newBucketGroupViewModelItem.ViewModelReloadRequired += (sender, args) =>
-            {
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
-            };
             BucketGroups.Insert(0, newBucketGroupViewModelItem);
             return new ViewModelOperationResult(true);
         }
@@ -259,7 +240,6 @@ namespace OpenBudgeteer.Core.ViewModels
                         dbContext.UpdateBucketGroups(dbBucketGroups);
                         
                         transaction.Commit();
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
@@ -300,7 +280,6 @@ namespace OpenBudgeteer.Core.ViewModels
 
                         transaction.Commit();
                         //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
@@ -374,7 +353,7 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         /// <summary>
-        /// Helper methode to set Collapse status for all <see cref="BucketGroup"/>
+        /// Helper method to set Collapse status for all <see cref="BucketGroup"/>
         /// </summary>
         /// <param name="collapse">New collapse status</param>
         public void ChangeBucketGroupCollapse(bool collapse = true)
@@ -394,9 +373,12 @@ namespace OpenBudgeteer.Core.ViewModels
         /// <returns>Object which contains information and results of this method</returns>
         public ViewModelOperationResult SaveChanges(BucketViewModelItem bucket)
         {
-            var result = bucket.CreateOrUpdateBucket();
-            if (!result.IsSuccessful) return result;
-            return UpdateBalanceFigures();
+            var createUpdateResult = bucket.CreateOrUpdateBucket();
+            if (!createUpdateResult.IsSuccessful) return createUpdateResult;
+            var updateFiguresResult = UpdateBalanceFigures();
+            return new ViewModelOperationResult(
+                updateFiguresResult.IsSuccessful,
+                createUpdateResult.ViewModelReloadRequired || updateFiguresResult.ViewModelReloadRequired);
         }
 
         /// <summary>
@@ -408,9 +390,12 @@ namespace OpenBudgeteer.Core.ViewModels
         /// <returns>Object which contains information and results of this method</returns>
         public ViewModelOperationResult CloseBucket(BucketViewModelItem bucket)
         {
-            var result = bucket.CloseBucket();
-            if (!result.IsSuccessful) return result;
-            return UpdateBalanceFigures();
+            var closeBucketResult = bucket.CloseBucket();
+            if (!closeBucketResult.IsSuccessful) return closeBucketResult;
+            var updateFiguresResult = UpdateBalanceFigures();
+            return new ViewModelOperationResult(
+                updateFiguresResult.IsSuccessful,
+                closeBucketResult.ViewModelReloadRequired || updateFiguresResult.ViewModelReloadRequired);
         }
     }
 }

@@ -74,12 +74,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _availableAccounts, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
         private TransactionViewModelItem _oldTransactionViewModelItem;
@@ -517,22 +511,18 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             var result = CreateOrUpdateTransaction();
             if (!result.IsSuccessful)
             {
-                // Trigger page reload as DB Update was not successfully
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
-
                 return new ViewModelOperationResult(false, result.Message, true);
             }
             _oldTransactionViewModelItem = null;
             InModification = false;
 
-            return new ViewModelOperationResult(true);
+            return new ViewModelOperationResult(true, true);
         }
 
         public ViewModelOperationResult DeleteItem()
         {
             var result = DeleteTransaction();
             if (!result.IsSuccessful) return result;
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
            
             return new ViewModelOperationResult(true, true);
         }

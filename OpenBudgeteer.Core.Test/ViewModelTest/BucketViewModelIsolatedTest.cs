@@ -119,7 +119,7 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest
             var result = viewModel.DeleteGroup(groupToDelete);
             
             Assert.True(result.IsSuccessful);
-            Assert.True(result.ViewModelReloadInvoked);
+            Assert.True(result.ViewModelReloadRequired);
 
             await viewModel.LoadDataAsync();
             

@@ -190,7 +190,7 @@
                     }
                 </td>
                 <td class="col-buttons">
-					<button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
+					<button class="btn btn-sm btn-primary oi oi-check" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => ruleSet.CancelModification())"></button>
                 </td>
             </tr>
@@ -250,12 +250,7 @@
     {
         _dataContext = new RulesViewModel(DbContextOptions);
 
-        HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async (sender, args) =>
-        {
-            HandleResult(await _dataContext.LoadDataAsync());
-            base.StateHasChanged();
-        };
+        await HandleResult(await _dataContext.LoadDataAsync());
     }
 
     void HandleTargetBucketSelectionChanged(RuleSetViewModelItem ruleSetViewModelItem, int selectedBucketId)
@@ -276,16 +271,16 @@
         _dataContext.EditAllRules();
     }
 
-    void SaveAllRules()
+    async void SaveAllRules()
     {
         _massEditEnabled = false;
-        HandleResult(_dataContext.SaveAllRules());
+        await HandleResult(_dataContext.SaveAllRules());
     }
 
-    void CancelAllRules()
+    async void CancelAllRules()
     {
         _massEditEnabled = false;
-        _dataContext.CancelAllRules();
+        await HandleResult(await _dataContext.LoadDataAsync());
     }
 
 	void HandleRuleSetDeletionRequest(RuleSetViewModelItem ruleSet)
@@ -300,18 +295,23 @@
         _ruleSetToBeDeleted = null;
     }
 
-    void DeleteRule()
+    async void DeleteRule()
     {
         _isDeleteRuleSetModalDialogVisible = false;
-        HandleResult(_dataContext.DeleteRuleSetItem(_ruleSetToBeDeleted));
+        await HandleResult(_dataContext.DeleteRuleSetItem(_ruleSetToBeDeleted));
     }
 
-    void HandleResult(ViewModelOperationResult result)
+    async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)
         {
             _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
+        }
+		if (result.ViewModelReloadRequired)
+        {
+            await _dataContext.LoadDataAsync();
+            StateHasChanged();
         }
     }
 }

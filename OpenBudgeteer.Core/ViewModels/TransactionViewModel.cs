@@ -38,12 +38,6 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _transactions, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
 
@@ -89,8 +83,6 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     foreach (var transaction in await Task.WhenAll(transactionTasks))
                     {
-                        transaction.ViewModelReloadRequired += (sender, args) => 
-                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
 
@@ -155,8 +147,6 @@ namespace OpenBudgeteer.Core.ViewModels
                     foreach (var transaction in (await Task.WhenAll(transactionTasks))
                         .OrderByDescending(i => i.Transaction.TransactionDate))
                     {
-                        transaction.ViewModelReloadRequired += (sender, args) =>
-                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
 
@@ -197,8 +187,6 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     foreach (var transaction in await Task.WhenAll(transactionTasks))
                     {
-                        transaction.ViewModelReloadRequired += (sender, args) =>
-                            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
                         Transactions.Add(transaction);
                     }
 
@@ -222,7 +210,6 @@ namespace OpenBudgeteer.Core.ViewModels
             var result = NewTransaction.CreateItem();
             if (!result.IsSuccessful) return result;
             ResetNewTransaction();
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             
             return new ViewModelOperationResult(true, true);
         }
@@ -271,14 +258,6 @@ namespace OpenBudgeteer.Core.ViewModels
                     return new ViewModelOperationResult(false, e.Message);
                 }
             }
-        }
-
-        /// <summary>
-        /// Triggers <see cref="ViewModelReloadRequired"/> to cancel all changes to all Transactions
-        /// </summary>
-        public void CancelAllTransaction()
-        {
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
 
         /// <summary>

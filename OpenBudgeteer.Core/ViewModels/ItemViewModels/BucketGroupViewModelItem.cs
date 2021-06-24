@@ -73,12 +73,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _inModification, value);
         }
         
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly DateTime _currentMonth;
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private BucketGroup _oldBucketGroup;
@@ -145,7 +139,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 }
                 InModification = false;
                 _oldBucketGroup = null;
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 return new ViewModelOperationResult(true, true);
             }
             catch (Exception e)
@@ -193,7 +186,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         }
 
                         transaction.Commit();
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
@@ -208,9 +200,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public BucketViewModelItem CreateBucket()
         {
             var newBucket = new BucketViewModelItem(_dbOptions, BucketGroup, _currentMonth);
-            // Hand over ViewModel changes
-            newBucket.ViewModelReloadRequired += (sender, args) =>
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             Buckets.Add(newBucket);
             return newBucket;
         }

@@ -199,6 +199,10 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                             }
                         }
 
+                        foreach (var mappingRuleViewModelItem in MappingRules)
+                        {
+                            mappingRuleViewModelItem.MappingRule.MappingRuleId = 0;
+                        }
                         dbContext.CreateMappingRules(MappingRules.Select(i => i.MappingRule).ToList());
                         
                         dbTransaction.Commit();

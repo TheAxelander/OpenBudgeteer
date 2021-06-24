@@ -35,12 +35,6 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _ruleSets, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
         /// <summary>
@@ -93,7 +87,6 @@ namespace OpenBudgeteer.Core.ViewModels
             var result = NewRuleSet.CreateUpdateRuleSetItem();
             if (!result.IsSuccessful) return result;
             ResetNewRuleSet();
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
 
             return new ViewModelOperationResult(true, true);
         }
@@ -197,14 +190,6 @@ namespace OpenBudgeteer.Core.ViewModels
                     return new ViewModelOperationResult(false, e.Message);
                 }
             }
-        }
-
-        /// <summary>
-        /// Triggers <see cref="ViewModelReloadRequired"/> to cancel all changes to all <see cref="BucketRuleSet"/>
-        /// </summary>
-        public void CancelAllRules()
-        {
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 }

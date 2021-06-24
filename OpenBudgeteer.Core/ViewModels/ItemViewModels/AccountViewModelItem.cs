@@ -51,12 +51,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _out, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-        
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
         /// <summary>
@@ -89,7 +83,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             {
                 var result = Account.AccountId == 0 ? dbContext.CreateAccount(Account) : dbContext.UpdateAccount(Account);
                 if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 return new ViewModelOperationResult(true, true);
             }
         }
@@ -108,7 +101,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             {
                 var result = dbContext.UpdateAccount(Account);
                 if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                 return new ViewModelOperationResult(true, true);
             }
         }

@@ -69,13 +69,7 @@
     protected override void OnInitialized()
     {
         _dataContext = new AccountViewModel(DbContextOptions);
-        _dataContext.LoadData();
-        _dataContext.ViewModelReloadRequired += (sender, args) =>
-        {
-            _dataContext.LoadData();
-            StateHasChanged();
-        };
-        HandleResult(new ViewModelOperationResult(true));
+        HandleResult(_dataContext.LoadData());
     }
 
     private void CreateNewAccount()
@@ -102,7 +96,7 @@
     private void CancelChanges()
     {
         _isEditAccountModalDialogVisible = false;
-        _dataContext.CancelEditMode();
+        HandleResult(_dataContext.LoadData());
     }
 
     private void CloseAccount(AccountViewModelItem account)
@@ -116,6 +110,11 @@
         {
             _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
+        }
+        if (result.ViewModelReloadRequired)
+        {
+            _dataContext.LoadData();
+            StateHasChanged();
         }
     }
 

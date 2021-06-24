@@ -166,12 +166,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             set => Set(ref _availableBucketGroups, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly bool _isNewlyCreatedBucket;
         private readonly DateTime _currentYearMonth;
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
@@ -503,7 +497,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     }
                 }
             }            
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
             return new ViewModelOperationResult(true, true);
         }
 
@@ -519,7 +512,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         public ViewModelOperationResult CreateOrUpdateBucket()
         {
             var result = _isNewlyCreatedBucket ? CreateBucket() : UpdateBucket();
-            if (!result.IsSuccessful || result.ViewModelReloadInvoked) return result;
+            if (!result.IsSuccessful || result.ViewModelReloadRequired) return result;
             InModification = false;
             CalculateValues();
             return new ViewModelOperationResult(true);
@@ -552,13 +545,11 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                                                 $"Bucket ID: {newBucketVersion.BucketId}");
 
                         transaction.Commit();
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(
                             false, 
                             $"Error during database update: {e.Message}", 
@@ -576,7 +567,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         /// <returns>Object which contains information and results of this method</returns>
         private ViewModelOperationResult UpdateBucket()
         {
-            var forceViewModelReload = false;
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 using (var transaction = dbContext.Database.BeginTransaction())
@@ -591,7 +581,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                         {
                             // BucketGroup update requires special handling as ViewModel needs to trigger reload
                             // to force re-rendering of Blazor Page
-                            if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
+                            //if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
 
                             if (dbContext.UpdateBucket(Bucket) == 0)
                                 throw new Exception($"Error during database update: Unable to update Bucket.{Environment.NewLine}" +
@@ -638,13 +628,11 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                             }
                         }
                         transaction.Commit();
-                        if (forceViewModelReload) ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(true, true);
                     }
                     catch (Exception e)
                     {
                         transaction.Rollback();
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
                         return new ViewModelOperationResult(
                             false,
                             $"Error during database update: {e.Message}",
@@ -652,15 +640,6 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Triggers <see cref="ViewModelReloadRequired"/> to cancel all modifications
-        /// </summary>
-        public void CancelChanges()
-        {
-            InModification = false;
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this)); // force Re-load to get old values back
         }
 
         /// <summary>

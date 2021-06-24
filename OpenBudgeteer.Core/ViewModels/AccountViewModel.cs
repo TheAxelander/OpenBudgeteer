@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
@@ -25,12 +26,6 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _accounts, value);
         }
 
-        /// <summary>
-        /// EventHandler which should be invoked in case the whole ViewModel has to be reloaded
-        /// e.g. due to various database record changes 
-        /// </summary>
-        public event EventHandler<ViewModelReloadEventArgs> ViewModelReloadRequired;
-
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
 
         /// <summary>
@@ -46,43 +41,48 @@ namespace OpenBudgeteer.Core.ViewModels
         /// <summary>
         /// Initialize ViewModel and load data from database
         /// </summary>
-        public void LoadData()
+        public ViewModelOperationResult LoadData()
         {
-            Accounts.Clear();
-
-            using (var accountDbContext = new DatabaseContext(_dbOptions))
+            try
             {
-                foreach (var account in accountDbContext.Account
-                    .Where(i => i.IsActive == 1)
-                    .OrderBy(i => i.Name))
+                Accounts.Clear();
+                using (var accountDbContext = new DatabaseContext(_dbOptions))
                 {
-                    var newAccountItem = new AccountViewModelItem(_dbOptions, account);
-                    decimal newIn = 0;
-                    decimal newOut = 0;
-
-                    using (var transactionDbContext = new DatabaseContext(_dbOptions))
+                    foreach (var account in accountDbContext.Account
+                        .Where(i => i.IsActive == 1)
+                        .OrderBy(i => i.Name))
                     {
-                        var transactions = transactionDbContext.BankTransaction
-                            .Where(i => i.AccountId == account.AccountId);
+                        var newAccountItem = new AccountViewModelItem(_dbOptions, account);
+                        decimal newIn = 0;
+                        decimal newOut = 0;
 
-                        foreach (var transaction in transactions)
+                        using (var transactionDbContext = new DatabaseContext(_dbOptions))
                         {
-                            if (transaction.Amount > 0)
-                                newIn += transaction.Amount;
-                            else
-                                newOut += transaction.Amount;
+                            var transactions = transactionDbContext.BankTransaction
+                                .Where(i => i.AccountId == account.AccountId);
+
+                            foreach (var transaction in transactions)
+                            {
+                                if (transaction.Amount > 0)
+                                    newIn += transaction.Amount;
+                                else
+                                    newOut += transaction.Amount;
+                            }
                         }
+
+                        newAccountItem.Balance = newIn + newOut;
+                        newAccountItem.In = newIn;
+                        newAccountItem.Out = newOut;
+
+                        Accounts.Add(newAccountItem);
                     }
-
-                    newAccountItem.Balance = newIn + newOut;
-                    newAccountItem.In = newIn;
-                    newAccountItem.Out = newOut;
-
-                    newAccountItem.ViewModelReloadRequired += (sender, args) => 
-                        ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
-                    Accounts.Add(newAccountItem);
                 }
             }
+            catch (Exception e)
+            {
+                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            }
+            return new ViewModelOperationResult(true);
         }
 
         /// <summary>
@@ -98,17 +98,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 In = 0,
                 Out = 0
             };
-            result.ViewModelReloadRequired += (sender, args) =>
-                ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(args.ViewModel));
             return result;
-        }
-
-        /// <summary>
-        /// Forces reload of ViewModel to revoke unsaved changes
-        /// </summary>
-        public void CancelEditMode()
-        {
-            ViewModelReloadRequired?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 }

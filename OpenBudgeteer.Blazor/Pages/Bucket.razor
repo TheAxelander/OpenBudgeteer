@@ -302,8 +302,8 @@
     Title="Edit Bucket"
     DataContext="@_editBucketDialogDataContext"
     IsDialogVisible="@_isEditBucketModalDialogVisible"
-    OnCancelClickCallback="@(() => CancelEditBucketDialog())"
-    OnSaveClickCallback="@(() => SaveAndCloseEditBucketDialog())"/>
+    OnCancelClickCallback="@(CancelEditBucketDialog)"
+    OnSaveClickCallback="@(SaveAndCloseEditBucketDialog)"/>
 
 <TransactionDialog 
     Title="Bucket Transactions" 
@@ -337,28 +337,23 @@
     {
         _dataContext = new BucketViewModel(DbContextOptions, YearMonthDataContext);
 
-        HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async (sender, args) =>
-        {
-            HandleResult(await _dataContext.LoadDataAsync());
-            StateHasChanged();
-        };
-
+        await HandleResult(await _dataContext.LoadDataAsync());
+        
         YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) => 
         {
-            HandleResult(await _dataContext.LoadDataAsync());
+            await HandleResult(await _dataContext.LoadDataAsync());
             StateHasChanged();
         };
     }
 
-    void CreateGroup()
+    async void CreateGroup()
     {
-        HandleResult(_dataContext.CreateGroup());
+        await HandleResult(_dataContext.CreateGroup());
     }
 
-    void DistributeBudget()
+    async void DistributeBudget()
     {
-        HandleResult(_dataContext.DistributeBudget());
+        await HandleResult(_dataContext.DistributeBudget());
     }
 
     void CreateBucket(BucketGroupViewModelItem bucketGroup)
@@ -373,51 +368,56 @@
         _isEditBucketModalDialogVisible = true;
     }
 
-    void SaveAndCloseEditBucketDialog()
+    async void SaveAndCloseEditBucketDialog()
     {
         _isEditBucketModalDialogVisible = false;
-        SaveChanges(_editBucketDialogDataContext);
+        await SaveChanges(_editBucketDialogDataContext);
     }
 
     async void CancelEditBucketDialog()
     {
         _isEditBucketModalDialogVisible = false;
-        HandleResult(await _dataContext.LoadDataAsync());
+        await HandleResult(await _dataContext.LoadDataAsync());
         StateHasChanged();
     }
 
-    void SaveChanges(BucketViewModelItem bucket)
+    async Task SaveChanges(BucketViewModelItem bucket)
     {
-        HandleResult(_dataContext.SaveChanges(bucket));
+        await HandleResult(_dataContext.SaveChanges(bucket));
         StateHasChanged();
     }
 
-    void CloseBucket(BucketViewModelItem bucket)
+    async Task CloseBucket(BucketViewModelItem bucket)
     {
-        HandleResult(_dataContext.CloseBucket(bucket));
+        await HandleResult(_dataContext.CloseBucket(bucket));
         StateHasChanged();
     }
 
-    void HandleResult(ViewModelOperationResult result)
+    async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)
         {
             _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
         }
+		if (result.ViewModelReloadRequired)
+        {
+            await _dataContext.LoadDataAsync();
+            StateHasChanged();
+        }
     }
 
-    void InOut_Changed(BucketViewModelItem bucket, KeyboardEventArgs args)
+    async void InOut_Changed(BucketViewModelItem bucket, KeyboardEventArgs args)
     {
         var result = bucket.HandleInOutInput(args.Key);
         if (result.IsSuccessful)
         {
-            HandleResult(_dataContext.UpdateBalanceFigures());
+            await HandleResult(_dataContext.UpdateBalanceFigures());
             StateHasChanged();
         }
         else
         {
-            HandleResult(result);
+            await HandleResult(result);
         }
     }
 
@@ -428,7 +428,7 @@
 
         _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
         _transactionModalDialogBucket = bucket.Bucket;
-        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket, true));
+        await HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket, true));
 
         _isTransactionModalDialogDataContextLoading = false;
         StateHasChanged();

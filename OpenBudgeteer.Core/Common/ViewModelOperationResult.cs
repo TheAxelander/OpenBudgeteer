@@ -8,13 +8,13 @@ namespace OpenBudgeteer.Core.Common
     {
         public bool IsSuccessful { get; }
         public string Message { get; }
-        public bool ViewModelReloadInvoked { get; }
+        public bool ViewModelReloadRequired { get; }
 
-        public ViewModelOperationResult(bool isSuccessful, string message, bool viewModelReloadInvoked = false)
+        public ViewModelOperationResult(bool isSuccessful, string message, bool viewModelReloadRequired = false)
         {
             IsSuccessful = isSuccessful;
             Message = message;
-            ViewModelReloadInvoked = viewModelReloadInvoked;
+            ViewModelReloadRequired = viewModelReloadRequired;
         }
 
         public ViewModelOperationResult(bool isSuccessful, bool viewModelReloadInvoked = false) 
