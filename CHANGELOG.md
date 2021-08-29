@@ -1,5 +1,6 @@
 ### 1.4 (20xx-xx-xx)
 
+* [Add] Dialog for showing progress during Bucket proposal #21
 * [Changed] Core and Blazor Frontend updated to .Net 5.0
 * [Changed] File Preview on Import Page now read-only
 * [Changed] Misc small visual updates and fixes on Import Page
