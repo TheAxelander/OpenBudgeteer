@@ -4,11 +4,19 @@ using System.Linq;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.ViewModels;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest
 {
     public class YearMonthSelectorViewModelTest
     {
+        private readonly ITestOutputHelper _output;
+
+        public YearMonthSelectorViewModelTest(ITestOutputHelper output)
+        {
+            _output = output ?? throw new ArgumentNullException(nameof(output));
+        }
+
         [Fact]
         public void Constructor_CheckDefaults()
         {
@@ -24,23 +32,27 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest
             {
                 Assert.Equal(i, viewModel.Months.ElementAt(i-1));
             }
-
+            
             var cultureInfo = new CultureInfo("de-DE");
-            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+            
+            _output.WriteLine($"Current Culture: {CultureInfo.CurrentCulture.Name}");
+            _output.WriteLine($"Current UI Culture: {CultureInfo.CurrentUICulture.Name}");
+            _output.WriteLine($"Test culture: {cultureInfo.Name}");
+            
             var converter = new MonthOutputConverter();
-            Assert.Equal("Jan", converter.ConvertMonth(1));
-            Assert.Equal("Feb", converter.ConvertMonth(2));
-            Assert.Equal("Mrz", converter.ConvertMonth(3));
-            Assert.Equal("Apr", converter.ConvertMonth(4));
-            Assert.Equal("Mai", converter.ConvertMonth(5));
-            Assert.Equal("Jun", converter.ConvertMonth(6));
-            Assert.Equal("Jul", converter.ConvertMonth(7));
-            Assert.Equal("Aug", converter.ConvertMonth(8));
-            Assert.Equal("Sep", converter.ConvertMonth(9));
-            Assert.Equal("Okt", converter.ConvertMonth(10));
-            Assert.Equal("Nov", converter.ConvertMonth(11));
-            Assert.Equal("Dez", converter.ConvertMonth(12));
+            
+            Assert.Equal("Jan", converter.ConvertMonth(1, cultureInfo));
+            Assert.Equal("Feb", converter.ConvertMonth(2, cultureInfo));
+            Assert.Equal("Mär", converter.ConvertMonth(3, cultureInfo));
+            Assert.Equal("Apr", converter.ConvertMonth(4, cultureInfo));
+            Assert.Equal("Mai", converter.ConvertMonth(5, cultureInfo));
+            Assert.Equal("Jun", converter.ConvertMonth(6, cultureInfo));
+            Assert.Equal("Jul", converter.ConvertMonth(7, cultureInfo));
+            Assert.Equal("Aug", converter.ConvertMonth(8, cultureInfo));
+            Assert.Equal("Sep", converter.ConvertMonth(9, cultureInfo));
+            Assert.Equal("Okt", converter.ConvertMonth(10, cultureInfo));
+            Assert.Equal("Nov", converter.ConvertMonth(11, cultureInfo));
+            Assert.Equal("Dez", converter.ConvertMonth(12, cultureInfo));
         }
 
         [Fact]

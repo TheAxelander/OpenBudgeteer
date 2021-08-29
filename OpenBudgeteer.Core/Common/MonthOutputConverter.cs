@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 
 namespace OpenBudgeteer.Core.Common
 {
@@ -11,7 +9,7 @@ namespace OpenBudgeteer.Core.Common
         {
             if (!(value is int month)) return string.Empty;
             var date = new DateTime(1, month, 1);
-            return date.ToString("MMM");
+            return date.ToString("MMM", culture);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -25,9 +23,9 @@ namespace OpenBudgeteer.Core.Common
             return DateTime.Now.Month;
         }
 
-        public string ConvertMonth(object value)
+        public string ConvertMonth(object value, CultureInfo culture = null)
         {
-            return Convert(value, typeof(string), null, CultureInfo.CurrentCulture).ToString();
+            return Convert(value, typeof(string), null, culture ?? CultureInfo.CurrentCulture).ToString();
         }
     }
 }

@@ -14,8 +14,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.5")
-                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+                .HasAnnotation("Relational:MaxIdentifierLength", 64)
+                .HasAnnotation("ProductVersion", "3.1.5");
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.Account", b =>
                 {
@@ -44,7 +44,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<string>("Memo")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
@@ -113,7 +113,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<int>("BucketId")
                         .HasColumnType("int");
@@ -162,7 +162,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .HasColumnType("int");
 
                     b.Property<decimal>("BucketTypeYParam")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<DateTime>("BucketTypeZParam")
                         .HasColumnType("datetime(6)");
@@ -188,7 +188,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<int>("BucketId")
                         .HasColumnType("int");
@@ -218,7 +218,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
 
                     b.Property<string>("Delimiter")
                         .IsRequired()
-                        .HasColumnType("varchar(1) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1)");
 
                     b.Property<int>("HeaderRow")
                         .HasColumnType("int");
@@ -237,7 +237,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
 
                     b.Property<string>("TextQualifier")
                         .IsRequired()
-                        .HasColumnType("varchar(1) CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(1)");
 
                     b.Property<string>("TransactionDateColumnName")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");

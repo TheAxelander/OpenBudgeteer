@@ -49,6 +49,7 @@ namespace OpenBudgeteer.Blazor
                     
                     services.AddDbContext<DatabaseContext>(options => options.UseMySql(
                             connectionString,
+                            ServerVersion.AutoDetect(connectionString),
                             b => b.MigrationsAssembly("OpenBudgeteer.Core")),
                         ServiceLifetime.Transient);
 
