@@ -28,6 +28,36 @@ namespace OpenBudgeteer.Core.ViewModels
             set => Set(ref _newTransaction, value);
         }
 
+        private int _proposeBucketsCount;
+        /// <summary>
+        /// Helper property for Progress Dialog during Bucket proposal process"/>/>
+        /// </summary>
+        public int ProposeBucketsCount
+        {
+            get => _proposeBucketsCount;
+            set => Set(ref _proposeBucketsCount, value);
+        }
+
+        private int _proposeBucketsProgress;
+        /// <summary>
+        /// Helper property for Progress Dialog during Bucket proposal process"/>/>
+        /// </summary>
+        public int ProposeBucketsProgress
+        {
+            get => _proposeBucketsProgress;
+            set => Set(ref _proposeBucketsProgress, value);
+        }
+
+        private int _proposeBucketsPercentage;
+        /// <summary>
+        /// Helper property for Progress Dialog during Bucket proposal process"/>/>
+        /// </summary>
+        public int ProposeBucketsPercentage
+        {
+            get => _proposeBucketsPercentage;
+            set => Set(ref _proposeBucketsPercentage, value);
+        }
+
         private ObservableCollection<TransactionViewModelItem> _transactions;
         /// <summary>
         /// Collection of loaded Transactions
@@ -37,6 +67,12 @@ namespace OpenBudgeteer.Core.ViewModels
             get => _transactions;
             set => Set(ref _transactions, value);
         }
+
+        /// <summary>
+        /// EventHandler which should be invoked during Bucket Proposal to track overall Progress
+        /// </summary>
+        public event EventHandler<ProposeBucketChangedEventArgs> BucketProposalProgressChanged;
+
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
@@ -266,14 +302,19 @@ namespace OpenBudgeteer.Core.ViewModels
         /// <remarks>Sets all Transactions into Modification Mode in case they have a "No Selection" Bucket</remarks>
         public void ProposeBuckets()
         {
-            foreach (var transaction in Transactions)
+            var unassignedTransactions = Transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0);
+            ProposeBucketsCount = unassignedTransactions.Count();
+            ProposeBucketsProgress = 0;
+
+            foreach (var transaction in unassignedTransactions)
             {
-                // Check on "No Selection" Bucket
-                if (transaction.Buckets.First().SelectedBucket.BucketId == 0)
-                {
-                    transaction.StartModification();
-                    transaction.ProposeBucket();
-                }
+                transaction.StartModification();
+                transaction.ProposeBucket();
+                ProposeBucketsProgress++;
+                ProposeBucketsPercentage = ProposeBucketsCount == 0 ? 0 :
+                    Convert.ToInt32(Decimal.Divide(ProposeBucketsProgress, ProposeBucketsCount) * 100);
+                BucketProposalProgressChanged?.Invoke(this, 
+                    new ProposeBucketChangedEventArgs(ProposeBucketsProgress, ProposeBucketsPercentage));
             }
         }
     }

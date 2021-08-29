@@ -1,0 +1,52 @@
+﻿<div class="modal @_modalClass" tabindex="-1" role="dialog" style="display:@_modalDisplay">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p>@Message</p>
+                 <div class="progress">
+                     <div class="progress-bar" role="progressbar" style="width: @CurrentPercentage%;" aria-valuenow="@CurrentValue" aria-valuemin="@MinValue" aria-valuemax="@MaxValue"></div>
+                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (_showBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+	public string Message { get; set; }
+    public int MinValue { get; set; }
+    public int MaxValue { get; set; }
+    public int CurrentValue { get; set; }
+    public int CurrentPercentage { get; set; }
+  
+    string _modalDisplay = "none;";
+    string _modalClass = "";
+    bool _showBackdrop = false;
+
+    public void Open()
+    {
+        _modalDisplay = "block;";
+        _modalClass = "Show";
+        _showBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        _modalDisplay = "none";
+        _modalClass = "";
+        _showBackdrop = false;
+        StateHasChanged();
+    }
+
+    public void UpdateProgress(int newValue, int newProgress)
+    {
+        CurrentValue = newValue;
+        CurrentPercentage = newProgress;
+        StateHasChanged();
+    }
+}
