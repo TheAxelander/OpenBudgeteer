@@ -5,12 +5,12 @@
 * [Changed] File Preview on Import Page now read-only
 * [Changed] Misc small visual updates and fixes on Import Page
 * [Changed] Consistent Chart Header styles on Report Page
-* [Changed] Updated dependencies
-* [Changed] Simplified dependency tree
+* [Changed] Updated dependencies. Thanks @kekkon
+* [Changed] Simplified dependency tree. Thanks @kekkon
 * [Fixed] Reworked UI update handling to fix issues on refreshing data #22
 * [Fixed] Missing Target Account update for newly created or updated Import Profiles #23
-* [Fixed] `MonthOutputConverter.Convert` not using Culture
-* [Fixed] `OpenBudgeteer.Core.Test.ViewModelTest.YearMonthSelectorViewModelTest.Constructor_CheckDefaults` test using thread culture
+* [Fixed] `MonthOutputConverter.Convert` not using Culture. Thanks @kekkon
+* [Fixed] `OpenBudgeteer.Core.Test.ViewModelTest.YearMonthSelectorViewModelTest.Constructor_CheckDefaults` test using thread culture. Thanks @kekkon
 
 ### 1.3 (2020-12-15)
 
