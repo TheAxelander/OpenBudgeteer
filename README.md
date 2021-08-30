@@ -78,20 +78,20 @@ services:
     ports:
       - 8081:80
     environment:
-      - Connection:Server=bucket-mysql
+      - Connection:Server=openbudgeteer-mysql
       - Connection:Port=3306
       - Connection:Database=openbudgeteer
       - Connection:User=openbudgeteer
       - Connection:Password=openbudgeteer
     depends_on:
-      - bucket-mysql
+      - mysql
     networks:
       - app-global
       - mysql-internal
 
-  bucket-mysql:
+  mysql:
     image: mysql
-    container_name: bucket-mysql
+    container_name: openbudgeteer-mysql
     environment:
       MYSQL_ROOT_PASSWORD: myRootPassword
     volumes:
@@ -101,9 +101,9 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: bucket-phpmyadmin
+    container_name: openbudgeteer-phpmyadmin
     links:
-      - bucket-mysql:db
+      - mysql:db
     ports:
       - 8080:80
     networks:
