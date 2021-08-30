@@ -56,6 +56,64 @@ docker run -d --name='openbudgeteer' \
     'axelander/openbudgeteer:pre-release'
 ```
 
+### Docker-Compose
+
+Below an example how to deploy OpenBudgeteer together with MySql Server and phpMyAdmin for administration. Please note that user and database `openbudgeteer` need to be availabe, otherwise the container `openbudgeteer` will not work.
+
+So what you can do this is running below Docker Compose, create user and database using phpMyAdmin and then restart either container `openbudgeteer` or the whole Docker Compose.
+
+```
+version: "3"
+
+networks:
+  app-global:
+    external: true
+  mysql-internal:
+
+
+services:
+  openbudgeteer:
+    image: axelander/openbudgeteer
+    container_name: openbudgeteer
+    ports:
+      - 8081:80
+    environment:
+      - Connection:Server=bucket-mysql
+      - Connection:Port=3306
+      - Connection:Database=openbudgeteer
+      - Connection:User=openbudgeteer
+      - Connection:Password=openbudgeteer
+    depends_on:
+      - bucket-mysql
+    networks:
+      - app-global
+      - mysql-internal
+
+  bucket-mysql:
+    image: mysql
+    container_name: bucket-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: myRootPassword
+    volumes:
+      - data:/var/lib/mysql
+    networks:
+      - mysql-internal
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: bucket-phpmyadmin
+    links:
+      - bucket-mysql:db
+    ports:
+      - 8080:80
+    networks:
+      - app-global
+      - mysql-internal
+
+volumes:
+  data:
+```
+
 ## How to use
 
 ### Create Bank Account
