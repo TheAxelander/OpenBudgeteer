@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Design;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
 
@@ -403,7 +404,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
             #region Details
 
-            if (BucketVersion.BucketType == 3 || BucketVersion.BucketType == 4)
+            if (BucketVersion.BucketType is 3 or 4)
             {
                 var targetDate = BucketVersion.BucketTypeZParam;
                 // Calculate new target date for BucketType 3 (Expense every X Months) 
@@ -511,10 +512,40 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         /// <returns>Object which contains information and results of this method</returns>
         public ViewModelOperationResult CreateOrUpdateBucket()
         {
-            var result = _isNewlyCreatedBucket ? CreateBucket() : UpdateBucket();
-            if (!result.IsSuccessful || result.ViewModelReloadRequired) return result;
+            var validationResult = ValidateData();
+            if (!validationResult.IsSuccessful) return validationResult;
+            var writeDataResult = _isNewlyCreatedBucket ? CreateBucket() : UpdateBucket();
+            if (!writeDataResult.IsSuccessful || writeDataResult.ViewModelReloadRequired) return writeDataResult;
             InModification = false;
             CalculateValues();
+            return new ViewModelOperationResult(true);
+        }
+
+        /// <summary>
+        /// Runs several validation rules to prevent unintended behavior 
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult ValidateData()
+        {
+            try
+            {
+                // Check if target amount is positive
+                if (BucketVersion.BucketTypeYParam < 0)
+                {
+                    throw new Exception("Target amount must be positive");
+                }
+
+                // Check if target amount is 0 to prevent DivideByZeroException 
+                if ((BucketVersion.BucketType is 3 or 4) && BucketVersion.BucketTypeYParam == 0)
+                {
+                    throw new Exception("Target amount must not be 0 for this Bucket Type.");
+                }
+            }
+            catch (Exception e)
+            {
+                return new ViewModelOperationResult(false, e.Message);
+            }
+
             return new ViewModelOperationResult(true);
         }
 
