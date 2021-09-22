@@ -417,7 +417,24 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     } while (targetDate < _currentYearMonth);
                 }
                 
-                Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
+                // Special Progress handling in target month with available activity, otherwise usual calculation
+                if (_currentYearMonth.Month == targetDate.Month && 
+                    _currentYearMonth.Year == targetDate.Year &&
+                    Activity < 0)
+                {
+                    Progress = Balance >= 0 ?
+                        // Expense as expected or lower, hence target reached and Progress 100
+                        100 :
+                        // Expense in target month was higher than expected, hence negative Balance.
+                        // Progress based on Want and Activity
+                        Convert.ToInt32(100 - (Want / Activity * -1) * 100);
+
+                }
+                else
+                {
+                    Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);    
+                }
+                
                 Details = $"{BucketVersion.BucketTypeYParam} until {targetDate:yyyy-MM}";
                 IsProgressbarVisible = true;
             }
