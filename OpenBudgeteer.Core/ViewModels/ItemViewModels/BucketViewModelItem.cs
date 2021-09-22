@@ -432,7 +432,8 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                 }
                 else
                 {
-                    Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);    
+                    Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
+                    if (Progress > 100) Progress = 100;
                 }
                 
                 Details = $"{BucketVersion.BucketTypeYParam} until {targetDate:yyyy-MM}";
