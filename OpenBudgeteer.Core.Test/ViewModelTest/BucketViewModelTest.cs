@@ -658,7 +658,7 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest
                 };
             }
         }
-        
+
         public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_SaveXUntilY
         {
             get
@@ -756,15 +756,15 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest
                             new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
                             new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                         },
-                        90, 0, 0, 30, "120 until 2009-12", 25
+                        0, 0, 0, 30, "120 until 2009-12", 25
                     },
                     new object[]
                     {
-                        new Bucket { Name = "30 until 2009-12, target reached, with expense in target month", ValidFrom = new DateTime(2009,7,1) },
-                        new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2009,12,1) },
+                        new Bucket { Name = "30 until 2010-01, target reached, with expense in target month", ValidFrom = new DateTime(2009,7,1) },
+                        new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
                         new List<BankTransaction>
                         {
-                            new BankTransaction { TransactionDate = new DateTime(2009,12,1), Amount = -30 }
+                            new BankTransaction { TransactionDate = new DateTime(2010,1,5), Amount = -30 }
                         },
                         new List<BucketMovement>
                         {
@@ -772,7 +772,39 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest
                             new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
                             new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                         },
-                        0, 0, 0, 0, "30 until 2009-12", 100
+                        0, 0, -30, 0, "30 until 2010-01", 100
+                    },
+                    new object[]
+                    {
+                        new Bucket { Name = "30 until 2010-01, target reached, with lower expense in target month", ValidFrom = new DateTime(2009,7,1) },
+                        new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        new List<BankTransaction>
+                        {
+                            new BankTransaction { TransactionDate = new DateTime(2010,1,5), Amount = -20 }
+                        },
+                        new List<BucketMovement>
+                        {
+                            new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                            new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                            new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        },
+                        0, 0, -20, 10, "30 until 2010-01", 100
+                    },
+                    new object[]
+                    {
+                        new Bucket { Name = "30 until 2010-01, target reached, with higher expense in target month", ValidFrom = new DateTime(2009,7,1) },
+                        new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        new List<BankTransaction>
+                        {
+                            new BankTransaction { TransactionDate = new DateTime(2010,1,5), Amount = -40 }
+                        },
+                        new List<BucketMovement>
+                        {
+                            new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                            new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                            new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        },
+                        10, 0, -40, -10, "30 until 2010-01", 75
                     }
                 };
             }

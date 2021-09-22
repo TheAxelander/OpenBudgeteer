@@ -1,16 +1,13 @@
 ﻿using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 {
@@ -403,7 +400,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 
             #region Details
 
-            if (BucketVersion.BucketType == 3 || BucketVersion.BucketType == 4)
+            if (BucketVersion.BucketType is 3 or 4)
             {
                 var targetDate = BucketVersion.BucketTypeZParam;
                 // Calculate new target date for BucketType 3 (Expense every X Months) 
@@ -416,7 +413,25 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
                     } while (targetDate < _currentYearMonth);
                 }
                 
-                Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
+                // Special Progress handling in target month with available activity, otherwise usual calculation
+                if (_currentYearMonth.Month == targetDate.Month && 
+                    _currentYearMonth.Year == targetDate.Year &&
+                    Activity < 0)
+                {
+                    Progress = Balance >= 0 ?
+                        // Expense as expected or lower, hence target reached and Progress 100
+                        100 :
+                        // Expense in target month was higher than expected, hence negative Balance.
+                        // Progress based on Want and Activity
+                        Convert.ToInt32(100 - (Want / Activity * -1) * 100);
+
+                }
+                else
+                {
+                    Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
+                    if (Progress > 100) Progress = 100;
+                }
+                
                 Details = $"{BucketVersion.BucketTypeYParam} until {targetDate:yyyy-MM}";
                 IsProgressbarVisible = true;
             }
@@ -511,10 +526,40 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
         /// <returns>Object which contains information and results of this method</returns>
         public ViewModelOperationResult CreateOrUpdateBucket()
         {
-            var result = _isNewlyCreatedBucket ? CreateBucket() : UpdateBucket();
-            if (!result.IsSuccessful || result.ViewModelReloadRequired) return result;
+            var validationResult = ValidateData();
+            if (!validationResult.IsSuccessful) return validationResult;
+            var writeDataResult = _isNewlyCreatedBucket ? CreateBucket() : UpdateBucket();
+            if (!writeDataResult.IsSuccessful || writeDataResult.ViewModelReloadRequired) return writeDataResult;
             InModification = false;
             CalculateValues();
+            return new ViewModelOperationResult(true);
+        }
+
+        /// <summary>
+        /// Runs several validation rules to prevent unintended behavior 
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        private ViewModelOperationResult ValidateData()
+        {
+            try
+            {
+                // Check if target amount is positive
+                if (BucketVersion.BucketTypeYParam < 0)
+                {
+                    throw new Exception("Target amount must be positive");
+                }
+
+                // Check if target amount is 0 to prevent DivideByZeroException 
+                if ((BucketVersion.BucketType is 3 or 4) && BucketVersion.BucketTypeYParam == 0)
+                {
+                    throw new Exception("Target amount must not be 0 for this Bucket Type.");
+                }
+            }
+            catch (Exception e)
+            {
+                return new ViewModelOperationResult(false, e.Message);
+            }
+
             return new ViewModelOperationResult(true);
         }
 
