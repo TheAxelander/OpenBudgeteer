@@ -1,17 +1,13 @@
 ﻿using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Design;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.EventClasses;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
 {
