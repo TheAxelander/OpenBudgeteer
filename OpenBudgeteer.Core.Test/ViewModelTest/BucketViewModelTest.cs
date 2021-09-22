@@ -756,7 +756,7 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest
                             new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
                             new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                         },
-                        90, 0, 0, 30, "120 until 2009-12", 25
+                        0, 0, 0, 30, "120 until 2009-12", 25
                     },
                     new object[]
                     {
