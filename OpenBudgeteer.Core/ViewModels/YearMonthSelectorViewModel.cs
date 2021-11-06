@@ -18,8 +18,8 @@ namespace OpenBudgeteer.Core.ViewModels
             get => _selectedMonth;
             set
             {
-                Set(ref _selectedMonth, value);
-                if (!_yearMontIsChanging) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
+                var valueChanged = Set(ref _selectedMonth, value);
+                if (!_yearMontIsChanging && valueChanged) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
             }
         }
 
@@ -33,8 +33,8 @@ namespace OpenBudgeteer.Core.ViewModels
             get => _selectedYear;
             set
             {
-                Set(ref _selectedYear, value);
-                if (!_yearMontIsChanging) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
+                var valueChanged = Set(ref _selectedYear, value);
+                if (!_yearMontIsChanging && valueChanged) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
             }
         }
 

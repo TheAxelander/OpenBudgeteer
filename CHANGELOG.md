@@ -14,6 +14,7 @@
 * [Fixed] `MonthOutputConverter.Convert` not using Culture. Thanks @kekkon
 * [Fixed] `OpenBudgeteer.Core.Test.ViewModelTest.YearMonthSelectorViewModelTest.Constructor_CheckDefaults` test using thread culture. Thanks @kekkon
 * [Fixed] Added Validation checks before saving Bucket data to fix DivideByZeroException #29
+* [Fixed] Trigger of `SelectedYearMonthChanged` passing `OpenBudgeteer.Core.Test.ViewModelTest.SelectedYearMonthChanged_CheckEventHasBeenInvoked` Test
 
 ### 1.3 (2020-12-15)
 
