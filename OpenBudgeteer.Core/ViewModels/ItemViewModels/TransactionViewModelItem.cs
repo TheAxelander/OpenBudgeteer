@@ -516,7 +516,7 @@ namespace OpenBudgeteer.Core.ViewModels.ItemViewModels
             _oldTransactionViewModelItem = null;
             InModification = false;
 
-            return new ViewModelOperationResult(true, true);
+            return new ViewModelOperationResult(true, false);
         }
 
         public ViewModelOperationResult DeleteItem()

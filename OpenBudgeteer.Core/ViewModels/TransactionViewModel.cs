@@ -27,7 +27,9 @@ namespace OpenBudgeteer.Core.ViewModels
         [StringValue("Hide mapped")]
         HideMapped = 1, 
         [StringValue("Only mapped")]
-        OnlyMapped = 2
+        OnlyMapped = 2,
+        [StringValue("In Modification")]
+        InModification = 3,
     }
     
     public class TransactionViewModel : ViewModelBase
@@ -102,6 +104,9 @@ namespace OpenBudgeteer.Core.ViewModels
                     case TransactionViewModelFilter.OnlyMapped:
                         return new ObservableCollection<TransactionViewModelItem>(
                             _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId > 0));
+                    case TransactionViewModelFilter.InModification:
+                        return new ObservableCollection<TransactionViewModelItem>(
+                            _transactions.Where(i => i.InModification));
                     case TransactionViewModelFilter.NoFilter:
                     default:
                         return _transactions;
@@ -301,7 +306,7 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         /// <summary>
-        /// Helper method to start modification process for all Transactions
+        /// Helper method to start modification process for all Transactions based on current Filter
         /// </summary>
         public void EditAllTransaction()
         {
@@ -309,6 +314,8 @@ namespace OpenBudgeteer.Core.ViewModels
             {
                 transaction.StartModification();
             }
+
+            CurrentFilter = TransactionViewModelFilter.InModification;
         }
 
         /// <summary>
@@ -321,12 +328,13 @@ namespace OpenBudgeteer.Core.ViewModels
             {
                 try
                 {
-                    foreach (var transaction in Transactions)
+                    foreach (var transaction in _transactions.Where(i => i.InModification))
                     {
                         var result = transaction.UpdateItem();
                         if (!result.IsSuccessful) throw new Exception(result.Message);
                     }
                     dbTransaction.Commit();
+                    CurrentFilter = TransactionViewModelFilter.NoFilter;
                     return new ViewModelOperationResult(true);
                 }
                 catch (Exception e)
@@ -338,12 +346,23 @@ namespace OpenBudgeteer.Core.ViewModels
         }
 
         /// <summary>
+        /// Cancels update process for all Transactions. Reloads ViewModel to restore data.
+        /// </summary>
+        /// <returns>Object which contains information and results of this method</returns>
+        public async Task<ViewModelOperationResult> CancelAllTransactionAsync()
+        {
+            CurrentFilter = TransactionViewModelFilter.NoFilter;
+            return await LoadDataAsync();
+        }
+
+        /// <summary>
         /// Starts process to propose the right <see cref="Bucket"/> for all Transactions
         /// </summary>
         /// <remarks>Sets all Transactions into Modification Mode in case they have a "No Selection" Bucket</remarks>
         public void ProposeBuckets()
         {
-            var unassignedTransactions = Transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0);
+            CurrentFilter = TransactionViewModelFilter.InModification;
+            var unassignedTransactions = _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0);
             ProposeBucketsCount = unassignedTransactions.Count();
             ProposeBucketsProgress = 0;
 

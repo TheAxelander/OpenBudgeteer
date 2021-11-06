@@ -30,7 +30,15 @@
         <select class="form-control form-control-sm" style="width: auto" @onchange="@Filter_SelectionChanged">
             @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
             {
-                <option value="@filter">@filter.GetStringValue()</option>
+                if (filter == _dataContext.CurrentFilter)
+                {
+                    <option selected value="@filter">@filter.GetStringValue()</option>    
+                }
+                else
+                {
+                    <option value="@filter">@filter.GetStringValue()</option>
+                }
+                
             }
         </select>
     </div>
@@ -298,7 +306,7 @@
     async void CancelAllTransaction()
     {
         _massEditEnabled = false;
-        await HandleResult(await _dataContext.LoadDataAsync());
+        await HandleResult(await _dataContext.CancelAllTransactionAsync());
         base.StateHasChanged();
     }
 
