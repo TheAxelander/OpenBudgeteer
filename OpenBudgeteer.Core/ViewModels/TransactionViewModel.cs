@@ -13,9 +13,23 @@ using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
+using OpenBudgeteer.Core.Common.Extensions;
 
 namespace OpenBudgeteer.Core.ViewModels
 {
+    /// <summary>
+    /// Identifier which kind of filter can be applied on the <see cref="TransactionViewModel"/> 
+    /// </summary>
+    public enum TransactionViewModelFilter: int
+    {
+        [StringValue("No Filter")]
+        NoFilter = 0, 
+        [StringValue("Hide mapped")]
+        HideMapped = 1, 
+        [StringValue("Only mapped")]
+        OnlyMapped = 2
+    }
+    
     public class TransactionViewModel : ViewModelBase
     {
         private TransactionViewModelItem _newTransaction;
@@ -27,10 +41,10 @@ namespace OpenBudgeteer.Core.ViewModels
             get => _newTransaction;
             set => Set(ref _newTransaction, value);
         }
-
+        
         private int _proposeBucketsCount;
         /// <summary>
-        /// Helper property for Progress Dialog during Bucket proposal process"/>/>
+        /// Helper property for Progress Dialog during Bucket proposal process
         /// </summary>
         public int ProposeBucketsCount
         {
@@ -40,7 +54,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         private int _proposeBucketsProgress;
         /// <summary>
-        /// Helper property for Progress Dialog during Bucket proposal process"/>/>
+        /// Helper property for Progress Dialog during Bucket proposal process
         /// </summary>
         public int ProposeBucketsProgress
         {
@@ -50,12 +64,26 @@ namespace OpenBudgeteer.Core.ViewModels
 
         private int _proposeBucketsPercentage;
         /// <summary>
-        /// Helper property for Progress Dialog during Bucket proposal process"/>/>
+        /// Helper property for Progress Dialog during Bucket proposal process
         /// </summary>
         public int ProposeBucketsPercentage
         {
             get => _proposeBucketsPercentage;
             set => Set(ref _proposeBucketsPercentage, value);
+        }
+        
+        private TransactionViewModelFilter _currentFilter;
+        /// <summary>
+        /// Sets the current filter for the ViewModel
+        /// </summary>
+        public TransactionViewModelFilter CurrentFilter
+        {
+            get => _currentFilter;
+            set
+            {
+                if (Set(ref _currentFilter, value))
+                    NotifyPropertyChanged(nameof(Transactions));
+            } 
         }
 
         private ObservableCollection<TransactionViewModelItem> _transactions;
@@ -64,15 +92,28 @@ namespace OpenBudgeteer.Core.ViewModels
         /// </summary>
         public ObservableCollection<TransactionViewModelItem> Transactions
         {
-            get => _transactions;
-            set => Set(ref _transactions, value);
+            get
+            {
+                switch (CurrentFilter)
+                {
+                    case TransactionViewModelFilter.HideMapped:
+                        return new ObservableCollection<TransactionViewModelItem>(
+                            _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0));
+                    case TransactionViewModelFilter.OnlyMapped:
+                        return new ObservableCollection<TransactionViewModelItem>(
+                            _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId > 0));
+                    case TransactionViewModelFilter.NoFilter:
+                    default:
+                        return _transactions;
+                }
+            }
+            protected set => Set(ref _transactions, value);
         }
-
+        
         /// <summary>
         /// EventHandler which should be invoked during Bucket Proposal to track overall Progress
         /// </summary>
         public event EventHandler<ProposeBucketChangedEventArgs> BucketProposalProgressChanged;
-
 
         private readonly DbContextOptions<DatabaseContext> _dbOptions;
         private readonly YearMonthSelectorViewModel _yearMonthViewModel;
@@ -87,7 +128,7 @@ namespace OpenBudgeteer.Core.ViewModels
             _dbOptions = dbOptions;
             _yearMonthViewModel = yearMonthViewModel;
             ResetNewTransaction();
-            Transactions = new ObservableCollection<TransactionViewModelItem>();
+            _transactions = new ObservableCollection<TransactionViewModelItem>();
             //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
         }
 
@@ -101,7 +142,7 @@ namespace OpenBudgeteer.Core.ViewModels
             {
                 // Get all available transactions. The TransactionViewModelItem takes care to find all assigned buckets for 
                 // each passed transaction. It creates also the respective ViewModelObjects
-                Transactions.Clear();
+                _transactions.Clear();
 
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
@@ -119,7 +160,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     foreach (var transaction in await Task.WhenAll(transactionTasks))
                     {
-                        Transactions.Add(transaction);
+                        _transactions.Add(transaction);
                     }
 
                     return new ViewModelOperationResult(true);
@@ -142,7 +183,7 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             try
             {
-                Transactions.Clear();
+                _transactions.Clear();
 
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
@@ -183,7 +224,7 @@ namespace OpenBudgeteer.Core.ViewModels
                     foreach (var transaction in (await Task.WhenAll(transactionTasks))
                         .OrderByDescending(i => i.Transaction.TransactionDate))
                     {
-                        Transactions.Add(transaction);
+                        _transactions.Add(transaction);
                     }
 
                     return new ViewModelOperationResult(true);
@@ -205,7 +246,7 @@ namespace OpenBudgeteer.Core.ViewModels
         {
             try
             {
-                Transactions.Clear();
+                _transactions.Clear();
                 using (var dbContext = new DatabaseContext(_dbOptions))
                 {
                     var results = 
@@ -223,7 +264,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
                     foreach (var transaction in await Task.WhenAll(transactionTasks))
                     {
-                        Transactions.Add(transaction);
+                        _transactions.Add(transaction);
                     }
 
                     return new ViewModelOperationResult(true);

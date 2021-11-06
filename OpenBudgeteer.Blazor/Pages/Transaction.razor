@@ -6,12 +6,13 @@
 @using System.Drawing
 @using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Common.EventClasses
+@using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
 
-<div class="row">
+<div class="row align-items-center">
     <div class="col">
         @if (_massEditEnabled)
         {
@@ -24,6 +25,14 @@
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@ProposeBuckets">Propose Buckets</button>
         }
+    </div>
+    <div class="col-md-auto">
+        <select class="form-control form-control-sm" style="width: auto" @onchange="@Filter_SelectionChanged">
+            @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
+            {
+                <option value="@filter">@filter.GetStringValue()</option>
+            }
+        </select>
     </div>
     <YearMonthSelector DataContext="YearMonthDataContext" />
 </div>
@@ -290,11 +299,18 @@
     {
         _massEditEnabled = false;
         await HandleResult(await _dataContext.LoadDataAsync());
+        base.StateHasChanged();
     }
 
     async void SaveTransaction(TransactionViewModelItem transaction)
     {
         await HandleResult(transaction.UpdateItem());
+    }
+    
+    void Filter_SelectionChanged(ChangeEventArgs e)
+    {
+        _dataContext.CurrentFilter = Enum.Parse<TransactionViewModelFilter>(
+            e.Value as string ?? TransactionViewModelFilter.NoFilter.ToString());
     }
 
     void HandleTransactionDeletionRequest(TransactionViewModelItem transaction)
