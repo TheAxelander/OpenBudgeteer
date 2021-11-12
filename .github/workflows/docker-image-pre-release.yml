@@ -1,4 +1,4 @@
-name: Docker Image CI on pre-release
+name: Docker Image (pre-release)
 
 on:
   push:
@@ -8,26 +8,6 @@ env:
   DOTNET_VERSION: '6.0' # The .NET SDK version to use
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v2
-        
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-        
-      - name: Install Blazor dependencies
-        run: dotnet restore OpenBudgeteer.Blazor
-        
-      - name: Build Blazor
-        run: dotnet build OpenBudgeteer.Blazor --configuration Release --no-restore
-        
-      - name: Run Core Test Cases
-        run: dotnet test OpenBudgeteer.Core.Test
-          
   deploy:
     runs-on: ubuntu-latest
     steps:
