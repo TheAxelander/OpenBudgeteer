@@ -355,22 +355,25 @@ public class TransactionViewModel : ViewModelBase
     /// Starts process to propose the right <see cref="Bucket"/> for all Transactions
     /// </summary>
     /// <remarks>Sets all Transactions into Modification Mode in case they have a "No Selection" Bucket</remarks>
-    public void ProposeBuckets()
+    public async Task ProposeBuckets()
     {
         CurrentFilter = TransactionViewModelFilter.InModification;
         var unassignedTransactions = _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0);
         ProposeBucketsCount = unassignedTransactions.Count();
         ProposeBucketsProgress = 0;
 
-        foreach (var transaction in unassignedTransactions)
-        {
-            transaction.StartModification();
-            transaction.ProposeBucket();
-            ProposeBucketsProgress++;
-            ProposeBucketsPercentage = ProposeBucketsCount == 0 ? 0 :
-                Convert.ToInt32(Decimal.Divide(ProposeBucketsProgress, ProposeBucketsCount) * 100);
-            BucketProposalProgressChanged?.Invoke(this, 
-                new ProposeBucketChangedEventArgs(ProposeBucketsProgress, ProposeBucketsPercentage));
-        }
+        var proposalTasks = unassignedTransactions.Select(transaction => 
+            Task.Run(() =>
+            {
+                transaction.StartModification();
+                transaction.ProposeBucket();
+                ProposeBucketsProgress++;
+                ProposeBucketsPercentage = ProposeBucketsCount == 0 ? 
+                    0 : Convert.ToInt32(Decimal.Divide(ProposeBucketsProgress, ProposeBucketsCount) * 100);
+                BucketProposalProgressChanged?.Invoke(this, 
+                    new ProposeBucketChangedEventArgs(ProposeBucketsProgress, ProposeBucketsPercentage));
+            }));
+
+        await Task.WhenAll(proposalTasks);
     }
 }

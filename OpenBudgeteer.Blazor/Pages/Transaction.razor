@@ -11,7 +11,6 @@
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
-
 <div class="row align-items-center">
     <div class="col">
         @if (_massEditEnabled)
@@ -23,7 +22,7 @@
         {
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newTransactionEnabled = true)">Create Transaction</button>
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@ProposeBuckets">Propose Buckets</button>
+            <button class="btn btn-sm btn-primary header-action-button" @onclick="@(async () => await ProposeBucketsAsync())">Propose Buckets</button>
         }
     </div>
     <div class="col-md-auto">
@@ -221,6 +220,22 @@
     </tbody>
 </table>
 
+@if (_isProposeBucketsInfoDialogVisible)
+{
+    <div class="modal fade show" style=" display: block;">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Propose Buckets</h4>
+                </div>
+                <div class="modal-body">Searching Buckets based on defined rules...</div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 <DeleteConfirmationDialog 
     Title="Delete Transaction" 
     Message="Do you really want to delete this Transaction?" 
@@ -234,10 +249,6 @@
     IsDialogVisible="@_isErrorModalDialogVisible"
     OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
 
-<ProcessingProgressDialog
-    @ref="_proposeBucketsProcessingProgressDialog"
-/>
-
 @code {
     TransactionViewModel _dataContext;
     bool _newTransactionEnabled;
@@ -249,7 +260,7 @@
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
 
-    ProcessingProgressDialog _proposeBucketsProcessingProgressDialog;
+    bool _isProposeBucketsInfoDialogVisible;
 
     protected override async Task OnInitializedAsync()
     {
@@ -276,27 +287,15 @@
         _dataContext.EditAllTransaction();
     }
 
-    void ProposeBuckets()
+    async Task ProposeBucketsAsync()
     {
-        _proposeBucketsProcessingProgressDialog.Message = "Propose Buckets for unassigned Transactions...";
-        _proposeBucketsProcessingProgressDialog.MinValue = 0;
-        _proposeBucketsProcessingProgressDialog.MaxValue = _dataContext.ProposeBucketsCount;
-        _proposeBucketsProcessingProgressDialog.CurrentValue = _dataContext.ProposeBucketsProgress;
-        _proposeBucketsProcessingProgressDialog.CurrentPercentage = _dataContext.ProposeBucketsPercentage;
-        _proposeBucketsProcessingProgressDialog.Open();
-        _dataContext.BucketProposalProgressChanged += OnBucketProposalProgressChanged;
-
-        _dataContext.ProposeBuckets();
+        _isProposeBucketsInfoDialogVisible = true;
+        StateHasChanged();
+        await _dataContext.ProposeBuckets();
         if (_dataContext.Transactions.Any(i => i.InModification)) _massEditEnabled = true;
-
-        _proposeBucketsProcessingProgressDialog.Close();
+        _isProposeBucketsInfoDialogVisible = false;
     }
-
-    private void OnBucketProposalProgressChanged(object sender, ProposeBucketChangedEventArgs e)
-    {
-        _proposeBucketsProcessingProgressDialog.UpdateProgress(e.NewValue, e.NewProgress);
-    }
-
+    
     async void SaveAllTransaction()
     {
         _massEditEnabled = false;
