@@ -902,9 +902,25 @@ public class BucketViewModelTest
         }
     }
 
-    public async Task DistributeBudget_CheckDistributedMoney(
-        IEnumerable<Tuple<Bucket, BucketVersion>> testBuckets
-    )
+    public static IEnumerable<object[]> TestData_DistributeBudget_CheckDistributedMoney
+    {
+        get
+        {
+            return new[]
+            {
+                new object[]
+                {
+
+                },
+            };
+        }
+    }
+
+    //TODO Finalize Test Case DistributeBudget_CheckDistributedMoney
+    [Theory (Skip = "Work in progress")]
+    [MemberData(nameof(TestData_DistributeBudget_CheckDistributedMoney))]
+    public void DistributeBudget_CheckDistributedMoney(
+        IEnumerable<Tuple<Bucket, BucketVersion>> testBuckets)
     {
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
