@@ -17,326 +17,325 @@ using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.ViewModels;
 
-namespace OpenBudgeteer.Blazor.ViewModels
+namespace OpenBudgeteer.Blazor.ViewModels;
+
+public class BlazorReportViewModel : ReportViewModel
 {
-    public class BlazorReportViewModel : ReportViewModel
+    private BarConfig _monthBalancesConfig;
+    public BarConfig MonthBalancesConfig
     {
-        private BarConfig _monthBalancesConfig;
-        public BarConfig MonthBalancesConfig
-        {
-            get => _monthBalancesConfig;
-            set => Set(ref _monthBalancesConfig, value);
-        }
+        get => _monthBalancesConfig;
+        set => Set(ref _monthBalancesConfig, value);
+    }
 
-        private LineConfig _bankBalancesConfig;
-        public LineConfig BankBalancesConfig
-        {
-            get => _bankBalancesConfig;
-            set => Set(ref _bankBalancesConfig, value);
-        }
+    private LineConfig _bankBalancesConfig;
+    public LineConfig BankBalancesConfig
+    {
+        get => _bankBalancesConfig;
+        set => Set(ref _bankBalancesConfig, value);
+    }
 
-        private BarConfig _monthIncomeExpensesConfig;
-        public BarConfig MonthIncomeExpensesConfig
-        {
-            get => _monthIncomeExpensesConfig;
-            set => Set(ref _monthIncomeExpensesConfig, value);
-        }
+    private BarConfig _monthIncomeExpensesConfig;
+    public BarConfig MonthIncomeExpensesConfig
+    {
+        get => _monthIncomeExpensesConfig;
+        set => Set(ref _monthIncomeExpensesConfig, value);
+    }
 
-        private BarConfig _yearIncomeExpensesConfig;
-        public BarConfig YearIncomeExpensesConfig
-        {
-            get => _yearIncomeExpensesConfig;
-            set => Set(ref _yearIncomeExpensesConfig, value);
-        }
+    private BarConfig _yearIncomeExpensesConfig;
+    public BarConfig YearIncomeExpensesConfig
+    {
+        get => _yearIncomeExpensesConfig;
+        set => Set(ref _yearIncomeExpensesConfig, value);
+    }
 
-        private ObservableCollection<Tuple<string, BarConfig>> _monthBucketExpensesConfigs;
-        public ObservableCollection<Tuple<string, BarConfig>> MonthBucketExpensesConfigs
-        {
-            get => _monthBucketExpensesConfigs;
-            set => Set(ref _monthBucketExpensesConfigs, value);
-        }
+    private ObservableCollection<Tuple<string, BarConfig>> _monthBucketExpensesConfigs;
+    public ObservableCollection<Tuple<string, BarConfig>> MonthBucketExpensesConfigs
+    {
+        get => _monthBucketExpensesConfigs;
+        set => Set(ref _monthBucketExpensesConfigs, value);
+    }
 
-        protected BarConfig DefaultBarConfig =>
-            new BarConfig()
+    protected BarConfig DefaultBarConfig =>
+        new BarConfig()
+        {
+            Options = new BarOptions
             {
-                Options = new BarOptions
+                Title = new OptionsTitle
                 {
-                    Title = new OptionsTitle
+                    Display = false
+                },
+                Animation = new ArcAnimation
+                {
+                    AnimateRotate = true,
+                    AnimateScale = true
+                },
+                Legend = new Legend
+                {
+                    Display = false
+                }
+            }
+        };
+
+    protected BarConfig DefaultBucketExpensesBarConfig
+    {
+        get
+        {
+            var result = this.DefaultBarConfig;
+            result.Options.Scales = new BarScales
+            {
+                YAxes = new List<CartesianAxis>
+                {
+                    new BarLinearCartesianAxis
                     {
-                        Display = false
-                    },
-                    Animation = new ArcAnimation
-                    {
-                        AnimateRotate = true,
-                        AnimateScale = true
-                    },
-                    Legend = new Legend
-                    {
-                        Display = false
+                        Ticks = new LinearCartesianTicks
+                        {
+                            Min = 0
+                        }
                     }
                 }
             };
-
-        protected BarConfig DefaultBucketExpensesBarConfig
+            return result;
+        }
+    }
+    
+    protected LineConfig DefaultTImeLineConfig =>
+        new LineConfig
         {
-            get
+            Options = new LineOptions
             {
-                var result = this.DefaultBarConfig;
-                result.Options.Scales = new BarScales
+                Title = new OptionsTitle
                 {
-                    YAxes = new List<CartesianAxis>
+                    Display = false
+                },
+                Legend = new Legend
+                {
+                    Display = false
+                },
+                Tooltips = new Tooltips
+                {
+                    Mode = InteractionMode.Nearest,
+                    Intersect = false
+                },
+                Scales = new Scales
+                {
+                    xAxes = new List<CartesianAxis>
                     {
-                        new BarLinearCartesianAxis
+                        new TimeAxis
                         {
-                            Ticks = new LinearCartesianTicks
+                            Distribution = TimeDistribution.Linear,
+                            Ticks = new TimeTicks
                             {
-                                Min = 0
+                                Source = TickSource.Data
+                            },
+                            Time = new TimeOptions
+                            {
+                                Unit = TimeMeasurement.Month,
+                                Round = TimeMeasurement.Month,
+                                TooltipFormat = "MM.YYYY",
+                                DisplayFormats = TimeDisplayFormats.DE_CH
                             }
                         }
                     }
-                };
-                return result;
+                },
+                Hover = new LineOptionsHover
+                {
+                    Intersect = true,
+                    Mode = InteractionMode.Y
+                }
+            }
+        };
+
+    public BlazorReportViewModel(DbContextOptions<DatabaseContext> dbOptions) : base(dbOptions)
+    {
+        MonthBalancesConfig = new BarConfig();
+        BankBalancesConfig = new LineConfig();
+        MonthIncomeExpensesConfig = new BarConfig();
+        YearIncomeExpensesConfig = new BarConfig();
+        MonthBucketExpensesConfigs = new ObservableCollection<Tuple<string, BarConfig>>();
+    }
+
+    public async Task LoadDataAsync()
+    {
+        var loadTasks = new List<Task>()
+        {
+            LoadMonthBalancesReportAsync(),
+            LoadMonthIncomeExpensesReportAsync(),
+            LoadYearIncomeExpensesReportAsync(),
+            LoadBankBalancesReportAsync(),
+            LoadMonthExpensesBucketReportAsync()
+        };
+        await Task.WhenAll(loadTasks);
+    }
+
+    private async Task LoadMonthBalancesReportAsync()
+    {
+        MonthBalancesConfig = DefaultBarConfig;
+        MonthBalancesConfig.Options.Title.Text = "Month Balances";
+
+        var backgroundColors = new List<string>();
+        var hoverColors = new List<string>();
+        var data = new List<object>();
+
+        var monthBalanceData = await LoadMonthBalancesAsync();
+        foreach (var balanceData in monthBalanceData)
+        {
+            data.Add(balanceData.Item2);
+            MonthBalancesConfig.Data.Labels.Add(balanceData.Item1.ToString("MM.yyyy"));
+            if (balanceData.Item2 < 0)
+            {
+                backgroundColors.Add(ColorUtil.FromDrawingColor(Color.DarkRed));
+                hoverColors.Add(ColorUtil.FromDrawingColor(Color.LightCoral));
+            }
+            else
+            {
+                backgroundColors.Add(ColorUtil.FromDrawingColor(Color.Green));
+                hoverColors.Add(ColorUtil.FromDrawingColor(Color.LightGreen));
             }
         }
+
+        var barDataSet = new BarDataset<object>
+        {
+            BackgroundColor = backgroundColors.ToArray(),
+            BorderWidth = 0,
+            HoverBackgroundColor = hoverColors.ToArray(),
+            HoverBorderWidth = 0
+        };
+
+        barDataSet.AddRange(data);
+
+        MonthBalancesConfig.Data.Datasets.Add(barDataSet);
+    }
+
+    private async Task LoadMonthIncomeExpensesReportAsync()
+    {
+        MonthIncomeExpensesConfig = DefaultBarConfig;
+        MonthIncomeExpensesConfig.Options.Title.Text = "Income & Expenses per Month";
+
+        var incomeResults = new List<object>();
+        var expensesResults = new List<object>();
         
-        protected LineConfig DefaultTImeLineConfig =>
-            new LineConfig
-            {
-                Options = new LineOptions
-                {
-                    Title = new OptionsTitle
-                    {
-                        Display = false
-                    },
-                    Legend = new Legend
-                    {
-                        Display = false
-                    },
-                    Tooltips = new Tooltips
-                    {
-                        Mode = InteractionMode.Nearest,
-                        Intersect = false
-                    },
-                    Scales = new Scales
-                    {
-                        xAxes = new List<CartesianAxis>
-                        {
-                            new TimeAxis
-                            {
-                                Distribution = TimeDistribution.Linear,
-                                Ticks = new TimeTicks
-                                {
-                                    Source = TickSource.Data
-                                },
-                                Time = new TimeOptions
-                                {
-                                    Unit = TimeMeasurement.Month,
-                                    Round = TimeMeasurement.Month,
-                                    TooltipFormat = "MM.YYYY",
-                                    DisplayFormats = TimeDisplayFormats.DE_CH
-                                }
-                            }
-                        }
-                    },
-                    Hover = new LineOptionsHover
-                    {
-                        Intersect = true,
-                        Mode = InteractionMode.Y
-                    }
-                }
-            };
-
-        public BlazorReportViewModel(DbContextOptions<DatabaseContext> dbOptions) : base(dbOptions)
+        foreach (var (month, income, expenses) in await LoadMonthIncomeExpensesAsync())
         {
-            MonthBalancesConfig = new BarConfig();
-            BankBalancesConfig = new LineConfig();
-            MonthIncomeExpensesConfig = new BarConfig();
-            YearIncomeExpensesConfig = new BarConfig();
-            MonthBucketExpensesConfigs = new ObservableCollection<Tuple<string, BarConfig>>();
+            incomeResults.Add(income);
+            expensesResults.Add(expenses);
+            MonthIncomeExpensesConfig.Data.Labels.Add(month.ToString("MM.yyyy"));
         }
 
-        public async Task LoadDataAsync()
+        var incomeBarDataSet = new BarDataset<object>
         {
-            var loadTasks = new List<Task>()
-            {
-                LoadMonthBalancesReportAsync(),
-                LoadMonthIncomeExpensesReportAsync(),
-                LoadYearIncomeExpensesReportAsync(),
-                LoadBankBalancesReportAsync(),
-                LoadMonthExpensesBucketReportAsync()
-            };
-            await Task.WhenAll(loadTasks);
+            BackgroundColor = ColorUtil.FromDrawingColor(Color.Green),
+            BorderWidth = 0,
+            HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightGreen),
+            HoverBorderWidth = 0
+        };
+
+        var expensesBarDataSet = new BarDataset<object>
+        {
+            BackgroundColor = ColorUtil.FromDrawingColor(Color.DarkRed),
+            BorderWidth = 0,
+            HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightCoral),
+            HoverBorderWidth = 0
+        };
+
+        incomeBarDataSet.AddRange(incomeResults);
+        expensesBarDataSet.AddRange(expensesResults);
+
+        MonthIncomeExpensesConfig.Data.Datasets.Add(incomeBarDataSet);
+        MonthIncomeExpensesConfig.Data.Datasets.Add(expensesBarDataSet);
+    }
+
+    private async Task LoadYearIncomeExpensesReportAsync()
+    {
+        YearIncomeExpensesConfig = DefaultBarConfig;
+        YearIncomeExpensesConfig.Options.Title.Text = "Income & Expenses per Year";
+
+        var incomeResults = new List<object>();
+        var expensesResults = new List<object>();
+
+        foreach (var (month, income, expenses) in await LoadYearIncomeExpensesAsync())
+        {
+            incomeResults.Add(income);
+            expensesResults.Add(expenses);
+            YearIncomeExpensesConfig.Data.Labels.Add(month.ToString("yyyy"));
         }
 
-        private async Task LoadMonthBalancesReportAsync()
+        var incomeBarDataSet = new BarDataset<object>
         {
-            MonthBalancesConfig = DefaultBarConfig;
-            MonthBalancesConfig.Options.Title.Text = "Month Balances";
+            BackgroundColor = ColorUtil.FromDrawingColor(Color.Green),
+            BorderWidth = 0,
+            HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightGreen),
+            HoverBorderWidth = 0
+        };
 
-            var backgroundColors = new List<string>();
-            var hoverColors = new List<string>();
-            var data = new List<object>();
+        var expensesBarDataSet = new BarDataset<object>
+        {
+            BackgroundColor = ColorUtil.FromDrawingColor(Color.DarkRed),
+            BorderWidth = 0,
+            HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightCoral),
+            HoverBorderWidth = 0
+        };
 
-            var monthBalanceData = await LoadMonthBalancesAsync();
-            foreach (var balanceData in monthBalanceData)
+        incomeBarDataSet.AddRange(incomeResults);
+        expensesBarDataSet.AddRange(expensesResults);
+
+        YearIncomeExpensesConfig.Data.Datasets.Add(incomeBarDataSet);
+        YearIncomeExpensesConfig.Data.Datasets.Add(expensesBarDataSet);
+    }
+
+    private async Task LoadBankBalancesReportAsync()
+    {
+        BankBalancesConfig = DefaultTImeLineConfig;
+        BankBalancesConfig.Options.Title.Text = "Bank Balances";
+
+        var lineDataSet = new LineDataset<TimeTuple<double>>
+        {
+            BackgroundColor = ColorUtil.FromDrawingColor(Color.Green),
+            BorderColor = ColorUtil.FromDrawingColor(Color.LightGreen),
+            Label = "Bank Balance",
+            Fill = true,
+            BorderWidth = 2,
+            PointRadius = 3,
+            PointBorderWidth = 1,
+            SteppedLine = SteppedLine.False
+        };
+
+        foreach (var (month, balance) in await LoadBankBalancesAsync())
+        {
+            lineDataSet.Add(new TimeTuple<double>(new Moment(month), Convert.ToDouble(balance)));
+        }
+
+        BankBalancesConfig.Data.Datasets.Add(lineDataSet);
+    }
+
+    private async Task LoadMonthExpensesBucketReportAsync()
+    {
+        MonthBucketExpensesConfigs.Clear();
+        foreach (var result in await LoadMonthExpensesBucketAsync())
+        {
+            var newConfig = DefaultBucketExpensesBarConfig;
+            newConfig.Options.Title.Display = false;
+
+            var expensesResults = new List<object>();
+            foreach (var monthlyResult in result.MonthlyResults)
             {
-                data.Add(balanceData.Item2);
-                MonthBalancesConfig.Data.Labels.Add(balanceData.Item1.ToString("MM.yyyy"));
-                if (balanceData.Item2 < 0)
-                {
-                    backgroundColors.Add(ColorUtil.FromDrawingColor(Color.DarkRed));
-                    hoverColors.Add(ColorUtil.FromDrawingColor(Color.LightCoral));
-                }
-                else
-                {
-                    backgroundColors.Add(ColorUtil.FromDrawingColor(Color.Green));
-                    hoverColors.Add(ColorUtil.FromDrawingColor(Color.LightGreen));
-                }
+                expensesResults.Add(monthlyResult.Item2);
+                newConfig.Data.Labels.Add(monthlyResult.Item1.ToString("MM.yyyy"));
             }
 
-            var barDataSet = new BarDataset<object>
+            var newDataSet = new BarDataset<object>()
             {
-                BackgroundColor = backgroundColors.ToArray(),
+                BackgroundColor = ColorUtil.FromDrawingColor(Color.DarkRed),
                 BorderWidth = 0,
-                HoverBackgroundColor = hoverColors.ToArray(),
+                HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightCoral),
                 HoverBorderWidth = 0
             };
-
-            barDataSet.AddRange(data);
-
-            MonthBalancesConfig.Data.Datasets.Add(barDataSet);
-        }
-
-        private async Task LoadMonthIncomeExpensesReportAsync()
-        {
-            MonthIncomeExpensesConfig = DefaultBarConfig;
-            MonthIncomeExpensesConfig.Options.Title.Text = "Income & Expenses per Month";
-
-            var incomeResults = new List<object>();
-            var expensesResults = new List<object>();
+            newDataSet.AddRange(expensesResults);
+            newConfig.Data.Datasets.Add(newDataSet);
             
-            foreach (var (month, income, expenses) in await LoadMonthIncomeExpensesAsync())
-            {
-                incomeResults.Add(income);
-                expensesResults.Add(expenses);
-                MonthIncomeExpensesConfig.Data.Labels.Add(month.ToString("MM.yyyy"));
-            }
-
-            var incomeBarDataSet = new BarDataset<object>
-            {
-                BackgroundColor = ColorUtil.FromDrawingColor(Color.Green),
-                BorderWidth = 0,
-                HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightGreen),
-                HoverBorderWidth = 0
-            };
-
-            var expensesBarDataSet = new BarDataset<object>
-            {
-                BackgroundColor = ColorUtil.FromDrawingColor(Color.DarkRed),
-                BorderWidth = 0,
-                HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightCoral),
-                HoverBorderWidth = 0
-            };
-
-            incomeBarDataSet.AddRange(incomeResults);
-            expensesBarDataSet.AddRange(expensesResults);
-
-            MonthIncomeExpensesConfig.Data.Datasets.Add(incomeBarDataSet);
-            MonthIncomeExpensesConfig.Data.Datasets.Add(expensesBarDataSet);
-        }
-
-        private async Task LoadYearIncomeExpensesReportAsync()
-        {
-            YearIncomeExpensesConfig = DefaultBarConfig;
-            YearIncomeExpensesConfig.Options.Title.Text = "Income & Expenses per Year";
-
-            var incomeResults = new List<object>();
-            var expensesResults = new List<object>();
-
-            foreach (var (month, income, expenses) in await LoadYearIncomeExpensesAsync())
-            {
-                incomeResults.Add(income);
-                expensesResults.Add(expenses);
-                YearIncomeExpensesConfig.Data.Labels.Add(month.ToString("yyyy"));
-            }
-
-            var incomeBarDataSet = new BarDataset<object>
-            {
-                BackgroundColor = ColorUtil.FromDrawingColor(Color.Green),
-                BorderWidth = 0,
-                HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightGreen),
-                HoverBorderWidth = 0
-            };
-
-            var expensesBarDataSet = new BarDataset<object>
-            {
-                BackgroundColor = ColorUtil.FromDrawingColor(Color.DarkRed),
-                BorderWidth = 0,
-                HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightCoral),
-                HoverBorderWidth = 0
-            };
-
-            incomeBarDataSet.AddRange(incomeResults);
-            expensesBarDataSet.AddRange(expensesResults);
-
-            YearIncomeExpensesConfig.Data.Datasets.Add(incomeBarDataSet);
-            YearIncomeExpensesConfig.Data.Datasets.Add(expensesBarDataSet);
-        }
-
-        private async Task LoadBankBalancesReportAsync()
-        {
-            BankBalancesConfig = DefaultTImeLineConfig;
-            BankBalancesConfig.Options.Title.Text = "Bank Balances";
-
-            var lineDataSet = new LineDataset<TimeTuple<double>>
-            {
-                BackgroundColor = ColorUtil.FromDrawingColor(Color.Green),
-                BorderColor = ColorUtil.FromDrawingColor(Color.LightGreen),
-                Label = "Bank Balance",
-                Fill = true,
-                BorderWidth = 2,
-                PointRadius = 3,
-                PointBorderWidth = 1,
-                SteppedLine = SteppedLine.False
-            };
-
-            foreach (var (month, balance) in await LoadBankBalancesAsync())
-            {
-                lineDataSet.Add(new TimeTuple<double>(new Moment(month), Convert.ToDouble(balance)));
-            }
-
-            BankBalancesConfig.Data.Datasets.Add(lineDataSet);
-        }
-
-        private async Task LoadMonthExpensesBucketReportAsync()
-        {
-            MonthBucketExpensesConfigs.Clear();
-            foreach (var result in await LoadMonthExpensesBucketAsync())
-            {
-                var newConfig = DefaultBucketExpensesBarConfig;
-                newConfig.Options.Title.Display = false;
-
-                var expensesResults = new List<object>();
-                foreach (var monthlyResult in result.MonthlyResults)
-                {
-                    expensesResults.Add(monthlyResult.Item2);
-                    newConfig.Data.Labels.Add(monthlyResult.Item1.ToString("MM.yyyy"));
-                }
-
-                var newDataSet = new BarDataset<object>()
-                {
-                    BackgroundColor = ColorUtil.FromDrawingColor(Color.DarkRed),
-                    BorderWidth = 0,
-                    HoverBackgroundColor = ColorUtil.FromDrawingColor(Color.LightCoral),
-                    HoverBorderWidth = 0
-                };
-                newDataSet.AddRange(expensesResults);
-                newConfig.Data.Datasets.Add(newDataSet);
-                
-                MonthBucketExpensesConfigs.Add(new Tuple<string, BarConfig>(
-                    result.BucketName,
-                    newConfig));
-            }
+            MonthBucketExpensesConfigs.Add(new Tuple<string, BarConfig>(
+                result.BucketName,
+                newConfig));
         }
     }
 }

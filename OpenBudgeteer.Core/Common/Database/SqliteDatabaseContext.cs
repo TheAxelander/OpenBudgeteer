@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace OpenBudgeteer.Core.Common.Database
+namespace OpenBudgeteer.Core.Common.Database;
+
+public class SqliteDatabaseContext : DatabaseContext
 {
-    public class SqliteDatabaseContext : DatabaseContext
+    public SqliteDatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
     {
-        public SqliteDatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
-        {
-            
-        }
+        
     }
 }
+

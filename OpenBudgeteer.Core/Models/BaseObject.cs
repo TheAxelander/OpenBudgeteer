@@ -1,29 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
 
-namespace OpenBudgeteer.Core.Models
+namespace OpenBudgeteer.Core.Models;
+
+public class BaseObject : INotifyPropertyChanged
 {
-    public class BaseObject : INotifyPropertyChanged
+    protected bool Set<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
     {
-        protected bool Set<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
+        if (EqualityComparer<T>.Default.Equals(field, value))
         {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-            {
-                return false;
-            }
-            field = value;
-            NotifyPropertyChanged(propertyName);
-            return true;
+            return false;
         }
+        field = value;
+        NotifyPropertyChanged(propertyName);
+        return true;
+    }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler PropertyChanged;
 
-        protected void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+    protected void NotifyPropertyChanged(string propertyName)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

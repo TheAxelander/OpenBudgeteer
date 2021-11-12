@@ -1,401 +1,394 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Windows;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Internal;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.EventClasses;
 
-namespace OpenBudgeteer.Core.ViewModels
+namespace OpenBudgeteer.Core.ViewModels;
+
+public class BucketViewModel : ViewModelBase
 {
-    public class BucketViewModel : ViewModelBase
+    private decimal _income;
+    /// <summary>
+    /// Money that has been added to a Bucket
+    /// </summary>
+    public decimal Income
     {
-        private decimal _income;
-        /// <summary>
-        /// Money that has been added to a Bucket
-        /// </summary>
-        public decimal Income
+        get => _income;
+        private set => Set(ref _income, value);
+    }
+
+    private decimal _expenses;
+    /// <summary>
+    /// Money that has been moved out of the Bucket
+    /// </summary>
+    public decimal Expenses
+    {
+        get => _expenses;
+        private set => Set(ref _expenses, value);
+    }
+
+    private decimal _monthBalance;
+    /// <summary>
+    /// Combined Income and Expenses in a specific month
+    /// </summary>
+    public decimal MonthBalance
+    {
+        get => _monthBalance;
+        private set => Set(ref _monthBalance, value);
+    }
+
+    private decimal _budget;
+    /// <summary>
+    /// Available Money in a specific month
+    /// </summary>
+    public decimal Budget
+    {
+        get => _budget;
+        private set => Set(ref _budget, value);
+    }
+
+    private decimal _bankBalance;
+    /// <summary>
+    /// Money available on all bank accounts
+    /// </summary>
+    public decimal BankBalance
+    {
+        get => _bankBalance;
+        private set => Set(ref _bankBalance, value);
+    }
+
+    private decimal _pendingWant;
+    /// <summary>
+    /// Money expected to be added to a Bucket in a specific month
+    /// </summary>
+    public decimal PendingWant
+    {
+        get => _pendingWant;
+        private set => Set(ref _pendingWant, value);
+    }
+
+    private decimal _remainingBudget;
+    /// <summary>
+    /// Remaining Money in a specific month. Includes Want and negative Balances
+    /// </summary>
+    public decimal RemainingBudget
+    {
+        get => _remainingBudget;
+        private set => Set(ref _remainingBudget, value);
+    }
+
+    private decimal _negativeBucketBalance;
+    /// <summary>
+    /// Sum of all Bucket Balances where the number is negative
+    /// </summary>
+    public decimal NegativeBucketBalance
+    {
+        get => _negativeBucketBalance;
+        private set => Set(ref _negativeBucketBalance, value);
+    }
+
+    private ObservableCollection<BucketGroupViewModelItem> _bucketGroups;
+    /// <summary>
+    /// Collection of Groups which contains a set of Buckets
+    /// </summary>
+    public ObservableCollection<BucketGroupViewModelItem> BucketGroups
+    {
+        get => _bucketGroups;
+        private set => Set(ref _bucketGroups, value);
+    }
+
+    private readonly DbContextOptions<DatabaseContext> _dbOptions;
+    private readonly YearMonthSelectorViewModel _yearMonthViewModel;
+
+    private bool _defaultCollapseState; // Keep Collapse State e.g. after YearMonth change of ViewModel reload
+
+    /// <summary>
+    /// Basic constructor
+    /// </summary>
+    /// <param name="dbOptions">Options to connect to a database</param>
+    /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
+    public BucketViewModel(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
+    {
+        _dbOptions = dbOptions;
+        BucketGroups = new ObservableCollection<BucketGroupViewModelItem>();
+        _yearMonthViewModel = yearMonthViewModel;
+        //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
+    }
+
+    /// <summary>
+    /// Initialize ViewModel and load data from database
+    /// </summary>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataAsync()
+    {
+        try
         {
-            get => _income;
-            private set => Set(ref _income, value);
-        }
-
-        private decimal _expenses;
-        /// <summary>
-        /// Money that has been moved out of the Bucket
-        /// </summary>
-        public decimal Expenses
-        {
-            get => _expenses;
-            private set => Set(ref _expenses, value);
-        }
-
-        private decimal _monthBalance;
-        /// <summary>
-        /// Combined Income and Expenses in a specific month
-        /// </summary>
-        public decimal MonthBalance
-        {
-            get => _monthBalance;
-            private set => Set(ref _monthBalance, value);
-        }
-
-        private decimal _budget;
-        /// <summary>
-        /// Available Money in a specific month
-        /// </summary>
-        public decimal Budget
-        {
-            get => _budget;
-            private set => Set(ref _budget, value);
-        }
-
-        private decimal _bankBalance;
-        /// <summary>
-        /// Money available on all bank accounts
-        /// </summary>
-        public decimal BankBalance
-        {
-            get => _bankBalance;
-            private set => Set(ref _bankBalance, value);
-        }
-
-        private decimal _pendingWant;
-        /// <summary>
-        /// Money expected to be added to a Bucket in a specific month
-        /// </summary>
-        public decimal PendingWant
-        {
-            get => _pendingWant;
-            private set => Set(ref _pendingWant, value);
-        }
-
-        private decimal _remainingBudget;
-        /// <summary>
-        /// Remaining Money in a specific month. Includes Want and negative Balances
-        /// </summary>
-        public decimal RemainingBudget
-        {
-            get => _remainingBudget;
-            private set => Set(ref _remainingBudget, value);
-        }
-
-        private decimal _negativeBucketBalance;
-        /// <summary>
-        /// Sum of all Bucket Balances where the number is negative
-        /// </summary>
-        public decimal NegativeBucketBalance
-        {
-            get => _negativeBucketBalance;
-            private set => Set(ref _negativeBucketBalance, value);
-        }
-
-        private ObservableCollection<BucketGroupViewModelItem> _bucketGroups;
-        /// <summary>
-        /// Collection of Groups which contains a set of Buckets
-        /// </summary>
-        public ObservableCollection<BucketGroupViewModelItem> BucketGroups
-        {
-            get => _bucketGroups;
-            private set => Set(ref _bucketGroups, value);
-        }
-
-        private readonly DbContextOptions<DatabaseContext> _dbOptions;
-        private readonly YearMonthSelectorViewModel _yearMonthViewModel;
-
-        private bool _defaultCollapseState; // Keep Collapse State e.g. after YearMonth change of ViewModel reload
-
-        /// <summary>
-        /// Basic constructor
-        /// </summary>
-        /// <param name="dbOptions">Options to connect to a database</param>
-        /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
-        public BucketViewModel(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel)
-        {
-            _dbOptions = dbOptions;
-            BucketGroups = new ObservableCollection<BucketGroupViewModelItem>();
-            _yearMonthViewModel = yearMonthViewModel;
-            //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
-        }
-
-        /// <summary>
-        /// Initialize ViewModel and load data from database
-        /// </summary>
-        /// <returns>Object which contains information and results of this method</returns>
-        public async Task<ViewModelOperationResult> LoadDataAsync()
-        {
-            try
-            {
-                BucketGroups.Clear();
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    var bucketGroups = dbContext.BucketGroup
-                        .OrderBy(i => i.Position)
-                        .ToList();
-
-                    foreach (var bucketGroup in bucketGroups)
-                    {
-                        var newBucketGroup = new BucketGroupViewModelItem(_dbOptions, bucketGroup, _yearMonthViewModel.CurrentMonth);
-                        newBucketGroup.IsCollapsed = _defaultCollapseState;
-                        var buckets = dbContext.Bucket
-                                .Where(i => i.BucketGroupId == newBucketGroup.BucketGroup.BucketGroupId)
-                                .OrderBy(i => i.Name)
-                                .ToList();
-
-                        var bucketItemTasks = new List<Task<BucketViewModelItem>>();
-
-                        foreach (var bucket in buckets)
-                        {
-                            if (bucket.ValidFrom > _yearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
-                            if (bucket.IsInactive && bucket.IsInactiveFrom <= _yearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
-                            bucketItemTasks.Add(BucketViewModelItem.CreateAsync(_dbOptions, bucket, _yearMonthViewModel.CurrentMonth));
-                        }
-
-                        foreach (var bucket in await Task.WhenAll(bucketItemTasks))
-                        {
-                            newBucketGroup.Buckets.Add(bucket);
-                        }
-                        BucketGroups.Add(newBucketGroup);
-                    }
-                }
-                var result = UpdateBalanceFigures();
-                if (!result.IsSuccessful) throw new Exception(result.Message);
-            }
-            catch (Exception e)
-            {
-                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
-            }
-            return new ViewModelOperationResult(true);
-        }
-
-        /// <summary>
-        /// Creates an initial <see cref="BucketGroup"/> and adds it to ViewModel and Database.
-        /// Will be added on first position and updates all other <see cref="BucketGroup"/> Positions accordingly
-        /// </summary>
-        /// <returns>Object which contains information and results of this method</returns>
-        public ViewModelOperationResult CreateGroup()
-        {
-            var newGroup = new BucketGroup
-            {
-                BucketGroupId = 0,
-                Name = "New Bucket Group",
-                Position = 1
-            };
+            BucketGroups.Clear();
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                foreach (var bucketGroup in BucketGroups)
-                {
-                    bucketGroup.BucketGroup.Position++;
-                    dbContext.UpdateBucketGroup(bucketGroup.BucketGroup);
-                }
-                if (dbContext.CreateBucketGroup(newGroup) == 0) return new ViewModelOperationResult(false, "Unable to write changes to database");
-            }
+                var bucketGroups = dbContext.BucketGroup
+                    .OrderBy(i => i.Position)
+                    .ToList();
 
-            var newBucketGroupViewModelItem =
-                new BucketGroupViewModelItem(_dbOptions, newGroup, _yearMonthViewModel.CurrentMonth)
+                foreach (var bucketGroup in bucketGroups)
                 {
-                    InModification = true
-                };
-            BucketGroups.Insert(0, newBucketGroupViewModelItem);
-            return new ViewModelOperationResult(true);
-        }
+                    var newBucketGroup = new BucketGroupViewModelItem(_dbOptions, bucketGroup, _yearMonthViewModel.CurrentMonth);
+                    newBucketGroup.IsCollapsed = _defaultCollapseState;
+                    var buckets = dbContext.Bucket
+                            .Where(i => i.BucketGroupId == newBucketGroup.BucketGroup.BucketGroupId)
+                            .OrderBy(i => i.Name)
+                            .ToList();
 
-        /// <summary>
-        /// Starts deletion process in the passed <see cref="BucketGroupViewModelItem"/> and updates positions of
-        /// all other <see cref="BucketGroup"/> accordingly
-        /// </summary>
-        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
-        /// <param name="bucketGroup">Instance that needs to be deleted</param>
-        /// <returns>Object which contains information and results of this method</returns>
-        public ViewModelOperationResult DeleteGroup(BucketGroupViewModelItem bucketGroup)
-        {
-            var index = BucketGroups.IndexOf(bucketGroup) + 1;
-            var bucketGroupsToMove = BucketGroups.ToList().GetRange(index, BucketGroups.Count - index);
+                    var bucketItemTasks = new List<Task<BucketViewModelItem>>();
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                using (var transaction = dbContext.Database.BeginTransaction())
-                {
-                    try
+                    foreach (var bucket in buckets)
                     {
-                        if (bucketGroup.Buckets.Count > 0) throw new Exception("Groups with Buckets cannot be deleted.");
-                        dbContext.DeleteBucketGroup(bucketGroup.BucketGroup);
-                        
-                        var dbBucketGroups = new List<BucketGroup>();
-                        foreach (var bucketGroupViewModelItem in bucketGroupsToMove)
-                        {
-                            bucketGroupViewModelItem.BucketGroup.Position -= 1;
-                            dbBucketGroups.Add(bucketGroupViewModelItem.BucketGroup);
-                        }
-
-                        dbContext.UpdateBucketGroups(dbBucketGroups);
-                        
-                        transaction.Commit();
-                        return new ViewModelOperationResult(true, true);
+                        if (bucket.ValidFrom > _yearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
+                        if (bucket.IsInactive && bucket.IsInactiveFrom <= _yearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
+                        bucketItemTasks.Add(BucketViewModelItem.CreateAsync(_dbOptions, bucket, _yearMonthViewModel.CurrentMonth));
                     }
-                    catch (Exception e)
+
+                    foreach (var bucket in await Task.WhenAll(bucketItemTasks))
                     {
-                        transaction.Rollback();
-                        return new ViewModelOperationResult(false, e.Message);
+                        newBucketGroup.Buckets.Add(bucket);
                     }
+                    BucketGroups.Add(newBucketGroup);
                 }
             }
+            var result = UpdateBalanceFigures();
+            if (!result.IsSuccessful) throw new Exception(result.Message);
         }
-
-        /// <summary>
-        /// Put money into all Buckets according to their Want. Saves the results to the database.
-        /// </summary>
-        /// <remarks>Doesn't consider any available Budget figures.</remarks>
-        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
-        /// <returns>Object which contains information and results of this method</returns>
-        public ViewModelOperationResult DistributeBudget()
+        catch (Exception e)
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                using (var transaction = dbContext.Database.BeginTransaction())
-                {
-                    try
-                    {
-                        var buckets = new List<BucketViewModelItem>();
-                        foreach (var bucketGroup in BucketGroups)
-                        {
-                            buckets.AddRange(bucketGroup.Buckets);
-                        }
-                        foreach (var bucket in buckets)
-                        {
-                            if (bucket.Want == 0) continue;
-                            bucket.InOut = bucket.Want;
-                            var result = bucket.HandleInOutInput("Enter");
-                            if (!result.IsSuccessful) throw new Exception(result.Message);
-                        }
-
-                        transaction.Commit();
-                        //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
-                        return new ViewModelOperationResult(true, true);
-                    }
-                    catch (Exception e)
-                    {
-                        transaction.Rollback();
-                        return new ViewModelOperationResult(false, $"Error during Budget distribution: {e.Message}");
-                    }
-                }
-            }
+            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
         }
+        return new ViewModelOperationResult(true);
+    }
 
-        /// <summary>
-        /// Re-calculates figures of the ViewModel like Budget and Balances
-        /// </summary>
-        /// <returns>Object which contains information and results of this method</returns>
-        public ViewModelOperationResult UpdateBalanceFigures()
+    /// <summary>
+    /// Creates an initial <see cref="BucketGroup"/> and adds it to ViewModel and Database.
+    /// Will be added on first position and updates all other <see cref="BucketGroup"/> Positions accordingly
+    /// </summary>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult CreateGroup()
+    {
+        var newGroup = new BucketGroup
         {
-            try
-            {
-                var buckets = new List<BucketViewModelItem>();
-                foreach (var bucketGroup in BucketGroups)
-                {
-                    bucketGroup.TotalBalance = bucketGroup.Buckets.Sum(i => i.Balance);
-                    buckets.AddRange(bucketGroup.Buckets);
-                }
-
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    // Get all Transactions which are not marked as "Transfer" for current YearMonth
-                    var results = dbContext.BankTransaction
-                        .Join(
-                            dbContext.BudgetedTransaction,
-                            i => i.TransactionId,
-                            j => j.TransactionId,
-                            (bankTransaction, budgetedTransaction) => new { bankTransaction, budgetedTransaction })
-                        .Where(i =>
-                            i.budgetedTransaction.BucketId != 2 &&
-                            i.bankTransaction.TransactionDate.Year == _yearMonthViewModel.SelectedYear &&
-                            i.bankTransaction.TransactionDate.Month == _yearMonthViewModel.SelectedMonth)
-                        .Select(i => i.budgetedTransaction)
-                        .ToList();
-
-                    Income = results
-                        .Where(i => i.Amount > 0)
-                        .Sum(i => i.Amount);
-
-                    Expenses = results
-                        .Where(i => i.Amount < 0)
-                        .Sum(i => i.Amount);
-
-                    MonthBalance = Income + Expenses;
-                    BankBalance = dbContext.BankTransaction
-                        .Where(i => i.TransactionDate < _yearMonthViewModel.CurrentMonth.AddMonths(1))
-                        .ToList()
-                        .Sum(i => i.Amount);
-
-
-                    Budget = BankBalance - BucketGroups.Sum(i => i.TotalBalance);
-
-                    PendingWant = buckets.Where(i => i.Want > 0).Sum(i => i.Want);
-                    RemainingBudget = Budget - PendingWant;
-                    NegativeBucketBalance = buckets.Where(i => i.Balance < 0).Sum(i => i.Balance);
-                }
-            }
-            catch (Exception e)
-            {
-                return new ViewModelOperationResult(false, $"Error during Balance recalculation: {e.Message}");
-            }
-
-            return new ViewModelOperationResult(true);
-        }
-
-        /// <summary>
-        /// Helper method to set Collapse status for all <see cref="BucketGroup"/>
-        /// </summary>
-        /// <param name="collapse">New collapse status</param>
-        public void ChangeBucketGroupCollapse(bool collapse = true)
+            BucketGroupId = 0,
+            Name = "New Bucket Group",
+            Position = 1
+        };
+        using (var dbContext = new DatabaseContext(_dbOptions))
         {
-            _defaultCollapseState = collapse;
             foreach (var bucketGroup in BucketGroups)
             {
-                bucketGroup.IsCollapsed = collapse;
+                bucketGroup.BucketGroup.Position++;
+                dbContext.UpdateBucketGroup(bucketGroup.BucketGroup);
+            }
+            if (dbContext.CreateBucketGroup(newGroup) == 0) return new ViewModelOperationResult(false, "Unable to write changes to database");
+        }
+
+        var newBucketGroupViewModelItem =
+            new BucketGroupViewModelItem(_dbOptions, newGroup, _yearMonthViewModel.CurrentMonth)
+            {
+                InModification = true
+            };
+        BucketGroups.Insert(0, newBucketGroupViewModelItem);
+        return new ViewModelOperationResult(true);
+    }
+
+    /// <summary>
+    /// Starts deletion process in the passed <see cref="BucketGroupViewModelItem"/> and updates positions of
+    /// all other <see cref="BucketGroup"/> accordingly
+    /// </summary>
+    /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+    /// <param name="bucketGroup">Instance that needs to be deleted</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult DeleteGroup(BucketGroupViewModelItem bucketGroup)
+    {
+        var index = BucketGroups.IndexOf(bucketGroup) + 1;
+        var bucketGroupsToMove = BucketGroups.ToList().GetRange(index, BucketGroups.Count - index);
+
+        using (var dbContext = new DatabaseContext(_dbOptions))
+        {
+            using (var transaction = dbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    if (bucketGroup.Buckets.Count > 0) throw new Exception("Groups with Buckets cannot be deleted.");
+                    dbContext.DeleteBucketGroup(bucketGroup.BucketGroup);
+                    
+                    var dbBucketGroups = new List<BucketGroup>();
+                    foreach (var bucketGroupViewModelItem in bucketGroupsToMove)
+                    {
+                        bucketGroupViewModelItem.BucketGroup.Position -= 1;
+                        dbBucketGroups.Add(bucketGroupViewModelItem.BucketGroup);
+                    }
+
+                    dbContext.UpdateBucketGroups(dbBucketGroups);
+                    
+                    transaction.Commit();
+                    return new ViewModelOperationResult(true, true);
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    return new ViewModelOperationResult(false, e.Message);
+                }
             }
         }
+    }
 
-        /// <summary>
-        /// Helper method to start Save process for the passed <see cref="BucketViewModelItem"/>
-        /// </summary>
-        /// <remarks>Triggers also update of ViewModel figures</remarks>
-        /// <param name="bucket"><see cref="BucketViewModelItem"/> instance with modifications</param>
-        /// <returns>Object which contains information and results of this method</returns>
-        public ViewModelOperationResult SaveChanges(BucketViewModelItem bucket)
+    /// <summary>
+    /// Put money into all Buckets according to their Want. Saves the results to the database.
+    /// </summary>
+    /// <remarks>Doesn't consider any available Budget figures.</remarks>
+    /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult DistributeBudget()
+    {
+        using (var dbContext = new DatabaseContext(_dbOptions))
         {
-            var createUpdateResult = bucket.CreateOrUpdateBucket();
-            if (!createUpdateResult.IsSuccessful) return createUpdateResult;
-            var updateFiguresResult = UpdateBalanceFigures();
-            return new ViewModelOperationResult(
-                updateFiguresResult.IsSuccessful,
-                createUpdateResult.ViewModelReloadRequired || updateFiguresResult.ViewModelReloadRequired);
+            using (var transaction = dbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    var buckets = new List<BucketViewModelItem>();
+                    foreach (var bucketGroup in BucketGroups)
+                    {
+                        buckets.AddRange(bucketGroup.Buckets);
+                    }
+                    foreach (var bucket in buckets)
+                    {
+                        if (bucket.Want == 0) continue;
+                        bucket.InOut = bucket.Want;
+                        var result = bucket.HandleInOutInput("Enter");
+                        if (!result.IsSuccessful) throw new Exception(result.Message);
+                    }
+
+                    transaction.Commit();
+                    //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
+                    return new ViewModelOperationResult(true, true);
+                }
+                catch (Exception e)
+                {
+                    transaction.Rollback();
+                    return new ViewModelOperationResult(false, $"Error during Budget distribution: {e.Message}");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Re-calculates figures of the ViewModel like Budget and Balances
+    /// </summary>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult UpdateBalanceFigures()
+    {
+        try
+        {
+            var buckets = new List<BucketViewModelItem>();
+            foreach (var bucketGroup in BucketGroups)
+            {
+                bucketGroup.TotalBalance = bucketGroup.Buckets.Sum(i => i.Balance);
+                buckets.AddRange(bucketGroup.Buckets);
+            }
+
+            using (var dbContext = new DatabaseContext(_dbOptions))
+            {
+                // Get all Transactions which are not marked as "Transfer" for current YearMonth
+                var results = dbContext.BankTransaction
+                    .Join(
+                        dbContext.BudgetedTransaction,
+                        i => i.TransactionId,
+                        j => j.TransactionId,
+                        (bankTransaction, budgetedTransaction) => new { bankTransaction, budgetedTransaction })
+                    .Where(i =>
+                        i.budgetedTransaction.BucketId != 2 &&
+                        i.bankTransaction.TransactionDate.Year == _yearMonthViewModel.SelectedYear &&
+                        i.bankTransaction.TransactionDate.Month == _yearMonthViewModel.SelectedMonth)
+                    .Select(i => i.budgetedTransaction)
+                    .ToList();
+
+                Income = results
+                    .Where(i => i.Amount > 0)
+                    .Sum(i => i.Amount);
+
+                Expenses = results
+                    .Where(i => i.Amount < 0)
+                    .Sum(i => i.Amount);
+
+                MonthBalance = Income + Expenses;
+                BankBalance = dbContext.BankTransaction
+                    .Where(i => i.TransactionDate < _yearMonthViewModel.CurrentMonth.AddMonths(1))
+                    .ToList()
+                    .Sum(i => i.Amount);
+
+
+                Budget = BankBalance - BucketGroups.Sum(i => i.TotalBalance);
+
+                PendingWant = buckets.Where(i => i.Want > 0).Sum(i => i.Want);
+                RemainingBudget = Budget - PendingWant;
+                NegativeBucketBalance = buckets.Where(i => i.Balance < 0).Sum(i => i.Balance);
+            }
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, $"Error during Balance recalculation: {e.Message}");
         }
 
-        /// <summary>
-        /// Helper method to start Deletion process for the passed <see cref="BucketViewModelItem"/>
-        /// </summary>
-        /// <remarks>Triggers also update of ViewModel figures</remarks>
-        /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
-        /// <param name="bucket"><see cref="BucketViewModelItem"/> instance with containing <see cref="Bucket"/> to be closed</param>
-        /// <returns>Object which contains information and results of this method</returns>
-        public ViewModelOperationResult CloseBucket(BucketViewModelItem bucket)
+        return new ViewModelOperationResult(true);
+    }
+
+    /// <summary>
+    /// Helper method to set Collapse status for all <see cref="BucketGroup"/>
+    /// </summary>
+    /// <param name="collapse">New collapse status</param>
+    public void ChangeBucketGroupCollapse(bool collapse = true)
+    {
+        _defaultCollapseState = collapse;
+        foreach (var bucketGroup in BucketGroups)
         {
-            var closeBucketResult = bucket.CloseBucket();
-            if (!closeBucketResult.IsSuccessful) return closeBucketResult;
-            var updateFiguresResult = UpdateBalanceFigures();
-            return new ViewModelOperationResult(
-                updateFiguresResult.IsSuccessful,
-                closeBucketResult.ViewModelReloadRequired || updateFiguresResult.ViewModelReloadRequired);
+            bucketGroup.IsCollapsed = collapse;
         }
+    }
+
+    /// <summary>
+    /// Helper method to start Save process for the passed <see cref="BucketViewModelItem"/>
+    /// </summary>
+    /// <remarks>Triggers also update of ViewModel figures</remarks>
+    /// <param name="bucket"><see cref="BucketViewModelItem"/> instance with modifications</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult SaveChanges(BucketViewModelItem bucket)
+    {
+        var createUpdateResult = bucket.CreateOrUpdateBucket();
+        if (!createUpdateResult.IsSuccessful) return createUpdateResult;
+        var updateFiguresResult = UpdateBalanceFigures();
+        return new ViewModelOperationResult(
+            updateFiguresResult.IsSuccessful,
+            createUpdateResult.ViewModelReloadRequired || updateFiguresResult.ViewModelReloadRequired);
+    }
+
+    /// <summary>
+    /// Helper method to start Deletion process for the passed <see cref="BucketViewModelItem"/>
+    /// </summary>
+    /// <remarks>Triggers also update of ViewModel figures</remarks>
+    /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+    /// <param name="bucket"><see cref="BucketViewModelItem"/> instance with containing <see cref="Bucket"/> to be closed</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult CloseBucket(BucketViewModelItem bucket)
+    {
+        var closeBucketResult = bucket.CloseBucket();
+        if (!closeBucketResult.IsSuccessful) return closeBucketResult;
+        var updateFiguresResult = UpdateBalanceFigures();
+        return new ViewModelOperationResult(
+            updateFiguresResult.IsSuccessful,
+            closeBucketResult.ViewModelReloadRequired || updateFiguresResult.ViewModelReloadRequired);
     }
 }

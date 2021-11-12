@@ -1,21 +1,17 @@
-﻿using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
+﻿using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace OpenBudgeteer.Core.Common.EventClasses
+namespace OpenBudgeteer.Core.Common.EventClasses;
+
+/// <summary>
+/// Event Handler Argument for requesting the deletion of a bucket assignment
+/// </summary>
+public class DeleteAssignmentRequestArgs : EventArgs
 {
-    /// <summary>
-    /// Event Handler Argument for requesting the deletion of a bucket assignment
-    /// </summary>
-    public class DeleteAssignmentRequestArgs : EventArgs
-    {
-        public PartialBucketViewModelItem Source { get; private set; }
+    public PartialBucketViewModelItem Source { get; private set; }
 
-        public DeleteAssignmentRequestArgs(PartialBucketViewModelItem source)
-        {
-            Source = source;
-        }
+    public DeleteAssignmentRequestArgs(PartialBucketViewModelItem source)
+    {
+        Source = source;
     }
 }
