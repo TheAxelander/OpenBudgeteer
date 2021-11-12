@@ -1,8 +1,8 @@
-<p style="text-align: center">
+<p align="center">
     <img alt="OpenBudgeteer banner" src="https://github.com/TheAxelander/OpenBudgeteer/blob/master/assets/banner.png?raw=true">
 </p>
 
-<p style="text-align: center">
+<p align="center">
     <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/test-cases.yml">
         <img alt="Test Cases" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/test-cases.yml/badge.svg">
     </a>
@@ -13,7 +13,7 @@
         <img alt="Test Cases" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml/badge.svg">
     </a>
 </p>
-<p style="text-align: center">
+<p align="center">
     <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/axelander/openbudgeteer">
     <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/theaxelander/openbudgeteer">
 </p>
