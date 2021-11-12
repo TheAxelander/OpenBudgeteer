@@ -291,7 +291,8 @@
                      @_importConfirmationMessage
                  </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(() => _isConfirmationModalDialogVisible = false)">Close</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="@(() => _isConfirmationModalDialogVisible = false)">Keep Input</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="@(async () => await ClearFormAsync())">Clear Form</button>
                 </div>
             </div>
         </div>
@@ -416,6 +417,18 @@
         var result = _dataContext.ImportData();
         _importConfirmationMessage = result.Message;
         _isConfirmationModalDialogVisible = true;
+    }
+
+    async Task ClearFormAsync()
+    {
+        _isConfirmationModalDialogVisible = false;
+        _step2Enabled = false;
+        _step3Enabled = false;
+        _step4Enabled = false;
+        _selectedFileName = "Choose File";
+        await FileReaderService.CreateReference(_inputElement).ClearValue();
+        _dataContext = new ImportDataViewModel(DbContextOptions);
+        HandleResult((_dataContext.LoadData()));
     }
 
     void ImportProfile_SelectionChanged(ChangeEventArgs e)

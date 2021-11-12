@@ -2,6 +2,7 @@
 
 * [Add] Dialog for showing progress during Bucket proposal #21
 * [Add] Filter on Transaction Page #25
+* [Add] On Import Page final message box shows an option to clear the form #45
 * [Changed] Core and Blazor Frontend updated to .Net 6.0
 * [Changed] File Preview on Import Page now read-only
 * [Changed] Misc small visual updates and fixes on Import Page
