@@ -7,10 +7,10 @@
         <img alt="Test Cases" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/test-cases.yml/badge.svg">
     </a>
     <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml">
-        <img alt="Test Cases" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml/badge.svg">
+        <img alt="Docker Image pre-release" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml/badge.svg">
     </a>
     <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml">
-        <img alt="Test Cases" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml/badge.svg">
+        <img alt="Docker Image latest" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml/badge.svg">
     </a>
 </p>
 <p align="center">
