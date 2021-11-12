@@ -9,12 +9,14 @@
 * [Changed] Updated dependencies. Thanks @kekkon
 * [Changed] Simplified dependency tree. Thanks @kekkon
 * [Changed] Progress calculation for several scenarios #26 #28
+* [Changed] Links and text due to swtich to Github #46 #47
 * [Fixed] Reworked UI update handling to fix issues on refreshing data #22
 * [Fixed] Missing Target Account update for newly created or updated Import Profiles #23
 * [Fixed] `MonthOutputConverter.Convert` not using Culture. Thanks @kekkon
 * [Fixed] `OpenBudgeteer.Core.Test.ViewModelTest.YearMonthSelectorViewModelTest.Constructor_CheckDefaults` test using thread culture. Thanks @kekkon
 * [Fixed] Added Validation checks before saving Bucket data to fix DivideByZeroException #29
 * [Fixed] Trigger of `SelectedYearMonthChanged` passing `OpenBudgeteer.Core.Test.ViewModelTest.SelectedYearMonthChanged_CheckEventHasBeenInvoked` Test
+* [Fixed] Wrong text in confirmation message box for deleting a Rule #44
 
 ### 1.3 (2020-12-15)
 
