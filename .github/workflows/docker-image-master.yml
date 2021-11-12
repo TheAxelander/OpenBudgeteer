@@ -1,4 +1,4 @@
-name: Docker Image CI on master
+name: Docker Image (latest)
 
 on:
   push:
