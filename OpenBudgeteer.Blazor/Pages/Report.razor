@@ -2,36 +2,35 @@
 
 @using ChartJs.Blazor
 @using ChartJs.Blazor.ChartJS.BarChart
-@using ChartJs.Blazor.ChartJS.Common.Enums
-@using ChartJs.Blazor.ChartJS.Common.Handlers
 @using ChartJs.Blazor.Charts
-@using ChartJs.Blazor.ChartJS.PieChart
-@using ChartJs.Blazor.ChartJS.Common.Properties
-@using ChartJs.Blazor.Util
 @using Microsoft.EntityFrameworkCore
 @using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Blazor.ViewModels
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <div class="row">
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig" />
+    <div class="col report-chart-box">
+		<h4 class="report-chart-header">Month Balances</h4>
+        <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
     </div>
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsLineChart Config="@_dataContext.BankBalancesConfig" />
-    </div>
-</div>
-<div class="row">
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig" />
-    </div>
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig" />
+    <div class="col report-chart-box">
+		<h4 class="report-chart-header">Bank Balances</h4>
+        <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
     </div>
 </div>
 <div class="row">
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <h4 style="color: gray; font-weight: bold; margin: 10px; text-align: center">Bucket Monthly Expenses</h4>
+    <div class="col report-chart-box">
+		<h4 class="report-chart-header">Income & Expenses per Month</h4>
+        <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
+    </div>
+    <div class="col report-chart-box">
+		<h4 class="report-chart-header">Income & Expenses per Year</h4>
+        <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+    </div>
+</div>
+<div class="row">
+    <div class="col report-chart-box">
+        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
         @foreach (var config in _monthBucketExpensesConfigsLeft)
         {
             <h5 style="color: gray; font-weight: bold">@config.Item1</h5>
@@ -40,8 +39,8 @@
             </div>
         }
     </div>
-    <div class="col" style="width: 900px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <h4 style="color: gray; font-weight: bold; margin: 10px; text-align: center">Bucket Monthly Expenses</h4>
+    <div class="col report-chart-box">
+        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
         @foreach (var config in _monthBucketExpensesConfigsRight)
         {
             <h5 style="color: gray; font-weight: bold">@config.Item1</h5>
@@ -51,27 +50,6 @@
         }
     </div>
 </div>
-@*<div class="row">
-    <div class="col" style="width: 1800px; border-width: thick; border-color: gray; margin: 5px; border-style: solid">
-        <table>
-            <thead>
-            <tr>
-                <th style="width:150px">Bucket</th>
-                <th>Monthly Expenses</th>
-            </tr>
-            </thead>
-            <tbody>
-            @foreach (var config in _dataContext.MonthlyBucketExpensesConfigs)
-            {
-                <tr>
-                    <td>@config.Item1</td>
-                    <td><ChartJsBarChart Config="@config.Item2" /></td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-</div>*@
 
 @code {
     BlazorReportViewModel _dataContext;
@@ -86,7 +64,7 @@
         _dataContext = new BlazorReportViewModel(DbContextOptions);
         await _dataContext.LoadDataAsync();
 
-        int halfIndex = _dataContext.MonthBucketExpensesConfigs.Count / 2;
+        var halfIndex = _dataContext.MonthBucketExpensesConfigs.Count / 2;
         _monthBucketExpensesConfigsLeft.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(0,halfIndex));
         _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(halfIndex,_dataContext.MonthBucketExpensesConfigs.Count - halfIndex));
     }

@@ -5,12 +5,13 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Drawing
 @using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Common.EventClasses
+@using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
-
-<div class="row">
+<div class="row align-items-center">
     <div class="col">
         @if (_massEditEnabled)
         {
@@ -21,8 +22,24 @@
         {
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newTransactionEnabled = true)">Create Transaction</button>
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
-			<button class="btn btn-sm btn-primary header-action-button" @onclick="@ProposeBuckets">Propose Buckets</button>
+            <button class="btn btn-sm btn-primary header-action-button" @onclick="@(async () => await ProposeBucketsAsync())">Propose Buckets</button>
         }
+    </div>
+    <div class="col-md-auto">
+        <select class="form-control form-control-sm" style="width: auto" @onchange="@Filter_SelectionChanged">
+            @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
+            {
+                if (filter == _dataContext.CurrentFilter)
+                {
+                    <option selected value="@filter">@filter.GetStringValue()</option>    
+                }
+                else
+                {
+                    <option value="@filter">@filter.GetStringValue()</option>
+                }
+                
+            }
+        </select>
     </div>
     <YearMonthSelector DataContext="YearMonthDataContext" />
 </div>
@@ -168,7 +185,7 @@
                     </table>
                 </td>
                 <td class="col-buttons">
-                    <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => transaction.UpdateItem())"></button>
+                    <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => SaveTransaction(transaction))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => transaction.CancelModification())"></button>
                 </td>
             </tr>
@@ -203,6 +220,22 @@
     </tbody>
 </table>
 
+@if (_isProposeBucketsInfoDialogVisible)
+{
+    <div class="modal fade show" style=" display: block;">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Propose Buckets</h4>
+                </div>
+                <div class="modal-body">Searching Buckets based on defined rules...</div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
 <DeleteConfirmationDialog 
     Title="Delete Transaction" 
     Message="Do you really want to delete this Transaction?" 
@@ -227,20 +260,17 @@
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
 
+    bool _isProposeBucketsInfoDialogVisible;
+
     protected override async Task OnInitializedAsync()
     {
         _dataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
 
-        HandleResult(await _dataContext.LoadDataAsync());
-        _dataContext.ViewModelReloadRequired += async (sender, args) =>
-        {
-            HandleResult(await _dataContext.LoadDataAsync());
-            base.StateHasChanged();
-        };
+        await HandleResult(await _dataContext.LoadDataAsync());
 
         YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) =>
         {
-            HandleResult(await _dataContext.LoadDataAsync());
+            await HandleResult(await _dataContext.LoadDataAsync());
             base.StateHasChanged();
         };
     }
@@ -257,22 +287,37 @@
         _dataContext.EditAllTransaction();
     }
 
-    void ProposeBuckets()
+    async Task ProposeBucketsAsync()
     {
-        _dataContext.ProposeBuckets();
+        _isProposeBucketsInfoDialogVisible = true;
+        StateHasChanged();
+        await _dataContext.ProposeBuckets();
         if (_dataContext.Transactions.Any(i => i.InModification)) _massEditEnabled = true;
+        _isProposeBucketsInfoDialogVisible = false;
     }
-
-    void SaveAllTransaction()
+    
+    async void SaveAllTransaction()
     {
         _massEditEnabled = false;
-        HandleResult(_dataContext.SaveAllTransaction());
+        await HandleResult(_dataContext.SaveAllTransaction());
     }
 
-    void CancelAllTransaction()
+    async void CancelAllTransaction()
     {
         _massEditEnabled = false;
-        _dataContext.CancelAllTransaction();
+        await HandleResult(await _dataContext.CancelAllTransactionAsync());
+        base.StateHasChanged();
+    }
+
+    async void SaveTransaction(TransactionViewModelItem transaction)
+    {
+        await HandleResult(transaction.UpdateItem());
+    }
+    
+    void Filter_SelectionChanged(ChangeEventArgs e)
+    {
+        _dataContext.CurrentFilter = Enum.Parse<TransactionViewModelFilter>(
+            e.Value as string ?? TransactionViewModelFilter.NoFilter.ToString());
     }
 
     void HandleTransactionDeletionRequest(TransactionViewModelItem transaction)
@@ -287,18 +332,23 @@
         _transactionToBeDeleted = null;
     }
 
-    void DeleteTransaction()
+    async void DeleteTransaction()
     {
         _isDeleteTransactionModalDialogVisible = false;
-        HandleResult(_transactionToBeDeleted.DeleteItem());
+        await HandleResult(_transactionToBeDeleted.DeleteItem());
     }
 
-    void HandleResult(ViewModelOperationResult result)
+    async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)
         {
             _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
+        }
+		if (result.ViewModelReloadRequired)
+        {
+            await _dataContext.LoadDataAsync();
+            StateHasChanged();
         }
     }
 }

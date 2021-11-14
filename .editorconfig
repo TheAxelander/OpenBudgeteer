@@ -1,0 +1,4 @@
+# To learn more about .editorconfig see https://aka.ms/editorconfigdocs
+
+[*.cs]
+guidelines = 120

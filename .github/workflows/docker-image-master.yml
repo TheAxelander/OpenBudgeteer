@@ -1,0 +1,24 @@
+name: Docker Image (latest)
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+        
+      - name: Docker Login
+        uses: docker/login-action@v1.10.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+      - name: Build Docker image
+        run: docker build . -t "axelander/openbudgeteer:latest" -f "OpenBudgeteer.Blazor/Dockerfile"
+        
+      - name: Push Docker image
+        run: docker push axelander/openbudgeteer:latest
