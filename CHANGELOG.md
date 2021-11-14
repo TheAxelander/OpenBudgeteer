@@ -1,27 +1,27 @@
 ### 1.4 (2021-11-14)
 
-* [Add] Info Dialog during Bucket proposal and optimized proposal performance #21
-* [Add] Filter on Transaction Page #25
-* [Add] On Import Page final message box shows an option to clear the form #45
+* [Add] Info Dialog during Bucket proposal and optimized proposal performance [#21](https://github.com/TheAxelander/OpenBudgeteer/issues/21)
+* [Add] Filter on Transaction Page [#25](https://github.com/TheAxelander/OpenBudgeteer/issues/25)
+* [Add] On Import Page final message box shows an option to clear the form [#45](https://github.com/TheAxelander/OpenBudgeteer/issues/45)
 * [Changed] Core and Blazor Frontend updated to .Net 6.0
 * [Changed] File Preview on Import Page now read-only
 * [Changed] Misc small visual updates and fixes on Import Page
 * [Changed] Consistent Chart Header styles on Report Page
 * [Changed] Updated dependencies. Thanks @kekkon
 * [Changed] Simplified dependency tree. Thanks @kekkon
-* [Changed] Progress calculation for several scenarios #26 #28
-* [Changed] Links and text due to switch to Github #46 #47
-* [Fixed] Reworked UI update handling to fix issues on refreshing data #22
-* [Fixed] Missing Target Account update for newly created or updated Import Profiles #23
-* [Fixed] `MonthOutputConverter.Convert` not using Culture. Thanks @kekkon
-* [Fixed] `OpenBudgeteer.Core.Test.ViewModelTest.YearMonthSelectorViewModelTest.Constructor_CheckDefaults` test using thread culture. Thanks @kekkon
-* [Fixed] Added Validation checks before saving Bucket data to fix DivideByZeroException #29
+* [Changed] Progress calculation for several scenarios [#26](https://github.com/TheAxelander/OpenBudgeteer/issues/26) [#28](https://github.com/TheAxelander/OpenBudgeteer/issues/28)
+* [Changed] Links and text due to switch to Github [#46](https://github.com/TheAxelander/OpenBudgeteer/issues/46) [#47](https://github.com/TheAxelander/OpenBudgeteer/issues/47)
+* [Fixed] Reworked UI update handling to fix issues on refreshing data [#22](https://github.com/TheAxelander/OpenBudgeteer/issues/22)
+* [Fixed] Missing Target Account update for newly created or updated Import Profiles [#23](https://github.com/TheAxelander/OpenBudgeteer/issues/23)
+* [Fixed] `MonthOutputConverter.Convert` not using Culture. Thanks [kekkon](https://gitlab.com/kekkon)
+* [Fixed] `OpenBudgeteer.Core.Test.ViewModelTest.YearMonthSelectorViewModelTest.Constructor_CheckDefaults` test using thread culture. Thanks [kekkon](https://gitlab.com/kekkon)
+* [Fixed] Added Validation checks before saving Bucket data to fix DivideByZeroException [#29](https://github.com/TheAxelander/OpenBudgeteer/issues/29)
 * [Fixed] Trigger of `SelectedYearMonthChanged` passing `OpenBudgeteer.Core.Test.ViewModelTest.SelectedYearMonthChanged_CheckEventHasBeenInvoked` Test
-* [Fixed] Wrong text in confirmation message box for deleting a Rule #44
+* [Fixed] Wrong text in confirmation message box for deleting a Rule [#44](https://github.com/TheAxelander/OpenBudgeteer/issues/44)
 
 ### 1.3 (2020-12-15)
 
-* [Add] Support for Sqlite databases #2
+* [Add] Support for Sqlite databases [#2](https://github.com/TheAxelander/OpenBudgeteer/issues/2)
 * [Add] Unit Tests (not full coverage yet)
 
 ### 1.2.1 (2020-12-14)
@@ -34,20 +34,20 @@
 * [Changed] Overall style changes with new font and colors
 * [Changed] Newly created Bucket Groups will be created on the first position
 * [Changed] Style for Bucket Group modification
-* [Fixed] Unable to move newly created Bucket Groups #16
+* [Fixed] Unable to move newly created Bucket Groups [#16](https://github.com/TheAxelander/OpenBudgeteer/issues/16)
 
 ### 1.1.1 (2020-09-07)
 
-* [Fixed] Wrong creation of data for new Rules if the initial selection was used #13
-* [Fixed] Missing months for Monthly Bucket Expenses Reports in case of no data #14
-* [Fixed] Crashes on Report Page due to display split of Monthly Bucket Expenses Reports #15
+* [Fixed] Wrong creation of data for new Rules if the initial selection was used [#13](https://github.com/TheAxelander/OpenBudgeteer/issues/13)
+* [Fixed] Missing months for Monthly Bucket Expenses Reports in case of no data [#14](https://github.com/TheAxelander/OpenBudgeteer/issues/14)
+* [Fixed] Crashes on Report Page due to display split of Monthly Bucket Expenses Reports [#15](https://github.com/TheAxelander/OpenBudgeteer/issues/15)
 
 ### 1.1 (2020-09-05)
 
-* [Add] Added Rule set for automatic Bucket assignments #5
+* [Add] Added Rule set for automatic Bucket assignments [#5](https://github.com/TheAxelander/OpenBudgeteer/issues/5)
 * [Add] Enabled movement of Buckets to other Bucket Groups
-* [Add] Enabled movement of Bucket Groups #7
-* [Changed] Moved Bucket Movements to Transaction Dialog #1
+* [Add] Enabled movement of Bucket Groups [#7](https://github.com/TheAxelander/OpenBudgeteer/issues/7)
+* [Changed] Moved Bucket Movements to Transaction Dialog [#1](https://github.com/TheAxelander/OpenBudgeteer/issues/1)
 * [Changed] Opening a new file resets previous Import selection and settings
 * [Changed] Optimized Y-Axis Ticks for Month Bucket Expenses on Report Page
 
