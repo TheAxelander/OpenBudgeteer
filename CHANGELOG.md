@@ -1,4 +1,4 @@
-### 1.4 (20xx-xx-xx)
+### 1.4 (2021-11-14)
 
 * [Add] Info Dialog during Bucket proposal and optimized proposal performance #21
 * [Add] Filter on Transaction Page #25
@@ -10,7 +10,7 @@
 * [Changed] Updated dependencies. Thanks @kekkon
 * [Changed] Simplified dependency tree. Thanks @kekkon
 * [Changed] Progress calculation for several scenarios #26 #28
-* [Changed] Links and text due to swtich to Github #46 #47
+* [Changed] Links and text due to switch to Github #46 #47
 * [Fixed] Reworked UI update handling to fix issues on refreshing data #22
 * [Fixed] Missing Target Account update for newly created or updated Import Profiles #23
 * [Fixed] `MonthOutputConverter.Convert` not using Culture. Thanks @kekkon
