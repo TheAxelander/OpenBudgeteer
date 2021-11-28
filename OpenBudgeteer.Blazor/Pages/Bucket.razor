@@ -6,6 +6,7 @@
 @using System.Drawing
 @using System.Globalization
 @using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Models
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
@@ -159,7 +160,7 @@
 
 <div class="row">
     <div class="col">
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@CreateGroup">Create Bucket Group</button>
+        <button class="btn btn-sm btn-primary header-action-button" @onclick="@ShowNewBucketGroupDialog">Create Bucket Group</button>
         <button class="btn btn-sm btn-primary header-action-button" @onclick="@DistributeBudget">Distribute Budget</button>
         <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse())">Collapse All</button>
 		<button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse(false))">Expend All</button>
@@ -298,6 +299,13 @@
     </table>
 }
 
+<NewBucketGroupDialog
+    DataContext="@_newBucketGroupDialogDataContext"
+    IsDialogVisible="@_isNewBucketGroupModalDialogVisible"
+    OnCancelClickCallback="@(CancelNewBucketGroupDialog)"
+    OnSaveClickCallback="@(SaveAndCloseNewBucketGroupDialog)"
+    />
+
 <EditBucketDialog 
     Title="Edit Bucket"
     DataContext="@_editBucketDialogDataContext"
@@ -321,6 +329,9 @@
 
 @code {
     BucketViewModel _dataContext;
+
+    BucketGroup _newBucketGroupDialogDataContext;
+    bool _isNewBucketGroupModalDialogVisible;
 
     BucketViewModelItem _editBucketDialogDataContext;
     bool _isEditBucketModalDialogVisible;
@@ -360,6 +371,27 @@
     {
         var newBucket = bucketGroup.CreateBucket();
         ShowEditBucketDialog(newBucket);
+    }
+
+    void ShowNewBucketGroupDialog()
+    {
+        _newBucketGroupDialogDataContext = new BucketGroup
+        {
+            BucketGroupId = 0,
+            Name = string.Empty
+        };
+        _isNewBucketGroupModalDialogVisible = true;
+    }
+    
+    async void SaveAndCloseNewBucketGroupDialog()
+    {
+        _isNewBucketGroupModalDialogVisible = false;
+        await HandleResult(_dataContext.CreateGroup(_newBucketGroupDialogDataContext));
+    }
+
+    async void CancelNewBucketGroupDialog()
+    {
+        _isNewBucketGroupModalDialogVisible = false;
     }
 
     void ShowEditBucketDialog(BucketViewModelItem bucket)

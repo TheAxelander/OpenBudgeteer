@@ -1,0 +1,41 @@
+@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@using System.Drawing
+@using OpenBudgeteer.Core.Models
+@if (IsDialogVisible)
+ {
+     <div class="modal fade show" style=" display: block;">
+         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 600px">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h4 class="modal-title">New Bucket Group</h4>
+                     <button type="button" class="close" data-dismiss="modal" @onclick="OnCancelClickCallback">&times;</button>
+                 </div>
+                 <div class="modal-body">
+                     <div class="form-group">
+                         <label>Name:</label>
+                         <input class="form-control form-control-sm" type="text" @bind="DataContext.Name"/>
+                     </div>
+                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="OnSaveClickCallback">Save</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="OnCancelClickCallback">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+ }
+
+@code {
+    [Parameter]
+    public BucketGroup DataContext { get; set; }
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelClickCallback { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
+}

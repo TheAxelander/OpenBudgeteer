@@ -191,7 +191,8 @@ public class BucketViewModel : ViewModelBase
                 bucketGroup.BucketGroup.Position++;
                 dbContext.UpdateBucketGroup(bucketGroup.BucketGroup);
             }
-            if (dbContext.CreateBucketGroup(newGroup) == 0) return new ViewModelOperationResult(false, "Unable to write changes to database");
+            if (dbContext.CreateBucketGroup(newGroup) == 0) 
+                return new ViewModelOperationResult(false, "Unable to write changes to database");
         }
 
         var newBucketGroupViewModelItem =
@@ -201,6 +202,33 @@ public class BucketViewModel : ViewModelBase
             };
         BucketGroups.Insert(0, newBucketGroupViewModelItem);
         return new ViewModelOperationResult(true);
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="BucketGroup"/> and adds it to ViewModel and Database.
+    /// Will be added on last position.
+    /// </summary>
+    /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
+    /// <param name="newBucketGroup">Instance of <see cref="BucketGroup"/> which needs to be created in database</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult CreateGroup(BucketGroup newBucketGroup)
+    {
+        if (newBucketGroup is null)
+            return new ViewModelOperationResult(false, "Unable to create Bucket Group");
+        if (newBucketGroup.Name == string.Empty)
+            return new ViewModelOperationResult(false, "Bucket Group Name cannot be empty");
+        
+        // Set Id to 0 to enable creation
+        newBucketGroup.BucketGroupId = 0;
+        // Set Position to last
+        newBucketGroup.Position = BucketGroups.Count + 1;
+       
+        using (var dbContext = new DatabaseContext(_dbOptions))
+        {
+            if (dbContext.CreateBucketGroup(newBucketGroup) == 0) 
+                return new ViewModelOperationResult(false, "Unable to write changes to database");
+        }
+        return new ViewModelOperationResult(true, true);
     }
 
     /// <summary>
