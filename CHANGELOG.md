@@ -1,3 +1,7 @@
+### 1.4.1 (20xx-xx-xx)
+
+* [Changed] Handling of Bucket Group creation (fixes also crashes during creation cancellation [#56](https://github.com/TheAxelander/OpenBudgeteer/issues/56))
+
 ### 1.4 (2021-11-14)
 
 * [Add] Info Dialog during Bucket proposal and optimized proposal performance [#21](https://github.com/TheAxelander/OpenBudgeteer/issues/21)
