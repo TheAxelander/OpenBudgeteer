@@ -91,7 +91,9 @@ public class TransactionViewModelItem : ViewModelBase
     /// </summary>
     /// <param name="dbOptions">Options to connect to a database</param>
     /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
-    public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel) : this()
+    /// <param name="withEmptyBucket">Optionally creates an empty Bucket Assignment</param>
+    public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, 
+        bool withEmptyBucket = false) : this()
     {
         _dbOptions = dbOptions;
         _yearMonthViewModel = yearMonthViewModel;
@@ -114,6 +116,14 @@ public class TransactionViewModelItem : ViewModelBase
             }
         }            
         SelectedAccount = AvailableAccounts.First();
+        // Create an empty Bucket Assignment if requested (required for "Create new Transaction")
+        if (withEmptyBucket)
+        {
+            var emptyBucket = new PartialBucketViewModelItem(dbOptions, yearMonthViewModel.CurrentMonth);
+            emptyBucket.AmountChanged += CheckBucketAssignments;
+            emptyBucket.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
+            Buckets.Add(emptyBucket);
+        }
     }
 
     /// <summary>
@@ -123,7 +133,8 @@ public class TransactionViewModelItem : ViewModelBase
     /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
     /// <param name="transaction">Transaction instance</param>
     /// <param name="withBuckets">Include assigned Buckets</param>
-    public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction, bool withBuckets = true) : this(dbOptions, yearMonthViewModel)
+    public TransactionViewModelItem(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, 
+        BankTransaction transaction, bool withBuckets = true) : this(dbOptions, yearMonthViewModel)
     {
         if (withBuckets)
         {
@@ -226,7 +237,8 @@ public class TransactionViewModelItem : ViewModelBase
     /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
-    public static async Task<TransactionViewModelItem> CreateAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
+    public static async Task<TransactionViewModelItem> CreateAsync(DbContextOptions<DatabaseContext> dbOptions, 
+        YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
     {
         return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction));
     }
@@ -239,7 +251,8 @@ public class TransactionViewModelItem : ViewModelBase
     /// <param name="yearMonthViewModel">YearMonth ViewModel instance</param>
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
-    public static async Task<TransactionViewModelItem> CreateWithoutBucketsAsync(DbContextOptions<DatabaseContext> dbOptions, YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
+    public static async Task<TransactionViewModelItem> CreateWithoutBucketsAsync(DbContextOptions<DatabaseContext> dbOptions, 
+        YearMonthSelectorViewModel yearMonthViewModel, BankTransaction transaction)
     {
         return await Task.Run(() => new TransactionViewModelItem(dbOptions, yearMonthViewModel, transaction, false));
     }

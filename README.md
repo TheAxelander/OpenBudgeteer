@@ -22,8 +22,6 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ![Screenshot 1](assets/screenshot1.png)
 
-![Screenshot 1](assets/screenshot1.png)
-
 ## Installation (Docker)
 
 You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing the following variables:

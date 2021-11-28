@@ -1,3 +1,9 @@
+### 1.4.1 (2021-11-28)
+
+* [Changed] Handling of Bucket Group creation (fixes also crashes during creation cancellation [#56](https://github.com/TheAxelander/OpenBudgeteer/issues/56))
+* [Fixed] Unable to add multiple Buckets during Bank Transaction creation [#55](https://github.com/TheAxelander/OpenBudgeteer/issues/55)
+* [Fixed] Crash on Report Page using sqlite [#57](https://github.com/TheAxelander/OpenBudgeteer/issues/57)
+
 ### 1.4 (2021-11-14)
 
 * [Add] Info Dialog during Bucket proposal and optimized proposal performance [#21](https://github.com/TheAxelander/OpenBudgeteer/issues/21)
