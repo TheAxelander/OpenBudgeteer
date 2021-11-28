@@ -297,8 +297,7 @@ public class TransactionViewModel : ViewModelBase
     /// </summary>
     public void ResetNewTransaction()
     {
-        NewTransaction = new TransactionViewModelItem(_dbOptions, _yearMonthViewModel);
-        NewTransaction.Buckets.Add(new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth));
+        NewTransaction = new TransactionViewModelItem(_dbOptions, _yearMonthViewModel, true);
     }
 
     /// <summary>
