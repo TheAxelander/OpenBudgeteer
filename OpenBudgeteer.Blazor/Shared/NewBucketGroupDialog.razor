@@ -15,6 +15,32 @@
                          <label>Name:</label>
                          <input class="form-control form-control-sm" type="text" @bind="DataContext.Name"/>
                      </div>
+                     <div class="form-group">
+                         <label>Position:</label>
+                         <div>
+                             <div class="form-check form-check-inline">
+                                 <input 
+                                     class="form-check-input" 
+                                     type="radio" 
+                                     name="newBucketGroupDialogPositionOptions" 
+                                     id="newBucketGroupDialogPositionOption1" 
+                                     value="firstPosition"
+                                     checked
+                                     @onchange="@PositionSelectionChanged">
+                                 <label class="form-check-label" for="newBucketGroupDialogPositionOption1">Set on first position</label>
+                             </div>
+                             <div class="form-check form-check-inline">
+                                 <input 
+                                     class="form-check-input" 
+                                     type="radio" 
+                                     name="newBucketGroupDialogPositionOptions" 
+                                     id="newBucketGroupDialogPositionOption2" 
+                                     value="lastPosition"
+                                     @onchange="@PositionSelectionChanged">
+                                 <label class="form-check-label" for="newBucketGroupDialogPositionOption2">Set on last position</label>
+                             </div>
+                         </div>
+                     </div>
                  </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="OnSaveClickCallback">Save</button>
@@ -29,7 +55,7 @@
 @code {
     [Parameter]
     public BucketGroup DataContext { get; set; }
-
+    
     [Parameter]
     public bool IsDialogVisible { get; set; }
 
@@ -38,4 +64,10 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
+
+    private void PositionSelectionChanged(ChangeEventArgs eventArgs)
+    {
+        var selectedOption = eventArgs.Value as string;
+        DataContext.Position = selectedOption == "firstPosition" ? 0 : -1;
+    }
 }

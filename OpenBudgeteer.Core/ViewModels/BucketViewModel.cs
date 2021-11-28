@@ -206,7 +206,7 @@ public class BucketViewModel : ViewModelBase
 
     /// <summary>
     /// Creates a new <see cref="BucketGroup"/> and adds it to ViewModel and Database.
-    /// Will be added on last position.
+    /// Will be added on the requested position.
     /// </summary>
     /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
     /// <param name="newBucketGroup">Instance of <see cref="BucketGroup"/> which needs to be created in database</param>
@@ -220,14 +220,22 @@ public class BucketViewModel : ViewModelBase
         
         // Set Id to 0 to enable creation
         newBucketGroup.BucketGroupId = 0;
-        // Set Position to last
+
+        // Save Position, append Bucket Group and later move it to requested Position 
+        var requestedPosition = newBucketGroup.Position;
         newBucketGroup.Position = BucketGroups.Count + 1;
        
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             if (dbContext.CreateBucketGroup(newBucketGroup) == 0) 
                 return new ViewModelOperationResult(false, "Unable to write changes to database");
+
+            var newlyCreatedBucketGroup = dbContext.BucketGroup.OrderBy(i => i.BucketGroupId).Last();
+            var newBucketGroupViewModelItem = new BucketGroupViewModelItem(_dbOptions, newlyCreatedBucketGroup,
+                _yearMonthViewModel.CurrentMonth);
+            newBucketGroupViewModelItem.MoveGroup(requestedPosition - newBucketGroupViewModelItem.BucketGroup.Position);
         }
+        
         return new ViewModelOperationResult(true, true);
     }
 

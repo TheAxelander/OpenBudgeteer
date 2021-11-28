@@ -386,6 +386,9 @@
     async void SaveAndCloseNewBucketGroupDialog()
     {
         _isNewBucketGroupModalDialogVisible = false;
+        // Requested Position is last, so set right position number 
+        if (_newBucketGroupDialogDataContext.Position == -1)
+            _newBucketGroupDialogDataContext.Position = _dataContext.BucketGroups.Count + 1;
         await HandleResult(_dataContext.CreateGroup(_newBucketGroupDialogDataContext));
     }
 
