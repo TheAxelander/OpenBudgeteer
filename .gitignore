@@ -5,6 +5,8 @@
 
 ## Custom files
 *.db
+*.db-shm
+*.db-wal
 *.DS_Store
 
 # User-specific files
