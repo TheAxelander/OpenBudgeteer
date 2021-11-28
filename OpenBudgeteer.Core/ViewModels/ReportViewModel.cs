@@ -198,10 +198,12 @@ public class ReportViewModel : ViewModelBase
                 for (int monthIndex = months; monthIndex >= 0; monthIndex--)
                 {
                     var month = currentMonth.AddMonths(monthIndex * -1);
-                    var bankBalance = dbContext.BankTransaction
+                    var bankTransactions = dbContext.BankTransaction
                         .Where(i => i.TransactionDate < month.AddMonths(1))
                         .OrderBy(i => i.TransactionDate)
-                        .Sum(i => i.Amount);
+                        .ToList();
+                    // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
+                    var bankBalance = bankTransactions.Sum(i => i.Amount);
                     result.Add(new Tuple<DateTime, decimal>(month, bankBalance));
                 }
             }
@@ -243,7 +245,7 @@ public class ReportViewModel : ViewModelBase
                         if (latestVersion.BucketType != 2) continue;
                         using (var budgetedTransactionDbContext = new DatabaseContext(_dbOptions))
                         {
-                            var queryResults = budgetedTransactionDbContext.BankTransaction
+                            var queryScope = budgetedTransactionDbContext.BankTransaction
                                 // Join with BudgetedTransaction
                                 .Join(budgetedTransactionDbContext.BudgetedTransaction,
                                     transaction => transaction.TransactionId,
@@ -256,6 +258,9 @@ public class ReportViewModel : ViewModelBase
                                 // Limit on Transactions for the current Bucket and the last x months
                                 .Where(i => i.BudgetedTransaction.BucketId == bucket.BucketId &&
                                         i.Transaction.TransactionDate >= currentMonth.AddMonths(month * -1))
+                                .ToList();
+                            // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57) 
+                            var queryResults = queryScope    
                                 // Group the results per YearMonth
                                 .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
                                 // Create a new Grouped Object

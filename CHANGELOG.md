@@ -2,6 +2,7 @@
 
 * [Changed] Handling of Bucket Group creation (fixes also crashes during creation cancellation [#56](https://github.com/TheAxelander/OpenBudgeteer/issues/56))
 * [Fixed] Unable to add multiple Buckets during Bank Transaction creation [#55](https://github.com/TheAxelander/OpenBudgeteer/issues/55)
+* [Fixed] Crash on Report Page using sqlite [#57](https://github.com/TheAxelander/OpenBudgeteer/issues/57)
 
 ### 1.4 (2021-11-14)
 
