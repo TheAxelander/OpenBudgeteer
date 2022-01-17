@@ -20,4 +20,5 @@ RUN dotnet publish "OpenBudgeteer.Blazor.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN mkdir database
 ENTRYPOINT ["dotnet", "OpenBudgeteer.dll"]

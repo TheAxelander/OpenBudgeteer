@@ -57,7 +57,7 @@ public class Startup
                 
                 break;
             case "sqlite":
-                connectionString = "Data Source=openbudgeteer.db";
+                connectionString = "Data Source=database/openbudgeteer.db";
                 services.AddDbContext<DatabaseContext>(options => options.UseSqlite(
                         connectionString,
                         b => b.MigrationsAssembly("OpenBudgeteer.Core")),

@@ -1,6 +1,7 @@
 ### 1.5 (20xx-xx-xx)
 
 * [Add] Option to set Localization [#52](https://github.com/TheAxelander/OpenBudgeteer/issues/52)
+* [Fixed] Moved Sqlite database path back to `/app/database` [#63](https://github.com/TheAxelander/OpenBudgeteer/issues/63)
 
 ### 1.4.1 (2021-11-28)
 
