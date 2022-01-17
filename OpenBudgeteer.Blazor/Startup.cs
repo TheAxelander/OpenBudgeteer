@@ -27,21 +27,23 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+        services.AddLocalization();
         services.AddRazorPages();
         services.AddServerSideBlazor();
         services.AddFileReaderService();
         services.AddScoped<YearMonthSelectorViewModel>();
-        var configurationSection = Configuration.GetSection("Connection");
-        var provider = configurationSection?["Provider"];
+        
+        var configurationConnectionSection = Configuration.GetSection("Connection");
+        var provider = configurationConnectionSection?["Provider"];
         string connectionString;
         switch (provider)
         {
             case "mysql":
-                connectionString = $"Server={configurationSection?["Server"]};" +
-                               $"Port={configurationSection?["Port"]};" +
-                               $"Database={configurationSection?["Database"]};" +
-                               $"User={configurationSection?["User"]};" +
-                               $"Password={configurationSection?["Password"]}";
+                connectionString = $"Server={configurationConnectionSection?["Server"]};" +
+                               $"Port={configurationConnectionSection?["Port"]};" +
+                               $"Database={configurationConnectionSection?["Database"]};" +
+                               $"User={configurationConnectionSection?["User"]};" +
+                               $"Password={configurationConnectionSection?["Password"]}";
                 
                 services.AddDbContext<DatabaseContext>(options => options.UseMySql(
                         connectionString,
@@ -70,6 +72,11 @@ public class Startup
                 throw new ArgumentOutOfRangeException($"Database provider {provider} not supported");
         }
         
+        // var configurationAppSettingSection = Configuration.GetSection("AppSettings");
+        // var cultureInfo = new CultureInfo(configurationAppSettingSection["Culture"]);
+        // CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+        // CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+        
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
     }
 
@@ -89,6 +96,9 @@ public class Startup
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
+        
+        var configurationAppSettingSection = Configuration.GetSection("AppSettings");
+        app.UseRequestLocalization(configurationAppSettingSection["Culture"]);
 
         app.UseRouting();
 
@@ -97,10 +107,5 @@ public class Startup
             endpoints.MapBlazorHub();
             endpoints.MapFallbackToPage("/_Host");
         });
-
-        // TODO Get Culture from Settings
-        var cultureInfo = new CultureInfo("de-DE");
-        CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-        CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
     }
 }

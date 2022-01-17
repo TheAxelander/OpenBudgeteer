@@ -101,6 +101,7 @@ services:
       - Connection:Database=openbudgeteer
       - Connection:User=openbudgeteer
       - Connection:Password=openbudgeteer
+      - AppSettings:Culture=en-US
     depends_on:
       - mysql
     networks:
@@ -131,6 +132,13 @@ services:
 volumes:
   data:
 ```
+
+## Additional Settings
+
+| Variable            | Description                                                                                                | Default                 |
+|---------------------|------------------------------------------------------------------------------------------------------------|-------------------------|
+| AppSettings:Culture | Localization identifier to set things like Currency, Date and Number Format. Must be a BCP 47 language tag | en-US                   |
+
 
 ## How to use
 

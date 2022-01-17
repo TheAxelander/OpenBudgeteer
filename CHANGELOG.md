@@ -1,3 +1,7 @@
+### 1.5 (20xx-xx-xx)
+
+* [Add] Option to set Localization [#52](https://github.com/TheAxelander/OpenBudgeteer/issues/52)
+
 ### 1.4.1 (2021-11-28)
 
 * [Changed] Handling of Bucket Group creation (fixes also crashes during creation cancellation [#56](https://github.com/TheAxelander/OpenBudgeteer/issues/56))
