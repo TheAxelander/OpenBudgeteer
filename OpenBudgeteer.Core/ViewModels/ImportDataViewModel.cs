@@ -167,6 +167,16 @@ public class ImportDataViewModel : ViewModelBase
         get => _validRecords;
         private set => Set(ref _validRecords, value);
     }
+    
+    private int _potentialDuplicates;
+    /// <summary>
+    /// Number of records which have been identified as potential duplicate
+    /// </summary>
+    public int PotentialDuplicates
+    {
+        get => _potentialDuplicates;
+        private set => Set(ref _potentialDuplicates, value);
+    }
 
     private ObservableCollection<ImportProfile> _availableImportProfiles;
     /// <summary>
@@ -207,7 +217,17 @@ public class ImportDataViewModel : ViewModelBase
         get => _parsedRecords;
         private set => Set(ref _parsedRecords, value);
     }
-    
+
+    private ObservableCollection<Tuple<CsvMappingResult<BankTransaction>, List<BankTransaction>>> _duplicates;
+    /// <summary>
+    /// Collection of all parsed CSV records which are a potential duplicate of existing <see cref="BankTransaction"/> 
+    /// </summary>
+    public ObservableCollection<Tuple<CsvMappingResult<BankTransaction>, List<BankTransaction>>> Duplicates
+    {
+        get => _duplicates;
+        private set => Set(ref _duplicates, value);
+    }
+
     private bool _isProfileValid;
     private string[] _fileLines;
     private readonly DbContextOptions<DatabaseContext> _dbOptions;
@@ -222,6 +242,7 @@ public class ImportDataViewModel : ViewModelBase
         AvailableAccounts = new ObservableCollection<Account>();
         IdentifiedColumns = new ObservableCollection<string>();
         ParsedRecords = new ObservableCollection<CsvMappingResult<BankTransaction>>();
+        Duplicates = new ObservableCollection<Tuple<CsvMappingResult<BankTransaction>, List<BankTransaction>>>();
         SelectedImportProfile = new ImportProfile();
         SelectedAccount = new Account();
         _dbOptions = dbOptions;
@@ -326,7 +347,7 @@ public class ImportDataViewModel : ViewModelBase
     /// Loads all settings based on <see cref="SelectedImportProfile"/>
     /// </summary>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult LoadProfile()
+    public async Task<ViewModelOperationResult> LoadProfileAsync()
     {
         try
         {
@@ -341,7 +362,7 @@ public class ImportDataViewModel : ViewModelBase
             var result = LoadHeaders();
             if (!result.IsSuccessful) throw new Exception(result.Message);
 
-            ValidateData();
+            await ValidateDataAsync();
             _isProfileValid = true;
 
             return new ViewModelOperationResult(true);
@@ -389,6 +410,8 @@ public class ImportDataViewModel : ViewModelBase
         TotalRecords = 0;
         RecordsWithErrors = 0;
         ValidRecords = 0;
+        PotentialDuplicates = 0;
+        Duplicates.Clear();
     }
 
     /// <summary>
@@ -399,7 +422,7 @@ public class ImportDataViewModel : ViewModelBase
     /// Sets also figures of the ViewModel like <see cref="TotalRecords"/> or <see cref="ValidRecords"/>
     /// </remarks>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult ValidateData()
+    public async Task<ViewModelOperationResult> ValidateDataAsync()
     {
         try
         {
@@ -428,9 +451,8 @@ public class ImportDataViewModel : ViewModelBase
                 ParsedRecords.Add(parsedResult);
             }
 
-            TotalRecords = parsedResults.Count;
-            RecordsWithErrors = parsedResults.Count(i => !i.IsValid);
-            ValidRecords = parsedResults.Count(i => i.IsValid);
+            await DuplicateCheckOnParsedRecordsAsync();
+            UpdateCountValues();
 
             if (ValidRecords > 0) _isProfileValid = true;
             return new ViewModelOperationResult(true);
@@ -440,23 +462,71 @@ public class ImportDataViewModel : ViewModelBase
             TotalRecords = 0;
             RecordsWithErrors = 0;
             ValidRecords = 0;
+            PotentialDuplicates = 0;
             ParsedRecords.Clear();
+            Duplicates.Clear();
             return new ViewModelOperationResult(false, e.Message);
         }
+    }
+
+    /// <summary>
+    /// Update counts of several statistics
+    /// </summary>
+    private void UpdateCountValues()
+    {
+        TotalRecords = ParsedRecords.Count;
+        RecordsWithErrors = ParsedRecords.Count(i => !i.IsValid);
+        ValidRecords = ParsedRecords.Count(i => i.IsValid);
+        PotentialDuplicates = Duplicates.Count;
+    }
+
+    /// <summary>
+    /// Checks each parsed CSV records on potential existing <see cref="BankTransaction"/> 
+    /// </summary>
+    private async Task DuplicateCheckOnParsedRecordsAsync()
+    {
+        foreach (var parsedRecord in ParsedRecords.Where(i => i.IsValid).ToList())
+        {
+            var duplicateSearches = Task.Run(() =>
+            {
+                using (var dbContext = new DatabaseContext(_dbOptions))
+                {
+                    var duplicates = dbContext.BankTransaction.Where(i =>
+                        i.TransactionDate.Date == parsedRecord.Result.TransactionDate.Date &&
+                        i.Amount == parsedRecord.Result.Amount &&
+                        (i.Memo == parsedRecord.Result.Memo || i.Payee == parsedRecord.Result.Payee));
+                    if (duplicates.Any())
+                        Duplicates.Add(new Tuple<CsvMappingResult<BankTransaction>, List<BankTransaction>>(parsedRecord, duplicates.ToList()));
+                }
+            });
+
+            await Task.WhenAll(duplicateSearches);
+        }
+    }
+
+    /// <summary>
+    /// Removes the passed duplicate from the parsed records to exclude it from import
+    /// </summary>
+    /// <param name="duplicate">Duplicate that should be excluded</param>
+    public void ExcludeDuplicateRecord(Tuple<CsvMappingResult<BankTransaction>, List<BankTransaction>> duplicate)
+    {
+        ParsedRecords.Remove(duplicate.Item1);
+        Duplicates.Remove(duplicate);
+        UpdateCountValues();
     }
 
     /// <summary>
     /// Uses data from <see cref="ParsedRecords"/> to store it in the database
     /// </summary>
     /// <remarks>
-    /// This method will call <see cref="ValidateData"/>
+    /// This method will call <see cref="ValidateDataAsync"/>
     /// </remarks>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult ImportData()
+    public async Task<ViewModelOperationResult> ImportDataAsync()
     {
         if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
         
-        ValidateData();
+        await ValidateDataAsync();
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             using (var transaction = dbContext.Database.BeginTransaction())

@@ -219,15 +219,16 @@
 {
     <div class="div-margin-top">
         <h5>Step 4: Validate and Import Data</h5>
-        <button class="btn btn-sm btn-primary header-action-button" @onclick=ValidateData>Validate Data</button>
+        <button class="btn btn-sm btn-primary header-action-button" @onclick=ValidateDataAsync>Validate Data</button>
         @if (_dataContext.ValidRecords > 0)
         {
-            <button class="btn btn-sm btn-primary header-action-button" @onclick=ImportData>Import Data</button>
+            <button class="btn btn-sm btn-primary header-action-button" @onclick=ImportDataAsync>Import Data</button>
         }
         <div>
             <span>Total Records: @_dataContext.TotalRecords</span><br/>
             <span>Valid Records: @_dataContext.ValidRecords</span><br/>
-            <span>Records with errors: @_dataContext.RecordsWithErrors</span>
+            <span>Records with errors: @_dataContext.RecordsWithErrors</span><br/>
+            <span>Potential Duplicates: @_dataContext.PotentialDuplicates</span><br/>
             @if (_validationErrorMessage != string.Empty)
             {
                 <span style="color: red">Error message: @_validationErrorMessage</span>
@@ -288,6 +289,48 @@
                 }
             </table>
 		</div>
+    }
+    
+    @if (_dataContext.Duplicates.Any())
+    {
+        <div class="div-margin-top">
+            <h5>Potential Duplicates:</h5>
+            <table class="table table-sm table-hover">
+                <thead>
+                <tr class="header-row">
+                    <th style="text-align: right; width:100px">Date</th>
+                    <th style="width:150px">Account</th>
+                    <th style="width:250px">Payee</th>
+                    <th>Memo</th>
+                    <th style="text-align: right; width: 90px">Amount</th>
+                    <th style="width: 90px"></th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach (var duplicate in _dataContext.Duplicates)
+                {
+                    <tr>
+                        <td class="col-numbers">@duplicate.Item1.Result.TransactionDate.ToShortDateString()</td>
+                        <td>@_dataContext.SelectedAccount.Name</td>
+                        <td>@duplicate.Item1.Result.Payee</td>
+                        <td>@duplicate.Item1.Result.Memo</td>
+                        <td class="col-numbers">@duplicate.Item1.Result.Amount</td>
+                        <td class="col-buttons"><button class="btn btn-sm btn-danger" @onclick="() => _dataContext.ExcludeDuplicateRecord(duplicate)">Exclude</button></td>
+                    </tr>
+                    foreach (var bankTransaction in duplicate.Item2)
+                    {
+                        <tr class="table-warning">
+                            <td class="col-numbers">@bankTransaction.TransactionDate.ToShortDateString()</td>
+                            <td>@_dataContext.SelectedAccount.Name</td>
+                            <td>@bankTransaction.Payee</td>
+                            <td>@bankTransaction.Memo</td>
+                            <td class="col-numbers">@bankTransaction.Amount</td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
+        </div>
     }
 }
 
@@ -377,14 +420,14 @@
         _step2Enabled = true;
     }
 
-    void LoadProfile()
+    async Task LoadProfile()
     {
         // Workaround for setting the SelectedImportProfile as the first item is always selected but doesn't trigger OnChange
         if (_dataContext.SelectedImportProfile == null && _dataContext.AvailableImportProfiles.Count > 0)
         {
             _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.First();
         }
-        var result = _dataContext.LoadProfile();
+        var result = await _dataContext.LoadProfileAsync();
         if (result.IsSuccessful)
         {
             _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId != 0;
@@ -422,17 +465,16 @@
         if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.AmountColumnName) || 
             _dataContext.SelectedImportProfile.AmountColumnName == _placeholderItemValue) return;
         _step4Enabled = true;
-        ValidateData();
     }
 
-    void ValidateData()
+    async Task ValidateDataAsync()
     {
-        _validationErrorMessage = _dataContext.ValidateData().Message;
+        _validationErrorMessage = (await _dataContext.ValidateDataAsync()).Message;
     }
 
-    void ImportData()
+    async Task ImportDataAsync()
     {
-        var result = _dataContext.ImportData();
+        var result = await _dataContext.ImportDataAsync();
         _importConfirmationMessage = result.Message;
         _isConfirmationModalDialogVisible = true;
     }
@@ -449,13 +491,13 @@
         HandleResult((_dataContext.LoadData()));
     }
 
-    void ImportProfile_SelectionChanged(ChangeEventArgs e)
+    async void ImportProfile_SelectionChanged(ChangeEventArgs e)
     {
         _step3Enabled = false;
         _step4Enabled = false;
         var value = Convert.ToInt32(e.Value);
         _dataContext.SelectedImportProfile = value == _placeholderItemId ? new ImportProfile() : _dataContext.AvailableImportProfiles.First(i => i.ImportProfileId == value);
-        if (_dataContext.SelectedImportProfile != null) LoadProfile();
+        if (_dataContext.SelectedImportProfile != null) await LoadProfile();
     }
 
     void TargetAccount_SelectionChanged(ChangeEventArgs e)
