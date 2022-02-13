@@ -446,6 +446,7 @@ public class ImportDataViewModel : ViewModelBase
             var parsedResults = csvParser.ReadFromString(csvReaderOptions, stringBuilder.ToString()).ToList();
 
             ParsedRecords.Clear();
+            Duplicates.Clear();
             foreach (var parsedResult in parsedResults)
             {
                 ParsedRecords.Add(parsedResult);
@@ -526,7 +527,7 @@ public class ImportDataViewModel : ViewModelBase
     {
         if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
         
-        await ValidateDataAsync();
+        //await ValidateDataAsync();
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             using (var transaction = dbContext.Database.BeginTransaction())
