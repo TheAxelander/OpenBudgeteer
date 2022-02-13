@@ -92,11 +92,4 @@ public class ImportProfile : BaseObject
         get => _creditColumnName;
         set => Set(ref _creditColumnName, value);
     }
-
-    private bool _hasPositiveCreditColumnValues;
-    public bool HasPositiveCreditColumnValues
-    {
-        get => _hasPositiveCreditColumnValues;
-        set => Set(ref _hasPositiveCreditColumnValues, value);
-    }
 }

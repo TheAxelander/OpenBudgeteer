@@ -14,23 +14,12 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                 type: "longtext",
                 nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.AddColumn<bool>(
-                name: "HasPositiveCreditColumnValues",
-                table: "ImportProfile",
-                type: "tinyint(1)",
-                nullable: false,
-                defaultValue: false);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
                 name: "CreditColumnName",
-                table: "ImportProfile");
-
-            migrationBuilder.DropColumn(
-                name: "HasPositiveCreditColumnValues",
                 table: "ImportProfile");
 
             migrationBuilder.AlterColumn<string>(

@@ -222,9 +222,6 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<char>("Delimiter")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("HasPositiveCreditColumnValues")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("HeaderRow")
                         .HasColumnType("INTEGER");
 

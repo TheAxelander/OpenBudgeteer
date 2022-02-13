@@ -227,9 +227,6 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .IsRequired()
                         .HasColumnType("varchar(1)");
 
-                    b.Property<bool>("HasPositiveCreditColumnValues")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<int>("HeaderRow")
                         .HasColumnType("int");
 
