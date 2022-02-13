@@ -457,6 +457,7 @@ public class BucketViewModelItem : ViewModelBase
     /// Updates a record in the database based on <see cref="Bucket"/> object to set it as inactive. In case there
     /// are no <see cref="BankTransaction"/> nor <see cref="BucketMovement"/> assigned to it, it will be deleted
     /// completely from the database (including <see cref="BucketVersion"/>)
+    /// In case of a full deletion all <see cref="BucketRuleSet"/> will be also deleted.
     /// </summary>
     /// <remarks>Bucket will be set to inactive for the next month</remarks>
     /// <remarks>Triggers <see cref="ViewModelReloadRequired"/></remarks>
@@ -487,10 +488,13 @@ public class BucketViewModelItem : ViewModelBase
                     else
                     {
                         // Bucket has no transactions & movements, so it can be directly deleted from the database
+                        // Delete Bucket
                         if (dbContext.DeleteBucket(Bucket) == 0) 
                             throw new Exception($"Unable to delete Bucket.{Environment.NewLine}" +
                                                 $"{Environment.NewLine}" +
                                                 $"Bucket ID: {Bucket.BucketId}{Environment.NewLine}");
+                        
+                        // Delete all BucketVersion which refer to this Bucket
                         var bucketVersions = dbContext.BucketVersion
                             .Where(i => i.BucketId == Bucket.BucketId)
                             .ToList();
@@ -501,6 +505,18 @@ public class BucketViewModelItem : ViewModelBase
                                                     $"{Environment.NewLine}" +
                                                     $"Bucket Version ID: {bucketVersion.BucketVersionId}{Environment.NewLine}" +
                                                     $"Bucket Version: {bucketVersion.Version}");
+                        }
+                        
+                        // Delete all BucketRuleSet which refer to this Bucket
+                        var bucketRuleSets = dbContext.BucketRuleSet
+                            .Where(i => i.TargetBucketId == Bucket.BucketId)
+                            .ToList();
+                        foreach (var bucketRuleSet in bucketRuleSets)
+                        {
+                            if (dbContext.DeleteBucketRuleSet(bucketRuleSet) == 0)
+                                throw new Exception($"Unable to delete a Bucket Rule.{Environment.NewLine}" +
+                                                    $"{Environment.NewLine}" +
+                                                    $"Bucket Rule ID: {bucketRuleSet.BucketRuleSetId}{Environment.NewLine}");
                         }
                     }
                     transaction.Commit();
