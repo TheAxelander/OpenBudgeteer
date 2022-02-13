@@ -519,15 +519,11 @@ public class ImportDataViewModel : ViewModelBase
     /// <summary>
     /// Uses data from <see cref="ParsedRecords"/> to store it in the database
     /// </summary>
-    /// <remarks>
-    /// This method will call <see cref="ValidateDataAsync"/>
-    /// </remarks>
     /// <returns>Object which contains information and results of this method</returns>
     public async Task<ViewModelOperationResult> ImportDataAsync()
     {
         if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
         
-        //await ValidateDataAsync();
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             using (var transaction = dbContext.Database.BeginTransaction())
