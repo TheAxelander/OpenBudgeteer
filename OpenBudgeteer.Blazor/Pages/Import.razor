@@ -177,7 +177,7 @@
                 </select>
             </div>
             <div class="col">
-                <label>Amount:</label>
+                <label>Amount / Debit:</label>
                 <select class="form-control form-control-sm" @onchange=@AmountColumn_SelectionChanged>
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
@@ -192,6 +192,24 @@
                         }
                     }
                 </select>
+            </div>
+            <div class="col">
+                <label>Credit (optional):</label>
+                <select class="form-control form-control-sm" @onchange=@CreditColumn_SelectionChanged>
+                    <option value="@_placeholderItemValue">---Select Column---</option>
+                    @foreach (var column in _dataContext.IdentifiedColumns)
+                    {
+                        if (column == _dataContext.SelectedImportProfile.CreditColumnName)
+                        {
+                            <option selected value="@column">@column</option>
+                        }
+                        else
+                        {
+                            <option value="@column">@column</option>
+                        }
+                    }
+                </select>
+                <p><small>Only required if Debit and Credit values are in separate columns</small></p>
             </div>
         </div>
     </div>
@@ -472,6 +490,13 @@
     {
         var value = Convert.ToString(e.Value);
         _dataContext.SelectedImportProfile.AmountColumnName = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
+        CheckColumnMapping();
+    }
+
+    void CreditColumn_SelectionChanged(ChangeEventArgs e)
+    {
+        var value = Convert.ToString(e.Value);
+        _dataContext.SelectedImportProfile.CreditColumnName = value == _placeholderItemValue ? null : _dataContext.IdentifiedColumns.First(i => i == value);
         CheckColumnMapping();
     }
 

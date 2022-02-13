@@ -14,6 +14,7 @@ using TinyCsvParser;
 using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
 using TinyCsvParser.TypeConverter;
+using System.Linq.Expressions;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
@@ -32,15 +33,68 @@ public class ImportDataViewModel : ViewModelBase
         /// <param name="identifiedColumns">Collection of all CSV columns</param>
         public CsvBankTransactionMapping(ImportProfile importProfile, IEnumerable<string> identifiedColumns) : base()
         {
-            // TODO Add User Input for CultureInfo for Amount & TransactionDate conversion
-
-            MapProperty(identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName), x => x.Amount, new DecimalConverter(new CultureInfo(importProfile.NumberFormat)));
-            MapProperty(identifiedColumns.ToList().IndexOf(importProfile.MemoColumnName), x => x.Memo);
+            // Mandatory
+            MapProperty(
+                identifiedColumns.ToList().IndexOf(importProfile.MemoColumnName),
+                x => x.Memo);
+            MapProperty(
+                identifiedColumns.ToList().IndexOf(importProfile.TransactionDateColumnName),
+                x => x.TransactionDate, 
+                new DateTimeConverter(importProfile.DateFormat));
+            
+            // Optional
             if (!string.IsNullOrEmpty(importProfile.PayeeColumnName))
             {
-                MapProperty(identifiedColumns.ToList().IndexOf(importProfile.PayeeColumnName), x => x.Payee);
+                MapProperty(
+                    identifiedColumns.ToList().IndexOf(importProfile.PayeeColumnName), 
+                    x => x.Payee);
             }
-            MapProperty(identifiedColumns.ToList().IndexOf(importProfile.TransactionDateColumnName), x => x.TransactionDate, new DateTimeConverter(importProfile.DateFormat));
+
+            // Amount Mapping
+            if (!string.IsNullOrEmpty(importProfile.CreditColumnName))
+            {
+                MapUsing(((transaction, row) =>
+                {
+                    var debitValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
+                    var creditValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnName)];
+
+                    if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue))
+                    {
+                        return false;
+                    }
+
+                    Decimal result;
+                    var converter = new DecimalConverter(new CultureInfo(importProfile.NumberFormat));
+
+                    if (string.IsNullOrWhiteSpace(debitValue))
+                    {
+                        var converterResult = converter.TryConvert(creditValue, out result);
+                        if (converterResult)
+                        {
+                            transaction.Amount = result > 0 ? result * -1 : result;
+                        }
+
+                        return converterResult;
+                    }
+                    else
+                    {
+                        var converterResult = converter.TryConvert(debitValue, out result);
+                        if (converterResult)
+                        {
+                            transaction.Amount = result;
+                        }
+                        
+                        return converterResult;
+                    }
+                }));
+            }
+            else
+            {
+                MapProperty(
+                    identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName),
+                    x => x.Amount,
+                    new DecimalConverter(new CultureInfo(importProfile.NumberFormat)));
+            }
         }
     }
 

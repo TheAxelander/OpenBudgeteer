@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Common.Database;
 
+#nullable disable
+
 namespace OpenBudgeteer.Core.Migrations.Sqlite
 {
     [DbContext(typeof(SqliteDatabaseContext))]
@@ -13,8 +15,7 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.8");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.Account", b =>
                 {
@@ -212,11 +213,17 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<string>("AmountColumnName")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("CreditColumnName")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DateFormat")
                         .HasColumnType("TEXT");
 
                     b.Property<char>("Delimiter")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("HasPositiveCreditColumnValues")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("HeaderRow")
                         .HasColumnType("INTEGER");
