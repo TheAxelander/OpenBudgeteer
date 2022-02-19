@@ -1,4 +1,4 @@
-### 1.5 (20xx-xx-xx)
+### 1.5 (2022-02-19)
 
 * [Add] Option to set Localization [#52](https://github.com/TheAxelander/OpenBudgeteer/issues/52)
 * [Add] Enable mapping of seperated columns for Debit and Credit Amount on Import Page [#53](https://github.com/TheAxelander/OpenBudgeteer/issues/53)
