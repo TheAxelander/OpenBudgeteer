@@ -1,0 +1,15 @@
+﻿'Account:','DE0123456789 / My Bank Account',
+
+'This file contains the following details:',
+'Valid Records:','4',
+'Invalid Records:','0',
+'Delimiter:',',',
+'Text Qualifier:',''',
+'Date Format:','yyyy-MM-dd',
+'Number Format:','en-US',
+
+'Accounting Date','Date','Type','Payee','Memo','IBAN','Amount (USD)',
+'2022-02-14','2022-02-14','Online Payment','Lorem ipsum','dolor sit amet','DE987654321','-2.95',
+'2022-02-15','2022-02-15','Credit Card','Foobar Company','','DE987654321','-27.50',
+'2022-02-16','2022-02-16','Bank Transfer','EMPLOYER','Income Feb/2022','DE987654321','43.00',
+'2022-02-17','2022-02-17','Bank Transfer','The Webshop.com','Billing','DE987654321','-6.34',

@@ -1,3 +1,12 @@
+### 1.5 (2022-02-19)
+
+* [Add] Option to set Localization [#52](https://github.com/TheAxelander/OpenBudgeteer/issues/52)
+* [Add] Enable mapping of seperated columns for Debit and Credit Amount on Import Page [#53](https://github.com/TheAxelander/OpenBudgeteer/issues/53)
+* [Add] Duplicate Check before importing data with an option to exclude certain records [#49](https://github.com/TheAxelander/OpenBudgeteer/issues/49)
+* [Fixed] Moved Sqlite database path back to `/app/database` [#63](https://github.com/TheAxelander/OpenBudgeteer/issues/63)
+* [Fixed] Crash on Rules Page in case a Bucket has been deleted with an existing RuleSet [#65](https://github.com/TheAxelander/OpenBudgeteer/issues/65)
+* [Fixed] Include Transactions which are in modification in all filters to prevent immediate disappearance [#67](https://github.com/TheAxelander/OpenBudgeteer/issues/67)
+
 ### 1.4.1 (2021-11-28)
 
 * [Changed] Handling of Bucket Group creation (fixes also crashes during creation cancellation [#56](https://github.com/TheAxelander/OpenBudgeteer/issues/56))

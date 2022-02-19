@@ -8,7 +8,7 @@ public class SqliteDatabaseContextFactory : IDesignTimeDbContextFactory<SqliteDa
     public SqliteDatabaseContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>();
-        optionsBuilder.UseSqlite("Data Source=openbudgeteer.db");
+        optionsBuilder.UseSqlite("Data Source=database/openbudgeteer.db");
 
         return new SqliteDatabaseContext(optionsBuilder.Options);
     }

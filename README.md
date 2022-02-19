@@ -22,6 +22,22 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ![Screenshot 1](assets/screenshot1.png)
 
+--------------------
+
+## Table of contents
+
+- [Installation (Docker)](#installation-docker)
+  - [Pre-release Version (Docker)](#pre-release-version-docker) 
+  - [Docker-Compose](#docker-compose)
+- [Build on Linux and Deploy on nginx](#build-on-linux-and-deploy-on-nginx)
+- [Additional Settings](#additional-settings)
+- [How to use](#how-to-use)
+  - [Create Bank Account](#create-bank-account)
+  - [Import Transactions](#import-transactions)
+  - [Create Buckets](#create-buckets)
+  - [Bucket Assignment](#bucket-assignment)
+  - [Bucket History](#bucket-history)
+
 ## Installation (Docker)
 
 You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing the following variables:
@@ -76,7 +92,7 @@ docker run -d --name='openbudgeteer' \
 
 ### Docker-Compose
 
-Below an example how to deploy OpenBudgeteer together with MySql Server and phpMyAdmin for administration. Please note that user and database `openbudgeteer` need to be availabe, otherwise the container `openbudgeteer` will not work.
+Below an example how to deploy OpenBudgeteer together with MySql Server and phpMyAdmin for administration. Please note that user and database `openbudgeteer` need to be available, otherwise the container `openbudgeteer` will not work.
 
 So what you can do this is running below Docker Compose, create user and database using phpMyAdmin and then restart either container `openbudgeteer` or the whole Docker Compose.
 
@@ -101,6 +117,7 @@ services:
       - Connection:Database=openbudgeteer
       - Connection:User=openbudgeteer
       - Connection:Password=openbudgeteer
+      - AppSettings:Culture=en-US
     depends_on:
       - mysql
     networks:
@@ -132,6 +149,100 @@ volumes:
   data:
 ```
 
+## Build on Linux and Deploy on nginx
+
+Install .NET SDK 6 for your respective Linux distribution. See [here](https://docs.microsoft.com/en-us/dotnet/core/install/linux) for more details. Below example is for Debian 11
+
+```bash
+wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+
+sudo apt-get update; \
+  sudo apt-get install -y apt-transport-https && \
+  sudo apt-get update && \
+  sudo apt-get install -y dotnet-sdk-6.0 
+```
+
+Install nginx
+
+```bash
+sudo apt install nginx
+
+sudo systemctl start nginx 
+```
+
+Clone git Repository and Build project
+
+```bash
+git clone https://github.com/TheAxelander/OpenBudgeteer.git
+cd OpenBudgeteer/OpenBudgeteer.Blazor
+
+dotnet publish -c Release --self-contained -r linux-x64
+```
+
+Modify `appsettings.json` and enter credentials for a running MySql Server or use Sqlite
+
+```bash
+cd bin/Release/net6.0/linux-x64/publish
+
+nano appsettings.json
+```
+
+For MySQL:
+
+```json
+{
+  "Connection": {
+    "Provider" :  "mysql", 
+    "Database": "openbudgeteer",
+    "Server": "192.168.178.100",
+    "Port": "3306", 
+    "User": "openbudgeteer",
+    "Password": "openbudgeteer"
+  }, 
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*"
+}
+```
+
+For Sqlite:
+
+```json
+{
+  "Connection": {
+    "Provider" :  "sqlite", 
+  }, 
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*"
+}
+```
+
+Start server running on port 5000
+
+```bash
+./OpenBudgeteer --urls http://0.0.0.0:5000
+```
+
+## Additional Settings
+
+| Variable            | Description                                                                                                | Default                 |
+|---------------------|------------------------------------------------------------------------------------------------------------|-------------------------|
+| AppSettings:Culture | Localization identifier to set things like Currency, Date and Number Format. Must be a BCP 47 language tag | en-US                   |
+
+
 ## How to use
 
 ### Create Bank Account
@@ -162,17 +273,17 @@ If you are happy with your setup, put some money into your Buckets. You can do i
 
 ### Bucket Assignment
 
-In the final step you assign your Transactions to certain Buckets. Go back to the `Transaction Page`, edit a Transaction and select an appropiate Bucket. You can also do a mass edit. If a Transaction belongs to more than one Bucket just reduce the assigned amount and you get automatically the option to assign the remaining amount to anthoer Bucket.
+In the final step you assign your Transactions to certain Buckets. Go back to the `Transaction Page`, edit a Transaction and select an appropriate Bucket. You can also do a mass edit. If a Transaction belongs to more than one Bucket just reduce the assigned amount and you get automatically the option to assign the remaining amount to another Bucket.
 
 ![Screenshot 5](assets/screenshot5.png)
 
-Transactions which represent your (monthly) income can be assigned to the pre-defined `Income` Bucket. If you have transffered money from one Account to another you can use the `Transfer` Bucket. Please ensure that all `Transfer` Transaction have in total a 0 Balance to prevent data inconsistency and wrong calculations.
+Transactions which represent your (monthly) income can be assigned to the pre-defined `Income` Bucket. If you have transferred money from one Account to another you can use the `Transfer` Bucket. Please ensure that all `Transfer` Transaction have in total a 0 Balance to prevent data inconsistency and wrong calculations.
 
 Once all Transactions are assigned properly you can go back to the Bucket Overview to see if your Budget management is still fine or if you need to do some movements. You should always ensure that your Buckets don't have a negative Balance. Also your `Remaining Budget` should never be negative.
 
-### Bucket Histroy
+### Bucket History
 
-OpenBudgeteer has a built-in versioning for Buckets which enables a proper histroy view on previous months. If you modify a Bucket, like changing the Type or the Target Amount, it will create a new version for the current selected month. It is not recommended to change a Bucket in the past, a change between two Bucket Version is prevented.
+OpenBudgeteer has a built-in versioning for Buckets which enables a proper history view on previous months. If you modify a Bucket, like changing the Type or the Target Amount, it will create a new version for the current selected month. It is not recommended to change a Bucket in the past, a change between two Bucket Version is prevented.
 
 If you close a Bucket it will be marked as `Inactive` for the next month. This can be only done if the Bucket Balance is 0 to prevent wrong calculations.
 

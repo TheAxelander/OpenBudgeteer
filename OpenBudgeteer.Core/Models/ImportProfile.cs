@@ -85,4 +85,11 @@ public class ImportProfile : BaseObject
         get => _amountColumnName;
         set => Set(ref _amountColumnName, value);
     }
+
+    private string _creditColumnName;
+    public string CreditColumnName
+    {
+        get => _creditColumnName;
+        set => Set(ref _creditColumnName, value);
+    }
 }

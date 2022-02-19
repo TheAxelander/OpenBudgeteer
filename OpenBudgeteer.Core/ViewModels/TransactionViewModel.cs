@@ -96,10 +96,14 @@ public class TransactionViewModel : ViewModelBase
             {
                 case TransactionViewModelFilter.HideMapped:
                     return new ObservableCollection<TransactionViewModelItem>(
-                        _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0));
+                        _transactions.Where(i => 
+                            i.Buckets.First().SelectedBucket.BucketId == 0 ||
+                            i.InModification));
                 case TransactionViewModelFilter.OnlyMapped:
                     return new ObservableCollection<TransactionViewModelItem>(
-                        _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId > 0));
+                        _transactions.Where(i => 
+                            i.Buckets.First().SelectedBucket.BucketId > 0 ||
+                            i.InModification));
                 case TransactionViewModelFilter.InModification:
                     return new ObservableCollection<TransactionViewModelItem>(
                         _transactions.Where(i => i.InModification));

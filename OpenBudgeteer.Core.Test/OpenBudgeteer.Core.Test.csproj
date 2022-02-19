@@ -10,7 +10,29 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
+      <None Remove="Resources\TestImportFile1.txt" />
+      <None Remove="Resources\TestImportFile2.txt" />
+      <None Remove="Resources\TestImportFile3.txt" />
+      <None Remove="Resources\TestImportFile4.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Resources\TestImportFile4.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Resources\TestImportFile3.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Resources\TestImportFile2.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Resources\TestImportFile1.txt">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.2" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
       <PackageReference Include="xunit" Version="2.4.1" />
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
