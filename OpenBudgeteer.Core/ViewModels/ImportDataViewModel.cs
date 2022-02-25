@@ -53,7 +53,7 @@ public class ImportDataViewModel : ViewModelBase
             // Amount Mapping
             if (!string.IsNullOrEmpty(importProfile.CreditColumnName))
             {
-                MapUsing(((transaction, row) =>
+                MapUsing((transaction, row) =>
                 {
                     var debitValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
                     var creditValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnName)];
@@ -62,31 +62,22 @@ public class ImportDataViewModel : ViewModelBase
                     {
                         return false;
                     }
-
-                    Decimal result;
-                    var converter = new DecimalConverter(new CultureInfo(importProfile.NumberFormat));
-
+                    
                     if (string.IsNullOrWhiteSpace(debitValue))
                     {
-                        var converterResult = converter.TryConvert(creditValue, out result);
-                        if (converterResult)
-                        {
-                            transaction.Amount = result > 0 ? result * -1 : result;
-                        }
+                        decimal.TryParse(creditValue, NumberStyles.Currency, CultureInfo.GetCultureInfo(importProfile.NumberFormat), out var result);
+                        transaction.Amount = result > 0 ? result * -1 : result;
 
-                        return converterResult;
+                        return true;
                     }
                     else
                     {
-                        var converterResult = converter.TryConvert(debitValue, out result);
-                        if (converterResult)
-                        {
-                            transaction.Amount = result;
-                        }
+                        decimal.TryParse(debitValue, NumberStyles.Currency, CultureInfo.GetCultureInfo(importProfile.NumberFormat), out var result);
+                        transaction.Amount = result;
                         
-                        return converterResult;
+                        return true;
                     }
-                }));
+                });
             }
             else
             {
