@@ -346,6 +346,7 @@ public class ImportDataViewModelTest
 
                 // Check Record 4
                 // Credit Column value is positive in file and should be negative after import
+                // Debit Column value is 0,00 and should be skipped
                 checkRecord = viewModel.ParsedRecords[3].Result;
                 Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
                 Assert.Equal("The Webshop.com", checkRecord.Payee);
