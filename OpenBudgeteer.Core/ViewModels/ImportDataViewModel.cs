@@ -58,31 +58,28 @@ public class ImportDataViewModel : ViewModelBase
                     var debitValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
                     var creditValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnName)];
 
-                    if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue))
-                    {
-                        return false;
-                    }
+                    if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue)) return false;
                     
-                    if (string.IsNullOrWhiteSpace(debitValue))
-                    {
-                        decimal.TryParse(creditValue, 
-                            NumberStyles.Currency, 
-                            CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
-                            out var result);
-                        transaction.Amount = result > 0 ? result * -1 : result;
+                    decimal.TryParse(debitValue, 
+                        NumberStyles.Currency, 
+                        CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
+                        out var parsedDebitValue);
+                    
+                    decimal.TryParse(creditValue, 
+                        NumberStyles.Currency, 
+                        CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
+                        out var parsedCreditValue);
 
-                        return true;
+                    if (parsedDebitValue > 0)
+                    {
+                        transaction.Amount = parsedDebitValue;
                     }
                     else
                     {
-                        decimal.TryParse(debitValue, 
-                            NumberStyles.Currency, 
-                            CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
-                            out var result);
-                        transaction.Amount = result;
-                        
-                        return true;
+                        transaction.Amount = parsedCreditValue > 0 ? parsedCreditValue * -1 : parsedCreditValue;
                     }
+
+                    return true;
                 });
             }
             else
