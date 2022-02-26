@@ -53,47 +53,41 @@ public class ImportDataViewModel : ViewModelBase
             // Amount Mapping
             if (!string.IsNullOrEmpty(importProfile.CreditColumnName))
             {
-                MapUsing(((transaction, row) =>
+                MapUsing((transaction, row) =>
                 {
                     var debitValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
                     var creditValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnName)];
 
-                    if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue))
+                    if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue)) return false;
+                    
+                    decimal.TryParse(debitValue, 
+                        NumberStyles.Currency, 
+                        CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
+                        out var parsedDebitValue);
+                    
+                    decimal.TryParse(creditValue, 
+                        NumberStyles.Currency, 
+                        CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
+                        out var parsedCreditValue);
+
+                    if (parsedDebitValue > 0)
                     {
-                        return false;
-                    }
-
-                    Decimal result;
-                    var converter = new DecimalConverter(new CultureInfo(importProfile.NumberFormat));
-
-                    if (string.IsNullOrWhiteSpace(debitValue))
-                    {
-                        var converterResult = converter.TryConvert(creditValue, out result);
-                        if (converterResult)
-                        {
-                            transaction.Amount = result > 0 ? result * -1 : result;
-                        }
-
-                        return converterResult;
+                        transaction.Amount = parsedDebitValue;
                     }
                     else
                     {
-                        var converterResult = converter.TryConvert(debitValue, out result);
-                        if (converterResult)
-                        {
-                            transaction.Amount = result;
-                        }
-                        
-                        return converterResult;
+                        transaction.Amount = parsedCreditValue > 0 ? parsedCreditValue * -1 : parsedCreditValue;
                     }
-                }));
+
+                    return true;
+                });
             }
             else
             {
                 MapProperty(
                     identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName),
                     x => x.Amount,
-                    new DecimalConverter(new CultureInfo(importProfile.NumberFormat)));
+                    new DecimalConverter(new CultureInfo(importProfile.NumberFormat), NumberStyles.Currency));
             }
         }
     }
