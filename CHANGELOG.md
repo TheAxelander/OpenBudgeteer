@@ -1,3 +1,7 @@
+### 1.5.1 (2022-02-26)
+
+* [Fixed] Amount conversion with currency characters. [#82](https://github.com/TheAxelander/OpenBudgeteer/issues/82) [#83](https://github.com/TheAxelander/OpenBudgeteer/pull/83) Thanks @Hazy87 
+
 ### 1.5 (2022-02-19)
 
 * [Add] Option to set Localization [#52](https://github.com/TheAxelander/OpenBudgeteer/issues/52)
