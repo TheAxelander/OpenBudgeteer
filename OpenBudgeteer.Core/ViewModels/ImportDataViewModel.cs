@@ -65,14 +65,20 @@ public class ImportDataViewModel : ViewModelBase
                     
                     if (string.IsNullOrWhiteSpace(debitValue))
                     {
-                        decimal.TryParse(creditValue, NumberStyles.Currency, CultureInfo.GetCultureInfo(importProfile.NumberFormat), out var result);
+                        decimal.TryParse(creditValue, 
+                            NumberStyles.Currency, 
+                            CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
+                            out var result);
                         transaction.Amount = result > 0 ? result * -1 : result;
 
                         return true;
                     }
                     else
                     {
-                        decimal.TryParse(debitValue, NumberStyles.Currency, CultureInfo.GetCultureInfo(importProfile.NumberFormat), out var result);
+                        decimal.TryParse(debitValue, 
+                            NumberStyles.Currency, 
+                            CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
+                            out var result);
                         transaction.Amount = result;
                         
                         return true;
@@ -84,7 +90,7 @@ public class ImportDataViewModel : ViewModelBase
                 MapProperty(
                     identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName),
                     x => x.Amount,
-                    new DecimalConverter(new CultureInfo(importProfile.NumberFormat)));
+                    new DecimalConverter(new CultureInfo(importProfile.NumberFormat), NumberStyles.Currency));
             }
         }
     }
