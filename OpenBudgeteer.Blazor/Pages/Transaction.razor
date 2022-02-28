@@ -26,7 +26,7 @@
         }
     </div>
     <div class="col-md-auto">
-        <select class="form-control form-control-sm" style="width: auto" @onchange="@Filter_SelectionChanged">
+        <select class="form-select form-select-sm" style="width: auto" @onchange="@Filter_SelectionChanged">
             @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
             {
                 if (filter == _dataContext.CurrentFilter)
@@ -65,7 +65,7 @@
                 </td>
                 <td>
 
-                    <select class="form-control form-control-sm" @onchange=@(e => _dataContext.NewTransaction.SelectedAccount = _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
+                    <select class="form-select form-select-sm" @onchange=@(e => _dataContext.NewTransaction.SelectedAccount = _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
                         @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
                         {
                             if (account.AccountId == _dataContext.NewTransaction.SelectedAccount.AccountId)
@@ -84,29 +84,31 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewTransaction.Transaction.Amount" /></td>
                 <td>
                     <table class="table" style="margin-bottom: auto">
-                        @foreach (var bucket in _dataContext.NewTransaction.Buckets)
-                        {
-                            <tr>
-                                <td>
-                                    <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
-                                            @onchange=@((e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
-                                        @foreach (var availableBucket in bucket.AvailableBuckets)
-                                        {
-                                            if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
+                        <tbody>
+                            @foreach (var bucket in _dataContext.NewTransaction.Buckets)
+                            {
+                                <tr>
+                                    <td>
+                                        <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
+                                                @onchange=@((e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
+                                            @foreach (var availableBucket in bucket.AvailableBuckets)
                                             {
-                                                <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                                if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
+                                                {
+                                                    <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                                }
+                                                else
+                                                {
+                                                    <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                                }
                                             }
-                                            else
-                                            {
-                                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                                            }
-                                        }
-                                    </select>
-                                </td>
-                                <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
-                                <td><button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => bucket.DeleteBucket())"></button></td>
-                            </tr>
-                        }
+                                        </select>
+                                    </td>
+                                    <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
+                                    <td><button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => bucket.DeleteBucket())"></button></td>
+                                </tr>
+                            }
+                        </tbody>
                     </table>
                 </td>
                 <td class="col-buttons">
@@ -140,7 +142,7 @@
                     <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.TransactionDate" />
                 </td>
                 <td>
-                    <select class="form-control form-control-sm" @onchange=@(e => transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
+                    <select class="form-select form-select-sm" @onchange=@(e => transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
                         @foreach (var account in transaction.AvailableAccounts)
                         {
                             if (account.AccountId == transaction.SelectedAccount.AccountId)
@@ -159,29 +161,31 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.Amount" /></td>
                 <td>
                     <table class="table table-borderless" style="margin-bottom: auto;">
-                        @foreach (var bucket in transaction.Buckets)
-                        {
-                            <tr>
-                                <td>
-                                    <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
-                                            @onchange=@((e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
-                                        @foreach (var availableBucket in bucket.AvailableBuckets)
-                                        {
-                                            if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
+                        <tbody>
+                            @foreach (var bucket in transaction.Buckets)
+                            {
+                                <tr>
+                                    <td>
+                                        <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
+                                                @onchange=@((e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
+                                            @foreach (var availableBucket in bucket.AvailableBuckets)
                                             {
-                                                <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                                if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
+                                                {
+                                                    <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                                }
+                                                else
+                                                {
+                                                    <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
+                                                }
                                             }
-                                            else
-                                            {
-                                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                                            }
-                                        }
-                                    </select>
-                                </td>
-                                <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
-                                <td><button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => bucket.DeleteBucket())"></button></td>
-                            </tr>
-                        }
+                                        </select>
+                                    </td>
+                                    <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
+                                    <td><button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => bucket.DeleteBucket())"></button></td>
+                                </tr>
+                            }
+                        </tbody>
                     </table>
                 </td>
                 <td class="col-buttons">

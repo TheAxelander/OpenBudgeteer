@@ -7,17 +7,17 @@
              <div class="modal-content">
                  <div class="modal-header">
                      <h4 class="modal-title">@Title</h4>
-                     <button type="button" class="close" data-dismiss="modal" @onclick="OnCancelClickCallback">&times;</button>
+                     <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCancelClickCallback"></button>
                  </div>
                  <div class="modal-body">
-                     <div class="form-group">
-                         <label>Name:</label>
+                     <div class="mb-3">
+                         <label class="form-label">Name:</label>
                          <input class="form-control form-control-sm" type="text" @bind="DataContext.Bucket.Name"/>
                      </div>
-                     <div class="row">
-                         <div class="col form-group">
-                             <label>Bucket Type:</label>
-                             <select class="form-control form-control-sm" @onchange=@(e => DataContext.BucketVersion.BucketType = Convert.ToInt32(e.Value))>
+                     <div class="row mb-3">
+                         <div class="col">
+                             <label class="form-label">Bucket Type:</label>
+                             <select class="form-select form-select-sm" @onchange=@(e => DataContext.BucketVersion.BucketType = Convert.ToInt32(e.Value))>
                                  @foreach (var bucketType in DataContext.AvailableBucketTypes)
                                  {
                                      var position = DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1;
@@ -32,9 +32,9 @@
                                  }
                              </select>
                          </div>
-						  <div class="col form-group">
-                             <label>Bucket Group:</label>
-                             <select class="form-control form-control-sm" @onchange=@(e => DataContext.Bucket.BucketGroupId = Convert.ToInt32(e.Value))>
+						  <div class="col">
+                             <label class="form-label">Bucket Group:</label>
+                             <select class="form-select form-select-sm" @onchange=@(e => DataContext.Bucket.BucketGroupId = Convert.ToInt32(e.Value))>
                                  @foreach (var bucketGroup in DataContext.AvailableBucketGroups)
                                  {
                                      if (bucketGroup.BucketGroupId == DataContext.Bucket.BucketGroupId)
@@ -49,24 +49,24 @@
                              </select>
                          </div>
                      </div>
-                     <div class="row">
-                         <div class="col form-group">
-                             <label>Number of months:</label>
+                     <div class="row mb-3">
+                         <div class="col">
+                             <label class="form-label">Number of months:</label>
                              <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeXParam"/>
                          </div>
-                         <div class="col form-group">
-                             <label>Amount:</label>
+                         <div class="col">
+                             <label class="form-label">Amount:</label>
                              <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeYParam"/>
                          </div>
                      </div>
-                     <div class="row">
-                         <div class="col form-group">
-                             <label>(First) Target Date:</label>
+                     <div class="row mb-3">
+                         <div class="col">
+                             <label class="form-label">(First) Target Date:</label>
                              <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeZParam" @bind:format="yyyy-MM-dd"/>
                          </div>
-                         <div class="col form-group">
-                             <label>Color:</label>
-                             <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
+                         <div class="col">
+                             <label class="form-label">Color:</label>
+                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
                                      @onchange=@(e => DataContext.Bucket.ColorCode = Convert.ToString(e.Value) ?? Color.LightGray.Name)>
                                  @foreach (var color in DataContext.AvailableColors)
                                  {
@@ -82,8 +82,8 @@
                              </select>
                          </div>
                      </div>
-                     <div class="form-group">
-                         <label>Notes:</label>
+                     <div>
+                         <label class="form-label">Notes:</label>
                          <textarea rows="5" style="width: 100%" @bind="DataContext.BucketVersion.Notes"></textarea>
                      </div>
                  </div>

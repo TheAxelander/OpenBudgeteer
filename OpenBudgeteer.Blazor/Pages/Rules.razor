@@ -10,16 +10,18 @@
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <div class="row">
-    @if (_massEditEnabled)
-    {
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllRules">Save all</button>
-        <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllRules">Cancel all</button>
-    }
-    else
-    {
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newMappingRuleSetIsEnabled = true)">Create Rule</button>
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllRules">Edit all</button>
-    }
+    <div class="col">
+        @if (_massEditEnabled)
+        {
+            <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllRules">Save all</button>
+            <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllRules">Cancel all</button>
+        }
+        else
+        {
+            <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newMappingRuleSetIsEnabled = true)">Create Rule</button>
+            <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllRules">Edit all</button>
+        }
+    </div>
 </div>
 
 @if (_newMappingRuleSetIsEnabled)
@@ -38,7 +40,7 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.RuleSet.Name" /></td>
                 <td>
-                    <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)"
+                    <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)"
                             @onchange=@(e => HandleTargetBucketSelectionChanged(_dataContext.NewRuleSet, Convert.ToInt32(e.Value)))>
                         @foreach (var availableBucket in _dataContext.NewRuleSet.AvailableBuckets)
                         {
@@ -58,7 +60,7 @@
                     {
                         <div class="row align-items-center" style="margin-bottom: 5px 0">
                             <div class="col-md-auto">
-                                <select class="form-control form-control-sm"
+                                <select class="form-select form-select-sm"
                                         @onchange=@(e => mappingRule.MappingRule.ComparisionField = Convert.ToInt32(e.Value))>
                                     @for (int i = 1; i <= 4; i++)
                                     {
@@ -74,7 +76,7 @@
                                 </select>
                             </div>
                             <div class="col-md-auto">
-                                <select class="form-control form-control-sm"
+                                <select class="form-select form-select-sm"
                                         @onchange=@(e => mappingRule.MappingRule.ComparisionType = Convert.ToInt32(e.Value))>
                                     @for (int i = 1; i <= 4; i++)
                                     {
@@ -126,7 +128,7 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.RuleSet.Name" /></td>
                 <td>
-                    <select class="form-control form-control-sm" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)"
+                    <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)"
                             @onchange=@(e => HandleTargetBucketSelectionChanged(ruleSet, Convert.ToInt32(e.Value)))>
                         @foreach (var availableBucket in ruleSet.AvailableBuckets)
                         {
@@ -148,7 +150,7 @@
                     {
                         <div class="row align-items-center" style="margin-bottom: 5px 0">
                             <div class="col-md-auto">
-                                <select class="form-control form-control-sm"
+                                <select class="form-select form-select-sm"
                                         @onchange=@(e => mappingRule.MappingRule.ComparisionField = Convert.ToInt32(e.Value))>
                                     @for (int i = 1; i <= 4; i++)
                                     {
@@ -164,7 +166,7 @@
                                 </select>
                             </div>
                             <div class="col-md-auto">
-                                <select class="form-control form-control-sm"
+                                <select class="form-select form-select-sm"
                                         @onchange=@(e => mappingRule.MappingRule.ComparisionType = Convert.ToInt32(e.Value))>
                                     @for (int i = 1; i <= 4; i++)
                                     {

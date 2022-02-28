@@ -53,3 +53,7 @@ html, body {
 .modal-dialog-scrollable {
     max-height: calc(100% - 3.5rem - 3.5rem); /* Additional 3.5rem for static footer  */
 }
+
+.navbar-brand {
+    display: inline-block; /* restore setting from bootstrap 4 */ 
+}

@@ -1,3 +1,7 @@
+### 1.6 (20xx-xx-xx)
+
+* [Changed] Updated Bootstrap to v5.1.3
+
 ### 1.5.1 (2022-02-26)
 
 * [Fixed] Amount conversion with currency characters. [#82](https://github.com/TheAxelander/OpenBudgeteer/issues/82) [#83](https://github.com/TheAxelander/OpenBudgeteer/pull/83) Thanks @Hazy87

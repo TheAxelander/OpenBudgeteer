@@ -36,6 +36,7 @@
     }
     .bucketgroup-header-text {
         font-size: 1rem;
+        font-weight: bold;
         vertical-align: middle;
     }
 	button.collapse-button {
@@ -181,11 +182,12 @@
 		<th class="col-buttons"></th>
     </tr>
     </thead>
+    <tbody><tr></tr></tbody>
 </table>
 
 @foreach (var bucketGroup in _dataContext.BucketGroups)
 {
-    <table class="table table-sm">
+     <table class="table table-sm">
         <thead>
         <tr class="header-row" @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
             @if (bucketGroup.InModification)
@@ -216,7 +218,7 @@
                 <th class="col-numbers"></th>
                 <th class="col-numbers"></th>
                 <th class="col-numbers"></th>
-                <th class="col-buttons" colspan="2" style="width: 370px">
+                <th class="col-buttons" style="width: 370px">
                     @if (bucketGroup.IsHovered)
                     {
                         <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
@@ -229,72 +231,64 @@
             }
         </tr>
         </thead>
-        @* Empty row required to keep column width after collapse *@
-		<tr class="borderless">
-            <td></td>
-            <td class="col-numbers"></td>
-            <td class="col-numbers"></td>
-            <td class="col-numbers"></td>
-            <td class="col-numbers"></td>
-            <td class="col-numbers"></td>
-            <td class="col-details"></td>
-			<td class="col-buttons"></td>
-        </tr>
+        <tbody><tr></tr></tbody>
+    </table>
+    
+    <table class="table table-sm">
         <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
-        
-        @foreach (var bucket in bucketGroup.Buckets)
-        {
-            <tr @onmouseover="() => bucket.IsHovered = true" @onmouseout="() => bucket.IsHovered = false">
-                <td>
-                    @if (bucket.Bucket.IsInactive)
-                    {
-                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">
-                            @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
-                        </div>
-                    }
-                    else
-                    {
-                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Bucket.Name</div>
-                    }
-                </td>
-                <td class="col-numbers">@bucket.Balance.ToString("N2")</td>
-                <td class="col-numbers">
-                    <input class="form-control form-control-sm" style="text-align: right;" type="number"
-                           @bind="bucket.InOut"
-                           @onkeyup="@(args => InOut_Changed(bucket, args))"/>
-                </td>
-                <td class="col-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("N2"))</td>
-                <td class="col-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
-                <td class="col-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
-                <td class="col-details">
-                    @if (bucket.IsProgressbarVisible)
-                    {
-                        <div class="row">
-                            <div class="col">
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: @bucket.Progress%;" aria-valuenow="@bucket.Progress" aria-valuemin="0" aria-valuemax="100">
-                                        @bucket.Progress%
+            @foreach (var bucket in bucketGroup.Buckets)
+            {
+                <tr @onmouseover="() => bucket.IsHovered = true" @onmouseout="() => bucket.IsHovered = false">
+                    <td>
+                        @if (bucket.Bucket.IsInactive)
+                        {
+                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">
+                                @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Bucket.Name</div>
+                        }
+                    </td>
+                    <td class="col-numbers">@bucket.Balance.ToString("N2")</td>
+                    <td class="col-numbers">
+                        <input class="form-control form-control-sm" style="text-align: right;" type="number"
+                               @bind="bucket.InOut"
+                               @onkeyup="@(args => InOut_Changed(bucket, args))"/>
+                    </td>
+                    <td class="col-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("N2"))</td>
+                    <td class="col-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
+                    <td class="col-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
+                    <td class="col-details">
+                        @if (bucket.IsProgressbarVisible)
+                        {
+                            <div class="row">
+                                <div class="col">
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: @bucket.Progress%;" aria-valuenow="@bucket.Progress" aria-valuemin="0" aria-valuemax="100">
+                                            @bucket.Progress%
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col" style="font-size: .75rem; text-align: center">
-                                @bucket.Details
+                            <div class="row">
+                                <div class="col" style="font-size: .75rem; text-align: center">
+                                    @bucket.Details
+                                </div>
                             </div>
-                        </div>
-                    }
-                </td>
-                <td class="col-buttons">
-                    @if (bucket.IsHovered)
-                    {
-                        <button class="btn btn-sm btn-primary oi oi-list" @onclick="@(() => DisplayBucketTransactions(bucket))"></button>
-                        <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
-                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => CloseBucket(bucket))"></button>
-                    }
-                </td>
-            </tr>
-        }
+                        }
+                    </td>
+                    <td class="col-buttons">
+                        @if (bucket.IsHovered)
+                        {
+                            <button class="btn btn-sm btn-primary oi oi-list" @onclick="@(() => DisplayBucketTransactions(bucket))"></button>
+                            <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
+                            <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => CloseBucket(bucket))"></button>
+                        }
+                    </td>
+                </tr>
+            }
         </tbody>
     </table>
 }

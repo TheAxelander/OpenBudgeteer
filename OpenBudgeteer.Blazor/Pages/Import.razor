@@ -20,12 +20,11 @@
 
 <div>
     <h5>Step 1: Select File</h5>
-    <div class="input-group">
-        <div class="custom-file">
-            <input type="file" class="custom-file-input" id="fileUpload" @ref=_inputElement @onchange=@HandleFileSelection>
-            <label class="custom-file-label" for="fileUpload">@_selectedFileName</label>
+    <div class="row mb-3">
+        <div class="col">
+            <input class="form-control" id="fileUpload" type="file" @ref=_inputElement>
         </div>
-        <div class="input-group-append">
+        <div class="col-md-auto">
             <button class="btn btn-primary" type="button" @onclick=ReadFileAsync>Open File</button>
         </div>
     </div>
@@ -33,9 +32,9 @@
 
 @if (_step2Enabled)
 {
-    <div class="div-margin-top">
+    <div class="mb-3">
         <h5>Step 2: Select Import Profile</h5>
-        <div>
+        <div class="mb-3">
             @if (_step4Enabled)
             {
                 <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile()))>Create Profile</button>
@@ -46,10 +45,10 @@
                 <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => HandleResult(_dataContext.DeleteProfile()))>Delete Profile</button>
             }
         </div>
-        <div class="row div-margin-top">
-            <div class="col form-group">
-				<label>Import Profile:</label>
-                <select class="form-control form-control-sm" @onchange=@ImportProfile_SelectionChanged>
+        <div class="row mb-3">
+            <div class="col">
+				<label class="form-label">Import Profile:</label>
+                <select class="form-select form-select-sm" @onchange=@ImportProfile_SelectionChanged>
                     <option value="@_placeholderItemId">---Select Import Profile---</option>
                     @foreach (var importProfile in _dataContext.AvailableImportProfiles)
                     {
@@ -64,13 +63,13 @@
                     }
                 </select>
             </div>
-			<div class="col form-group">
-                <label>Profile Name:</label>
+			<div class="col">
+                <label class="form-label">Profile Name:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.ProfileName"/>
             </div>
-            <div class="col form-group">
-                <label>Target Account:</label>
-                <select class="form-control form-control-sm" @onchange=@TargetAccount_SelectionChanged>
+            <div class="col">
+                <label class="form-label">Target Account:</label>
+                <select class="form-select form-select-sm" @onchange=@TargetAccount_SelectionChanged>
                     <option value="@_placeholderItemId">---Select Target Account---</option>
                     @foreach (var account in _dataContext.AvailableAccounts)
                     {
@@ -86,29 +85,29 @@
                 </select>
             </div>
         </div>
-        <div class="row">
-            <div class="col form-group">
-                <label>Delimiter:</label>
+        <div class="row mb-3">
+            <div class="col">
+                <label class="form-label">Delimiter:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.Delimiter"/>
             </div>
-            <div class="col form-group">
-                <label>Text qualifier:</label>
+            <div class="col">
+                <label class="form-label">Text qualifier:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.TextQualifier"/>
             </div>
-            <div class="col form-group">
-                <label>Date format:</label>
+            <div class="col">
+                <label class="form-label">Date format:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.DateFormat"/>
                 <p><small>e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy</small></p>
             </div>
-            <div class="col form-group">
-                <label>Number format:</label>
+            <div class="col">
+                <label class="form-label">Number format:</label>
                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.NumberFormat"/>
                 <p><small>Use BCP 47 language tag like en-US or de-DE</small></p>
             </div>
-            <div class="col form-group">
+            <div class="col">
                 <div class="row">
                     <div class="col">
-                        <label>Header Row:</label>
+                        <label class="form-label">Header Row:</label>
                         <input class="form-control form-control-sm" type="number" @bind="_dataContext.SelectedImportProfile.HeaderRow"/>
                     </div>
                     <div class="col-auto align-self-end">
@@ -122,12 +121,12 @@
 
 @if (_step3Enabled)
 {
-    <div class="div-margin-top">
+    <div class="mb-3">
         <h5>Step 3: Modify Column Mapping</h5>
         <div class="row">
             <div class="col">
-                <label>Transaction Date:</label>
-                <select class="form-control form-control-sm" @onchange=@TransactionDateColumn_SelectionChanged>
+                <label class="form-label">Transaction Date:</label>
+                <select class="form-select form-select-sm" @onchange=@TransactionDateColumn_SelectionChanged>
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
@@ -143,8 +142,8 @@
                 </select>
             </div>
             <div class="col">
-                <label>Payee (optional):</label>
-                <select class="form-control form-control-sm" @onchange=@PayeeColumn_SelectionChanged>
+                <label class="form-label">Payee (optional):</label>
+                <select class="form-select form-select-sm" @onchange=@PayeeColumn_SelectionChanged>
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
@@ -160,8 +159,8 @@
                 </select>
             </div>
             <div class="col">
-                <label>Memo:</label>
-                <select class="form-control form-control-sm" @onchange=@MemoColumn_SelectionChanged>
+                <label class="form-label">Memo:</label>
+                <select class="form-select form-select-sm" @onchange=@MemoColumn_SelectionChanged>
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
                     {
@@ -177,7 +176,7 @@
                 </select>
             </div>
             <div class="col">
-                <label>Amount / Debit:</label>
+                <label class="form-label">Amount / Debit:</label>
                 <select class="form-control form-control-sm" @onchange=@AmountColumn_SelectionChanged>
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
@@ -194,7 +193,7 @@
                 </select>
             </div>
             <div class="col">
-                <label>Credit (optional):</label>
+                <label class="form-label">Credit (optional):</label>
                 <select class="form-control form-control-sm" @onchange=@CreditColumn_SelectionChanged>
                     <option value="@_placeholderItemValue">---Select Column---</option>
                     @foreach (var column in _dataContext.IdentifiedColumns)
@@ -217,7 +216,7 @@
 
 @if (_step4Enabled)
 {
-    <div class="div-margin-top">
+    <div class="mb-3">
         <h5>Step 4: Validate and Import Data</h5>
         <button class="btn btn-sm btn-primary header-action-button" @onclick=ValidateDataAsync>Validate Data</button>
         @if (_dataContext.ValidRecords > 0)
@@ -238,7 +237,7 @@
 
     @if (_dataContext.ParsedRecords.Any(i => i.IsValid))
     {
-		<div class="div-margin-top">
+		<div class="mb-3">
             <h5>Preview (Valid Records)</h5>
             <table class="table table-sm table-hover">
                 <thead>
@@ -268,7 +267,7 @@
     
     @if (_dataContext.ParsedRecords.Any(i => !i.IsValid))
     {
-		<div class="div-margin-top">
+		<div class="mb-3">
             <h5>Records with error:</h5>
             <table class="table table-sm table-hover">
                 <thead>
@@ -293,7 +292,7 @@
     
     @if (_dataContext.Duplicates.Any())
     {
-        <div class="div-margin-top">
+        <div class="mb-3">
             <h5>Potential Duplicates:</h5>
             <table class="table table-sm table-hover">
                 <thead>
@@ -334,7 +333,7 @@
     }
 }
 
-<div class="div-margin-top">
+<div class="mb-3">
     <h5>File Content:</h5>
     <textarea class="form-control form-control-sm" readonly rows="30" @bind="_dataContext.FileText"></textarea>
 </div>
@@ -346,7 +345,7 @@
              <div class="modal-content">
                  <div class="modal-header">
                      <h4 class="modal-title">Import Transactions</h4>
-                     <button type="button" class="close" data-dismiss="modal" @onclick="@(() => _isConfirmationModalDialogVisible = false)">&times;</button>
+                     <button type="button" class="btn-close" data-dismiss="modal" @onclick="@(() => _isConfirmationModalDialogVisible = false)"></button>
                  </div>
                  <div class="modal-body">
                      @_importConfirmationMessage
@@ -374,8 +373,6 @@
     readonly int _placeholderItemId = -1;
     readonly string _placeholderItemValue = "___PlaceholderItem___";
 
-    string _selectedFileName = "Choose File";
-
     bool _step2Enabled;
     bool _step3Enabled;
     bool _step4Enabled;
@@ -392,18 +389,6 @@
     {
         _dataContext = new ImportDataViewModel(DbContextOptions);
         HandleResult(_dataContext.LoadData());
-    }
-
-    void HandleFileSelection(ChangeEventArgs e)
-    {
-        try
-        {
-            _selectedFileName = e.Value.ToString()?.Split('\\').Last();
-        }
-        catch
-        {
-            _selectedFileName = "Choose File";
-        }
     }
 
     async Task ReadFileAsync()
@@ -485,7 +470,6 @@
         _step2Enabled = false;
         _step3Enabled = false;
         _step4Enabled = false;
-        _selectedFileName = "Choose File";
         await FileReaderService.CreateReference(_inputElement).ClearValue();
         _dataContext = new ImportDataViewModel(DbContextOptions);
         HandleResult((_dataContext.LoadData()));
