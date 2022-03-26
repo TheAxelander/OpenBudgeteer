@@ -1,3 +1,7 @@
+### 1.5.2 (2022-03-26)
+
+* [Fixed] Sqlite database lock while saving multiple Bank Transaction [#90](https://github.com/TheAxelander/OpenBudgeteer/issues/90)
+
 ### 1.5.1 (2022-02-26)
 
 * [Fixed] Amount conversion with currency characters. [#82](https://github.com/TheAxelander/OpenBudgeteer/issues/82) [#83](https://github.com/TheAxelander/OpenBudgeteer/pull/83) Thanks @Hazy87
