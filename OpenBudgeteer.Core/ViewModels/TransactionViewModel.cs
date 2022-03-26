@@ -323,24 +323,19 @@ public class TransactionViewModel : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult SaveAllTransaction()
     {
-        using (var dbTransaction = new DatabaseContext(_dbOptions).Database.BeginTransaction())
+        try
         {
-            try
+            foreach (var transaction in _transactions.Where(i => i.InModification))
             {
-                foreach (var transaction in _transactions.Where(i => i.InModification))
-                {
-                    var result = transaction.UpdateItem();
-                    if (!result.IsSuccessful) throw new Exception(result.Message);
-                }
-                dbTransaction.Commit();
-                CurrentFilter = TransactionViewModelFilter.NoFilter;
-                return new ViewModelOperationResult(true);
+                var result = transaction.UpdateItem();
+                if (!result.IsSuccessful) throw new Exception(result.Message);
             }
-            catch (Exception e)
-            {
-                dbTransaction.Rollback();
-                return new ViewModelOperationResult(false, e.Message);
-            }
+            CurrentFilter = TransactionViewModelFilter.NoFilter;
+            return new ViewModelOperationResult(true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
         }
     }
 
