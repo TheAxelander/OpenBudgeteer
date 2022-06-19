@@ -186,7 +186,7 @@
                                     
                     @if (transaction.Transaction.Amount != transaction.Buckets.Sum(b => b.Amount))
                     {
-                        <div class="row" style="background-color: lightslategray;  border-radius: 25px; margin: 0.3rem 0">
+                        <div class="row" style="background-color: deepskyblue;  border-radius: 25px; margin: 0.3rem 0">
                             <div class="col">Remaining</div>
                             <div class="col-md-auto col-numbers">@(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount))</div>
                         </div>
