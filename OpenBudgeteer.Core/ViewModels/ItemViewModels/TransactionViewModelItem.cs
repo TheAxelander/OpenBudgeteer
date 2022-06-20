@@ -267,6 +267,22 @@ public class TransactionViewModelItem : ViewModelBase
         return await Task.Run(() => new TransactionViewModelItem(bucketMovement));
     }
 
+    
+    /// <summary>
+    /// Adds a bucket item.
+    /// </summary>
+    /// <param name="amount">Amount that will be assigned to the Bucket</param>
+    /// <param name="newBucketItem">Amount that will be assigned to the Bucket</param>
+    /// <remarks>Will add an empty bucket item if a bucket item is not provided.</remarks>
+    public void AddBucketItem(decimal amount, PartialBucketViewModelItem newBucketItem = null)
+    {
+        newBucketItem ??=
+            new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket(), amount);
+        newBucketItem.AmountChanged += CheckBucketAssignments;
+        newBucketItem.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
+        Buckets.Add(newBucketItem);
+    }
+    
     /// <summary>
     /// Event that checks amount for all assigned Buckets and creates or removes an "empty item"
     /// </summary>
@@ -311,7 +327,7 @@ public class TransactionViewModelItem : ViewModelBase
             if (Buckets.Last().SelectedBucket != null && Buckets.Last().SelectedBucket.BucketId != 0)
             {
                 // All items have a valid Bucket assignment, create a new "empty item"
-                AddEmptyBucketItem(Transaction.Amount - assignedAmount);
+                AddBucketItem(Transaction.Amount - assignedAmount);
             }
             else
             {
@@ -339,19 +355,6 @@ public class TransactionViewModelItem : ViewModelBase
         {
             Buckets.Remove(args.Source);
         }
-    }
-
-    /// <summary>
-    /// Creates an "empty item" with the passed amount
-    /// </summary>
-    /// <param name="amount">Amount that will be assigned to the Bucket</param>
-    private void AddEmptyBucketItem(decimal amount)
-    {
-        // All items have a valid Bucket assignment, create a new "empty item"
-        var emptyItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket(), amount);
-        emptyItem.AmountChanged += CheckBucketAssignments;
-        emptyItem.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
-        Buckets.Add(emptyItem);
     }
 
     /// <summary>

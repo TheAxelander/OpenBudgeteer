@@ -305,10 +305,9 @@
         _isProposeBucketsInfoDialogVisible = false;
     }
 
-    void SplitTransaction(TransactionViewModelItem transaction)
-    {
-        transaction.Buckets.Add(new PartialBucketViewModelItem(DbContextOptions, DateTime.Now));
-    }
+    static void SplitTransaction(TransactionViewModelItem transaction) =>
+        transaction.AddBucketItem(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
+    
     async void SaveAllTransaction()
     {
         _massEditEnabled = false;
