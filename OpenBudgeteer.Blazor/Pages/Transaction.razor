@@ -129,7 +129,7 @@
         <th>Memo</th>
         <th style="text-align: right; width: 90px">Amount</th>
         <th style="width:300px">Buckets</th>
-        <th style="width:80px" />
+        <th style="width:120px" />
     </tr>
     </thead>
     <tbody>
@@ -187,8 +187,17 @@
                             }
                         </tbody>
                     </table>
+                                    
+                    @if (transaction.Transaction.Amount != transaction.Buckets.Sum(b => b.Amount))
+                    {
+                        <div class="row" style="background-color: deepskyblue;  border-radius: 25px; margin: 0.3rem 0">
+                            <div class="col">Remaining</div>
+                            <div class="col-md-auto col-numbers">@(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount))</div>
+                        </div>
+                    }
                 </td>
                 <td class="col-buttons">
+                    <button class="btn btn-sm btn-primary oi oi-fork" @onclick="@(() => SplitTransaction(transaction))"></button>
                     <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => SaveTransaction(transaction))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => transaction.CancelModification())"></button>
                 </td>
@@ -299,6 +308,9 @@
         if (_dataContext.Transactions.Any(i => i.InModification)) _massEditEnabled = true;
         _isProposeBucketsInfoDialogVisible = false;
     }
+
+    static void SplitTransaction(TransactionViewModelItem transaction) =>
+        transaction.AddBucketItem(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
     
     async void SaveAllTransaction()
     {
