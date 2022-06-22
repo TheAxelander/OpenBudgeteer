@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
@@ -267,12 +267,16 @@ public class TransactionViewModelItem : ViewModelBase
         return await Task.Run(() => new TransactionViewModelItem(bucketMovement));
     }
 
-    
+    /// <summary>
+    /// Returns the difference between the transaction amount and the sum of all bucket amounts.
+    /// </summary>
+    public decimal Difference => Transaction.Amount - Buckets.Sum(b => b.Amount);
+
     /// <summary>
     /// Adds a bucket item.
     /// </summary>
     /// <param name="amount">Amount that will be assigned to the Bucket</param>
-    /// <param name="newBucketItem">Amount that will be assigned to the Bucket</param>
+    /// <param name="newBucketItem">Optional: New bucket to be added. If omitted a new, empty bucket will be added.</param>
     /// <remarks>Will add an empty bucket item if a bucket item is not provided.</remarks>
     public void AddBucketItem(decimal amount, PartialBucketViewModelItem newBucketItem = null)
     {
@@ -327,7 +331,7 @@ public class TransactionViewModelItem : ViewModelBase
             if (Buckets.Last().SelectedBucket != null && Buckets.Last().SelectedBucket.BucketId != 0)
             {
                 // All items have a valid Bucket assignment, create a new "empty item"
-                AddEmptyBucketItem(Transaction.Amount - assignedAmount);
+                AddBucketItem(Transaction.Amount - assignedAmount);
             }
             else
             {
@@ -355,19 +359,6 @@ public class TransactionViewModelItem : ViewModelBase
         {
             Buckets.Remove(args.Source);
         }
-    }
-
-    /// <summary>
-    /// Creates an "empty item" with the passed amount
-    /// </summary>
-    /// <param name="amount">Amount that will be assigned to the Bucket</param>
-    private void AddEmptyBucketItem(decimal amount)
-    {
-        // All items have a valid Bucket assignment, create a new "empty item"
-        var emptyItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket(), amount);
-        emptyItem.AmountChanged += CheckBucketAssignments;
-        emptyItem.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
-        Buckets.Add(emptyItem);
     }
 
     /// <summary>

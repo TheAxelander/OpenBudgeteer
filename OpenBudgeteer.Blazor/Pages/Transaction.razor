@@ -188,9 +188,9 @@
                         </tbody>
                     </table>
                                     
-                    @if (transaction.Transaction.Amount != transaction.Buckets.Sum(b => b.Amount))
+                    @if (transaction.Difference != 0)
                     {
-                        <div class="row" style="background-color: deepskyblue;  border-radius: 25px; margin: 0.3rem 0">
+                        <div class="row bucket-indicator" style="background-color: deepskyblue">
                             <div class="col">Remaining</div>
                             <div class="col-md-auto col-numbers">@(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount))</div>
                         </div>
@@ -214,7 +214,7 @@
                 <td style="vertical-align: middle">
                     @foreach (var bucket in transaction.Buckets)
                     {
-                        <div class="row" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color); border-radius: 25px; margin: 0.3rem 0">
+                        <div class="row bucket-indicator" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)">
                             <div class="col">@bucket.SelectedBucket.Name</div>
                             <div class="col-md-auto col-numbers">@bucket.Amount</div>
                         </div>
@@ -309,7 +309,7 @@
         _isProposeBucketsInfoDialogVisible = false;
     }
 
-    static void SplitTransaction(TransactionViewModelItem transaction) =>
+    void SplitTransaction(TransactionViewModelItem transaction) =>
         transaction.AddBucketItem(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
     
     async void SaveAllTransaction()
