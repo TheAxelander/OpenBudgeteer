@@ -55,7 +55,7 @@
                 <th>Memo</th>
                 <th style="text-align: right; width: 90px">Amount</th>
                 <th style="width:300px">Buckets</th>
-                <th style="width:80px" />
+                <th style="width:120px" />
             </tr>
         </thead>
         <tbody>
@@ -110,8 +110,17 @@
                             }
                         </tbody>
                     </table>
+                                    
+                    @if (_dataContext.NewTransaction.Difference != 0)
+                    {
+                        <div class="row bucket-indicator" style="background-color: deepskyblue">
+                            <div class="col">Remaining</div>
+                            <div class="col-md-auto col-numbers">@(_dataContext.NewTransaction.Difference)</div>
+                        </div>
+                    }
                 </td>
                 <td class="col-buttons">
+                    <button class="btn btn-sm btn-primary oi oi-fork" @onclick="@(() => SplitTransaction(_dataContext.NewTransaction))"></button>
                     <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.CreateItem()))"></button>
                     <button class="btn btn-sm btn-danger oi oi-x" @onclick="@CancelNewTransaction"></button>
                 </td>
@@ -192,7 +201,7 @@
                     {
                         <div class="row bucket-indicator" style="background-color: deepskyblue">
                             <div class="col">Remaining</div>
-                            <div class="col-md-auto col-numbers">@(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount))</div>
+                            <div class="col-md-auto col-numbers">@(transaction.Difference)</div>
                         </div>
                     }
                 </td>
