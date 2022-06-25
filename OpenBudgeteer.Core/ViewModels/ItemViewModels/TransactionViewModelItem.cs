@@ -51,6 +51,11 @@ public class TransactionViewModelItem : ViewModelBase
         get => _isHovered;
         set => Set(ref _isHovered, value);
     }
+    
+    /// <summary>
+    /// Returns the difference between the transaction amount and the sum of all bucket amounts.
+    /// </summary>
+    public decimal Difference => Transaction.Amount - Buckets.Sum(b => b.Amount);
 
     private ObservableCollection<PartialBucketViewModelItem> _buckets;
     /// <summary>
@@ -266,11 +271,6 @@ public class TransactionViewModelItem : ViewModelBase
     {
         return await Task.Run(() => new TransactionViewModelItem(bucketMovement));
     }
-
-    /// <summary>
-    /// Returns the difference between the transaction amount and the sum of all bucket amounts.
-    /// </summary>
-    public decimal Difference => Transaction.Amount - Buckets.Sum(b => b.Amount);
 
     /// <summary>
     /// Adds a bucket item.

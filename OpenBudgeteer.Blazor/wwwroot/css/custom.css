@@ -31,7 +31,11 @@ table .header-row td, table .header-row th {
     margin: 10px;
     text-align: center;
 }
-    
+
+.bucket-indicator {
+    border-radius: 25px;
+    margin: 0.3rem 0
+}
 
 /* Overwrite site styles*/
 html, body {
@@ -56,9 +60,4 @@ html, body {
 
 .navbar-brand {
     display: inline-block; /* restore setting from bootstrap 4 */ 
-}
-
-.bucket-indicator {
-    border-radius: 25px;
-    margin: 0.3rem 0
 }
