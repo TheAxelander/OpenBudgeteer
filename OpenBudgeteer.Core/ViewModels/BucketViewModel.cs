@@ -333,6 +333,9 @@ public class BucketViewModel : ViewModelBase
             foreach (var bucketGroup in BucketGroups)
             {
                 bucketGroup.TotalBalance = bucketGroup.Buckets.Sum(i => i.Balance);
+                bucketGroup.TotalWant = bucketGroup.Buckets.Where(i => i.Want > 0).Sum(i => i.Want);
+                bucketGroup.TotalIn = bucketGroup.Buckets.Sum(i => i.In);
+                bucketGroup.TotalActivity = bucketGroup.Buckets.Sum(i => i.Activity);
                 buckets.AddRange(bucketGroup.Buckets);
             }
 
@@ -369,7 +372,7 @@ public class BucketViewModel : ViewModelBase
 
                 Budget = BankBalance - BucketGroups.Sum(i => i.TotalBalance);
 
-                PendingWant = buckets.Where(i => i.Want > 0).Sum(i => i.Want);
+                PendingWant = BucketGroups.Sum(i => i.TotalWant);
                 RemainingBudget = Budget - PendingWant;
                 NegativeBucketBalance = buckets.Where(i => i.Balance < 0).Sum(i => i.Balance);
             }

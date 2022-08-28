@@ -65,7 +65,7 @@ public class BucketViewModelItem : ViewModelBase
 
     private decimal _in;
     /// <summary>
-    /// Sum of all <see cref="Bucket"/> movements
+    /// Sum of all <see cref="BucketMovement"/>
     /// </summary>
     public decimal In
     {
