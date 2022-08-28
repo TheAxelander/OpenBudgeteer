@@ -32,18 +32,17 @@ public class Startup
         services.AddServerSideBlazor();
         services.AddFileReaderService();
         services.AddScoped<YearMonthSelectorViewModel>();
-        
-        var configurationConnectionSection = Configuration.GetSection("Connection");
-        var provider = configurationConnectionSection?["Provider"];
+
+        var provider = Configuration.GetValue<string>("CONNECTION_PROVIDER");
         string connectionString;
         switch (provider)
         {
             case "mysql":
-                connectionString = $"Server={configurationConnectionSection?["Server"]};" +
-                               $"Port={configurationConnectionSection?["Port"]};" +
-                               $"Database={configurationConnectionSection?["Database"]};" +
-                               $"User={configurationConnectionSection?["User"]};" +
-                               $"Password={configurationConnectionSection?["Password"]}";
+                connectionString = $"Server={Configuration.GetValue<string>("CONNECTION_SERVER")};" +
+                               $"Port={Configuration.GetValue<string>("CONNECTION_PORT")};" +
+                               $"Database={Configuration.GetValue<string>("CONNECTION_DATABASE")};" +
+                               $"User={Configuration.GetValue<string>("CONNECTION_USER")};" +
+                               $"Password={Configuration.GetValue<string>("CONNECTION_PASSWORD")}";
                 
                 services.AddDbContext<DatabaseContext>(options => options.UseMySql(
                         connectionString,
@@ -52,7 +51,7 @@ public class Startup
                     ServiceLifetime.Transient);
 
                 // Check on Pending Db Migrations
-                var mySqlDbContext = new MySqlDatabaseContextFactory().CreateDbContext(Configuration);
+                var mySqlDbContext = new MySqlDatabaseContextFactory().CreateDbContext(connectionString);
                 if (mySqlDbContext.Database.GetPendingMigrations().Any()) mySqlDbContext.Database.Migrate();
                 
                 break;
@@ -71,11 +70,6 @@ public class Startup
             default:
                 throw new ArgumentOutOfRangeException($"Database provider {provider} not supported");
         }
-        
-        // var configurationAppSettingSection = Configuration.GetSection("AppSettings");
-        // var cultureInfo = new CultureInfo(configurationAppSettingSection["Culture"]);
-        // CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
-        // CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
         
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
     }
@@ -97,8 +91,7 @@ public class Startup
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         
-        var configurationAppSettingSection = Configuration.GetSection("AppSettings");
-        app.UseRequestLocalization(configurationAppSettingSection["Culture"]);
+        app.UseRequestLocalization(Configuration.GetValue<string>("APPSETTINGS_CULTURE"));
 
         app.UseRouting();
 
