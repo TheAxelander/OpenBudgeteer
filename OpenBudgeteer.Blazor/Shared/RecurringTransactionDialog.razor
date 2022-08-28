@@ -144,7 +144,6 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
 
-    bool _newTransactionEnabled;
     bool _massEditEnabled;
 
     bool _isDeleteTransactionModalDialogVisible;
@@ -152,8 +151,6 @@
 
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
-
-    bool _isProposeBucketsInfoDialogVisible;
 
     void EditAllTransaction()
     {
