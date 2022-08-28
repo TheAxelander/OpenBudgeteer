@@ -16,6 +16,7 @@ public class AccountViewModelTest
     public AccountViewModelTest()
     {
         _dbOptions = DbConnector.GetDbContextOptions(nameof(AccountViewModelTest));
+        DbConnector.CleanupDatabase(nameof(AccountViewModelTest));
     }
 
     public static IEnumerable<object[]> TestData_LoadData_CheckTransactionCalculations

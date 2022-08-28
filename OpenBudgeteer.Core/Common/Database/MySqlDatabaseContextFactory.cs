@@ -6,7 +6,7 @@ namespace OpenBudgeteer.Core.Common.Database;
 
 public class MySqlDatabaseContextFactory : IDesignTimeDbContextFactory<MySqlDatabaseContext>
 {
-    private const string MysqlConnectionString = "Server=192.168.178.86;" +
+    private const string MysqlConnectionString = "Server=192.168.178.201;" +
                                                  "Port=3306;" +
                                                  "Database=openbudgeteer-dev;" +
                                                  "User=openbudgeteer-dev;" +

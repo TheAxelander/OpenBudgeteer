@@ -20,6 +20,7 @@ public class ImportDataViewModelTest
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
         _dbOptions = DbConnector.GetDbContextOptions(nameof(ImportDataViewModelTest));
+        DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
         _testAccount = new Account() { Name = "Test Account", IsActive = 1 };
         using (var dbContext = new DatabaseContext(_dbOptions))
         {

@@ -18,6 +18,7 @@ public class BucketViewModelTest
     public BucketViewModelTest()
     {
         _dbOptions = DbConnector.GetDbContextOptions(nameof(BucketViewModelTest));
+        DbConnector.CleanupDatabase(nameof(BucketViewModelTest));
     }
 
     public static IEnumerable<object[]> TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets

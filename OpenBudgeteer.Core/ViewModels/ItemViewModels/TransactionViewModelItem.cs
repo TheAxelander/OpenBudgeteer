@@ -196,7 +196,7 @@ public class TransactionViewModelItem : ViewModelBase
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             var account = dbContext.Account.First(i => i.AccountId == transaction.AccountId);
-            if (account != null && account.IsActive == 0)
+            if (account is { IsActive: 0 })
             {
                 account.Name += " (Inactive)";
                 AvailableAccounts.Add(account);

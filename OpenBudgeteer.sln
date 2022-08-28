@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29424.173
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenBudgeteer.Blazor", "OpenBudgeteer.Blazor\OpenBudgeteer.Blazor.csproj", "{0A5C2CAD-5438-4D2C-9C17-1ADF5C9AA9D3}"
 EndProject

@@ -15,6 +15,7 @@ public class AccountViewModelIsolatedTest
     public AccountViewModelIsolatedTest()
     {
         _dbOptions = DbConnector.GetDbContextOptions(nameof(AccountViewModelIsolatedTest));
+        DbConnector.CleanupDatabase(nameof(AccountViewModelIsolatedTest));
     }
 
     [Fact]

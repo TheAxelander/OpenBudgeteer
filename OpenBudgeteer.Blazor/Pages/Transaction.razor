@@ -23,6 +23,15 @@
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newTransactionEnabled = true)">Create Transaction</button>
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@(async () => await ProposeBucketsAsync())">Propose Buckets</button>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-primary" @onclick="@AddRecurringTransactions">Add Recurring Transactions</button>
+                <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="visually-hidden">Toggle Dropdown</span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item dropdown-item-sm" role="button" @onclick="@(async () => await DisplayRecurringTransactions())">Manage</a></li>
+                </ul>
+            </div>
         }
     </div>
     <div class="col-md-auto">
@@ -258,6 +267,12 @@
     <div class="modal-backdrop fade show"></div>
 }
 
+<RecurringTransactionDialog
+    DataContext="_recurringTransactionViewModel"
+    IsDialogVisible="@_isRecurringTransactionModalDialogVisible"
+    OnClickCallback="@(() => _isRecurringTransactionModalDialogVisible = false)"
+    />
+
 <DeleteConfirmationDialog 
     Title="Delete Transaction" 
     Message="Do you really want to delete this Transaction?" 
@@ -275,6 +290,9 @@
     TransactionViewModel _dataContext;
     bool _newTransactionEnabled;
     bool _massEditEnabled;
+
+    bool _isRecurringTransactionModalDialogVisible;
+    RecurringTransactionViewModel _recurringTransactionViewModel;
 
     bool _isDeleteTransactionModalDialogVisible;
     TransactionViewModelItem _transactionToBeDeleted;
@@ -320,7 +338,7 @@
 
     void SplitTransaction(TransactionViewModelItem transaction) =>
         transaction.AddBucketItem(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
-    
+
     async void SaveAllTransaction()
     {
         _massEditEnabled = false;
@@ -338,7 +356,7 @@
     {
         await HandleResult(transaction.UpdateItem());
     }
-    
+
     void Filter_SelectionChanged(ChangeEventArgs e)
     {
         _dataContext.CurrentFilter = Enum.Parse<TransactionViewModelFilter>(
@@ -361,6 +379,18 @@
     {
         _isDeleteTransactionModalDialogVisible = false;
         await HandleResult(_transactionToBeDeleted.DeleteItem());
+    }
+
+    async void AddRecurringTransactions()
+    {
+        await HandleResult(await _dataContext.AddRecurringTransactionsAsync());
+    }
+	
+    async Task DisplayRecurringTransactions()
+    {
+        _recurringTransactionViewModel = new RecurringTransactionViewModel(DbContextOptions);
+        await _recurringTransactionViewModel.LoadDataAsync();
+        _isRecurringTransactionModalDialogVisible = true;
     }
 
     async Task HandleResult(ViewModelOperationResult result)

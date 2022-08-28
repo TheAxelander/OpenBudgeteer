@@ -9,6 +9,7 @@ public class DatabaseContext : DbContext
 {
     public DbSet<Account> Account { get; set; }
     public DbSet<BankTransaction> BankTransaction { get; set; }
+    public DbSet<RecurringBankTransaction> RecurringBankTransaction { get; set; }
     public DbSet<Bucket> Bucket { get; set; }
     public DbSet<BucketGroup> BucketGroup { get; set; }
     public DbSet<BucketMovement> BucketMovement { get; set; }
@@ -30,13 +31,22 @@ public class DatabaseContext : DbContext
         Account.AddRange(accounts);
         return SaveChanges();
     }
-
+    
     public int CreateBankTransaction(BankTransaction bankTransaction)
         => CreateBankTransactions(new List<BankTransaction>() { bankTransaction });
 
     public int CreateBankTransactions(IEnumerable<BankTransaction> bankTransactions)
     {
         BankTransaction.AddRange(bankTransactions);
+        return SaveChanges();
+    }
+    
+    public int CreateRecurringBankTransaction(RecurringBankTransaction recurringBankTransaction)
+        => CreateRecurringBankTransactions(new List<RecurringBankTransaction>() { recurringBankTransaction });
+
+    public int CreateRecurringBankTransactions(IEnumerable<RecurringBankTransaction> recurringBankTransactions)
+    {
+        RecurringBankTransaction.AddRange(recurringBankTransactions);
         return SaveChanges();
     }
 
@@ -138,6 +148,19 @@ public class DatabaseContext : DbContext
         {
             var dbBankTransaction = BankTransaction.First(i => i.TransactionId == bankTransaction.TransactionId);
             Entry(dbBankTransaction).CurrentValues.SetValues(bankTransaction);
+        }
+        return SaveChanges();
+    }
+    
+    public int UpdateRecurringBankTransaction(RecurringBankTransaction recurringBankTransaction)
+        => UpdateRecurringBankTransactions(new List<RecurringBankTransaction>() { recurringBankTransaction });
+
+    public int UpdateRecurringBankTransactions(IEnumerable<RecurringBankTransaction> recurringBankTransactions)
+    {
+        foreach (var recurringBankTransaction in recurringBankTransactions)
+        {
+            var dbRecurringBankTransaction = RecurringBankTransaction.First(i => i.TransactionId == recurringBankTransaction.TransactionId);
+            Entry(dbRecurringBankTransaction).CurrentValues.SetValues(recurringBankTransaction);
         }
         return SaveChanges();
     }
@@ -265,6 +288,15 @@ public class DatabaseContext : DbContext
     public int DeleteBankTransactions(IEnumerable<BankTransaction> bankTransactions)
     {
         BankTransaction.RemoveRange(bankTransactions);
+        return SaveChanges();
+    }
+    
+    public int DeleteRecurringBankTransaction(RecurringBankTransaction recurringBankTransaction)
+        => DeleteRecurringBankTransactions(new List<RecurringBankTransaction>() { recurringBankTransaction });
+
+    public int DeleteRecurringBankTransactions(IEnumerable<RecurringBankTransaction> recurringBankTransactions)
+    {
+        RecurringBankTransaction.RemoveRange(recurringBankTransactions);
         return SaveChanges();
     }
 

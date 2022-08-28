@@ -16,7 +16,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.0")
+                .HasAnnotation("ProductVersion", "6.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
@@ -276,6 +276,38 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.HasKey("MappingRuleId");
 
                     b.ToTable("MappingRule");
+                });
+
+            modelBuilder.Entity("OpenBudgeteer.Core.Models.RecurringBankTransaction", b =>
+                {
+                    b.Property<int>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(65,2)");
+
+                    b.Property<DateTime>("FirstOccurenceDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Memo")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Payee")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("RecurrenceAmount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RecurrenceType")
+                        .HasColumnType("int");
+
+                    b.HasKey("TransactionId");
+
+                    b.ToTable("RecurringBankTransaction");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,32 +2,38 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Common.Database;
 
 #nullable disable
 
-namespace OpenBudgeteer.Core.Migrations.Sqlite
+namespace OpenBudgeteer.Core.Migrations.MySql
 {
-    [DbContext(typeof(SqliteDatabaseContext))]
-    partial class SqliteDatabaseContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(MySqlDatabaseContext))]
+    [Migration("20220625103950_RecurringBankTransaction")]
+    partial class RecurringBankTransaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.2");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "6.0.2")
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.Account", b =>
                 {
                     b.Property<int>("AccountId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("AccountId");
 
@@ -38,22 +44,22 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("TransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<string>("Memo")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Payee")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("TransactionId");
 
@@ -64,25 +70,25 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("BucketId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("BucketGroupId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("ColorCode")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsInactive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<DateTime>("IsInactiveFrom")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("BucketId");
 
@@ -93,13 +99,13 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("BucketGroupId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Position")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("BucketGroupId");
 
@@ -110,16 +116,16 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("BucketMovementId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<int>("BucketId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("MovementDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("BucketMovementId");
 
@@ -130,16 +136,16 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("BucketRuleSetId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Priority")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("TargetBucketId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("BucketRuleSetId");
 
@@ -150,31 +156,31 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("BucketVersionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("BucketId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("BucketType")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("BucketTypeXParam")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("BucketTypeYParam")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<DateTime>("BucketTypeZParam")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Version")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("BucketVersionId");
 
@@ -185,16 +191,16 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("BudgetedTransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<int>("BucketId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("TransactionId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("BudgetedTransactionId");
 
@@ -205,43 +211,45 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("ImportProfileId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("AmountColumnName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("CreditColumnName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("DateFormat")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
-                    b.Property<char>("Delimiter")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("Delimiter")
+                        .IsRequired()
+                        .HasColumnType("varchar(1)");
 
                     b.Property<int>("HeaderRow")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("MemoColumnName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("NumberFormat")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PayeeColumnName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ProfileName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
-                    b.Property<char>("TextQualifier")
-                        .HasColumnType("TEXT");
+                    b.Property<string>("TextQualifier")
+                        .IsRequired()
+                        .HasColumnType("varchar(1)");
 
                     b.Property<string>("TransactionDateColumnName")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("ImportProfileId");
 
@@ -252,20 +260,20 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("MappingRuleId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("BucketRuleSetId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("ComparisionField")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("ComparisionType")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("ComparisionValue")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.HasKey("MappingRuleId");
 
@@ -276,28 +284,28 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                 {
                     b.Property<int>("TransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65, 2)");
+                        .HasColumnType("decimal(65,2)");
 
                     b.Property<DateTime>("FirstOccurenceDate")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Memo")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Payee")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("RecurrenceAmount")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("RecurrenceType")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("TransactionId");
 

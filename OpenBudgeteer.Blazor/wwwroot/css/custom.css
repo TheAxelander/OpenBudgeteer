@@ -61,3 +61,7 @@ html, body {
 .navbar-brand {
     display: inline-block; /* restore setting from bootstrap 4 */ 
 }
+
+.dropdown-item-sm {
+    font-size: .875rem; /* Additional class to match font size of DropDownItem with SplitButton (btn-sm)*/
+}

@@ -1,6 +1,7 @@
 ### 1.6 (20xx-xx-xx)
 
 * [Add] Enhanced Bucket assignment for Bank Transaction (display remaining amount, manual triggered split) Thanks [ambroser1971](https://github.com/ambroser1971)
+* [Add] Recurring Transactions [#74](https://github.com/TheAxelander/OpenBudgeteer/issues/74)
 * [Changed] Updated Bootstrap to v5.1.3
 
 ### 1.5.2 (2022-03-26)
