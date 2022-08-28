@@ -242,6 +242,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
     private ViewModelOperationResult PerformConsistencyCheck()
     {
         // Consistency and Validity Checks
+        if (Transaction.RecurrenceAmount == 0) return new ViewModelOperationResult(false, "Invalid Recurrence details.");
         if (Transaction == null) return new ViewModelOperationResult(false, "Errors in Transaction object.");
         if (SelectedAccount == null || SelectedAccount.AccountId == 0) return new ViewModelOperationResult(false, "No Bank account selected.");
         
@@ -288,8 +289,13 @@ public class RecurringTransactionViewModelItem : ViewModelBase
     public ViewModelOperationResult CreateItem()
     {
         Transaction.TransactionId = 0; // Triggers CREATE during CreateOrUpdateTransaction()
-        InModification = false;
-        return CreateOrUpdateTransaction();
+        var result = CreateOrUpdateTransaction();
+        // Keep invalid Item active in Modification mode
+        if (result.IsSuccessful)
+        {
+            InModification = false;
+        }
+        return result;
     }
 
     public ViewModelOperationResult UpdateItem()
