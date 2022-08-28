@@ -1,7 +1,9 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +51,27 @@ public class Startup
                         ServerVersion.AutoDetect(connectionString),
                         b => b.MigrationsAssembly("OpenBudgeteer.Core")),
                     ServiceLifetime.Transient);
+
+                // Check availability of MySql Database
+                var iterations = 0;
+                while (iterations < 10)
+                {
+
+                    try
+                    {
+                        var tcpClient = new TcpClient(
+                                    Configuration.GetValue<string>("CONNECTION_SERVER"),
+                                    Configuration.GetValue<int>("CONNECTION_PORT"));
+                        tcpClient.Close();
+                        break;
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Waiting for database.");
+                        Task.Delay(5000).Wait();
+                        iterations++;
+                    } 
+                }
 
                 // Check on Pending Db Migrations
                 var mySqlDbContext = new MySqlDatabaseContextFactory().CreateDbContext(connectionString);
