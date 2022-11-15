@@ -283,6 +283,7 @@
     {
         _massEditEnabled = false;
         await HandleResult(await _dataContext.LoadDataAsync());
+        StateHasChanged();
     }
 
 	void HandleRuleSetDeletionRequest(RuleSetViewModelItem ruleSet)
