@@ -95,15 +95,15 @@
                                 <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
                             </div>
                             <div class="col-md-auto" style="vertical-align: center">
-                                <button class="btn btn-sm btn-primary oi oi-plus" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
-                                <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => _dataContext.NewRuleSet.DeleteMappingRule(mappingRule))"></button>
+                                <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
+                                <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => _dataContext.NewRuleSet.DeleteMappingRule(mappingRule))"></button>
                             </div>
                         </div>
                     }
                 </td>
                 <td class="col-buttons">
-                    <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.CreateNewRuleSet()))"></button>
-                    <button class="btn btn-sm btn-danger oi oi-x" @onclick="@CancelNewBucketRule"></button>
+                    <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateNewRuleSet()))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@CancelNewBucketRule"></button>
                 </td>
             </tr>
         </tbody>
@@ -185,15 +185,15 @@
                                 <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
                             </div>
                             <div class="col-md-auto" style="vertical-align: center">
-                                <button class="btn btn-sm btn-primary oi oi-plus" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
-                                <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
+                                <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
+                                <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
                             </div>
                         </div>
                     }
                 </td>
                 <td class="col-buttons">
-					<button class="btn btn-sm btn-primary oi oi-check" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
-                    <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => ruleSet.CancelModification())"></button>
+					<button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.CancelModification())"></button>
                 </td>
             </tr>
         }
@@ -214,8 +214,8 @@
                 <td class="col-buttons">
                     @if (ruleSet.IsHovered)
                     {
-                        <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => ruleSet.StartModification())"></button>
-                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleRuleSetDeletionRequest(ruleSet))"></button>
+                        <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ruleSet.StartModification())"></button>
+                        <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleRuleSetDeletionRequest(ruleSet))"></button>
                     }
                 </td>
             </tr>

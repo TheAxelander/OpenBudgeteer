@@ -114,7 +114,7 @@
                                         </select>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
-                                    <td><button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => bucket.DeleteBucket())"></button></td>
+                                    <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
                                 </tr>
                             }
                         </tbody>
@@ -129,9 +129,9 @@
                     }
                 </td>
                 <td class="col-buttons">
-                    <button class="btn btn-sm btn-primary oi oi-fork" @onclick="@(() => SplitTransaction(_dataContext.NewTransaction))"></button>
-                    <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => HandleResult(_dataContext.CreateItem()))"></button>
-                    <button class="btn btn-sm btn-danger oi oi-x" @onclick="@CancelNewTransaction"></button>
+                    <button class="btn btn-sm btn-primary" @onclick="@(() => SplitTransaction(_dataContext.NewTransaction))"><i class="bi bi-diagram-2"></i></button>
+                    <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateItem()))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@CancelNewTransaction"></button>
                 </td>
             </tr>
         </tbody>
@@ -200,7 +200,7 @@
                                         </select>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
-                                    <td><button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => bucket.DeleteBucket())"></button></td>
+                                    <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
                                 </tr>
                             }
                         </tbody>
@@ -215,9 +215,9 @@
                     }
                 </td>
                 <td class="col-buttons">
-                    <button class="btn btn-sm btn-primary oi oi-fork" @onclick="@(() => SplitTransaction(transaction))"></button>
-                    <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => SaveTransaction(transaction))"></button>
-                    <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => transaction.CancelModification())"></button>
+                    <button class="btn btn-sm btn-primary" @onclick="@(() => SplitTransaction(transaction))"><i class="bi bi-diagram-2"></i></button>
+                    <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
                 </td>
             </tr>
         }
@@ -241,8 +241,8 @@
                 <td class="col-buttons">
                     @if (transaction.IsHovered)
                     {
-                        <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => transaction.StartModification())"></button>
-                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
+                        <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
+                        <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
                     }
                 </td>
             </tr>

@@ -6,6 +6,8 @@
 * [Breaking Change] Docker Environment Variable Format [#71](https://github.com/TheAxelander/OpenBudgeteer/issues/71)
 * [Changed] Bucket Page: Want, In and Activity figures also now on Bucket Group level [#99](https://github.com/TheAxelander/OpenBudgeteer/issues/99)
 * [Changed] Updated Bootstrap to v5.1.3
+* [Changed] Replaced Open Iconic icons with Bootstrap Icons
+* [Changed] Made Icons8 images offline available 
 * [Fixed] App Startup will now wait for availability of MySql database [#50](https://github.com/TheAxelander/OpenBudgeteer/issues/50)
 * [Fixed] Rules disappear after Cancel All [#102](https://github.com/TheAxelander/OpenBudgeteer/issues/102)
 

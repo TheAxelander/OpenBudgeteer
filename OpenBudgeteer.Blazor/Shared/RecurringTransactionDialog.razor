@@ -83,8 +83,8 @@
                                         <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
                                         <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.Amount" /></td>
                                         <td class="col-buttons">
-                                            <button class="btn btn-sm btn-primary oi oi-check" @onclick="@(() => SaveTransaction(transaction))"></button>
-                                            <button class="btn btn-sm btn-danger oi oi-x" @onclick="@(() => transaction.CancelModification())"></button>
+                                            <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
+                                            <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
                                         </td>
                                     </tr>
                                 }
@@ -101,8 +101,8 @@
                                         <td class="col-buttons">
                                             @if (transaction.IsHovered)
                                             {
-                                                <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => transaction.StartModification())"></button>
-                                                <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
+                                                <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
+                                                <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
                                             }
                                         </td>
                                     </tr>

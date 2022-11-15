@@ -18,4 +18,9 @@
     <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\css\bootstrap\fonts\" />
+    <Folder Include="wwwroot\css\icons8\" />
+  </ItemGroup>
+
 </Project>

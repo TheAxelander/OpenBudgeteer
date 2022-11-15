@@ -61,7 +61,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/refund.png"/>
+                <img src="css/icons8/refund.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Income</span>
@@ -73,7 +73,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/cash-in-hand.png"/>
+                <img src="css/icons8/cash-in-hand.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Expenses</span>
@@ -85,7 +85,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/exchange.png"/>
+                <img src="css/icons8/exchange.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Month Balance</span>
@@ -97,7 +97,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/merchant-account.png"/>
+                <img src="css/icons8/merchant-account.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Bank Balance</span>
@@ -112,7 +112,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/banknotes.png"/>
+                <img src="css/icons8/banknotes.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Budget</span>
@@ -124,7 +124,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/receive-cash.png"/>
+                <img src="css/icons8/receive-cash.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Pending Want</span>
@@ -136,7 +136,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/money-bag-euro.png"/>
+                <img src="css/icons8/money-bag-euro.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Remaining Budget</span>
@@ -148,7 +148,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="https://img.icons8.com/officel/60/000000/high-priority.png"/>
+                <img src="css/icons8/high-priority.png"/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Negative Bucket Balance</span>
@@ -221,11 +221,11 @@
                 <th class="col-buttons" style="width: 370px">
                     @if (bucketGroup.IsHovered)
                     {
-                        <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
-                        <button class="btn btn-sm btn-primary oi oi-arrow-top" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
-                        <button class="btn btn-sm btn-primary oi oi-arrow-bottom" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
-                        <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => HandleResult(_dataContext.DeleteGroup(bucketGroup)))"></button>
-                        <button class="btn btn-sm btn-primary oi oi-plus" @onclick="@(() => CreateBucket(bucketGroup))"></button>
+                        <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
+                        <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
+                        <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
+                        <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleResult(_dataContext.DeleteGroup(bucketGroup)))"></button>
+                        <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => CreateBucket(bucketGroup))"></button>
                     }
                 </th>
             }
@@ -282,9 +282,9 @@
                     <td class="col-buttons">
                         @if (bucket.IsHovered)
                         {
-                            <button class="btn btn-sm btn-primary oi oi-list" @onclick="@(() => DisplayBucketTransactions(bucket))"></button>
-                            <button class="btn btn-sm btn-primary oi oi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
-                            <button class="btn btn-sm btn-danger oi oi-trash" @onclick="@(() => CloseBucket(bucket))"></button>
+                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketTransactions(bucket))"></button>
+                            <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
+                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => CloseBucket(bucket))"></button>
                         }
                     </td>
                 </tr>
