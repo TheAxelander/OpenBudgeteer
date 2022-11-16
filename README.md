@@ -118,6 +118,7 @@ services:
       - CONNECTION_USER=openbudgeteer
       - CONNECTION_PASSWORD=openbudgeteer
       - APPSETTINGS_CULTURE=en-US
+      - APPSETTINGS_THEME=solar
     depends_on:
       - mysql
     networks:
@@ -232,11 +233,16 @@ Start server running on port 5000
 ./OpenBudgeteer --urls http://0.0.0.0:5000
 ```
 
+## Themes
+
+OpenBudgeteer is compatibel with [Bootswatch Themes](https://bootswatch.com)
+
 ## Additional Settings
 
 | Variable            | Description                                                                                                | Default                 |
 |---------------------|------------------------------------------------------------------------------------------------------------|-------------------------|
 | APPSETTINGS_CULTURE | Localization identifier to set things like Currency, Date and Number Format. Must be a BCP 47 language tag | en-US                   |
+| APPSETTINGS_THEME   | Sets the [Bootswatch](https://bootswatch.com) Theme that will be used.                                     | default                 |
 
 
 ## How to use

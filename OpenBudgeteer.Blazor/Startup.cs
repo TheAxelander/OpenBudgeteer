@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.ViewModels;
 using Tewr.Blazor.FileReader;
@@ -34,7 +35,7 @@ public class Startup
         services.AddServerSideBlazor();
         services.AddFileReaderService();
         services.AddScoped<YearMonthSelectorViewModel>();
-
+        
         var provider = Configuration.GetValue<string>("CONNECTION_PROVIDER");
         string connectionString;
         switch (provider)
@@ -115,6 +116,7 @@ public class Startup
         app.UseStaticFiles();
         
         app.UseRequestLocalization(Configuration.GetValue<string>("APPSETTINGS_CULTURE"));
+        AppSettings.Theme = Configuration.GetValue("APPSETTINGS_THEME", "Default");
 
         app.UseRouting();
 

@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Web
+@using OpenBudgeteer.Core.Common;
 @namespace foobar.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -10,7 +11,7 @@
     <title>OpenBudgeteer</title>
     <base href="~/" />
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/bootstrap/@AppSettings.Theme/bootstrap.min.css" />
     <link rel="stylesheet" href="css/bootstrap/bootstrap-icons.css">
     <link href="css/site.css" rel="stylesheet" />
     <link href="css/custom.css" rel="stylesheet"/>

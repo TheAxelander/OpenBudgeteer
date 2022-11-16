@@ -33,7 +33,7 @@
         <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
         @foreach (var config in _monthBucketExpensesConfigsLeft)
         {
-            <h5 style="color: gray; font-weight: bold">@config.Item1</h5>
+            <h5 class="report-chart-subheader">@config.Item1</h5>
             <div >
                 <ChartJsBarChart Config="@config.Item2" Height="50"/>
             </div>
@@ -43,7 +43,7 @@
         <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
         @foreach (var config in _monthBucketExpensesConfigsRight)
         {
-            <h5 style="color: gray; font-weight: bold">@config.Item1</h5>
+            <h5 class="report-chart-subheader">@config.Item1</h5>
             <div >
                 <ChartJsBarChart Config="@config.Item2" Height="50"/>
             </div>

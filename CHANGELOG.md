@@ -3,6 +3,7 @@
 * [Add] Enhanced Bucket assignment for Bank Transaction (display remaining amount, manual triggered split) Thanks [ambroser1971](https://github.com/ambroser1971)
 * [Add] Recurring Transactions [#74](https://github.com/TheAxelander/OpenBudgeteer/issues/74)
 * [Add] Page with reports checking consistency of database data [#3](https://github.com/TheAxelander/OpenBudgeteer/issues/3)
+* [Add] Usage of themes from [Bootswatch](https://bootswatch.com) [#101](https://github.com/TheAxelander/OpenBudgeteer/issues/101)
 * [Breaking Change] Docker Environment Variable Format [#71](https://github.com/TheAxelander/OpenBudgeteer/issues/71)
 * [Changed] Bucket Page: Want, In and Activity figures also now on Bucket Group level [#99](https://github.com/TheAxelander/OpenBudgeteer/issues/99)
 * [Changed] Updated Bootstrap to v5.1.3

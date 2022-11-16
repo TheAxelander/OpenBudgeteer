@@ -21,27 +21,22 @@ table .header-row td, table .header-row th {
 .report-chart-box {
     width: 900px;
     border-width: thick;
-    border-color: gray;
     margin: 5px;
     border-style: solid;
 }
 .report-chart-header {
-    color: gray;
     font-weight: bold;
     margin: 10px;
     text-align: center;
 }
 
+.report-chart-subheader {
+    font-weight: bold
+}
+
 .bucket-indicator {
     border-radius: 25px;
     margin: 0.3rem 0
-}
-
-/* Overwrite site styles*/
-html, body {
-    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background-color: #f3f5f7;
-    color: #212529;
 }
 
 /* Overwrite bootstrap styles */
