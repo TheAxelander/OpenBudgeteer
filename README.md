@@ -40,7 +40,8 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ## Installation (Docker)
 
-You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing the following variables:
+You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing below variables.
+The usage of `CONNECTION_MYSQL_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer.
 
 | Variable | Description | Example |
 | --- | --- | --- |
@@ -50,6 +51,7 @@ You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/
 | CONNECTION_DATABASE | Database name | MyOpenBudgeteerDb |
 | CONNECTION_USER | Database user | MyOpenBudgeteerUser |
 | CONNECTION_PASSWORD | Database password | MyOpenBudgeteerPassword |
+| CONNECTION_MYSQL_ROOT_PASSWORD | Root Password | MyRootPassword |
 
 ```bash
 docker run -d --name='openbudgeteer' \
@@ -59,6 +61,7 @@ docker run -d --name='openbudgeteer' \
     -e 'CONNECTION_DATABASE'='MyOpenBudgeteerDb' \
     -e 'CONNECTION_USER'='MyOpenBudgeteerUser' \
     -e 'CONNECTION_PASSWORD'='MyOpenBudgeteerPassword' \
+	-e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:latest'
 ```
@@ -86,6 +89,7 @@ docker run -d --name='openbudgeteer' \
     -e 'CONNECTION_DATABASE'='MyOpenBudgeteerDb' \
     -e 'CONNECTION_USER'='MyOpenBudgeteerUser' \
     -e 'CONNECTION_PASSWORD'='MyOpenBudgeteerPassword' \
+	-e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:pre-release'
 ```
@@ -117,6 +121,7 @@ services:
       - CONNECTION_DATABASE=openbudgeteer
       - CONNECTION_USER=openbudgeteer
       - CONNECTION_PASSWORD=openbudgeteer
+      - CONNECTION_MYSQL_ROOT_PASSWORD=myRootPassword
       - APPSETTINGS_CULTURE=en-US
       - APPSETTINGS_THEME=solar
     depends_on:
@@ -199,7 +204,8 @@ For MySQL:
   "CONNECTION_SERVER": "192.168.178.100",
   "CONNECTION_PORT": "3306",
   "CONNECTION_USER": "openbudgeteer",
-  "CONNECTION_PASSWORD": "openbudgeteer",   
+  "CONNECTION_PASSWORD": "openbudgeteer",
+  "CONNECTION_MYSQL_ROOT_PASSWORD": "myRootPassword",
   "Logging": {
     "LogLevel": {
       "Default": "Information",
