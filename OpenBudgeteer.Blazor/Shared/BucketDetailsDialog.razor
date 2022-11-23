@@ -1,0 +1,114 @@
+﻿@using ChartJs.Blazor
+@using ChartJs.Blazor.ChartJS.BarChart
+@using ChartJs.Blazor.Charts
+@using OpenBudgeteer.Blazor.ViewModels
+@using OpenBudgeteer.Core.Models
+
+@if (IsDialogVisible)
+ {
+     <div class="modal fade show" style=" display: block;">
+         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1000px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">@Title</h4>
+                    <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnClickCallback"></button>
+                </div>
+                <div class="modal-body">
+                    @if (IsDialogLoading)
+                    {
+                        <div>Loading...</div>
+                    }
+                    else
+                    {
+                        <ul class="nav nav-tabs" id="bucket-details-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="movements-tab" data-bs-toggle="tab" data-bs-target="#bucket-movements" type="button" role="tab" aria-controls="bucket-movements" aria-selected="true">Movements</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="statistics-tab" data-bs-toggle="tab" data-bs-target="#bucket-statistics" type="button" role="tab" aria-controls="bucket-statistics" aria-selected="false">Statistics</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="bucket-details-tabs-content">
+                            <div class="tab-pane fade show active" id="bucket-movements" role="tabpanel" aria-labelledby="movements-tab">
+                                <input checked="checked" type="checkbox" @onchange="HideBucketMovementCheckboxClicked"/>
+                                <label>Show Bucket Movements</label>
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr class="header-row">
+                                            <th style="text-align: right; width:110px">Date</th>
+                                            <th style="width:150px">Account</th>
+                                            <th style="width:250px">Payee</th>
+                                            <th>Memo</th>
+                                            <th style="text-align: right; width: 90px">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var transaction in DataContext.BucketMovementsData.Transactions)
+                                        {
+                                            <tr>
+                                                <td style="text-align: right">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
+                                                <td>@transaction.SelectedAccount.Name</td>
+                                                <td>@transaction.Transaction.Payee</td>
+                                                <td>@transaction.Transaction.Memo</td>
+                                                <td style="text-align: right">@transaction.Transaction.Amount</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="tab-pane fade" id="bucket-statistics" role="tabpanel" aria-labelledby="statistics-tab">
+                                <div class="row">
+                                    <div class="col report-chart-box">
+		                                <h4 class="report-chart-header">Month Balances</h4>
+                                        <ChartJsBarChart Config="@DataContext.MonthBalancesConfig"/>
+                                    </div>
+                                     <div class="col report-chart-box">
+		                                <h4 class="report-chart-header">Input & Output</h4>
+                                        <ChartJsBarChart Config="@DataContext.MonthInputOutputConfig"/>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col report-chart-box">
+		                                <h4 class="report-chart-header">Balance Progression</h4>
+                                        <ChartJsLineChart Config="@DataContext.BucketProgressionConfig"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="OnClickCallback">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+ }
+
+@code {
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public BlazorBucketStatisticsViewModel DataContext { get; set; }
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public bool IsDialogLoading { get; set; }
+
+	[Parameter]
+    public Bucket CurrentBucket { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    private async void HideBucketMovementCheckboxClicked(ChangeEventArgs eventArgs)
+    {
+        await DataContext.LoadBucketMovementsDataAsync((bool)eventArgs.Value);
+        StateHasChanged();
+    }
+
+}

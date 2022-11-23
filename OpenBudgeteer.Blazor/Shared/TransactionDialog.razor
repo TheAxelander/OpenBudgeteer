@@ -17,11 +17,6 @@
                      }
                      else
                      {
-                         @if (CurrentBucket != null)
-                         {
-						    <input checked="checked" type="checkbox" @onchange="HideBucketMovementCheckboxClicked"/>
-                            <label>Show Bucket Movements</label>
-                         }
                          <table class="table table-sm table-hover">
                              <thead>
                                  <tr class="header-row">
@@ -74,11 +69,4 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
-
-    private async void HideBucketMovementCheckboxClicked(ChangeEventArgs eventArgs)
-    {
-        await DataContext.LoadDataAsync(CurrentBucket, (bool)eventArgs.Value);
-        StateHasChanged();
-    }
-
 }

@@ -5,6 +5,7 @@
 * [Add] Page with reports checking consistency of database data [#3](https://github.com/TheAxelander/OpenBudgeteer/issues/3)
 * [Add] Usage of themes from [Bootswatch](https://bootswatch.com) [#101](https://github.com/TheAxelander/OpenBudgeteer/issues/101)
 * [Add] Enable MySql User and Database creation via MySql root User [#75](https://github.com/TheAxelander/OpenBudgeteer/issues/75)
+* [Add] Bucket Details with Statistics [#20](https://github.com/TheAxelander/OpenBudgeteer/issues/20)
 * [Breaking Change] Docker Environment Variable Format [#71](https://github.com/TheAxelander/OpenBudgeteer/issues/71)
 * [Changed] Bucket Page: Want, In and Activity figures also now on Bucket Group level [#99](https://github.com/TheAxelander/OpenBudgeteer/issues/99)
 * [Changed] Updated Bootstrap to v5.1.3
@@ -12,6 +13,7 @@
 * [Changed] Made Icons8 images offline available 
 * [Fixed] App Startup will now wait for availability of MySql database [#50](https://github.com/TheAxelander/OpenBudgeteer/issues/50)
 * [Fixed] Rules disappear after Cancel All [#102](https://github.com/TheAxelander/OpenBudgeteer/issues/102)
+* [Fixed] Correct number of months shown on Report Page (e.g. should show past 24 months but displays 25 months)
 
 ### 1.5.2 (2022-03-26)
 

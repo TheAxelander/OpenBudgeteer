@@ -42,7 +42,7 @@ public class ReportViewModel : ViewModelBase
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 var transactions = dbContext.BankTransaction
-                    .Where(i => i.TransactionDate >= currentMonth.AddMonths(months * -1))
+                    .Where(i => i.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
                     .OrderBy(i => i.TransactionDate)
                     .ToList();
                 var monthBalances = transactions
@@ -97,7 +97,7 @@ public class ReportViewModel : ViewModelBase
                         })
                     .Where(i =>
                         i.BucketId != 2 && 
-                        i.TransactionDate >= currentMonth.AddMonths(months * -1))
+                        i.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
                     .ToList();
 
                 var monthIncomeExpenses = transactions
@@ -153,7 +153,7 @@ public class ReportViewModel : ViewModelBase
                         })
                     .Where(i =>
                         i.BucketId != 2 &&
-                        i.TransactionDate >= currentMonth.AddYears(years * -1))
+                        i.TransactionDate >= currentMonth.AddYears((years - 1) * -1))
                     .ToList();
 
                 var yearIncomeExpenses = transactions
@@ -195,7 +195,7 @@ public class ReportViewModel : ViewModelBase
 
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                for (int monthIndex = months; monthIndex >= 0; monthIndex--)
+                for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
                 {
                     var month = currentMonth.AddMonths(monthIndex * -1);
                     var bankTransactions = dbContext.BankTransaction
@@ -257,7 +257,7 @@ public class ReportViewModel : ViewModelBase
                                     }))
                                 // Limit on Transactions for the current Bucket and the last x months
                                 .Where(i => i.BudgetedTransaction.BucketId == bucket.BucketId &&
-                                        i.Transaction.TransactionDate >= currentMonth.AddMonths(month * -1))
+                                        i.Transaction.TransactionDate >= currentMonth.AddMonths((month - 1) * -1))
                                 .ToList();
                             // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57) 
                             var queryResults = queryScope    

@@ -1,4 +1,5 @@
 ﻿@page "/bucket"
+@using OpenBudgeteer.Blazor.ViewModels
 @using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -283,7 +284,7 @@
                     <td class="col-buttons">
                         @if (bucket.IsHovered)
                         {
-                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketTransactions(bucket))"></button>
+                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
                             <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
                             <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => CloseBucket(bucket))"></button>
                         }
@@ -308,13 +309,13 @@
     OnCancelClickCallback="@(CancelEditBucketDialog)"
     OnSaveClickCallback="@(SaveAndCloseEditBucketDialog)"/>
 
-<TransactionDialog 
-    Title="Bucket Transactions" 
-    DataContext="@_transactionModalDialogDataContext" 
-    IsDialogVisible="@_isTransactionModalDialogVisible" 
-    IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
+<BucketDetailsDialog 
+    Title="Bucket Details" 
+    DataContext="@_bucketDetailsModalDialogDataContext" 
+    IsDialogVisible="@_isBucketDetailsModalDialogVisible" 
+    IsDialogLoading="@_isBucketDetailsModalDialogDataContextLoading"
     CurrentBucket ="@_transactionModalDialogBucket"
-    OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
+    OnClickCallback="@(() => _isBucketDetailsModalDialogVisible = false)"/>
 
 <ErrorMessageDialog 
     Title="Bucket" 
@@ -331,10 +332,10 @@
     BucketViewModelItem _editBucketDialogDataContext;
     bool _isEditBucketModalDialogVisible;
 
-    TransactionViewModel _transactionModalDialogDataContext;
+    BlazorBucketStatisticsViewModel _bucketDetailsModalDialogDataContext;
     OpenBudgeteer.Core.Models.Bucket _transactionModalDialogBucket;
-    bool _isTransactionModalDialogVisible;
-    bool _isTransactionModalDialogDataContextLoading;
+    bool _isBucketDetailsModalDialogVisible;
+    bool _isBucketDetailsModalDialogDataContextLoading;
 
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
@@ -451,16 +452,15 @@
         }
     }
 
-    async void DisplayBucketTransactions(BucketViewModelItem bucket)
+    async void DisplayBucketDetails(BucketViewModelItem bucket)
     {
-        _isTransactionModalDialogVisible = true;
-        _isTransactionModalDialogDataContextLoading = true;
+        _isBucketDetailsModalDialogVisible = true;
+        _isBucketDetailsModalDialogDataContextLoading = true;
 
-        _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, YearMonthDataContext);
-        _transactionModalDialogBucket = bucket.Bucket;
-        await HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(bucket.Bucket, true));
+        _bucketDetailsModalDialogDataContext = new BlazorBucketStatisticsViewModel(DbContextOptions, YearMonthDataContext, bucket.Bucket);
+        await _bucketDetailsModalDialogDataContext.LoadDataAsync(true);
 
-        _isTransactionModalDialogDataContextLoading = false;
+        _isBucketDetailsModalDialogDataContextLoading = false;
         StateHasChanged();
     }
 }
