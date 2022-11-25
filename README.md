@@ -61,7 +61,7 @@ docker run -d --name='openbudgeteer' \
     -e 'CONNECTION_DATABASE'='MyOpenBudgeteerDb' \
     -e 'CONNECTION_USER'='MyOpenBudgeteerUser' \
     -e 'CONNECTION_PASSWORD'='MyOpenBudgeteerPassword' \
-	-e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
+    -e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:latest'
 ```
@@ -89,7 +89,7 @@ docker run -d --name='openbudgeteer' \
     -e 'CONNECTION_DATABASE'='MyOpenBudgeteerDb' \
     -e 'CONNECTION_USER'='MyOpenBudgeteerUser' \
     -e 'CONNECTION_PASSWORD'='MyOpenBudgeteerPassword' \
-	-e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
+    -e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:pre-release'
 ```
