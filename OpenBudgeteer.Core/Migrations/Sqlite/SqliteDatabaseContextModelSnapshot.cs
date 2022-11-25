@@ -210,7 +210,22 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<int>("AccountId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("AdditionalSettingAmountCleanup")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AdditionalSettingAmountCleanupValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AdditionalSettingCreditValue")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("AmountColumnName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreditColumnIdentifierColumnName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreditColumnIdentifierValue")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CreditColumnName")
