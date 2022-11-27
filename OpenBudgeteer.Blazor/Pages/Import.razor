@@ -8,11 +8,12 @@
 @using Tewr.Blazor.FileReader
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject IFileReaderService FileReaderService
+@inject IJSRuntime JSRuntime
 
 <div class="accordion" id="accordionSteps">
     <div class="accordion-item">
         <h2 class="accordion-header" id="headingStepOne">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStepOne" aria-expanded="true" aria-controls="collapseStepOne">
+            <button @ref="_step1AccordionButtonElement" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStepOne" aria-expanded="true" aria-controls="collapseStepOne">
                 Step 1: Select File
             </button>
         </h2>
@@ -495,6 +496,7 @@
 @code {
     ImportDataViewModel _dataContext;
     ElementReference _inputElement;
+    ElementReference _step1AccordionButtonElement;
 
     readonly int _placeholderItemId = -1;
     readonly string _placeholderItemValue = "___PlaceholderItem___";
@@ -502,6 +504,7 @@
     bool _step2Enabled;
     bool _step3Enabled;
     bool _step4Enabled;
+    bool _forceShowStep1;
 
     bool _isValidationRunning;
     bool _isImportRunning;
@@ -518,6 +521,16 @@
     {
         _dataContext = new ImportDataViewModel(DbContextOptions);
         HandleResult(_dataContext.LoadData());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (_forceShowStep1)
+        {
+            _forceShowStep1 = false;
+            await JSRuntime.InvokeVoidAsync("ImportPage.triggerClick", _step1AccordionButtonElement);
+        }
     }
 
     async Task ReadFileAsync()
@@ -606,6 +619,8 @@
         await FileReaderService.CreateReference(_inputElement).ClearValue();
         _dataContext = new ImportDataViewModel(DbContextOptions);
         HandleResult((_dataContext.LoadData()));
+        _forceShowStep1 = true;
+        StateHasChanged();
     }
 
     async void ImportProfile_SelectionChanged(ChangeEventArgs e)
