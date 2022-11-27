@@ -48,9 +48,30 @@
                     </div>
                     break;
             }
-            @if (!string.IsNullOrEmpty(result.Details))
+
+            @if (result.Details.Count > 0)
             {
-                <p class="card-text" style="margin-top: 1rem">@((MarkupString)Regex.Replace(HttpUtility.HtmlEncode(@result.Details), "\r?\n|\r", "<br />").Replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))</p>
+                <table class="table table-sm table-hover mt-3">
+                    <thead>
+                        <tr>
+                            @for (int i = 0; i < result.Details.First().Length; i++)
+                            {
+                                <td>@result.Details.First()[i]</td>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in result.Details.Skip(1))
+                        {
+                            <tr>
+                                @for(int col = 0; col < item.Length; col++)
+                                {
+                                    <td>@item[col]</td>         
+                                }                            
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             }
         </div>
     </div>

@@ -69,9 +69,9 @@ public class DataConsistencyViewModel : ViewModelBase
                 var result = dbContext.BudgetedTransaction.Where(i => i.BucketId == 2).Sum(i => i.Amount);
                 return result != 0 ?
                     new DataConsistencyCheckResult(checkName, StatusCode.Alert, 
-                        $"Sum of all Transfer Transactions should be 0 but is {result}.", string.Empty) :
+                        $"Sum of all Transfer Transactions should be 0 but is {result}.", new List<string[]>()) :
                     new DataConsistencyCheckResult(checkName, StatusCode.Ok, 
-                        "Sum of all Transfer Transactions is 0", string.Empty);
+                        "Sum of all Transfer Transactions is 0", new List<string[]>());
             }
         });
     }
@@ -87,7 +87,7 @@ public class DataConsistencyViewModel : ViewModelBase
             var checkName = "Bucket balance";
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var results = new List<Tuple<StatusCode, string>>();
+                var results = new List<Tuple<StatusCode, string[]>>();
                 var checkTasks = new List<Task>();
 
                 foreach (var bucket in dbContext.Bucket.Where(i => i.BucketId > 2).ToList())
@@ -111,8 +111,8 @@ public class DataConsistencyViewModel : ViewModelBase
                                 .ToList()
                                 .Sum(i => i.Amount);
                             results.Add(bucketBalance < 0 ?
-                                new(StatusCode.Warning, $"{bucket.Name}: {bucketBalance}") :
-                                new(StatusCode.Ok, string.Empty));
+                                new(StatusCode.Warning, new string[2] { bucket.Name, bucketBalance.ToString() }) :
+                                new(StatusCode.Ok, new string[0]));
                         }
                     }));
                 }
@@ -121,16 +121,26 @@ public class DataConsistencyViewModel : ViewModelBase
 
                 if (results.Any(i => i.Item1 != StatusCode.Ok))
                 {
-                    var details = new StringBuilder();
-                    foreach (var detail in results.Where(i => i.Item1 != StatusCode.Ok).Select(i => i.Item2 ))
+                    var detailsBuilder = new List<string[]>()
                     {
-                        details = details.AppendLine(detail);
-                    }
-                    return new DataConsistencyCheckResult(checkName, StatusCode.Warning, 
-                        "Negative Balances detected for Buckets", details.ToString()); 
+                        new string[2] { "Bucket", "Amount" }
+                    };
+
+                    detailsBuilder.AddRange(results
+                        .Where(i => i.Item1 != StatusCode.Ok)
+                        .Select(i => i.Item2));
+                    
+                    return new DataConsistencyCheckResult(
+                        checkName,
+                        StatusCode.Warning,
+                        "Negative Balances detected for Buckets",
+                        detailsBuilder);
                 }
-                return new DataConsistencyCheckResult(checkName, StatusCode.Ok, 
-                    "No negative Balances detected for Buckets", string.Empty);
+                return new DataConsistencyCheckResult(
+                    checkName, 
+                    StatusCode.Ok, 
+                    "No negative Balances detected for Buckets", 
+                    new List<string[]>());
             }
         });
     }
@@ -146,7 +156,7 @@ public class DataConsistencyViewModel : ViewModelBase
             var checkName = "Transactions without Bucket assignment";
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var results = new List<Tuple<StatusCode, string>>();
+                var results = new List<Tuple<StatusCode, string[]>>();
                 var checkTasks = new List<Task>();
 
                 foreach (var bankTransaction in dbContext.BankTransaction.ToList())
@@ -157,8 +167,14 @@ public class DataConsistencyViewModel : ViewModelBase
                         {
                             if (!checkDbContext.BudgetedTransaction.Any(i => i.TransactionId == bankTransaction.TransactionId))
                             {
-                                results.Add(new (StatusCode.Warning,
-                                    $"{bankTransaction.TransactionDate.ToShortDateString()}\t\t{bankTransaction.Memo}\t\t{bankTransaction.Amount}"));
+                                results.Add(new(
+                                    StatusCode.Warning,
+                                    new string[3]
+                                    {
+                                        bankTransaction.TransactionDate.ToShortDateString(),
+                                        bankTransaction.Memo,
+                                        bankTransaction.Amount.ToString()
+                                    }));
                             }
                         }
                     }));
@@ -167,16 +183,26 @@ public class DataConsistencyViewModel : ViewModelBase
 
                 if (results.Any(i => i.Item1 != StatusCode.Ok))
                 {
-                    var details = new StringBuilder();
-                    foreach (var detail in results.Select(i => i.Item2 ))
+                    var detailsBuilder = new List<string[]>()
                     {
-                        details.AppendLine(detail);
-                    }
-                    return new DataConsistencyCheckResult(checkName, StatusCode.Warning,
-                        "Some Transactions do not have any Bucket assigned", details.ToString());
+                        new string[3] { "Transaction Date", "Memo", "Amount" }
+                    };
+
+                    detailsBuilder.AddRange(results
+                        .Where(i => i.Item1 != StatusCode.Ok)
+                        .Select(i => i.Item2));
+
+                    return new DataConsistencyCheckResult(
+                        checkName,
+                        StatusCode.Warning,
+                        "Some Transactions do not have any Bucket assigned",
+                        detailsBuilder);
                 }
-                return new DataConsistencyCheckResult(checkName, StatusCode.Ok,
-                    "All Transactions are assigned to at least one Bucket", string.Empty);
+                return new DataConsistencyCheckResult(
+                    checkName,
+                    StatusCode.Ok,
+                    "All Transactions are assigned to at least one Bucket",
+                    new List<string[]>());
             }
         });
     }
@@ -193,7 +219,7 @@ public class DataConsistencyViewModel : ViewModelBase
             var checkName = "Budgeted Transaction outside of validity date";
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var results = new List<Tuple<StatusCode, string>>();
+                var results = new List<Tuple<StatusCode, string, List<BankTransaction>>>();
                 var checkTasks = new List<Task>();
 
                 foreach (var bucket in dbContext.Bucket.Where(i => i.IsInactive).ToList())
@@ -202,19 +228,21 @@ public class DataConsistencyViewModel : ViewModelBase
                     {
                         using (var checkDbContext = new DatabaseContext(_dbOptions))
                         {
-                            var hasInvalidTransactions = checkDbContext.BankTransaction
+                            var invalidTransactions = checkDbContext.BankTransaction
                                .Join(
                                    checkDbContext.BudgetedTransaction,
                                    i => i.TransactionId,
                                    j => j.TransactionId,
                                    (bankTransaction, budgetedTransaction) => new { bankTransaction, budgetedTransaction })
-                               .Any(i =>
+                               .Where(i =>
                                    i.budgetedTransaction.BucketId == bucket.BucketId &&
                                    i.bankTransaction.TransactionDate > bucket.IsInactiveFrom);
 
-                                results.Add(hasInvalidTransactions ?
-                                    new (StatusCode.Alert, bucket.Name) :
-                                    new (StatusCode.Ok, string.Empty));
+                            results.Add(invalidTransactions.Any() ?
+                                new(StatusCode.Alert,
+                                    bucket.Name,
+                                    invalidTransactions.Select(i => i.bankTransaction).ToList()) :
+                                new(StatusCode.Ok, bucket.Name, new List<BankTransaction>()));
                         }
                     }));
                 }
@@ -223,16 +251,35 @@ public class DataConsistencyViewModel : ViewModelBase
 
                 if (results.Any(i => i.Item1 != StatusCode.Ok))
                 {
-                    var details = new StringBuilder();
-                    foreach (var detail in results.Where(i => i.Item1 != StatusCode.Ok).Select(i => i.Item2))
+                    var detailsBuilder = new List<string[]>()
                     {
-                        details.AppendLine(detail);
+                        new string[4] { "Bucket", "Transaction Date", "Memo", "Amount" }
+                    };
+
+                    foreach (var result in results.Where(i => i.Item1 != StatusCode.Ok))
+                    {
+                        foreach (var transaction in result.Item3)
+                        {
+                            detailsBuilder.Add(new string[4] {
+                                result.Item2,
+                                transaction.TransactionDate.ToShortDateString(),
+                                transaction.Memo,
+                                transaction.Amount.ToString()
+                                });
+                        }
                     }
-                    return new DataConsistencyCheckResult(checkName, StatusCode.Alert,
-                        "Some Buckets have Transactions assigned after invalidity date", details.ToString());
+
+                    return new DataConsistencyCheckResult(
+                        checkName,
+                        StatusCode.Alert,
+                        "Some Buckets have Transactions assigned after invalidity date",
+                        detailsBuilder);
                 }
-                return new DataConsistencyCheckResult(checkName, StatusCode.Ok,
-                    "No Buckets have Transactions assigned after invalidity date", string.Empty);
+                return new DataConsistencyCheckResult(
+                    checkName,
+                    StatusCode.Ok,
+                    "No Buckets have Transactions assigned after invalidity date",
+                    new List<string[]>());
             }
         });
     }
