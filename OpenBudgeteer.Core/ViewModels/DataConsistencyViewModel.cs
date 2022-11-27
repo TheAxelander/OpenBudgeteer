@@ -90,20 +90,29 @@ public class DataConsistencyViewModel : ViewModelBase
                 var results = new List<Tuple<StatusCode, string>>();
                 var checkTasks = new List<Task>();
 
-                foreach (var bucket in dbContext.Bucket.ToList())
+                foreach (var bucket in dbContext.Bucket.Where(i => i.BucketId > 2).ToList())
                 {
                     checkTasks.Add(Task.Run(() =>
                     {
-                    using (var checkDbContext = new DatabaseContext(_dbOptions))
-                    {
-                        var budgetedTransactionsAmount =
-                            checkDbContext.BudgetedTransaction.Where(i => i.BucketId == bucket.BucketId).Sum(i => i.Amount);
-                        var bucketMovementsAmount =
-                            checkDbContext.BucketMovement.Where(i => i.BucketId == bucket.BucketId).Sum(i => i.Amount);
-                        var difference = bucketMovementsAmount - bucketMovementsAmount;
-                        results.Add(difference != 0 ?
-                            new(StatusCode.Warning, $"{bucket.Name}: {difference}") :
-                            new(StatusCode.Ok, string.Empty));
+                        using (var checkDbContext = new DatabaseContext(_dbOptions))
+                        {
+                            var bucketBalance = checkDbContext.BudgetedTransaction
+                                .Join(checkDbContext.BankTransaction,
+                                    i => i.TransactionId,
+                                    j => j.TransactionId,
+                                    ((budgetedTransaction, bankTransaction) => new { budgetedTransaction, bankTransaction }))
+                                .Where(i => i.budgetedTransaction.BucketId == bucket.BucketId)
+                                .Select(i => i.budgetedTransaction)
+                                .ToList()
+                                .Sum(i => i.Amount);
+
+                            bucketBalance += checkDbContext.BucketMovement
+                                .Where(i => i.BucketId == bucket.BucketId)
+                                .ToList()
+                                .Sum(i => i.Amount);
+                            results.Add(bucketBalance < 0 ?
+                                new(StatusCode.Warning, $"{bucket.Name}: {bucketBalance}") :
+                                new(StatusCode.Ok, string.Empty));
                         }
                     }));
                 }
