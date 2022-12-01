@@ -18,6 +18,7 @@
 * [Fixed] App Startup will now wait for availability of MySql database [#50](https://github.com/TheAxelander/OpenBudgeteer/issues/50)
 * [Fixed] Rules disappear after Cancel All [#102](https://github.com/TheAxelander/OpenBudgeteer/issues/102)
 * [Fixed] Correct number of months shown on Report Page (e.g. should show past 24 months but displays 25 months)
+* [Fixed] Buckets that have been marked as inactive no longer display Want [#108](https://github.com/TheAxelander/OpenBudgeteer/issues/108)
 
 ### 1.5.2 (2022-03-26)
 
