@@ -531,7 +531,7 @@ public class ImportDataViewModelTest
                 Assert.Equal(3, viewModel.ParsedRecords.Count);
                 Assert.Single(viewModel.Duplicates);
 
-                await viewModel.ImportDataAsync();
+                await viewModel.ImportDataAsync(false);
 
                 Assert.Equal(5, dbContext.BankTransaction.Count());
             }
