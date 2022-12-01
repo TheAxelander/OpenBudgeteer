@@ -7,6 +7,7 @@
 * [Add] Enable MySql User and Database creation via MySql root User [#75](https://github.com/TheAxelander/OpenBudgeteer/issues/75)
 * [Add] Bucket Details with Statistics [#20](https://github.com/TheAxelander/OpenBudgeteer/issues/20)
 * [Add] Extended mapping settings for Import Profiles [#76](https://github.com/TheAxelander/OpenBudgeteer/issues/76)
+* [Add] Button to directly import data without duplicates [#109](https://github.com/TheAxelander/OpenBudgeteer/issues/109)
 * [Breaking Change] Docker Environment Variable Format [#71](https://github.com/TheAxelander/OpenBudgeteer/issues/71)
 * [Changed] Bucket Page: Want, In and Activity figures also now on Bucket Group level [#99](https://github.com/TheAxelander/OpenBudgeteer/issues/99)
 * [Changed] Updated Bootstrap to v5.1.3

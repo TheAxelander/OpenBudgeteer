@@ -338,7 +338,8 @@
                 {
                     @if (!_isImportRunning)
                     {
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick=ImportDataAsync>Import Data</button>
+                        <button class="btn btn-sm btn-primary header-action-button" @onclick="() => ImportDataAsync(false)">Import Data</button>
+                        <button class="btn btn-sm btn-primary header-action-button" @onclick="() => ImportDataAsync(true)">Import Data (without Duplicates)</button>
                     }
                     else
                     {
@@ -601,10 +602,10 @@
         _isValidationRunning = false;
     }
 
-    async Task ImportDataAsync()
+    async Task ImportDataAsync(bool withoutDuplicates)
     {
         _isImportRunning = true;
-        var result = await _dataContext.ImportDataAsync();
+        var result = await _dataContext.ImportDataAsync(withoutDuplicates);
         _importConfirmationMessage = result.Message;
         _isImportRunning = false;
         _isConfirmationModalDialogVisible = true;

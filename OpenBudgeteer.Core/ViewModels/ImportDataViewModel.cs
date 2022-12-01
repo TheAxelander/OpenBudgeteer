@@ -558,37 +558,47 @@ public class ImportDataViewModel : ViewModelBase
     /// <summary>
     /// Uses data from <see cref="ParsedRecords"/> to store it in the database
     /// </summary>
+    /// <param name="withoutDuplicates">Ignore records identified as potential duplicate</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> ImportDataAsync()
+    public async Task<ViewModelOperationResult> ImportDataAsync(bool withoutDuplicates = true)
     {
         if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
-        
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        return await Task.Run(() =>
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                try
+                using (var transaction = dbContext.Database.BeginTransaction())
                 {
-                    var importedCount = 0;
-                    var newRecords = new List<BankTransaction>();
-                    foreach (var parsedRecord in ParsedRecords.Where(i => i.IsValid))
+                    try
                     {
-                        var newRecord = parsedRecord.Result;
-                        newRecord.AccountId = SelectedAccount.AccountId;
-                        newRecords.Add(newRecord);
+                        var importedCount = 0;
+                        var newRecords = new List<BankTransaction>();
+                        var recordsToImport = ParsedRecords.Where(i => i.IsValid).ToList();
+
+                        if (withoutDuplicates && Duplicates.Any())
+                        {
+                            recordsToImport.RemoveAll(i => Duplicates.Select(j => j.Item1).Contains(i));
+                        }
+
+                        foreach (var recordToImport in recordsToImport)
+                        {
+                            var newRecord = recordToImport.Result;
+                            newRecord.AccountId = SelectedAccount.AccountId;
+                            newRecords.Add(newRecord);
+                        }
+                        importedCount = dbContext.CreateBankTransactions(newRecords);
+
+                        transaction.Commit();
+                        return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
                     }
-                    importedCount = dbContext.CreateBankTransactions(newRecords);
-                    
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
-                }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
+                    }
                 }
             }
-        }
+        });
     }
 
     /// <summary>
