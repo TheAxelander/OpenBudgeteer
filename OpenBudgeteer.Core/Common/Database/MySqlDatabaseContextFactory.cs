@@ -6,7 +6,7 @@ namespace OpenBudgeteer.Core.Common.Database;
 
 public class MySqlDatabaseContextFactory : IDesignTimeDbContextFactory<MySqlDatabaseContext>
 {
-    private const string MysqlConnectionString = "Server=192.168.178.86;" +
+    private const string MysqlConnectionString = "Server=192.168.178.201;" +
                                                  "Port=3306;" +
                                                  "Database=openbudgeteer-dev;" +
                                                  "User=openbudgeteer-dev;" +
@@ -32,14 +32,8 @@ public class MySqlDatabaseContextFactory : IDesignTimeDbContextFactory<MySqlData
         return new MySqlDatabaseContext(optionsBuilder.Options);
     }
 
-    public MySqlDatabaseContext CreateDbContext(IConfiguration configuration)
+    public MySqlDatabaseContext CreateDbContext(string connectionString)
     {
-        var configurationSection = configuration.GetSection("Connection");
-        var connectionString = $"Server={configurationSection?["Server"]};" +
-                               $"Port={configurationSection?["Port"]};" +
-                               $"Database={configurationSection?["Database"]};" +
-                               $"User={configurationSection?["User"]};" +
-                               $"Password={configurationSection?["Password"]}";
         var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>()
             .UseMySql(
                 connectionString,

@@ -30,6 +30,36 @@ public class BucketGroupViewModelItem : ViewModelBase
         set => Set(ref _totalBalance, value);
     }
 
+    private decimal _totalWant;
+    /// <summary>
+    /// Want of all Buckets assigned to the BucketGroup
+    /// </summary>
+    public decimal TotalWant
+    {
+        get => _totalWant;
+        set => Set(ref _totalWant, value);
+    }
+
+    private decimal _totalIn;
+    /// <summary>
+    /// Sum of all <see cref="BucketMovement"/> from all Buckets assigned to the BucketGroup
+    /// </summary>
+    public decimal TotalIn
+    {
+        get => _totalIn;
+        set => Set(ref _totalIn, value);
+    }
+
+    private decimal _totalActivity;
+    /// <summary>
+    /// Sum of money for all <see cref="BankTransaction"/> from all Buckets assigned to the BucketGroup
+    /// </summary>
+    public decimal TotalActivity
+    {
+        get => _totalActivity;
+        set => Set(ref _totalActivity, value);
+    }
+
     private bool _isHovered;
     /// <summary>
     /// Helper property to check if the cursor hovers over the entry in the UI

@@ -15,7 +15,7 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.2");
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.Account", b =>
                 {
@@ -210,7 +210,22 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<int>("AccountId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("AdditionalSettingAmountCleanup")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AdditionalSettingAmountCleanupValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AdditionalSettingCreditValue")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("AmountColumnName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreditColumnIdentifierColumnName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreditColumnIdentifierValue")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CreditColumnName")
@@ -270,6 +285,38 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.HasKey("MappingRuleId");
 
                     b.ToTable("MappingRule");
+                });
+
+            modelBuilder.Entity("OpenBudgeteer.Core.Models.RecurringBankTransaction", b =>
+                {
+                    b.Property<int>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(65, 2)");
+
+                    b.Property<DateTime>("FirstOccurenceDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Memo")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Payee")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RecurrenceAmount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RecurrenceType")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("TransactionId");
+
+                    b.ToTable("RecurringBankTransaction");
                 });
 #pragma warning restore 612, 618
         }

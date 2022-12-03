@@ -9,7 +9,7 @@
 
 <div class="col-md-auto d-flex justify-content-end align-items-center">
     <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
-    <select class="form-control form-control-sm element-margin" style="width: auto" @onchange=@SelectedMonth_SelectionChanged>
+    <select class="form-select form-select-sm element-margin" style="width: auto" @onchange=@SelectedMonth_SelectionChanged>
         @foreach (var month in DataContext.Months)
         {
             if (month == DataContext.SelectedMonth)

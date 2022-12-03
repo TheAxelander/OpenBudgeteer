@@ -15,11 +15,31 @@ using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
 using TinyCsvParser.TypeConverter;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
 public class ImportDataViewModel : ViewModelBase
-{
+{    
+    private class AmountDecimalConverter : DecimalConverter
+    {
+        private ImportProfile importProfile;
+
+        public AmountDecimalConverter(ImportProfile importProfile)
+            : base(new CultureInfo(importProfile.NumberFormat), NumberStyles.Currency)
+        {
+            this.importProfile = importProfile;
+        }
+
+        protected override bool InternalConvert(string value, out decimal result)
+        {
+            if (importProfile.AdditionalSettingAmountCleanup)
+                value = Regex.Replace(value, importProfile.AdditionalSettingAmountCleanupValue, string.Empty);
+
+            return base.InternalConvert(value, out result);
+        }
+    }
+
     private class CsvBankTransactionMapping : CsvMapping<BankTransaction>
     {
         /// <summary>
@@ -51,43 +71,68 @@ public class ImportDataViewModel : ViewModelBase
             }
 
             // Amount Mapping
-            if (!string.IsNullOrEmpty(importProfile.CreditColumnName))
+            switch (importProfile.AdditionalSettingCreditValue)
             {
-                MapUsing((transaction, row) =>
-                {
-                    var debitValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
-                    var creditValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnName)];
-
-                    if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue)) return false;
-                    
-                    decimal.TryParse(debitValue, 
-                        NumberStyles.Currency, 
-                        CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
-                        out var parsedDebitValue);
-                    
-                    decimal.TryParse(creditValue, 
-                        NumberStyles.Currency, 
-                        CultureInfo.GetCultureInfo(importProfile.NumberFormat), 
-                        out var parsedCreditValue);
-
-                    if (parsedDebitValue > 0)
+                // Credit values are in separate columns
+                case 1:
+                    MapUsing((transaction, row) =>
                     {
-                        transaction.Amount = parsedDebitValue;
-                    }
-                    else
-                    {
-                        transaction.Amount = parsedCreditValue > 0 ? parsedCreditValue * -1 : parsedCreditValue;
-                    }
+                        if (string.IsNullOrEmpty(importProfile.CreditColumnName)) return false;
 
-                    return true;
-                });
-            }
-            else
-            {
-                MapProperty(
-                    identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName),
-                    x => x.Amount,
-                    new DecimalConverter(new CultureInfo(importProfile.NumberFormat), NumberStyles.Currency));
+                        var debitValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
+                        var creditValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnName)];
+
+                        if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue)) return false;
+
+
+                        var converter = new AmountDecimalConverter(importProfile);
+                        converter.TryConvert(debitValue, out var parsedDebitValue);
+                        converter.TryConvert(creditValue, out var parsedCreditValue);
+                        
+                        if (parsedDebitValue > 0)
+                        {
+                            transaction.Amount = parsedDebitValue;
+                        }
+                        else
+                        {
+                            transaction.Amount = parsedCreditValue > 0 ? parsedCreditValue * -1 : parsedCreditValue;
+                        }
+
+                        return true;
+                    });
+                    break;
+                // Debit and Credit values are in the same column but always positive
+                case 2:
+                    MapUsing((transaction, row) =>
+                    {
+                        if (string.IsNullOrEmpty(importProfile.AmountColumnName)) return false;
+                        if (string.IsNullOrEmpty(importProfile.CreditColumnIdentifierColumnName)) return false;
+                        if (string.IsNullOrEmpty(importProfile.CreditColumnIdentifierValue)) return false;
+
+                        var amountValue = row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName)];
+                        var creditColumnIdentifierValue = 
+                            row.Tokens[identifiedColumns.ToList().IndexOf(importProfile.CreditColumnIdentifierColumnName)];
+
+                        if (string.IsNullOrWhiteSpace(amountValue)) return false;
+                        
+                        var converter = new AmountDecimalConverter(importProfile);
+                        converter.TryConvert(amountValue, out var parsedAmountValue);
+
+                        transaction.Amount = creditColumnIdentifierValue == importProfile.CreditColumnIdentifierValue ?
+                            parsedAmountValue * -1 :
+                            parsedAmountValue;
+
+                        return true;
+                    });
+                    break;
+                // No special settings for Debit and Credit
+                case 0:
+                default:
+                    MapProperty(
+                        identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName),
+                        x => x.Amount,
+                        new AmountDecimalConverter(importProfile));
+                    break;
             }
         }
     }
@@ -356,7 +401,7 @@ public class ImportDataViewModel : ViewModelBase
             var result = LoadHeaders();
             if (!result.IsSuccessful) throw new Exception(result.Message);
 
-            await ValidateDataAsync();
+            //await ValidateDataAsync();
             _isProfileValid = true;
 
             return new ViewModelOperationResult(true);
@@ -513,37 +558,47 @@ public class ImportDataViewModel : ViewModelBase
     /// <summary>
     /// Uses data from <see cref="ParsedRecords"/> to store it in the database
     /// </summary>
+    /// <param name="withoutDuplicates">Ignore records identified as potential duplicate</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> ImportDataAsync()
+    public async Task<ViewModelOperationResult> ImportDataAsync(bool withoutDuplicates = true)
     {
         if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
-        
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        return await Task.Run(() =>
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                try
+                using (var transaction = dbContext.Database.BeginTransaction())
                 {
-                    var importedCount = 0;
-                    var newRecords = new List<BankTransaction>();
-                    foreach (var parsedRecord in ParsedRecords.Where(i => i.IsValid))
+                    try
                     {
-                        var newRecord = parsedRecord.Result;
-                        newRecord.AccountId = SelectedAccount.AccountId;
-                        newRecords.Add(newRecord);
+                        var importedCount = 0;
+                        var newRecords = new List<BankTransaction>();
+                        var recordsToImport = ParsedRecords.Where(i => i.IsValid).ToList();
+
+                        if (withoutDuplicates && Duplicates.Any())
+                        {
+                            recordsToImport.RemoveAll(i => Duplicates.Select(j => j.Item1).Contains(i));
+                        }
+
+                        foreach (var recordToImport in recordsToImport)
+                        {
+                            var newRecord = recordToImport.Result;
+                            newRecord.AccountId = SelectedAccount.AccountId;
+                            newRecords.Add(newRecord);
+                        }
+                        importedCount = dbContext.CreateBankTransactions(newRecords);
+
+                        transaction.Commit();
+                        return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
                     }
-                    importedCount = dbContext.CreateBankTransactions(newRecords);
-                    
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
-                }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
+                    catch (Exception e)
+                    {
+                        transaction.Rollback();
+                        return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
+                    }
                 }
             }
-        }
+        });
     }
 
     /// <summary>

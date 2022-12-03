@@ -20,6 +20,7 @@ public class ImportDataViewModelTest
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
         _dbOptions = DbConnector.GetDbContextOptions(nameof(ImportDataViewModelTest));
+        DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
         _testAccount = new Account() { Name = "Test Account", IsActive = 1 };
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
@@ -222,6 +223,7 @@ public class ImportDataViewModelTest
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
                 await viewModel.LoadProfileAsync();
+                await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
                 Assert.Equal(4, viewModel.ValidRecords);
@@ -283,6 +285,8 @@ public class ImportDataViewModelTest
                         AmountColumnName = "Debit (EUR)",
                         CreditColumnName = "Credit (EUR)",
 
+                        AdditionalSettingCreditValue = 1,
+                        
                         Delimiter = ';',
                         TextQualifier = '"',
                         DateFormat = "dd.MM.yyyy",
@@ -315,6 +319,7 @@ public class ImportDataViewModelTest
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
                 await viewModel.LoadProfileAsync();
+                await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
                 Assert.Equal(4, viewModel.ValidRecords);
@@ -410,6 +415,7 @@ public class ImportDataViewModelTest
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
                 await viewModel.LoadProfileAsync();
+                await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
                 Assert.Equal(2, viewModel.ValidRecords);
@@ -491,6 +497,7 @@ public class ImportDataViewModelTest
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
                 await viewModel.LoadProfileAsync();
+                await viewModel.ValidateDataAsync();
                 
                 Assert.Equal(4, viewModel.TotalRecords);
                 Assert.Equal(2, viewModel.ValidRecords);
@@ -524,7 +531,7 @@ public class ImportDataViewModelTest
                 Assert.Equal(3, viewModel.ParsedRecords.Count);
                 Assert.Single(viewModel.Duplicates);
 
-                await viewModel.ImportDataAsync();
+                await viewModel.ImportDataAsync(false);
 
                 Assert.Equal(5, dbContext.BankTransaction.Count());
             }
@@ -585,6 +592,7 @@ public class ImportDataViewModelTest
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
                 await viewModel.LoadProfileAsync();
+                await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
                 Assert.Equal(4, viewModel.ValidRecords);

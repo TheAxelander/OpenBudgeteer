@@ -8,15 +8,6 @@ public class DbConnector
 {
     public static DbContextOptions<DatabaseContext> GetDbContextOptions(string dbName)
     {
-        //var connectionString = "Server=cl4p-tp;" +
-        //                       "Port=3306;" +
-        //                       "Database=openbudgeteer-test;" +
-        //                       "User=openbudgeteer-test;" +
-        //                       "Password=openbudgeteer-test";
-        //return new DbContextOptionsBuilder<DatabaseContext>()
-        //    .UseMySql(connectionString)
-        //    .Options;
-
         var connectionString = $"Data Source={dbName}.db";
 
         //Check on Pending Db Migrations
@@ -43,6 +34,7 @@ public class DbConnector
             dbContext.DeleteBudgetedTransactions(dbContext.BudgetedTransaction);
             dbContext.DeleteImportProfiles(dbContext.ImportProfile);
             dbContext.DeleteMappingRules(dbContext.MappingRule);
+            dbContext.DeleteRecurringBankTransactions(dbContext.RecurringBankTransaction);
         }
     }
 }

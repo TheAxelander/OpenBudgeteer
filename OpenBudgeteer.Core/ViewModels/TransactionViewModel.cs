@@ -374,4 +374,76 @@ public class TransactionViewModel : ViewModelBase
 
         await Task.WhenAll(proposalTasks);
     }
+
+    /// <summary>
+    /// Iterates all existing <see cref="RecurringBankTransaction"/> and checks if they need to be created in
+    /// current month.
+    /// </summary>
+    /// <remarks>There is no check on already existing <see cref="BankTransaction"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> AddRecurringTransactionsAsync()
+    {
+        var reloadRequired = false;
+        using (var dbContext = new DatabaseContext(_dbOptions))
+        {
+            using (var transaction = dbContext.Database.BeginTransaction())
+            {
+                try
+                {
+                    var recurringBankTransactionTasks = new List<Task<List<BankTransaction>>>();
+                    foreach (var recurringBankTransaction in dbContext.RecurringBankTransaction)
+                    {
+                        recurringBankTransactionTasks.Add(Task.Run(() =>
+                        {
+                            // Check if RecurringBankTransaction need to be created in current month
+                    
+                            // Iterate until Occurrence Date is no longer in the past
+                            var newOccurrenceDate = recurringBankTransaction.FirstOccurenceDate;
+                            while (newOccurrenceDate < _yearMonthViewModel.CurrentMonth)
+                            {
+                                newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);
+                            }
+
+                            // Check if Occurrence Date is in current month and if yes how often it may occur 
+                            // Otherwise RecurringBankTransaction not relevant for current month
+                            var transactionsToBeCreated = new List<BankTransaction>();
+                            while (newOccurrenceDate.Month == _yearMonthViewModel.SelectedMonth &&
+                                   newOccurrenceDate.Year == _yearMonthViewModel.SelectedYear)
+                            {
+                                // Collect new BankTransactions                                
+                                transactionsToBeCreated.Add(recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
+                                // Create new BankTransaction
+                                //dbContext.CreateBankTransaction(recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
+                                
+                                //using (var dbCreateBankTransactionContext = new DatabaseContext(_dbOptions))
+                                //{
+                                //    dbCreateBankTransactionContext.CreateBankTransaction(
+                                //        recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
+                                //}
+                                reloadRequired = true;
+                        
+                                // Move to next iteration
+                                newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);
+                            }
+
+                            return transactionsToBeCreated;
+                        }));
+                    }
+                    // Create new BankTransactions
+                    foreach (var results in await Task.WhenAll(recurringBankTransactionTasks))
+                    {
+                        dbContext.CreateBankTransactions(results);
+                    }
+                    //await Task.WhenAll(recurringBankTransactionTasks);
+                    await transaction.CommitAsync();
+                    return new ViewModelOperationResult(true, reloadRequired);
+                }
+                catch (Exception e)
+                {
+                    await transaction.RollbackAsync();
+                    return new ViewModelOperationResult(false, e.Message);
+                }
+            }
+        }
+    }
 }

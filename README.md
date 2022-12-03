@@ -40,25 +40,28 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ## Installation (Docker)
 
-You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing the following variables:
+You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing below variables.
+The usage of `CONNECTION_MYSQL_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer.
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| Connection:Provider | Type of database that should be used | mysql |
-| Connection:Server | IP Address to MySQL Server | 192.168.178.100 |
-| Connection:Port| Port to MySQL Server | 3306 |
-| Connection:Database | Database name | MyOpenBudgeteerDb |
-| Connection:User | Database user | MyOpenBudgeteerUser |
-| Connection:Password | Database password | MyOpenBudgeteerPassword |
+| CONNECTION_PROVIDER | Type of database that should be used | mysql |
+| CONNECTION_SERVER | IP Address to MySQL Server | 192.168.178.100 |
+| CONNECTION_PORT | Port to MySQL Server | 3306 |
+| CONNECTION_DATABASE | Database name | MyOpenBudgeteerDb |
+| CONNECTION_USER | Database user | MyOpenBudgeteerUser |
+| CONNECTION_PASSWORD | Database password | MyOpenBudgeteerPassword |
+| CONNECTION_MYSQL_ROOT_PASSWORD | Root Password | MyRootPassword |
 
 ```bash
 docker run -d --name='openbudgeteer' \
-    -e 'Connection:Provider'='mysql' \
-    -e 'Connection:Server'='192.168.178.100' \
-    -e 'Connection:Port'='3306' \
-    -e 'Connection:Database'='MyOpenBudgeteerDb' \
-    -e 'Connection:User'='MyOpenBudgeteerUser' \
-    -e 'Connection:Password'='MyOpenBudgeteerPassword' \
+    -e 'CONNECTION_PROVIDER'='mysql' \
+    -e 'CONNECTION_SERVER'='192.168.178.100' \
+    -e 'CONNECTION_PORT'='3306' \
+    -e 'CONNECTION_DATABASE'='MyOpenBudgeteerDb' \
+    -e 'CONNECTION_USER'='MyOpenBudgeteerUser' \
+    -e 'CONNECTION_PASSWORD'='MyOpenBudgeteerPassword' \
+    -e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:latest'
 ```
@@ -67,7 +70,7 @@ Alternatively you can use a local `Sqlite` database using the below settings:
 
 ```bash
 docker run -d --name='openbudgeteer' \
-    -e 'Connection:Provider'='sqlite' \
+    -e 'CONNECTION_PROVIDER'='sqlite' \
     -v '/my/local/path:/app/database'  \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:latest'
@@ -80,12 +83,13 @@ A Pre-Release version can be used with the Tag `pre-release`
 
 ```bash
 docker run -d --name='openbudgeteer' \
-    -e 'Connection:Provider'='mysql' \
-    -e 'Connection:Server'='192.168.178.100' \
-    -e 'Connection:Port'='3306' \
-    -e 'Connection:Database'='MyOpenBudgeteerDb' \
-    -e 'Connection:User'='MyOpenBudgeteerUser' \
-    -e 'Connection:Password'='MyOpenBudgeteerPassword' \
+    -e 'CONNECTION_PROVIDER'='mysql' \
+    -e 'CONNECTION_SERVER'='192.168.178.100' \
+    -e 'CONNECTION_PORT'='3306' \
+    -e 'CONNECTION_DATABASE'='MyOpenBudgeteerDb' \
+    -e 'CONNECTION_USER'='MyOpenBudgeteerUser' \
+    -e 'CONNECTION_PASSWORD'='MyOpenBudgeteerPassword' \
+    -e 'CONNECTION_MYSQL_ROOT_PASSWORD'='MyRootPassword' \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:pre-release'
 ```
@@ -112,12 +116,14 @@ services:
     ports:
       - 8081:80
     environment:
-      - Connection:Server=openbudgeteer-mysql
-      - Connection:Port=3306
-      - Connection:Database=openbudgeteer
-      - Connection:User=openbudgeteer
-      - Connection:Password=openbudgeteer
-      - AppSettings:Culture=en-US
+      - CONNECTION_SERVER=openbudgeteer-mysql
+      - CONNECTION_PORT=3306
+      - CONNECTION_DATABASE=openbudgeteer
+      - CONNECTION_USER=openbudgeteer
+      - CONNECTION_PASSWORD=openbudgeteer
+      - CONNECTION_MYSQL_ROOT_PASSWORD=myRootPassword
+      - APPSETTINGS_CULTURE=en-US
+      - APPSETTINGS_THEME=solar
     depends_on:
       - mysql
     networks:
@@ -193,14 +199,13 @@ For MySQL:
 
 ```json
 {
-  "Connection": {
-    "Provider" :  "mysql", 
-    "Database": "openbudgeteer",
-    "Server": "192.168.178.100",
-    "Port": "3306", 
-    "User": "openbudgeteer",
-    "Password": "openbudgeteer"
-  }, 
+  "CONNECTION_PROVIDER": "mysql",
+  "CONNECTION_DATABASE": "openbudgeteer",
+  "CONNECTION_SERVER": "192.168.178.100",
+  "CONNECTION_PORT": "3306",
+  "CONNECTION_USER": "openbudgeteer",
+  "CONNECTION_PASSWORD": "openbudgeteer",
+  "CONNECTION_MYSQL_ROOT_PASSWORD": "myRootPassword",
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -216,9 +221,7 @@ For Sqlite:
 
 ```json
 {
-  "Connection": {
-    "Provider" :  "sqlite", 
-  }, 
+  "CONNECTION_PROVIDER": "sqlite", 
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -236,11 +239,16 @@ Start server running on port 5000
 ./OpenBudgeteer --urls http://0.0.0.0:5000
 ```
 
+## Themes
+
+OpenBudgeteer is compatibel with [Bootswatch Themes](https://bootswatch.com)
+
 ## Additional Settings
 
 | Variable            | Description                                                                                                | Default                 |
 |---------------------|------------------------------------------------------------------------------------------------------------|-------------------------|
-| AppSettings:Culture | Localization identifier to set things like Currency, Date and Number Format. Must be a BCP 47 language tag | en-US                   |
+| APPSETTINGS_CULTURE | Localization identifier to set things like Currency, Date and Number Format. Must be a BCP 47 language tag | en-US                   |
+| APPSETTINGS_THEME   | Sets the [Bootswatch](https://bootswatch.com) Theme that will be used.                                     | default                 |
 
 
 ## How to use

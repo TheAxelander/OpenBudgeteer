@@ -99,7 +99,7 @@ public class BlazorReportViewModel : ReportViewModel
         }
     }
     
-    protected LineConfig DefaultTImeLineConfig =>
+    protected LineConfig DefaultTimeLineConfig =>
         new LineConfig
         {
             Options = new LineOptions
@@ -285,7 +285,7 @@ public class BlazorReportViewModel : ReportViewModel
 
     private async Task LoadBankBalancesReportAsync()
     {
-        BankBalancesConfig = DefaultTImeLineConfig;
+        BankBalancesConfig = DefaultTimeLineConfig;
         BankBalancesConfig.Options.Title.Text = "Bank Balances";
 
         var lineDataSet = new LineDataset<TimeTuple<double>>

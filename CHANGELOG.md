@@ -1,10 +1,33 @@
+### 1.6 (2022-12-03)
+
+* [Add] Enhanced Bucket assignment for Bank Transaction (display remaining amount, manual triggered split) Thanks [ambroser1971](https://github.com/ambroser1971)
+* [Add] Recurring Transactions [#74](https://github.com/TheAxelander/OpenBudgeteer/issues/74)
+* [Add] Page with reports checking consistency of database data [#3](https://github.com/TheAxelander/OpenBudgeteer/issues/3)
+* [Add] Usage of themes from [Bootswatch](https://bootswatch.com) [#101](https://github.com/TheAxelander/OpenBudgeteer/issues/101)
+* [Add] Enable MySql User and Database creation via MySql root User [#75](https://github.com/TheAxelander/OpenBudgeteer/issues/75)
+* [Add] Bucket Details with Statistics [#20](https://github.com/TheAxelander/OpenBudgeteer/issues/20)
+* [Add] Extended mapping settings for Import Profiles [#76](https://github.com/TheAxelander/OpenBudgeteer/issues/76)
+* [Add] Button to directly import data without duplicates [#109](https://github.com/TheAxelander/OpenBudgeteer/issues/109)
+* [Add] News feed [#85](https://github.com/TheAxelander/OpenBudgeteer/issues/85)
+* [Breaking Change] Docker Environment Variable Format [#71](https://github.com/TheAxelander/OpenBudgeteer/issues/71)
+* [Changed] Bucket Page: Want, In and Activity figures also now on Bucket Group level [#99](https://github.com/TheAxelander/OpenBudgeteer/issues/99)
+* [Changed] Updated Bootstrap to v5.1.3
+* [Changed] Replaced Open Iconic icons with Bootstrap Icons
+* [Changed] Made Icons8 images offline available 
+* [Changed] Redesign of Import Page
+* [Changed] On Import Page automatic data validation after selecting an Import Profile has been disabled for now to prevent hickups on large files
+* [Fixed] App Startup will now wait for availability of MySql database [#50](https://github.com/TheAxelander/OpenBudgeteer/issues/50)
+* [Fixed] Rules disappear after Cancel All [#102](https://github.com/TheAxelander/OpenBudgeteer/issues/102)
+* [Fixed] Correct number of months shown on Report Page (e.g. should show past 24 months but displays 25 months)
+* [Fixed] Buckets that have been marked as inactive no longer display Want [#108](https://github.com/TheAxelander/OpenBudgeteer/issues/108)
+
 ### 1.5.2 (2022-03-26)
 
 * [Fixed] Sqlite database lock while saving multiple Bank Transaction [#90](https://github.com/TheAxelander/OpenBudgeteer/issues/90)
 
 ### 1.5.1 (2022-02-26)
 
-* [Fixed] Amount conversion with currency characters. [#82](https://github.com/TheAxelander/OpenBudgeteer/issues/82) [#83](https://github.com/TheAxelander/OpenBudgeteer/pull/83) Thanks @Hazy87
+* [Fixed] Amount conversion with currency characters. [#82](https://github.com/TheAxelander/OpenBudgeteer/issues/82) [#83](https://github.com/TheAxelander/OpenBudgeteer/pull/83) Thanks [Hazy87](https://github.com/Hazy87)
 * [Fixed] Amount conversion with 0 values. [#72](https://github.com/TheAxelander/OpenBudgeteer/issues/72)
 
 ### 1.5 (2022-02-19)

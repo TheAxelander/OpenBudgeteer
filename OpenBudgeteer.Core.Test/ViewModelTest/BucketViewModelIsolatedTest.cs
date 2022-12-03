@@ -16,6 +16,7 @@ public class BucketViewModelIsolatedTest
     public BucketViewModelIsolatedTest()
     {
         _dbOptions = DbConnector.GetDbContextOptions(nameof(BucketViewModelIsolatedTest));
+        DbConnector.CleanupDatabase(nameof(BucketViewModelIsolatedTest));
     }
     
     [Fact]

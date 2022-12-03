@@ -21,23 +21,22 @@ table .header-row td, table .header-row th {
 .report-chart-box {
     width: 900px;
     border-width: thick;
-    border-color: gray;
     margin: 5px;
     border-style: solid;
 }
 .report-chart-header {
-    color: gray;
     font-weight: bold;
     margin: 10px;
     text-align: center;
 }
-    
 
-/* Overwrite site styles*/
-html, body {
-    font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background-color: #f3f5f7;
-    color: #212529;
+.report-chart-subheader {
+    font-weight: bold
+}
+
+.bucket-indicator {
+    border-radius: 25px;
+    margin: 0.3rem 0
 }
 
 /* Overwrite bootstrap styles */
@@ -52,4 +51,12 @@ html, body {
 
 .modal-dialog-scrollable {
     max-height: calc(100% - 3.5rem - 3.5rem); /* Additional 3.5rem for static footer  */
+}
+
+.navbar-brand {
+    display: inline-block; /* restore setting from bootstrap 4 */ 
+}
+
+.dropdown-item-sm {
+    font-size: .875rem; /* Additional class to match font size of DropDownItem with SplitButton (btn-sm)*/
 }

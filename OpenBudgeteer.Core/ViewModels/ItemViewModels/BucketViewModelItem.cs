@@ -65,7 +65,7 @@ public class BucketViewModelItem : ViewModelBase
 
     private decimal _in;
     /// <summary>
-    /// Sum of all <see cref="Bucket"/> movements
+    /// Sum of all <see cref="BucketMovement"/>
     /// </summary>
     public decimal In
     {
@@ -365,25 +365,28 @@ public class BucketViewModelItem : ViewModelBase
 
         #region Want
 
-        switch (BucketVersion.BucketType)
+        if (!Bucket.IsInactive)
         {
-            case 2:
-                var newWant = BucketVersion.BucketTypeYParam - In;
-                Want = newWant < 0 ? 0 : newWant;
-                break;
-            case 3:
-                var nextTargetDate = BucketVersion.BucketTypeZParam;
-                while (nextTargetDate < _currentYearMonth)
-                {
-                    nextTargetDate = nextTargetDate.AddMonths(BucketVersion.BucketTypeXParam);
-                }
-                Want = CalculateWant(nextTargetDate);
-                break;
-            case 4:
-                Want = CalculateWant(BucketVersion.BucketTypeZParam);
-                break;
-            default:
-                break;
+            switch (BucketVersion.BucketType)
+            {
+                case 2:
+                    var newWant = BucketVersion.BucketTypeYParam - In;
+                    Want = newWant < 0 ? 0 : newWant;
+                    break;
+                case 3:
+                    var nextTargetDate = BucketVersion.BucketTypeZParam;
+                    while (nextTargetDate < _currentYearMonth)
+                    {
+                        nextTargetDate = nextTargetDate.AddMonths(BucketVersion.BucketTypeXParam);
+                    }
+                    Want = CalculateWant(nextTargetDate);
+                    break;
+                case 4:
+                    Want = CalculateWant(BucketVersion.BucketTypeZParam);
+                    break;
+                default:
+                    break;
+            }
         }
 
         decimal CalculateWant(DateTime targetDate)
