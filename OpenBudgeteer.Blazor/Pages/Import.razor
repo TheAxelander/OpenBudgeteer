@@ -615,7 +615,8 @@
     {
         _step3Enabled = false;
         _step4Enabled = false;
-        if (_dataContext.SelectedImportProfile != null) await LoadProfile();
+        if (_dataContext.SelectedImportProfile != null &&
+            _dataContext.SelectedImportProfile.ImportProfileId != -1) await LoadProfile();
     }
 
     void TargetAccount_SelectionChanged(ChangeEventArgs e)
