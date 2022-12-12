@@ -239,6 +239,7 @@ public class BucketViewModelItem : ViewModelBase
             BucketId = 0,
             BucketGroupId = bucketGroup.BucketGroupId,
             Name = "New Bucket",
+            ColorCode = Color.Transparent.Name,
             ValidFrom = yearMonth,
             IsInactive = false,
             IsInactiveFrom = DateTime.MaxValue
