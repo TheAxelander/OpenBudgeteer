@@ -1,6 +1,7 @@
 ﻿@page "/rules"
 
 @using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Blazor.Shared.Selector
 @using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -40,66 +41,48 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.RuleSet.Name" /></td>
                 <td>
-                    <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)"
-                            @onchange=@(e => HandleTargetBucketSelectionChanged(_dataContext.NewRuleSet, Convert.ToInt32(e.Value)))>
-                        @foreach (var availableBucket in _dataContext.NewRuleSet.AvailableBuckets)
-                        {
-                            if (_dataContext.NewRuleSet.TargetBucket.BucketId == availableBucket.BucketId)
-                            {
-								<option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                            }
-                            else
-                            {
-                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>    
-                            }
-                        }
-                    </select>
+                    <BucketSelect
+                        @bind-SelectedItem="@_dataContext.NewRuleSet.TargetBucket"
+                        AvailableItems="@_dataContext.NewRuleSet.AvailableBuckets"
+                        OnSelectedItemChanged="@(() => _dataContext.NewRuleSet.RuleSet.TargetBucketId = _dataContext.NewRuleSet.TargetBucket.BucketId)"/>
                 </td>
                 <td>
-                    @foreach (var mappingRule in _dataContext.NewRuleSet.MappingRules)
-                    {
-                        <div class="row align-items-center" style="margin-bottom: 5px 0">
-                            <div class="col-md-auto">
-                                <select class="form-select form-select-sm"
-                                        @onchange=@(e => mappingRule.MappingRule.ComparisionField = Convert.ToInt32(e.Value))>
-                                    @for (int i = 1; i <= 4; i++)
-                                    {
-                                        if (mappingRule.MappingRule.ComparisionField == i)
-                                        {
-                                            <option selected value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-md-auto">
-                                <select class="form-select form-select-sm"
-                                        @onchange=@(e => mappingRule.MappingRule.ComparisionType = Convert.ToInt32(e.Value))>
-                                    @for (int i = 1; i <= 4; i++)
-                                    {
-                                        if (mappingRule.MappingRule.ComparisionType == i)
-                                        {
-                                            <option selected value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                            <div class="col">
-                                <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
-                            </div>
-                            <div class="col-md-auto" style="vertical-align: center">
-                                <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
-                                <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => _dataContext.NewRuleSet.DeleteMappingRule(mappingRule))"></button>
-                            </div>
-                        </div>
-                    }
+                    <table class="table table-borderless" style="margin-bottom: auto;">
+                        <tbody>
+                            @foreach (var mappingRule in _dataContext.NewRuleSet.MappingRules)
+                            {
+                                <tr>
+                                    <td style="width: 120px">
+                                        <IntegerSelect
+                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionField"
+                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
+                                            SelectClasses="form-select form-select-sm">
+                                            <SelectOption Context="comparisionField">
+                                                <option value="@comparisionField">@(new MappingRule(){ ComparisionField = comparisionField }.ComparisonFieldOutput)</option>
+                                            </SelectOption>
+                                        </IntegerSelect>
+                                    </td>
+                                    <td style="width: 160px">
+                                        <IntegerSelect
+                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionType"
+                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
+                                            SelectClasses="form-select form-select-sm">
+                                            <SelectOption Context="comparisionType">
+                                                <option value="@comparisionType">@(new MappingRule(){ ComparisionType = comparisionType }.ComparisionTypeOutput)</option>
+                                            </SelectOption>
+                                        </IntegerSelect>
+                                    </td>
+                                    <td>
+                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
+                                    </td>
+                                    <td class="col-buttons" style="width: 80px">
+                                        <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
+                                        <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => _dataContext.NewRuleSet.DeleteMappingRule(mappingRule))"></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </td>
                 <td class="col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateNewRuleSet()))"></button>
@@ -128,68 +111,48 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.RuleSet.Name" /></td>
                 <td>
-                    <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)"
-                            @onchange=@(e => HandleTargetBucketSelectionChanged(ruleSet, Convert.ToInt32(e.Value)))>
-                        @foreach (var availableBucket in ruleSet.AvailableBuckets)
-                        {
-                            if (ruleSet.RuleSet.TargetBucketId == availableBucket.BucketId)
-                            {
-                                <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                            }
-                            else
-                            {
-                                <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                            }
-                        }
-                    </select>
+                    <BucketSelect
+                        @bind-SelectedItem="@ruleSet.TargetBucket"
+                        AvailableItems="@ruleSet.AvailableBuckets"
+                        OnSelectedItemChanged="@(() => ruleSet.RuleSet.TargetBucketId = ruleSet.TargetBucket.BucketId)"/>
                 </td>
-                
                 <td>
-                    
-                    @foreach (var mappingRule in ruleSet.MappingRules)
-                    {
-                        <div class="row align-items-center" style="margin-bottom: 5px 0">
-                            <div class="col-md-auto">
-                                <select class="form-select form-select-sm"
-                                        @onchange=@(e => mappingRule.MappingRule.ComparisionField = Convert.ToInt32(e.Value))>
-                                    @for (int i = 1; i <= 4; i++)
-                                    {
-                                        if (mappingRule.MappingRule.ComparisionField == i)
-                                        {
-                                            <option selected value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-md-auto">
-                                <select class="form-select form-select-sm"
-                                        @onchange=@(e => mappingRule.MappingRule.ComparisionType = Convert.ToInt32(e.Value))>
-                                    @for (int i = 1; i <= 4; i++)
-                                    {
-                                        if (mappingRule.MappingRule.ComparisionType == i)
-                                        {
-                                            <option selected value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
-                                        }
-                                        else
-                                        {
-                                            <option value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                            <div class="col">
-                                <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
-                            </div>
-                            <div class="col-md-auto" style="vertical-align: center">
-                                <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
-                                <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
-                            </div>
-                        </div>
-                    }
+                    <table class="table table-borderless" style="margin-bottom: auto;">
+                        <tbody>
+                            @foreach (var mappingRule in ruleSet.MappingRules)
+                            {
+                                <tr>
+                                    <td style="width: 120px">
+                                        <IntegerSelect
+                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionField"
+                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
+                                            SelectClasses="form-select form-select-sm">
+                                            <SelectOption Context="comparisionField">
+                                                <option value="@comparisionField">@(new MappingRule(){ ComparisionField = comparisionField}.ComparisonFieldOutput)</option>
+                                            </SelectOption>
+                                        </IntegerSelect>
+                                    </td>
+                                    <td style="width: 160px">
+                                        <IntegerSelect
+                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionType"
+                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
+                                            SelectClasses="form-select form-select-sm">
+                                            <SelectOption Context="comparisionType">
+                                                <option value="@comparisionType">@(new MappingRule(){ ComparisionType = comparisionType}.ComparisionTypeOutput)</option>
+                                            </SelectOption>
+                                        </IntegerSelect>
+                                    </td>
+                                    <td>
+                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
+                                    </td>
+                                    <td class="col-buttons" style="width: 80px">
+                                        <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
+                                        <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </td>
                 <td class="col-buttons">
 					<button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
@@ -253,12 +216,6 @@
         _dataContext = new RulesViewModel(DbContextOptions);
 
         await HandleResult(await _dataContext.LoadDataAsync());
-    }
-
-    void HandleTargetBucketSelectionChanged(RuleSetViewModelItem ruleSetViewModelItem, int selectedBucketId)
-    {
-        ruleSetViewModelItem.TargetBucket = ruleSetViewModelItem.AvailableBuckets.First(i => i.BucketId == selectedBucketId);
-		ruleSetViewModelItem.RuleSet.TargetBucketId = ruleSetViewModelItem.TargetBucket.BucketId;
     }
 
 	void CancelNewBucketRule()

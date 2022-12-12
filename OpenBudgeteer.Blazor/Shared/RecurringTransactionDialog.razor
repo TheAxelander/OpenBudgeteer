@@ -1,4 +1,5 @@
-﻿@using OpenBudgeteer.Core.Common
+﻿@using OpenBudgeteer.Blazor.Shared.Selector
+@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -50,34 +51,27 @@
                                         </td>
                                         <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.RecurrenceAmount" /></td>
                                         <td style="width:130px">
-                                            <select class="form-select form-select-sm" @onchange=@(e => transaction.SelectedRecurrenceType = transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(e.Value)))>
-                                                @foreach (var recurrenceType in transaction.AvailableRecurrenceTypes)
-                                                {
-                                                    if (recurrenceType.Key == transaction.SelectedRecurrenceType.Key)
-                                                    {
-                                                        <option selected value="@recurrenceType.Key">@recurrenceType.Value</option>
-                                                    }
-                                                    else
-                                                    {
-                                                        <option value="@recurrenceType.Key">@recurrenceType.Value</option>
-                                                    }
-                                                }
-                                            </select>
+                                            <ObjectSelect
+                                                GetSelectedItemIdHandler="@(e => e.Key.ToString())"
+                                                SetSelectedItemHandler="@(e => transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(e)))"
+                                                @bind-SelectedItem="@transaction.SelectedRecurrenceType"
+                                                AvailableItems="@transaction.AvailableRecurrenceTypes"
+                                                SelectClasses="form-select form-select-sm">
+                                                <SelectOption Context="recurrenceType">
+                                                    <option value="@recurrenceType.Key">@recurrenceType.Value</option>
+                                                </SelectOption>
+                                            </ObjectSelect>
                                         </td>
                                         <td>
-                                            <select class="form-select form-select-sm" @onchange=@(e => transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
-                                                @foreach (var account in transaction.AvailableAccounts)
-                                                {
-                                                    if (account.AccountId == transaction.SelectedAccount.AccountId)
-                                                    {
-                                                        <option selected value="@account.AccountId">@account.Name</option>
-                                                    }
-                                                    else
-                                                    {
-                                                        <option value="@account.AccountId">@account.Name</option>
-                                                    }
-                                                }
-                                            </select>
+                                            <ObjectSelect GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
+                                                SetSelectedItemHandler="@(e => transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e)))"
+                                                @bind-SelectedItem="@transaction.SelectedAccount"
+                                                AvailableItems="@transaction.AvailableAccounts"
+                                                SelectClasses="form-select form-select-sm">
+                                                <SelectOption Context="account">
+                                                    <option value="@account.AccountId">@account.Name</option>
+                                                </SelectOption>
+                                            </ObjectSelect>
                                         </td>
                                         <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
                                         <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>

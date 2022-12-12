@@ -159,7 +159,11 @@ public class RuleSetViewModelItem : ViewModelBase
     /// </summary>
     public void AddEmptyMappingRule()
     {
-        MappingRules.Add(new MappingRuleViewModelItem(_dbOptions, new MappingRule()));
+        MappingRules.Add(new MappingRuleViewModelItem(_dbOptions, new MappingRule()
+        {
+            ComparisionField = 1,
+            ComparisionType = 1
+        }));
     }
 
     /// <summary>

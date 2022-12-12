@@ -1,3 +1,8 @@
+### 1.6.1 (2022-12-xx)
+
+* [Changed] Slight visual changes for Mapping Rule modification
+* [Fixed] Rendering of correct Drop-down selection element for Firefox browser [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114)
+
 ### 1.6 (2022-12-03)
 
 * [Add] Enhanced Bucket assignment for Bank Transaction (display remaining amount, manual triggered split) Thanks [ambroser1971](https://github.com/ambroser1971)
