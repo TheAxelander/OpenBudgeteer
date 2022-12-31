@@ -1,4 +1,4 @@
-### 1.6.1 (2022-12-xx)
+### 1.6.1 (2022-12-31)
 
 * [Changed] Slight visual changes for Mapping Rule modification
 * [Fixed] Rendering of correct Drop-down selection element for Firefox browser [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114)
