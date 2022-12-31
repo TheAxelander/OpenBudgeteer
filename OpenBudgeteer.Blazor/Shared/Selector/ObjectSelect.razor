@@ -1,0 +1,89 @@
+﻿@using OpenBudgeteer.Core.Common.EventClasses;
+@using OpenBudgeteer.Core.Models;
+@using OpenBudgeteer.Core.ViewModels;
+@using System.Linq.Expressions;
+
+@typeparam TItem
+
+<select class="@SelectClasses" style="@SelectStyles" @bind="SelectedItemId">
+    @foreach (var item in AvailableItems)
+    {
+        @SelectOption(item)
+    }
+</select>
+
+@code {
+    [Parameter]
+    public Func<TItem, string> GetSelectedItemIdHandler { get; set; }
+
+    [Parameter]
+    public Func<string, TItem> SetSelectedItemHandler { get; set; }
+
+    private string _selectedItemId;
+    // Required for Firefox to keep selection, see Issue #114
+    private string SelectedItemId 
+    {
+        get => _selectedItemId;
+        set
+        {
+            var oldValue = _selectedItemId;
+            if (oldValue == value) return;
+            _selectedItemId = value;
+            hasSelectionChangedById = true;
+            SelectedItem = SetSelectedItemHandler(value);
+        }
+    }
+
+    private TItem _selectedItem;
+    [Parameter]
+    public TItem SelectedItem 
+    {
+        get => _selectedItem;
+        set
+        {
+            // Initial set, skip all further logics
+            if (_selectedItem == null)
+            {
+                _selectedItem = value;
+                _selectedItemId = GetSelectedItemIdHandler(value);
+                return;
+            }
+
+            // Check if there is no real change
+            if (GetSelectedItemIdHandler(_selectedItem) == GetSelectedItemIdHandler(value) &&
+                SelectedItemId == GetSelectedItemIdHandler(value)) return;
+
+            if (!hasSelectionChangedById)
+            {
+                // Change from outside, simulate Change coming from <select> and cancel setter
+                SelectedItemId = GetSelectedItemIdHandler(value);
+                return;
+            }
+            var oldValue = _selectedItem;
+            _selectedItem = value;
+            SelectedItemChanged.InvokeAsync(value);
+            OnSelectedItemChanged.InvokeAsync(new ChangeEventArgs() { Value = value });
+            hasSelectionChangedById = false;
+        }
+    }
+
+    [Parameter]
+    public EventCallback<TItem> SelectedItemChanged { get; set; }
+
+    [Parameter]
+    public IEnumerable<TItem> AvailableItems { get; set; }
+
+    [Parameter]
+    public RenderFragment<TItem> SelectOption { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnSelectedItemChanged { get; set; }
+
+    [Parameter]
+    public string SelectClasses { get; set; }
+
+    [Parameter]
+    public string SelectStyles { get; set; }
+
+    bool hasSelectionChangedById;
+}

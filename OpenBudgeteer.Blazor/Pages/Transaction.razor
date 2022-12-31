@@ -1,5 +1,6 @@
 ﻿@page "/transaction"
 
+@using OpenBudgeteer.Blazor.Shared.Selector
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.Common.Database
 @using Microsoft.EntityFrameworkCore
@@ -35,20 +36,18 @@
         }
     </div>
     <div class="col-md-auto">
-        <select class="form-select form-select-sm" style="width: auto" @onchange="@Filter_SelectionChanged">
-            @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
-            {
-                if (filter == _dataContext.CurrentFilter)
-                {
-                    <option selected value="@filter">@filter.GetStringValue()</option>    
-                }
-                else
-                {
-                    <option value="@filter">@filter.GetStringValue()</option>
-                }
-                
-            }
-        </select>
+        <ObjectSelect
+            GetSelectedItemIdHandler="@(e => e.ToString())"
+            SetSelectedItemHandler="@(e => Enum.TryParse(typeof(TransactionViewModelFilter), e, out var result) ?
+                (TransactionViewModelFilter)result : TransactionViewModelFilter.NoFilter)"
+            @bind-SelectedItem="@_dataContext.CurrentFilter"
+            AvailableItems="@(Enum.GetValues<TransactionViewModelFilter>())"
+            SelectClasses="form-select form-select-sm"
+            SelectStyles="width: auto">
+            <SelectOption Context="filter">
+                <option value="@filter">@filter.GetStringValue()</option>
+            </SelectOption>
+        </ObjectSelect>
     </div>
     <YearMonthSelector DataContext="YearMonthDataContext" />
 </div>
@@ -73,20 +72,16 @@
                     <input class="form-control form-control-sm number-input" type="date" @bind="_dataContext.NewTransaction.Transaction.TransactionDate" />
                 </td>
                 <td>
-
-                    <select class="form-select form-select-sm" @onchange=@(e => _dataContext.NewTransaction.SelectedAccount = _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
-                        @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
-                        {
-                            if (account.AccountId == _dataContext.NewTransaction.SelectedAccount.AccountId)
-                            {
-                                <option selected value="@account.AccountId">@account.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@account.AccountId">@account.Name</option>
-                            }
-                        }
-                    </select>
+                    <ObjectSelect
+                        GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
+                        SetSelectedItemHandler="@(e => _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e)))"
+                        @bind-SelectedItem="@_dataContext.NewTransaction.SelectedAccount"
+                        AvailableItems="@_dataContext.NewTransaction.AvailableAccounts"
+                        SelectClasses="form-select form-select-sm">
+                        <SelectOption Context="account">
+                             <option value="@account.AccountId">@account.Name</option>
+                        </SelectOption>
+                    </ObjectSelect>
                 </td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Transaction.Payee" /></td>
                 <td><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Transaction.Memo"></textarea></td>
@@ -98,20 +93,9 @@
                             {
                                 <tr>
                                     <td>
-                                        <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
-                                                @onchange=@((e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
-                                            @foreach (var availableBucket in bucket.AvailableBuckets)
-                                            {
-                                                if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
-                                                {
-                                                    <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                                                }
-                                                else
-                                                {
-                                                    <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                                                }
-                                            }
-                                        </select>
+                                        <BucketSelect
+                                            @bind-SelectedItem="@bucket.SelectedBucket"
+                                            AvailableItems="@bucket.AvailableBuckets"/>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
                                     <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
@@ -160,19 +144,16 @@
                     <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.TransactionDate" />
                 </td>
                 <td>
-                    <select class="form-select form-select-sm" @onchange=@(e => transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e.Value)))>
-                        @foreach (var account in transaction.AvailableAccounts)
-                        {
-                            if (account.AccountId == transaction.SelectedAccount.AccountId)
-                            {
-                                <option selected value="@account.AccountId">@account.Name</option>
-                            }
-                            else
-                            {
-                                <option value="@account.AccountId">@account.Name</option>
-                            }
-                        }
-                    </select>
+                    <ObjectSelect
+                        GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
+                        SetSelectedItemHandler="@(e => transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e)))"
+                        @bind-SelectedItem="@transaction.SelectedAccount"
+                        AvailableItems="@transaction.AvailableAccounts"
+                        SelectClasses="form-select form-select-sm">
+                        <SelectOption Context="account">
+                             <option value="@account.AccountId">@account.Name</option>
+                        </SelectOption>
+                    </ObjectSelect>
                 </td>
                 <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
                 <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
@@ -184,20 +165,10 @@
                             {
                                 <tr>
                                     <td>
-                                        <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)"
-                                                @onchange=@((e) => bucket.SelectedBucket = bucket.AvailableBuckets.First(i => i.BucketId == Convert.ToInt32(e.Value)))>
-                                            @foreach (var availableBucket in bucket.AvailableBuckets)
-                                            {
-                                                if (bucket.SelectedBucket.BucketId == availableBucket.BucketId)
-                                                {
-                                                    <option selected style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                                                }
-                                                else
-                                                {
-                                                    <option style="background-color: @ColorTranslator.ToHtml(availableBucket.Color)" value="@availableBucket.BucketId">@availableBucket.Name</option>
-                                                }
-                                            }
-                                        </select>
+                                        <BucketSelect
+                                            @bind-SelectedItem="@bucket.SelectedBucket"
+                                            AvailableItems="@bucket.AvailableBuckets">
+                                        </BucketSelect>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
                                     <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
@@ -268,7 +239,7 @@
 }
 
 <RecurringTransactionDialog
-    DataContext="_recurringTransactionViewModel"
+    DataContext="@_recurringTransactionViewModel"
     IsDialogVisible="@_isRecurringTransactionModalDialogVisible"
     OnClickCallback="@(() => _isRecurringTransactionModalDialogVisible = false)"
     />

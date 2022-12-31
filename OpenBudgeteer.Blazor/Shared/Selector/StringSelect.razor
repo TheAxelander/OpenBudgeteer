@@ -1,0 +1,56 @@
+﻿@using OpenBudgeteer.Core.Common.EventClasses;
+@using OpenBudgeteer.Core.Models;
+@using OpenBudgeteer.Core.ViewModels;
+@using System.Linq.Expressions;
+
+<select class="@SelectClasses" style="@SelectStyles" @bind="SelectedItem">
+    @foreach (var item in AvailableItems)
+    {
+        @SelectOption(item)
+    }
+</select>
+
+@code {
+    private string _selectedItem; 
+    // Required for Firefox to keep selection, see Issue #114
+    [Parameter]
+    public string SelectedItem 
+    {
+        get => _selectedItem;
+        set
+        {
+            // Initial set, skip all further logics
+            if (string.IsNullOrEmpty(_selectedItem))
+            {
+                _selectedItem = value;
+                return;
+            }
+
+            // Check if there is no real change
+            if (_selectedItem == value) return;
+
+            var oldValue = _selectedItem;
+            _selectedItem = value;
+            SelectedItemChanged.InvokeAsync(value);
+            OnSelectedItemChanged.InvokeAsync(new ChangeEventArgs() { Value = value });
+        }
+    }
+
+    [Parameter]
+    public EventCallback<string> SelectedItemChanged { get; set; }
+
+    [Parameter]
+    public IEnumerable<string> AvailableItems { get; set; }
+
+    [Parameter]
+    public RenderFragment<string> SelectOption { get; set; }
+
+    [Parameter]
+    public EventCallback<ChangeEventArgs> OnSelectedItemChanged { get; set; }
+
+    [Parameter]
+    public string SelectClasses { get; set; }
+
+    [Parameter]
+    public string SelectStyles{ get; set; }
+}
