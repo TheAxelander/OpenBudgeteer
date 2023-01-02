@@ -1,0 +1,128 @@
+﻿@using OpenBudgeteer.Core.ViewModels
+@using System.Drawing
+@using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Core.Common.Database
+@using OpenBudgeteer.Core.Models
+@inject DbContextOptions<DatabaseContext> DbContextOptions
+@inject YearMonthSelectorViewModel YearMonthDataContext
+
+@if (IsDialogVisible)
+{
+    <div class="modal fade show" style=" display: block;">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1000px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Select Bucket</h4>
+                    <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCancelCallback"></button>
+                </div>
+                <div class="modal-body">
+                    @if (IsDialogLoading)
+                    {
+                        <div>Loading...</div>
+                    }
+                    else
+                    {
+                        <table class="table table-sm bucket-table">
+                            <thead>
+                                <tr class="header-row">
+                                    <th>Bucket</th>
+                                    <th class="col-numbers col-bucket-numbers">Balance</th>
+                                    <th class="col-numbers col-bucket-numbers">In</th>
+                                    <th class="col-numbers col-bucket-numbers">Activity</th>
+                                    <th class="col-bucket-details">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody><tr></tr></tbody>
+                        </table>
+
+                        @foreach (var bucketGroup in DataContext.BucketGroups)
+                        {
+                            <table class="table table-sm bucket-table">
+                                <thead>
+                                    <tr class="header-row" @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
+                                        <th>
+                                            <div>
+                                                <button class="btn btn-sm header-action-button collapse-button"
+                                                        @onclick="@(() => bucketGroup.IsCollapsed = !bucketGroup.IsCollapsed)"><span>@(bucketGroup.IsCollapsed ? "▶" : "▼")</span></button>
+                                                <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
+                                            </div>
+                                        </th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("N2")</span></th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("N2"))</span></th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("N2"))</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody><tr></tr></tbody>
+                            </table>
+
+                            <table class="table table-sm bucket-table">
+                                <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
+                                    @foreach (var bucket in bucketGroup.Buckets)
+                                    {
+                                        <tr @onmouseover="() => bucket.IsHovered = true" @onmouseout="() => bucket.IsHovered = false">
+                                            <td>
+                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket.Bucket)">
+                                                    @if (bucket.Bucket.IsInactive)
+                                                    {
+                                                        @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
+                                                    }
+                                                    else
+                                                    {
+                                                        @bucket.Bucket.Name
+                                                    }
+                                                </button>
+                                            </td>
+                                            <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("N2")</td>
+                                            <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
+                                            <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
+                                            <td class="col-bucket-details">
+                                            @if (bucket.IsProgressbarVisible)
+                                            {
+                                                <div class="row">
+                                                    <div class="col">
+                                                        <div class="progress">
+                                                            <div class="progress-bar" role="progressbar" style="width: @bucket.Progress%;" aria-valuenow="@bucket.Progress" aria-valuemin="0" aria-valuemax="100">
+                                                                @bucket.Progress%
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col" style="font-size: .75rem; text-align: center">
+                                                        @bucket.Details
+                                                    </div>
+                                                </div>
+                                            }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal" @onclick="OnCancelCallback">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    [Parameter]
+    public BucketViewModel DataContext { get; set; }
+    
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public bool IsDialogLoading { get; set; }
+    
+    [Parameter]
+    public EventCallback<Bucket> OnBucketSelectedCallback { get; set; }
+    
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelCallback { get; set; }
+}
