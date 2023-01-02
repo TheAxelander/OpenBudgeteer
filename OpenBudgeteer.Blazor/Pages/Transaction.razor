@@ -93,9 +93,9 @@
                             {
                                 <tr>
                                     <td>
-                                        <BucketSelect
-                                            @bind-SelectedItem="@bucket.SelectedBucket"
-                                            AvailableItems="@bucket.AvailableBuckets"/>
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)" @onclick="() => HandleUpdateSelectedBucketRequest(bucket)">
+                                            @bucket.SelectedBucket.Name
+                                        </button>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
                                     <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
@@ -165,10 +165,9 @@
                             {
                                 <tr>
                                     <td>
-                                        <BucketSelect
-                                            @bind-SelectedItem="@bucket.SelectedBucket"
-                                            AvailableItems="@bucket.AvailableBuckets">
-                                        </BucketSelect>
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)" @onclick="() => HandleUpdateSelectedBucketRequest(bucket)">
+                                            @bucket.SelectedBucket.Name
+                                        </button>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
                                     <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
@@ -241,8 +240,14 @@
 <RecurringTransactionDialog
     DataContext="@_recurringTransactionViewModel"
     IsDialogVisible="@_isRecurringTransactionModalDialogVisible"
-    OnClickCallback="@(() => _isRecurringTransactionModalDialogVisible = false)"
-    />
+    OnClickCallback="@(() => _isRecurringTransactionModalDialogVisible = false)"/>
+
+<BucketSelectDialog
+    DataContext="@_bucketSelectDialogDataContext"
+    IsDialogVisible="@_isBucketSelectDialogVisible"
+    IsDialogLoading="@_isBucketSelectDialogLoading"
+    OnBucketSelectedCallback="UpdateSelectedBucket"
+    OnCancelCallback="@(() => _isBucketSelectDialogVisible = false)"/>
 
 <DeleteConfirmationDialog 
     Title="Delete Transaction" 
@@ -261,6 +266,11 @@
     TransactionViewModel _dataContext;
     bool _newTransactionEnabled;
     bool _massEditEnabled;
+
+    BucketViewModel _bucketSelectDialogDataContext;
+    bool _isBucketSelectDialogVisible;
+    bool _isBucketSelectDialogLoading;
+    PartialBucketViewModelItem _partialBucketViewModelItemToBeUpdated;
 
     bool _isRecurringTransactionModalDialogVisible;
     RecurringTransactionViewModel _recurringTransactionViewModel;
@@ -362,6 +372,25 @@
         _recurringTransactionViewModel = new RecurringTransactionViewModel(DbContextOptions);
         await _recurringTransactionViewModel.LoadDataAsync();
         _isRecurringTransactionModalDialogVisible = true;
+    }
+    
+    async void HandleUpdateSelectedBucketRequest(PartialBucketViewModelItem partialBucketViewModelItem)
+    {
+        _isBucketSelectDialogVisible = true;
+        _isBucketSelectDialogLoading = true;
+        
+        _partialBucketViewModelItemToBeUpdated = partialBucketViewModelItem;
+        _bucketSelectDialogDataContext = new BucketViewModel(DbContextOptions, YearMonthDataContext);
+        await _bucketSelectDialogDataContext.LoadDataAsync();
+        
+        _isBucketSelectDialogLoading = false;
+        StateHasChanged();
+    }
+    
+    void UpdateSelectedBucket(Core.Models.Bucket selectedBucket)
+    {
+        _partialBucketViewModelItemToBeUpdated.SelectedBucket = selectedBucket;
+        _isBucketSelectDialogVisible = false;
     }
 
     async Task HandleResult(ViewModelOperationResult result)
