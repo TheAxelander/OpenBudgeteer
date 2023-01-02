@@ -155,7 +155,7 @@
 
 @foreach (var bucketGroup in _dataContext.BucketGroups)
 {
-     <table class="table table-sm bucket-table">
+    <table class="table table-sm bucket-table">
         <thead>
         <tr class="header-row" @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
             @if (bucketGroup.InModification)
@@ -163,10 +163,10 @@
                 <th colspan="8">
                     <div class="row" style="max-width: 500px">
                         <div class="col">
-							<input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/>
+					        <input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/>
                         </div>
                         <div class="col-3 col-buttons col-bucket-buttons">
-							<button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
+					        <button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
                             <button class="btn btn-sm btn-danger" @onclick="@(() => bucketGroup.CancelModification())">Cancel</button>
                         </div>
                     </div>
@@ -176,7 +176,7 @@
             {
                 <th>
                     <div>
-						<button class="btn btn-sm header-action-button collapse-button" 
+				        <button class="btn btn-sm header-action-button collapse-button" 
                                 @onclick="@(() => bucketGroup.IsCollapsed = !bucketGroup.IsCollapsed)"><span>@(bucketGroup.IsCollapsed ? "▶" : "▼")</span></button>
                         <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
                     </div>
@@ -252,7 +252,7 @@
                         {
                             <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
                             <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
-                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => CloseBucket(bucket))"></button>
+                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketCloseRequest(bucket))"></button>
                         }
                     </td>
                 </tr>
@@ -283,6 +283,13 @@
     CurrentBucket ="@_transactionModalDialogBucket"
     OnClickCallback="@(() => _isBucketDetailsModalDialogVisible = false)"/>
 
+<DeleteConfirmationDialog 
+    Title="Close Bucket" 
+    Message="Do you really want to close this Bucket?" 
+    IsDialogVisible="@_isCloseBucketDialogVisible"
+    OnDeleteClickCallback="@CloseBucket"
+    OnCancelClickCallback="@CancelCloseBucket"/>
+
 <ErrorMessageDialog 
     Title="Bucket" 
     Message="@_errorModalDialogMessage" 
@@ -303,6 +310,9 @@
     bool _isBucketDetailsModalDialogVisible;
     bool _isBucketDetailsModalDialogDataContextLoading;
 
+    bool _isCloseBucketDialogVisible;
+    BucketViewModelItem _bucketToBeClosed;
+
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
 
@@ -317,11 +327,6 @@
             await HandleResult(await _dataContext.LoadDataAsync());
             StateHasChanged();
         };
-    }
-
-    async void CreateGroup()
-    {
-        await HandleResult(_dataContext.CreateGroup());
     }
 
     async void DistributeBudget()
@@ -383,10 +388,23 @@
         await HandleResult(_dataContext.SaveChanges(bucket));
         StateHasChanged();
     }
-
-    async Task CloseBucket(BucketViewModelItem bucket)
+   
+    void HandleBucketCloseRequest(BucketViewModelItem bucket)
     {
-        await HandleResult(_dataContext.CloseBucket(bucket));
+        _bucketToBeClosed = bucket;
+        _isCloseBucketDialogVisible = true;
+    }
+
+    void CancelCloseBucket()
+    {
+        _isCloseBucketDialogVisible = false;
+        _bucketToBeClosed = null;
+    }
+
+    async void CloseBucket()
+    {
+        _isCloseBucketDialogVisible = false;
+        await HandleResult(_dataContext.CloseBucket(_bucketToBeClosed));
         StateHasChanged();
     }
 
