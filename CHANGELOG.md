@@ -1,11 +1,11 @@
-### 1.6.2 (2023-01-11)
+### 1.7 (2023-xx-xx)
 
-* [Fixed] Due to implemented fix for [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) Column mapping on Import Page was not working properly [#121](https://github.com/TheAxelander/OpenBudgeteer/issues/121) [#122](https://github.com/TheAxelander/OpenBudgeteer/issues/122)
+* [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)  
 
 ### 1.6.1 (2022-12-31)
 
 * [Changed] Slight visual changes for Mapping Rule modification
-* [Fixed] Rendering of correct Drop-down selection element for Firefox browser [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114)
+* [Fixed] Rendering of Drop-down selection element for Firefox browser [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114)
 
 ### 1.6 (2022-12-03)
 

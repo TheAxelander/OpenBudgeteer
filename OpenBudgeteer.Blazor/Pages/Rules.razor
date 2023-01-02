@@ -41,10 +41,9 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.RuleSet.Name" /></td>
                 <td>
-                    <BucketSelect
-                        @bind-SelectedItem="@_dataContext.NewRuleSet.TargetBucket"
-                        AvailableItems="@_dataContext.NewRuleSet.AvailableBuckets"
-                        OnSelectedItemChanged="@(() => _dataContext.NewRuleSet.RuleSet.TargetBucketId = _dataContext.NewRuleSet.TargetBucket.BucketId)"/>
+                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)" @onclick="() => HandleUpdateSelectedBucketRequest(_dataContext.NewRuleSet)">
+                        @_dataContext.NewRuleSet.TargetBucket.Name
+                    </button>
                 </td>
                 <td>
                     <table class="table table-borderless" style="margin-bottom: auto;">
@@ -111,51 +110,50 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.RuleSet.Name" /></td>
                 <td>
-                    <BucketSelect
-                        @bind-SelectedItem="@ruleSet.TargetBucket"
-                        AvailableItems="@ruleSet.AvailableBuckets"
-                        OnSelectedItemChanged="@(() => ruleSet.RuleSet.TargetBucketId = ruleSet.TargetBucket.BucketId)"/>
+                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)" @onclick="() => HandleUpdateSelectedBucketRequest(ruleSet)">
+                        @ruleSet.TargetBucket.Name
+                    </button>
                 </td>
                 <td>
                     <table class="table table-borderless" style="margin-bottom: auto;">
                         <tbody>
-                            @foreach (var mappingRule in ruleSet.MappingRules)
-                            {
-                                <tr>
-                                    <td style="width: 120px">
-                                        <IntegerSelect
-                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionField"
-                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                            SelectClasses="form-select form-select-sm">
-                                            <SelectOption Context="comparisionField">
-                                                <option value="@comparisionField">@(new MappingRule(){ ComparisionField = comparisionField}.ComparisonFieldOutput)</option>
-                                            </SelectOption>
-                                        </IntegerSelect>
-                                    </td>
-                                    <td style="width: 160px">
-                                        <IntegerSelect
-                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionType"
-                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                            SelectClasses="form-select form-select-sm">
-                                            <SelectOption Context="comparisionType">
-                                                <option value="@comparisionType">@(new MappingRule(){ ComparisionType = comparisionType}.ComparisionTypeOutput)</option>
-                                            </SelectOption>
-                                        </IntegerSelect>
-                                    </td>
-                                    <td>
-                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
-                                    </td>
-                                    <td class="col-buttons" style="width: 80px">
-                                        <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
-                                        <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
-                                    </td>
-                                </tr>
-                            }
+                        @foreach (var mappingRule in ruleSet.MappingRules)
+                        {
+                            <tr>
+                                <td style="width: 120px">
+                                    <IntegerSelect
+                                        @bind-SelectedItem="@mappingRule.MappingRule.ComparisionField"
+                                        AvailableItems="@(new int[] { 1, 2, 3, 4 })"
+                                        SelectClasses="form-select form-select-sm">
+                                        <SelectOption Context="comparisionField">
+                                            <option value="@comparisionField">@(new MappingRule(){ ComparisionField = comparisionField}.ComparisonFieldOutput)</option>
+                                        </SelectOption>
+                                    </IntegerSelect>
+                                </td>
+                                <td style="width: 160px">
+                                    <IntegerSelect
+                                        @bind-SelectedItem="@mappingRule.MappingRule.ComparisionType"
+                                        AvailableItems="@(new int[] { 1, 2, 3, 4 })"
+                                        SelectClasses="form-select form-select-sm">
+                                        <SelectOption Context="comparisionType">
+                                            <option value="@comparisionType">@(new MappingRule(){ ComparisionType = comparisionType}.ComparisionTypeOutput)</option>
+                                        </SelectOption>
+                                    </IntegerSelect>
+                                </td>
+                                <td>
+                                    <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
+                                </td>
+                                <td class="col-buttons" style="width: 80px">
+                                    <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
+                                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
+                                </td>
+                            </tr>
+                        }
                         </tbody>
                     </table>
                 </td>
                 <td class="col-buttons">
-					<button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
+                    <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.CancelModification())"></button>
                 </td>
             </tr>
@@ -187,6 +185,13 @@
     </tbody>
 </table>
 
+<BucketSelectDialog
+    DataContext="@_bucketSelectDialogDataContext"
+    IsDialogVisible="@_isBucketSelectDialogVisible"
+    IsDialogLoading="@_isBucketSelectDialogLoading"
+    OnBucketSelectedCallback="UpdateSelectedBucket"
+    OnCancelCallback="@(() => _isBucketSelectDialogVisible = false)"/>
+
 <DeleteConfirmationDialog 
     Title="Delete Rule" 
     Message="Do you really want to delete this Rule?" 
@@ -204,6 +209,11 @@
     RulesViewModel _dataContext;
     bool _massEditEnabled;
     bool _newMappingRuleSetIsEnabled;
+    
+    BucketViewModel _bucketSelectDialogDataContext;
+    bool _isBucketSelectDialogVisible;
+    bool _isBucketSelectDialogLoading;
+    RuleSetViewModelItem _ruleSetViewModelItemToBeUpdated;
 
     bool _isDeleteRuleSetModalDialogVisible;
     RuleSetViewModelItem _ruleSetToBeDeleted;
@@ -241,6 +251,26 @@
         _massEditEnabled = false;
         await HandleResult(await _dataContext.LoadDataAsync());
         StateHasChanged();
+    }
+    
+    async void HandleUpdateSelectedBucketRequest(RuleSetViewModelItem ruleSetViewModelItem)
+    {
+        _isBucketSelectDialogVisible = true;
+        _isBucketSelectDialogLoading = true;
+        
+        _ruleSetViewModelItemToBeUpdated = ruleSetViewModelItem;
+        _bucketSelectDialogDataContext = new BucketViewModel(DbContextOptions, new YearMonthSelectorViewModel());
+        await _bucketSelectDialogDataContext.LoadDataAsync();
+        
+        _isBucketSelectDialogLoading = false;
+        StateHasChanged();
+    }
+    
+    void UpdateSelectedBucket(Core.Models.Bucket selectedBucket)
+    {
+        _ruleSetViewModelItemToBeUpdated.TargetBucket = selectedBucket;
+        _ruleSetViewModelItemToBeUpdated.RuleSet.TargetBucketId = selectedBucket.BucketId;
+        _isBucketSelectDialogVisible = false;
     }
 
 	void HandleRuleSetDeletionRequest(RuleSetViewModelItem ruleSet)
