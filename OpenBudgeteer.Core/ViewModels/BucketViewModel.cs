@@ -124,8 +124,9 @@ public class BucketViewModel : ViewModelBase
     /// <summary>
     /// Initialize ViewModel and load data from database
     /// </summary>
+    /// <param name="excludeInactive">Exclude Buckets which are marked as inactive</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> LoadDataAsync()
+    public async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false)
     {
         try
         {
@@ -149,6 +150,7 @@ public class BucketViewModel : ViewModelBase
 
                     foreach (var bucket in buckets)
                     {
+                        if (excludeInactive && bucket.IsInactive) continue; // Skip as inactive Buckets should be excluded
                         if (bucket.ValidFrom > _yearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
                         if (bucket.IsInactive && bucket.IsInactiveFrom <= _yearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
                         bucketItemTasks.Add(BucketViewModelItem.CreateAsync(_dbOptions, bucket, _yearMonthViewModel.CurrentMonth));
