@@ -516,8 +516,8 @@
         HandleResult(_dataContext.LoadData());
         _dataContext.AvailableImportProfiles.Insert(0, dummyImportProfile);
         _dataContext.AvailableAccounts.Insert(0, dummyAccount);
-        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
         _dataContext.SelectedImportProfile = dummyImportProfile;
+        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
         _dataContext.SelectedAccount = dummyAccount;
     }
 
@@ -527,6 +527,7 @@
         _step3Enabled = false;
         _step4Enabled = false;
         _dataContext.SelectedImportProfile = dummyImportProfile;
+        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
         _dataContext.SelectedAccount = dummyAccount;
 
         var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();

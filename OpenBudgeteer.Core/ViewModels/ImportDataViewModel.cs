@@ -428,7 +428,25 @@ public class ImportDataViewModel : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult LoadHeaders()
     {
-        return LoadHeaders(SelectedImportProfile);
+        var result = LoadHeaders(SelectedImportProfile);
+        
+        // If possible and necessary make initial selections after loading headers
+        if (IdentifiedColumns.Count == 0) return result;
+        var firstSelection = IdentifiedColumns.First();
+        if (string.IsNullOrEmpty(SelectedImportProfile.TransactionDateColumnName))
+            SelectedImportProfile.TransactionDateColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.PayeeColumnName))
+            SelectedImportProfile.PayeeColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.MemoColumnName))
+            SelectedImportProfile.MemoColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.AmountColumnName))
+            SelectedImportProfile.AmountColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.CreditColumnName))
+            SelectedImportProfile.CreditColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.CreditColumnIdentifierColumnName))
+            SelectedImportProfile.CreditColumnIdentifierColumnName = firstSelection;
+        
+        return result;
     }
     
     /// <summary>
