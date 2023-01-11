@@ -174,7 +174,13 @@ public class ImportDataViewModel : ViewModelBase
     public ImportProfile SelectedImportProfile
     {
         get => _selectedImportProfile;
-        set => Set(ref _selectedImportProfile, value);
+        set
+        {
+            // Load Headers already to prevent hiccups with other SelectedItem properties from Column Mappings
+            // as they depend on SelectedImportProfile   
+            if (value != null) LoadHeaders(value);
+            Set(ref _selectedImportProfile, value);    
+        }
     }
 
     private int _totalRecords;
@@ -398,8 +404,8 @@ public class ImportDataViewModel : ViewModelBase
                 SelectedAccount = AvailableAccounts.First(i => i.AccountId == SelectedImportProfile.AccountId);
             }
 
-            var result = LoadHeaders();
-            if (!result.IsSuccessful) throw new Exception(result.Message);
+            // var result = LoadHeaders();
+            // if (!result.IsSuccessful) throw new Exception(result.Message);
 
             //await ValidateDataAsync();
             _isProfileValid = true;
@@ -416,19 +422,50 @@ public class ImportDataViewModel : ViewModelBase
     /// <summary>
     /// Reads column headers from the loaded file
     /// </summary>
+    /// <remarks>
+    /// Uses settings from current <see cref="SelectedImportProfile"/>
+    /// </remarks>
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult LoadHeaders()
+    {
+        var result = LoadHeaders(SelectedImportProfile);
+        
+        // If possible and necessary make initial selections after loading headers
+        if (IdentifiedColumns.Count == 0) return result;
+        var firstSelection = IdentifiedColumns.First();
+        if (string.IsNullOrEmpty(SelectedImportProfile.TransactionDateColumnName))
+            SelectedImportProfile.TransactionDateColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.PayeeColumnName))
+            SelectedImportProfile.PayeeColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.MemoColumnName))
+            SelectedImportProfile.MemoColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.AmountColumnName))
+            SelectedImportProfile.AmountColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.CreditColumnName))
+            SelectedImportProfile.CreditColumnName = firstSelection;
+        if (string.IsNullOrEmpty(SelectedImportProfile.CreditColumnIdentifierColumnName))
+            SelectedImportProfile.CreditColumnIdentifierColumnName = firstSelection;
+        
+        return result;
+    }
+    
+    /// <summary>
+    /// Reads column headers from the loaded file
+    /// </summary>
+    /// <param name="importProfile"><see cref="ImportProfile"/> containing the settings how to parse the headers</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult LoadHeaders(ImportProfile importProfile)
     {
         try
         {
             // Set ComboBox selection for Column Mapping
             IdentifiedColumns.Clear();
-            var headerLine = _fileLines[SelectedImportProfile.HeaderRow - 1];
-            var columns = headerLine.Split(SelectedImportProfile.Delimiter);
+            var headerLine = _fileLines[importProfile.HeaderRow - 1];
+            var columns = headerLine.Split(importProfile.Delimiter);
             foreach (var column in columns)
             {
                 if (column != string.Empty)
-                    IdentifiedColumns.Add(column.Trim(SelectedImportProfile.TextQualifier)); // Exclude TextQualifier
+                    IdentifiedColumns.Add(column.Trim(importProfile.TextQualifier)); // Exclude TextQualifier
             }
             
             return new ViewModelOperationResult(true);

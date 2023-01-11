@@ -63,7 +63,7 @@
 				        <label class="form-label">Import Profile:</label>
                         <ObjectSelect
                             GetSelectedItemIdHandler="@(e => e.ImportProfileId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.First(i => i.ImportProfileId == Convert.ToInt32(e)))"
+                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Convert.ToInt32(e), dummyImportProfile))"
                             @bind-SelectedItem="@_dataContext.SelectedImportProfile"
                             AvailableItems="@_dataContext.AvailableImportProfiles"
                             OnSelectedItemChanged="@ImportProfile_SelectionChanged"
@@ -81,7 +81,7 @@
                         <label class="form-label">Target Account:</label>
                         <ObjectSelect
                             GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e)))"
+                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Convert.ToInt32(e), dummyAccount))"
                             @bind-SelectedItem="@_dataContext.SelectedAccount"
                             AvailableItems="@_dataContext.AvailableAccounts"
                             OnSelectedItemChanged="@TargetAccount_SelectionChanged"
@@ -516,8 +516,8 @@
         HandleResult(_dataContext.LoadData());
         _dataContext.AvailableImportProfiles.Insert(0, dummyImportProfile);
         _dataContext.AvailableAccounts.Insert(0, dummyAccount);
-        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
         _dataContext.SelectedImportProfile = dummyImportProfile;
+        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
         _dataContext.SelectedAccount = dummyAccount;
     }
 
@@ -527,6 +527,7 @@
         _step3Enabled = false;
         _step4Enabled = false;
         _dataContext.SelectedImportProfile = dummyImportProfile;
+        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
         _dataContext.SelectedAccount = dummyAccount;
 
         var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
@@ -537,11 +538,6 @@
 
     async Task LoadProfile()
     {
-        //// Workaround for setting the SelectedImportProfile as the first item is always selected but doesn't trigger OnChange
-        //if (_dataContext.SelectedImportProfile == null && _dataContext.AvailableImportProfiles.Count > 0)
-        //{
-        //    _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.First();
-        //}
         var result = await _dataContext.LoadProfileAsync();
         if (result.IsSuccessful)
         {
