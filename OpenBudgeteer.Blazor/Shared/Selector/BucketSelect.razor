@@ -55,7 +55,6 @@
                 SelectedItemId = value.BucketId;
                 return;
             }
-            var oldValue = _selectedItem;
             _selectedItem = value;
             SelectedItemChanged.InvokeAsync(value);
             OnSelectedItemChanged.InvokeAsync(new ChangeEventArgs() { Value = value });

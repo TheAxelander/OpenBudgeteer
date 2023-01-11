@@ -29,7 +29,6 @@
             // Check if there is no real change
             if (_selectedItem == value) return;
 
-            var oldValue = _selectedItem;
             _selectedItem = value;
             SelectedItemChanged.InvokeAsync(value);
             OnSelectedItemChanged.InvokeAsync(new ChangeEventArgs() { Value = value });
