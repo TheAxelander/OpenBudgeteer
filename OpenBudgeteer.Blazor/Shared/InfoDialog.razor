@@ -1,0 +1,32 @@
+﻿@if (IsDialogVisible)
+{
+    <div class="modal fade show" style="display: block;">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">@Title</h4>
+                    <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCloseClickCallback"></button>
+                </div>
+                <div class="modal-body">@Message</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="OnCloseClickCallback">Ok</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+	[Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Message { get; set; }
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+	[Parameter]
+    public EventCallback<MouseEventArgs> OnCloseClickCallback { get; set; }
+}
