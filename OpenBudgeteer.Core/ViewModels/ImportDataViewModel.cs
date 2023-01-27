@@ -178,7 +178,7 @@ public class ImportDataViewModel : ViewModelBase
         {
             // Load Headers already to prevent hiccups with other SelectedItem properties from Column Mappings
             // as they depend on SelectedImportProfile   
-            if (value != null) LoadHeaders(value);
+            if (value is { HeaderRow: > 0 }) LoadHeaders(value);
             Set(ref _selectedImportProfile, value);    
         }
     }
@@ -433,18 +433,12 @@ public class ImportDataViewModel : ViewModelBase
         // If possible and necessary make initial selections after loading headers
         if (IdentifiedColumns.Count == 0) return result;
         var firstSelection = IdentifiedColumns.First();
-        if (string.IsNullOrEmpty(SelectedImportProfile.TransactionDateColumnName))
-            SelectedImportProfile.TransactionDateColumnName = firstSelection;
-        if (string.IsNullOrEmpty(SelectedImportProfile.PayeeColumnName))
-            SelectedImportProfile.PayeeColumnName = firstSelection;
-        if (string.IsNullOrEmpty(SelectedImportProfile.MemoColumnName))
-            SelectedImportProfile.MemoColumnName = firstSelection;
-        if (string.IsNullOrEmpty(SelectedImportProfile.AmountColumnName))
-            SelectedImportProfile.AmountColumnName = firstSelection;
-        if (string.IsNullOrEmpty(SelectedImportProfile.CreditColumnName))
-            SelectedImportProfile.CreditColumnName = firstSelection;
-        if (string.IsNullOrEmpty(SelectedImportProfile.CreditColumnIdentifierColumnName))
-            SelectedImportProfile.CreditColumnIdentifierColumnName = firstSelection;
+        SelectedImportProfile.TransactionDateColumnName = firstSelection;
+        SelectedImportProfile.PayeeColumnName = firstSelection;
+        SelectedImportProfile.MemoColumnName = firstSelection;
+        SelectedImportProfile.AmountColumnName = firstSelection;
+        SelectedImportProfile.CreditColumnName = firstSelection;
+        SelectedImportProfile.CreditColumnIdentifierColumnName = firstSelection;
         
         return result;
     }
@@ -458,13 +452,16 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
+            if (importProfile.HeaderRow < 1 || importProfile.HeaderRow > _fileLines.Length)
+                throw new Exception("Cannot read headers with given header row.");
+
             // Set ComboBox selection for Column Mapping
             IdentifiedColumns.Clear();
             var headerLine = _fileLines[importProfile.HeaderRow - 1];
             var columns = headerLine.Split(importProfile.Delimiter);
             foreach (var column in columns)
             {
-                if (column != string.Empty)
+                if (!string.IsNullOrEmpty(column))
                     IdentifiedColumns.Add(column.Trim(importProfile.TextQualifier)); // Exclude TextQualifier
             }
             
@@ -502,6 +499,11 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
+            // Run pre-checks
+            if (string.IsNullOrEmpty(SelectedImportProfile.NumberFormat)) throw new Exception("Missing Number Format");
+            if (string.IsNullOrEmpty(SelectedImportProfile.DateFormat)) throw new Exception("Missing Date Format");
+            if (SelectedImportProfile.AccountId < 1) throw new Exception("No target account selected");
+
             // Pre-Load Data for verification
             // Initialize CsvReader
             var options = new Options(SelectedImportProfile.TextQualifier, '\\', SelectedImportProfile.Delimiter);
@@ -707,7 +709,7 @@ public class ImportDataViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Deletes the <see cref="ImportProfile"/> in the database based on <see cref="SelectedImportProfile"/>
+    /// Deletes the <see cref="ImportProfile"/> from the database based on <see cref="SelectedImportProfile"/>
     /// </summary>
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult DeleteProfile()
@@ -718,7 +720,8 @@ public class ImportDataViewModel : ViewModelBase
             {
                 dbContext.DeleteImportProfile(SelectedImportProfile);
             }                
-            ResetLoadedProfileData();
+            //ResetLoadedProfileData();
+            SelectedImportProfile = new();
             LoadAvailableProfiles();
 
             return new ViewModelOperationResult(true);

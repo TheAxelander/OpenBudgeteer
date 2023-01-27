@@ -50,12 +50,12 @@
                 <div class="mb-3">
                     @if (_step4Enabled)
                     {
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile()))>Create Profile</button>
+                        <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile(), "Profile has been created."))>Create Profile</button>
                     }
-                    @if (_dataContext.SelectedImportProfile != null && _dataContext.SelectedImportProfile.ImportProfileId != 0)
+                    @if (_dataContext.SelectedImportProfile is {ImportProfileId: > 0 })
                     {
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.SaveProfile()))>Save Profile</button>
-                        <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => HandleResult(_dataContext.DeleteProfile()))>Delete Profile</button>
+                        <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.SaveProfile(), "Changes for Profile have been saved."))>Save Profile</button>
+                        <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => _isDeleteConfirmationDialogVisible = true)>Delete Profile</button>
                     }
                 </div>
                 <div class="row mb-3">
@@ -63,7 +63,7 @@
 				        <label class="form-label">Import Profile:</label>
                         <ObjectSelect
                             GetSelectedItemIdHandler="@(e => e.ImportProfileId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Convert.ToInt32(e), dummyImportProfile))"
+                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Convert.ToInt32(e), _dummyImportProfile))"
                             @bind-SelectedItem="@_dataContext.SelectedImportProfile"
                             AvailableItems="@_dataContext.AvailableImportProfiles"
                             OnSelectedItemChanged="@ImportProfile_SelectionChanged"
@@ -81,7 +81,7 @@
                         <label class="form-label">Target Account:</label>
                         <ObjectSelect
                             GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Convert.ToInt32(e), dummyAccount))"
+                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Convert.ToInt32(e), _dummyAccount))"
                             @bind-SelectedItem="@_dataContext.SelectedAccount"
                             AvailableItems="@_dataContext.AvailableAccounts"
                             OnSelectedItemChanged="@TargetAccount_SelectionChanged"
@@ -452,6 +452,21 @@
     <div class="modal-backdrop fade show"></div>
  }
 
+<InfoDialog
+    Title="Import"
+    Message="@_infoDialogMessage"
+    IsDialogVisible="@_isInfoDialogVisible"
+    OnCloseClickCallback="@(() => _isInfoDialogVisible = false)"
+    />
+
+<DeleteConfirmationDialog
+    Title="Delete Import Profile"
+    Message="Do you really want to delete the selected Import Profile?"
+    IsDialogVisible="@_isDeleteConfirmationDialogVisible"
+    OnDeleteClickCallback="@DeleteProfile"
+    OnCancelClickCallback="@(() => _isDeleteConfirmationDialogVisible = false)"
+    />
+
 <ErrorMessageDialog 
     Title="Import" 
     Message="@_errorModalDialogMessage" 
@@ -464,20 +479,22 @@
     ElementReference _inputElement;
     ElementReference _step1AccordionButtonElement;
 
-    readonly int _placeholderItemId = -1;
-    readonly string _placeholderItemValue = "___PlaceholderItem___";
+    const int PlaceholderItemId = -1;
+    const string PlaceholderItemValue = "___PlaceholderItem___";
+    const string DummyColumn = "---Select Column---";
 
-    ImportProfile dummyImportProfile = new ImportProfile() 
+    readonly ImportProfile _dummyImportProfile = new() 
     { 
-        ImportProfileId = -1, 
-        ProfileName = "---Select Import Profile---"
+        ImportProfileId = PlaceholderItemId, 
+        ProfileName = "---Select Import Profile---",
+        AccountId = PlaceholderItemId
     };
-    OpenBudgeteer.Core.Models.Account dummyAccount = new OpenBudgeteer.Core.Models.Account() 
+
+    readonly OpenBudgeteer.Core.Models.Account _dummyAccount = new() 
     { 
-        AccountId = -1, 
+        AccountId = PlaceholderItemId, 
         Name = "---Select Target Account---" 
     };
-    string dummyColumn = "---Select Column---";
 
     bool _step2Enabled;
     bool _step3Enabled;
@@ -491,6 +508,11 @@
 
     bool _isConfirmationModalDialogVisible;
     string _importConfirmationMessage;
+
+    bool _isInfoDialogVisible;
+    string _infoDialogMessage;
+
+    bool _isDeleteConfirmationDialogVisible;
 
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
@@ -514,11 +536,11 @@
     void LoadData()
     {
         HandleResult(_dataContext.LoadData());
-        _dataContext.AvailableImportProfiles.Insert(0, dummyImportProfile);
-        _dataContext.AvailableAccounts.Insert(0, dummyAccount);
-        _dataContext.SelectedImportProfile = dummyImportProfile;
-        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
-        _dataContext.SelectedAccount = dummyAccount;
+        _dataContext.AvailableImportProfiles.Insert(0, _dummyImportProfile);
+        _dataContext.AvailableAccounts.Insert(0, _dummyAccount);
+        _dataContext.SelectedImportProfile = _dummyImportProfile;
+        _dataContext.IdentifiedColumns.Insert(0, DummyColumn);
+        _dataContext.SelectedAccount = _dummyAccount;
     }
 
     async Task ReadFileAsync()
@@ -526,9 +548,9 @@
         _step2Enabled = false;
         _step3Enabled = false;
         _step4Enabled = false;
-        _dataContext.SelectedImportProfile = dummyImportProfile;
-        _dataContext.IdentifiedColumns.Insert(0, dummyColumn);
-        _dataContext.SelectedAccount = dummyAccount;
+        _dataContext.SelectedImportProfile = _dummyImportProfile;
+        _dataContext.IdentifiedColumns.Insert(0, DummyColumn);
+        _dataContext.SelectedAccount = _dummyAccount;
 
         var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
         if (file == null) return;
@@ -541,13 +563,25 @@
         var result = await _dataContext.LoadProfileAsync();
         if (result.IsSuccessful)
         {
-            _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId != 0;
+            _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId > 0;
             CheckColumnMapping();
             StateHasChanged();
         }
         else
         {
             HandleResult(result);    
+        }
+    }
+
+    void DeleteProfile()
+    {
+        _isDeleteConfirmationDialogVisible = false;
+        HandleResult(_dataContext.DeleteProfile());
+        if (_dataContext.SelectedImportProfile.ImportProfileId < 1)
+        {
+            _dataContext.SelectedImportProfile = _dummyImportProfile;
+            _dataContext.AvailableImportProfiles.Insert(0, _dummyImportProfile);
+            _dataContext.SelectedAccount = _dummyAccount;
         }
     }
 
@@ -568,13 +602,13 @@
     {
         _step4Enabled = false;
         if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.TransactionDateColumnName) || 
-            _dataContext.SelectedImportProfile.TransactionDateColumnName == _placeholderItemValue) return;
+            _dataContext.SelectedImportProfile.TransactionDateColumnName == PlaceholderItemValue) return;
         // Make Payee optional
         //if (string.IsNullOrEmpty(_dataContext.PayeeColumn) || _dataContext.PayeeColumn == _placeholderItemValue) return;
         if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.MemoColumnName) || 
-            _dataContext.SelectedImportProfile.MemoColumnName == _placeholderItemValue) return;
+            _dataContext.SelectedImportProfile.MemoColumnName == PlaceholderItemValue) return;
         if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.AmountColumnName) || 
-            _dataContext.SelectedImportProfile.AmountColumnName == _placeholderItemValue) return;
+            _dataContext.SelectedImportProfile.AmountColumnName == PlaceholderItemValue) return;
         _step4Enabled = true;
     }
 
@@ -646,12 +680,17 @@
         _dataContext.SelectedImportProfile.AdditionalSettingCreditValue = value;
     }
 
-    void HandleResult(ViewModelOperationResult result)
+    void HandleResult(ViewModelOperationResult result, string successMessage = "")
     {
         if (!result.IsSuccessful)
         {
             _errorModalDialogMessage = result.Message;
             _isErrorModalDialogVisible = true;
+            return;
         }
+        if (string.IsNullOrEmpty(successMessage)) return;
+
+        _infoDialogMessage = successMessage;
+        _isInfoDialogVisible = true;
     }
 }

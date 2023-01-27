@@ -1,3 +1,9 @@
+### 1.6.3 (2023-01-27)
+
+* [Add] Several Confirmation Dialogs for Import Profile handling [#124](https://github.com/TheAxelander/OpenBudgeteer/issues/124)
+* [Fixed] Proper reset of values after deleting an Import Profile [#125](https://github.com/TheAxelander/OpenBudgeteer/issues/125)
+* [Fixed] Overall improved and fixed error handling on Import Page
+
 ### 1.6.2 (2023-01-11)
 
 * [Fixed] Due to implemented fix for [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) Column mapping on Import Page was not working properly [#121](https://github.com/TheAxelander/OpenBudgeteer/issues/121) [#122](https://github.com/TheAxelander/OpenBudgeteer/issues/122)
