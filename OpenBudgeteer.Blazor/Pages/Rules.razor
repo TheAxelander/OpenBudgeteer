@@ -74,7 +74,7 @@
                                     <td>
                                         <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
                                     </td>
-                                    <td class="col-buttons" style="width: 80px">
+                                    <td class="col-buttons" style="width: 1px">
                                         <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
                                         <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => _dataContext.NewRuleSet.DeleteMappingRule(mappingRule))"></button>
                                     </td>
@@ -143,7 +143,7 @@
                                 <td>
                                     <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
                                 </td>
-                                <td class="col-buttons" style="width: 80px">
+                                <td class="col-buttons" style="width: 1px">
                                     <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
                                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
                                 </td>

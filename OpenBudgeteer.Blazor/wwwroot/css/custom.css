@@ -35,6 +35,7 @@ table .header-row td, table .header-row th {
 }
 .col-buttons {
     text-align: right;
+    white-space: nowrap;
 }
 .col-bucket-buttons {
     width: 120px;

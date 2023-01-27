@@ -63,7 +63,7 @@
                 <th>Memo</th>
                 <th style="text-align: right; width: 90px">Amount</th>
                 <th style="width:300px">Buckets</th>
-                <th style="width:120px" />
+                <th style="width:1px" />
             </tr>
         </thead>
         <tbody>
@@ -98,7 +98,7 @@
                                         </button>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
-                                    <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
+                                    <td style="width: 1px"><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
                                 </tr>
                             }
                         </tbody>
@@ -170,7 +170,7 @@
                                         </button>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
-                                    <td><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
+                                    <td style="width: 1px"><button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => bucket.DeleteBucket())"></button></td>
                                 </tr>
                             }
                         </tbody>
