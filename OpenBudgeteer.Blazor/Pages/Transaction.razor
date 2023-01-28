@@ -381,7 +381,7 @@
         
         _partialBucketViewModelItemToBeUpdated = partialBucketViewModelItem;
         _bucketSelectDialogDataContext = new BucketViewModel(DbContextOptions, YearMonthDataContext);
-        await _bucketSelectDialogDataContext.LoadDataAsync(true);
+        await _bucketSelectDialogDataContext.LoadDataAsync(true, true);
         
         _isBucketSelectDialogLoading = false;
         StateHasChanged();

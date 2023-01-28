@@ -125,14 +125,34 @@ public class BucketViewModel : ViewModelBase
     /// Initialize ViewModel and load data from database
     /// </summary>
     /// <param name="excludeInactive">Exclude Buckets which are marked as inactive</param>
+    /// <param name="includeDefaults">Include system default Buckets like Transfer and Income</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false)
+    public async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false, bool includeDefaults = false)
     {
         try
         {
             BucketGroups.Clear();
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
+                if (includeDefaults)
+                {
+                    // Collect system default Buckets like Transfer and Income in a separate BucketGroup
+                    var defaultsBucketGroup = new BucketGroupViewModelItem(_dbOptions)
+                    {
+                        BucketGroup = new()
+                        {
+                            BucketGroupId = 0,
+                            Name = "System Buckets",
+                            Position = 0
+                        }
+                    };
+                    foreach (var bucket in dbContext.Bucket.Where(i => i.BucketGroupId == defaultsBucketGroup.BucketGroup.BucketGroupId))
+                    {
+                        defaultsBucketGroup.Buckets.Add(new BucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth){ Bucket = bucket });
+                    }
+                    BucketGroups.Add(defaultsBucketGroup);
+                }
+
                 var bucketGroups = dbContext.BucketGroup
                     .OrderBy(i => i.Position)
                     .ToList();
