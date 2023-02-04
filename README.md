@@ -14,6 +14,9 @@
     </a>
 </p>
 <p align="center">
+    <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#money-budgeting--management">
+        <img alt="Mentioned in Awesome-Selfhosted" src="https://awesome.re/mentioned-badge.svg">
+    </a>
     <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/axelander/openbudgeteer">
     <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/theaxelander/openbudgeteer">
 </p>
