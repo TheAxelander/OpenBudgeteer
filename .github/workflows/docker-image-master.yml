@@ -4,9 +4,35 @@ on:
   push:
     branches: [ master ]
 
+env:
+  DOTNET_VERSION: '6.0' # The .NET SDK version to use
+
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    name: Run Test Cases
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+        
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+      - name: Install Blazor dependencies
+        run: dotnet restore OpenBudgeteer.Blazor
+        
+      - name: Build Blazor
+        run: dotnet build OpenBudgeteer.Blazor --configuration Release --no-restore
+        
+      - name: Run Core Test Cases
+        run: dotnet test OpenBudgeteer.Core.Test
+  deploy-docker:
+    runs-on: ubuntu-latest
+    name: Build and Push Docker Image
+    needs: test
+    if: success()
     steps:
       - name: Check out repo
         uses: actions/checkout@v2
