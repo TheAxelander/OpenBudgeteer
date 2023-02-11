@@ -1,20 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenBudgeteer.Core.Models;
 
 public class MappingRule : BaseObject
 {
-    private int _mappingRuleId;
-    public int MappingRuleId
+    private Guid _mappingRuleId;
+    public Guid MappingRuleId
     {
         get => _mappingRuleId;
         set => Set(ref _mappingRuleId, value);
     }
 
-    private int _bucketRuleSetId;
+    private Guid _bucketRuleSetId;
     [Required]
-    public int BucketRuleSetId
+    public Guid BucketRuleSetId
     {
         get => _bucketRuleSetId;
         set => Set(ref _bucketRuleSetId, value);

@@ -104,7 +104,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
         _dbOptions = dbOptions;
         
         // Set initial FirstOccurenceDate in case of "Create new Recurring Transaction"
-        Transaction.FirstOccurenceDate = DateTime.Today;
+        Transaction.FirstOccurrenceDate = DateTime.Today;
         Transaction.RecurrenceType = 1;
         SelectedRecurrenceType = AvailableRecurrenceTypes.First();
         
@@ -112,7 +112,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
         // Add empty Account for empty pre-selection
         AvailableAccounts.Add(new Account
         {
-            AccountId = 0,
+            AccountId = Guid.Empty,
             IsActive = 1,
             Name = "No Account"
         });
@@ -142,7 +142,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
             Amount = transaction.Amount,
             Memo = transaction.Memo,
             Payee = transaction.Payee,
-            FirstOccurenceDate = transaction.FirstOccurenceDate,
+            FirstOccurrenceDate = transaction.FirstOccurrenceDate,
             RecurrenceType = transaction.RecurrenceType,
             RecurrenceAmount = transaction.RecurrenceAmount
         };
@@ -176,12 +176,12 @@ public class RecurringTransactionViewModelItem : ViewModelBase
         : this(dbOptions,
         new RecurringBankTransaction()
         {
-            TransactionId = 0,
+            TransactionId = Guid.Empty,
             AccountId = transaction.AccountId,
             Amount = transaction.Amount,
             Memo = transaction.Memo,
             Payee = transaction.Payee,
-            FirstOccurenceDate = transaction.TransactionDate
+            FirstOccurrenceDate = transaction.TransactionDate
         })
     { }
     
@@ -214,7 +214,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
                 Transaction.AccountId = SelectedAccount.AccountId;
                 Transaction.RecurrenceType = SelectedRecurrenceType.Key;
 
-                if (transactionId != 0)
+                if (transactionId != Guid.Empty)
                 {
                     // Update RecurringBankTransaction in DB
                     dbContext.UpdateRecurringBankTransaction(Transaction);
@@ -244,7 +244,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
         // Consistency and Validity Checks
         if (Transaction.RecurrenceAmount == 0) return new ViewModelOperationResult(false, "Invalid Recurrence details.");
         if (Transaction == null) return new ViewModelOperationResult(false, "Errors in Transaction object.");
-        if (SelectedAccount == null || SelectedAccount.AccountId == 0) return new ViewModelOperationResult(false, "No Bank account selected.");
+        if (SelectedAccount == null || SelectedAccount.AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
         
         return new ViewModelOperationResult(true);
     }
@@ -288,7 +288,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
     
     public ViewModelOperationResult CreateItem()
     {
-        Transaction.TransactionId = 0; // Triggers CREATE during CreateOrUpdateTransaction()
+        Transaction.TransactionId = Guid.Empty; // Triggers CREATE during CreateOrUpdateTransaction()
         var result = CreateOrUpdateTransaction();
         // Keep invalid Item active in Modification mode
         if (result.IsSuccessful)
@@ -300,7 +300,7 @@ public class RecurringTransactionViewModelItem : ViewModelBase
 
     public ViewModelOperationResult UpdateItem()
     {
-        if (Transaction.TransactionId < 1) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
+        if (Transaction.TransactionId == Guid.Empty) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
 
         var result = CreateOrUpdateTransaction();
         if (!result.IsSuccessful)

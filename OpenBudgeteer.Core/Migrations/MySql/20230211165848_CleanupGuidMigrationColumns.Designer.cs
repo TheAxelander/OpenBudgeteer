@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Common.Database;
 
@@ -10,9 +11,10 @@ using OpenBudgeteer.Core.Common.Database;
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
     [DbContext(typeof(MySqlDatabaseContext))]
-    partial class DatabaseServiceModelSnapshot : ModelSnapshot
+    [Migration("20230211165848_CleanupGuidMigrationColumns")]
+    partial class CleanupGuidMigrationColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

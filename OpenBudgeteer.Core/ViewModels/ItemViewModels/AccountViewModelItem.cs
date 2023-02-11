@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
@@ -77,7 +78,7 @@ public class AccountViewModelItem : ViewModelBase
     {
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
-            var result = Account.AccountId == 0 ? dbContext.CreateAccount(Account) : dbContext.UpdateAccount(Account);
+            var result = Account.AccountId == Guid.Empty ? dbContext.CreateAccount(Account) : dbContext.UpdateAccount(Account);
             if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
             return new ViewModelOperationResult(true, true);
         }

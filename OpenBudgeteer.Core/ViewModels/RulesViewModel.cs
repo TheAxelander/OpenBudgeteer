@@ -80,7 +80,7 @@ public class RulesViewModel : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult CreateNewRuleSet()
     {
-        NewRuleSet.RuleSet.BucketRuleSetId = 0;
+        NewRuleSet.RuleSet.BucketRuleSetId = Guid.Empty;
         var result = NewRuleSet.CreateUpdateRuleSetItem();
         if (!result.IsSuccessful) return result;
         ResetNewRuleSet();

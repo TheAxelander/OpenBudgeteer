@@ -88,7 +88,7 @@ public class AccountViewModel : ViewModelBase
     {
         var result = new AccountViewModelItem(_dbOptions)
         {
-            Account = new Account { AccountId = 0, Name = "New Account", IsActive = 1 },
+            Account = new Account { AccountId = Guid.Empty, Name = "New Account", IsActive = 1 },
             Balance = 0,
             In = 0,
             Out = 0

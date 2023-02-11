@@ -6,17 +6,17 @@ namespace OpenBudgeteer.Core.Models;
 
 public class BankTransaction : BaseObject
 {
-    private int _transactionId;
+    private Guid _transactionId;
     [Key]
-    public int TransactionId
+    public Guid TransactionId
     {
         get => _transactionId;
         set => Set(ref _transactionId, value);
     }
 
-    private int _accountId;
+    private Guid _accountId;
     [Required]
-    public int AccountId
+    public Guid AccountId
     {
         get => _accountId;
         set => Set(ref _accountId, value);

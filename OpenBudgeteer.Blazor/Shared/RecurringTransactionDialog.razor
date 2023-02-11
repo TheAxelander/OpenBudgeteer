@@ -47,7 +47,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.FirstOccurenceDate" />
+                                            <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.FirstOccurrenceDate" />
                                         </td>
                                         <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.RecurrenceAmount" /></td>
                                         <td style="width:130px">
@@ -64,7 +64,7 @@
                                         </td>
                                         <td>
                                             <ObjectSelect GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                                                SetSelectedItemHandler="@(e => transaction.AvailableAccounts.First(i => i.AccountId == Convert.ToInt32(e)))"
+                                                SetSelectedItemHandler="@(e => transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(e)))"
                                                 @bind-SelectedItem="@transaction.SelectedAccount"
                                                 AvailableItems="@transaction.AvailableAccounts"
                                                 SelectClasses="form-select form-select-sm">
@@ -85,7 +85,7 @@
                                 else
                                 {
                                     <tr @onmouseover="() => transaction.IsHovered = true" @onmouseout="() => transaction.IsHovered = false">
-                                        <td class="col-numbers">@transaction.Transaction.FirstOccurenceDate.ToShortDateString()</td>
+                                        <td class="col-numbers">@transaction.Transaction.FirstOccurrenceDate.ToShortDateString()</td>
                                         <td style="width:70px">Every @transaction.Transaction.RecurrenceAmount</td>
                                         <td style="width:130px">@transaction.SelectedRecurrenceType.Value</td>
                                         <td>@transaction.SelectedAccount.Name</td>
@@ -162,17 +162,17 @@
     {
         _massEditEnabled = false;
         await HandleResult(await DataContext.CancelAllTransactionAsync());
-        base.StateHasChanged();
+        StateHasChanged();
     }
 
     async void SaveTransaction(RecurringTransactionViewModelItem transaction)
     {
         await HandleResult(
-            transaction.Transaction.TransactionId == 0 ? 
+            transaction.Transaction.TransactionId == Guid.Empty ? 
             transaction.CreateItem() : transaction.UpdateItem());
     }
 
-     void HandleTransactionDeletionRequest(RecurringTransactionViewModelItem transaction)
+    void HandleTransactionDeletionRequest(RecurringTransactionViewModelItem transaction)
     {
         _transactionToBeDeleted = transaction;
         _isDeleteTransactionModalDialogVisible = true;

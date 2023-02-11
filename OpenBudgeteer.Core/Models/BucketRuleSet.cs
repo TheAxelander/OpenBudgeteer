@@ -1,11 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenBudgeteer.Core.Models;
 
 public class BucketRuleSet : BaseObject
 {
-    private int _bucketRuleSetId;
-    public int BucketRuleSetId
+    private Guid _bucketRuleSetId;
+    public Guid BucketRuleSetId
     {
         get => _bucketRuleSetId;
         set => Set(ref _bucketRuleSetId, value);
@@ -26,9 +28,9 @@ public class BucketRuleSet : BaseObject
         set => Set(ref _name, value);
     }
 
-    private int _targetBucketId;
+    private Guid _targetBucketId;
     [Required]
-    public int TargetBucketId
+    public Guid TargetBucketId
     {
         get => _targetBucketId;
         set => Set(ref _targetBucketId, value);

@@ -6,16 +6,16 @@ namespace OpenBudgeteer.Core.Models;
 
 public class BucketVersion : BaseObject
 {
-    private int _bucketVersionId;
-    public int BucketVersionId
+    private Guid _bucketVersionId;
+    public Guid BucketVersionId
     {
         get => _bucketVersionId;
         set => Set(ref _bucketVersionId, value);
     }
 
-    private int _bucketId;
+    private Guid _bucketId;
     [Required]
-    public int BucketId
+    public Guid BucketId
     {
         get => _bucketId;
         set => Set(ref _bucketId, value);

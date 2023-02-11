@@ -6,22 +6,22 @@ namespace OpenBudgeteer.Core.Models;
 
 public class RecurringBankTransaction: BaseObject
 {
-    private int _transactionId;
+    private Guid _transactionId;
     [Key]
-    public int TransactionId
+    public Guid TransactionId
     {
         get => _transactionId;
         set => Set(ref _transactionId, value);
     }
 
-    private int _accountId;
+    private Guid _accountId;
     [Required]
-    public int AccountId
+    public Guid AccountId
     {
         get => _accountId;
         set => Set(ref _accountId, value);
     }
-    
+
     private int _recurrenceType;
     /// <summary>
     /// Parameter for type of recurrence:
@@ -47,11 +47,11 @@ public class RecurringBankTransaction: BaseObject
         set => Set(ref _recurrenceAmount, value);
     }
     
-    private DateTime _firstOccurenceDate;
-    public DateTime FirstOccurenceDate
+    private DateTime _firstOccurrenceDate;
+    public DateTime FirstOccurrenceDate
     {
-        get => _firstOccurenceDate;
-        set => Set(ref _firstOccurenceDate, value);
+        get => _firstOccurrenceDate;
+        set => Set(ref _firstOccurrenceDate, value);
     }
 
     private string _payee;
@@ -110,7 +110,7 @@ public class RecurringBankTransaction: BaseObject
     {
         return new BankTransaction()
         {
-            TransactionId = 0,
+            TransactionId = Guid.Empty,
             TransactionDate = transactionDate,
             AccountId = AccountId,
             Payee = Payee,

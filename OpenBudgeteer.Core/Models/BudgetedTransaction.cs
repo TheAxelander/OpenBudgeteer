@@ -1,28 +1,29 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenBudgeteer.Core.Models;
 
 public class BudgetedTransaction : BaseObject
 {
-    private int _budgetedTransactionId;
-    public int BudgetedTransactionId
+    private Guid _budgetedTransactionId;
+    public Guid BudgetedTransactionId
     {
         get => _budgetedTransactionId;
         set => Set(ref _budgetedTransactionId, value);
     }
 
-    private int _transactionId;
+    private Guid _transactionId;
     [Required]
-    public int TransactionId
+    public Guid TransactionId
     {
         get => _transactionId;
         set => Set(ref _transactionId, value);
     }
 
-    private int _bucketId;
+    private Guid _bucketId;
     [Required]
-    public int BucketId
+    public Guid BucketId
     {
         get => _bucketId;
         set => Set(ref _bucketId, value);

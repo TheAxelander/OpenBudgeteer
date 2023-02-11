@@ -502,7 +502,7 @@ public class ImportDataViewModel : ViewModelBase
             // Run pre-checks
             if (string.IsNullOrEmpty(SelectedImportProfile.NumberFormat)) throw new Exception("Missing Number Format");
             if (string.IsNullOrEmpty(SelectedImportProfile.DateFormat)) throw new Exception("Missing Date Format");
-            if (SelectedImportProfile.AccountId < 1) throw new Exception("No target account selected");
+            if (SelectedImportProfile.AccountId == Guid.Empty) throw new Exception("No target account selected");
 
             // Pre-Load Data for verification
             // Initialize CsvReader
@@ -667,7 +667,7 @@ public class ImportDataViewModel : ViewModelBase
 
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                SelectedImportProfile.ImportProfileId = 0;
+                SelectedImportProfile.ImportProfileId = Guid.Empty;
                 if (dbContext.CreateImportProfile(SelectedImportProfile) == 0)
                     throw new Exception("Profile could not be created in database.");
                 LoadAvailableProfiles();

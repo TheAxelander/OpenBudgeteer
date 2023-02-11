@@ -22,8 +22,8 @@ namespace OpenBudgeteer.Core.ViewModels
         /// </summary>
         private class BucketActivity : BaseObject
         {
-            private int _bucketId;
-            public int BucketId
+            private Guid _bucketId;
+            public Guid BucketId
             {
                 get => _bucketId;
                 set => Set(ref _bucketId, value);

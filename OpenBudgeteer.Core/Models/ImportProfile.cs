@@ -1,9 +1,13 @@
-﻿namespace OpenBudgeteer.Core.Models;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace OpenBudgeteer.Core.Models;
 
 public class ImportProfile : BaseObject
 {
-    private int _importProfileId;
-    public int ImportProfileId
+    private Guid _importProfileId;
+    public Guid ImportProfileId
     {
         get => _importProfileId;
         set => Set(ref _importProfileId, value);
@@ -16,8 +20,8 @@ public class ImportProfile : BaseObject
         set => Set(ref _profileName, value);
     }
 
-    private int _accountId;
-    public int AccountId
+    private Guid _accountId;
+    public Guid AccountId
     {
         get => _accountId;
         set => Set(ref _accountId, value);

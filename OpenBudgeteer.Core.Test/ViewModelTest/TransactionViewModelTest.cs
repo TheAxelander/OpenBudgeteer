@@ -324,7 +324,7 @@ public class TransactionViewModelTest
                 dbContext.CreateAccount(testAccount);
                 dbContext.CreateRecurringBankTransaction(new RecurringBankTransaction
                 {
-                    FirstOccurenceDate = firstOccurence,
+                    FirstOccurrenceDate = firstOccurence,
                     AccountId = testAccount.AccountId,
                     RecurrenceType = reccurenceType,
                     RecurrenceAmount = reccurenceAmount,

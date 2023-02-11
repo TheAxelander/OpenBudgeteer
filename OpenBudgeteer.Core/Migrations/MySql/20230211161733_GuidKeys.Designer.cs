@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Common.Database;
 
@@ -10,9 +11,10 @@ using OpenBudgeteer.Core.Common.Database;
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
     [DbContext(typeof(MySqlDatabaseContext))]
-    partial class DatabaseServiceModelSnapshot : ModelSnapshot
+    [Migration("20230211161733_GuidKeys")]
+    partial class GuidKeys
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,6 +27,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                 {
                     b.Property<Guid>("AccountId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("AccountGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("IsActive")
@@ -44,6 +49,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("AccountGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("AccountId")
                         .HasColumnType("char(36)");
 
@@ -59,6 +67,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<Guid>("TransactionGuidId")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("TransactionId");
 
                     b.ToTable("BankTransaction");
@@ -70,7 +81,13 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("BucketGroupGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("BucketGroupId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("BucketGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ColorCode")
@@ -99,6 +116,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("BucketGroupGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
 
@@ -119,7 +139,13 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65,2)");
 
+                    b.Property<Guid>("BucketGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("BucketId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("BucketMovementGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<DateTime>("MovementDate")
@@ -136,11 +162,17 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("BucketRuleSetGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
 
                     b.Property<int>("Priority")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("TargetBucketGuidId")
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("TargetBucketId")
                         .HasColumnType("char(36)");
@@ -154,6 +186,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                 {
                     b.Property<Guid>("BucketVersionId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("BucketGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("BucketId")
@@ -170,6 +205,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
 
                     b.Property<DateTime>("BucketTypeZParam")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("BucketVersionGuidId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext");
@@ -194,7 +232,16 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65,2)");
 
+                    b.Property<Guid>("BucketGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("BucketId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("BudgetedTransactionGuidId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("TransactionGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("TransactionId")
@@ -209,6 +256,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                 {
                     b.Property<Guid>("ImportProfileId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("AccountGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("AccountId")
@@ -245,6 +295,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<int>("HeaderRow")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("ImportProfileGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("MemoColumnName")
                         .HasColumnType("longtext");
 
@@ -275,6 +328,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("BucketRuleSetGuidId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("BucketRuleSetId")
                         .HasColumnType("char(36)");
 
@@ -288,6 +344,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<Guid>("MappingRuleGuidId")
+                        .HasColumnType("char(36)");
+
                     b.HasKey("MappingRuleId");
 
                     b.ToTable("MappingRule");
@@ -297,6 +356,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                 {
                     b.Property<Guid>("TransactionId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("AccountGuidId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("AccountId")
@@ -319,6 +381,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
 
                     b.Property<int>("RecurrenceType")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("TransactionGuidId")
+                        .HasColumnType("char(36)");
 
                     b.HasKey("TransactionId");
 

@@ -6,16 +6,16 @@ namespace OpenBudgeteer.Core.Models;
 
 public class BucketMovement : BaseObject
 {
-    private int _bucketMovementId;
-    public int BucketMovementId
+    private Guid _bucketMovementId;
+    public Guid BucketMovementId
     {
         get => _bucketMovementId;
         set => Set(ref _bucketMovementId, value);
     }
 
-    private int _bucketId;
+    private Guid _bucketId;
     [Required]
-    public int BucketId
+    public Guid BucketId
     {
         get => _bucketId;
         set => Set(ref _bucketId, value);

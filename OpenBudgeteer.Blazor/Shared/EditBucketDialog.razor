@@ -29,14 +29,14 @@
                         </div>
 						<div class="col">
                             <label class="form-label">Bucket Group:</label>
-                            <IntegerSelect
+                            <GuidSelect
                                 @bind-SelectedItem="@DataContext.Bucket.BucketGroupId"
                                 AvailableItems="@DataContext.AvailableBucketGroups.Select(i => i.BucketGroupId).ToList()"
                                 SelectClasses="form-select form-select-sm">
                                 <SelectOption Context="bucketGroupId">
                                     <option value="@bucketGroupId">@DataContext.AvailableBucketGroups.First(i => i.BucketGroupId == bucketGroupId).Name</option>
                                 </SelectOption>
-                            </IntegerSelect>
+                            </GuidSelect>
                         </div>
                     </div>
                     <div class="row mb-3">

@@ -1,9 +1,13 @@
-﻿namespace OpenBudgeteer.Core.Models;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace OpenBudgeteer.Core.Models;
 
 public class Account : BaseObject
 {
-    private int _accountId;
-    public int AccountId
+    private Guid _accountId;
+    public Guid AccountId
     {
         get => _accountId;
         set => Set(ref _accountId, value);

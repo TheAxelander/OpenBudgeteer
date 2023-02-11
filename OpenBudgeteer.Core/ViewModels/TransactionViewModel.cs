@@ -97,12 +97,12 @@ public class TransactionViewModel : ViewModelBase
                 case TransactionViewModelFilter.HideMapped:
                     return new ObservableCollection<TransactionViewModelItem>(
                         _transactions.Where(i => 
-                            i.Buckets.First().SelectedBucket.BucketId == 0 ||
+                            i.Buckets.First().SelectedBucket.BucketId == Guid.Empty ||
                             i.InModification));
                 case TransactionViewModelFilter.OnlyMapped:
                     return new ObservableCollection<TransactionViewModelItem>(
                         _transactions.Where(i => 
-                            i.Buckets.First().SelectedBucket.BucketId > 0 ||
+                            i.Buckets.First().SelectedBucket.BucketId != Guid.Empty ||
                             i.InModification));
                 case TransactionViewModelFilter.InModification:
                     return new ObservableCollection<TransactionViewModelItem>(
@@ -288,7 +288,7 @@ public class TransactionViewModel : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult CreateItem()
     {
-        NewTransaction.Transaction.TransactionId = 0;
+        NewTransaction.Transaction.TransactionId = Guid.Empty;
         var result = NewTransaction.CreateItem();
         if (!result.IsSuccessful) return result;
         ResetNewTransaction();
@@ -356,7 +356,7 @@ public class TransactionViewModel : ViewModelBase
     public async Task ProposeBuckets()
     {
         CurrentFilter = TransactionViewModelFilter.InModification;
-        var unassignedTransactions = _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == 0);
+        var unassignedTransactions = _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == Guid.Empty);
         ProposeBucketsCount = unassignedTransactions.Count();
         ProposeBucketsProgress = 0;
 
@@ -398,7 +398,7 @@ public class TransactionViewModel : ViewModelBase
                             // Check if RecurringBankTransaction need to be created in current month
                     
                             // Iterate until Occurrence Date is no longer in the past
-                            var newOccurrenceDate = recurringBankTransaction.FirstOccurenceDate;
+                            var newOccurrenceDate = recurringBankTransaction.FirstOccurrenceDate;
                             while (newOccurrenceDate < _yearMonthViewModel.CurrentMonth)
                             {
                                 newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);

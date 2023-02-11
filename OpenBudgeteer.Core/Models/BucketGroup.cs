@@ -1,11 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OpenBudgeteer.Core.Models;
 
 public class BucketGroup : BaseObject
 {
-    private int _bucketGroupId;
-    public int BucketGroupId
+    private Guid _bucketGroupId;
+    public Guid BucketGroupId
     {
         get => _bucketGroupId;
         set => Set(ref _bucketGroupId, value);

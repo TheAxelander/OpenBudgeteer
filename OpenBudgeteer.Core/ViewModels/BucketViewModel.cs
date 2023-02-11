@@ -134,28 +134,20 @@ public class BucketViewModel : ViewModelBase
             BucketGroups.Clear();
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
+                List<BucketGroup> bucketGroups;
                 if (includeDefaults)
                 {
-                    // Collect system default Buckets like Transfer and Income in a separate BucketGroup
-                    var defaultsBucketGroup = new BucketGroupViewModelItem(_dbOptions)
-                    {
-                        BucketGroup = new()
-                        {
-                            BucketGroupId = 0,
-                            Name = "System Buckets",
-                            Position = 0
-                        }
-                    };
-                    foreach (var bucket in dbContext.Bucket.Where(i => i.BucketGroupId == defaultsBucketGroup.BucketGroup.BucketGroupId))
-                    {
-                        defaultsBucketGroup.Buckets.Add(new BucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth){ Bucket = bucket });
-                    }
-                    BucketGroups.Add(defaultsBucketGroup);
-                }
-
-                var bucketGroups = dbContext.BucketGroup
+                    bucketGroups = dbContext.BucketGroup
                     .OrderBy(i => i.Position)
                     .ToList();
+                }
+                else
+                {
+                    bucketGroups = dbContext.BucketGroup
+                    .Where(i => i.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                    .OrderBy(i => i.Position)
+                    .ToList();
+                }
 
                 foreach (var bucketGroup in bucketGroups)
                 {
@@ -202,7 +194,7 @@ public class BucketViewModel : ViewModelBase
     {
         var newGroup = new BucketGroup
         {
-            BucketGroupId = 0,
+            BucketGroupId = Guid.Empty,
             Name = "New Bucket Group",
             Position = 1
         };
@@ -241,7 +233,7 @@ public class BucketViewModel : ViewModelBase
             return new ViewModelOperationResult(false, "Bucket Group Name cannot be empty");
         
         // Set Id to 0 to enable creation
-        newBucketGroup.BucketGroupId = 0;
+        newBucketGroup.BucketGroupId = Guid.Empty;
 
         // Save Position, append Bucket Group and later move it to requested Position 
         var requestedPosition = newBucketGroup.Position;
@@ -371,7 +363,8 @@ public class BucketViewModel : ViewModelBase
                         j => j.TransactionId,
                         (bankTransaction, budgetedTransaction) => new { bankTransaction, budgetedTransaction })
                     .Where(i =>
-                        i.budgetedTransaction.BucketId != 2 &&
+                        i.budgetedTransaction.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                        i.budgetedTransaction.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
                         i.bankTransaction.TransactionDate.Year == _yearMonthViewModel.SelectedYear &&
                         i.bankTransaction.TransactionDate.Month == _yearMonthViewModel.SelectedMonth)
                     .Select(i => i.budgetedTransaction)

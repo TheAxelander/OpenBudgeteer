@@ -19,9 +19,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.Account", b =>
                 {
-                    b.Property<int>("AccountId")
+                    b.Property<Guid>("AccountId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("IsActive")
                         .HasColumnType("INTEGER");
@@ -36,12 +36,12 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.BankTransaction", b =>
                 {
-                    b.Property<int>("TransactionId")
+                    b.Property<Guid>("TransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
@@ -62,12 +62,12 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.Bucket", b =>
                 {
-                    b.Property<int>("BucketId")
+                    b.Property<Guid>("BucketId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("BucketGroupId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("BucketGroupId")
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ColorCode")
                         .HasColumnType("TEXT");
@@ -91,9 +91,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketGroup", b =>
                 {
-                    b.Property<int>("BucketGroupId")
+                    b.Property<Guid>("BucketGroupId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
@@ -108,15 +108,15 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketMovement", b =>
                 {
-                    b.Property<int>("BucketMovementId")
+                    b.Property<Guid>("BucketMovementId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<int>("BucketId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("BucketId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("MovementDate")
                         .HasColumnType("TEXT");
@@ -128,9 +128,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketRuleSet", b =>
                 {
-                    b.Property<int>("BucketRuleSetId")
+                    b.Property<Guid>("BucketRuleSetId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
@@ -138,8 +138,8 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<int>("Priority")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("TargetBucketId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("TargetBucketId")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("BucketRuleSetId");
 
@@ -148,12 +148,12 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketVersion", b =>
                 {
-                    b.Property<int>("BucketVersionId")
+                    b.Property<Guid>("BucketVersionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("BucketId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("BucketId")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("BucketType")
                         .HasColumnType("INTEGER");
@@ -183,18 +183,18 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.BudgetedTransaction", b =>
                 {
-                    b.Property<int>("BudgetedTransactionId")
+                    b.Property<Guid>("BudgetedTransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<int>("BucketId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("BucketId")
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("TransactionId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("BudgetedTransactionId");
 
@@ -203,12 +203,12 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.ImportProfile", b =>
                 {
-                    b.Property<int>("ImportProfileId")
+                    b.Property<Guid>("ImportProfileId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("AdditionalSettingAmountCleanup")
                         .HasColumnType("INTEGER");
@@ -265,12 +265,12 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.MappingRule", b =>
                 {
-                    b.Property<int>("MappingRuleId")
+                    b.Property<Guid>("MappingRuleId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("BucketRuleSetId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("BucketRuleSetId")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("ComparisionField")
                         .HasColumnType("INTEGER");
@@ -289,17 +289,17 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
 
             modelBuilder.Entity("OpenBudgeteer.Core.Models.RecurringBankTransaction", b =>
                 {
-                    b.Property<int>("TransactionId")
+                    b.Property<Guid>("TransactionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("AccountId")
-                        .HasColumnType("INTEGER");
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("TEXT");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateTime>("FirstOccurenceDate")
+                    b.Property<DateTime>("FirstOccurrenceDate")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Memo")

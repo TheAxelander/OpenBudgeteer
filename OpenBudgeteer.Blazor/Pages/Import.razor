@@ -52,7 +52,7 @@
                     {
                         <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile(), "Profile has been created."))>Create Profile</button>
                     }
-                    @if (_dataContext.SelectedImportProfile is {ImportProfileId: > 0 })
+                    @if (_dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty)
                     {
                         <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.SaveProfile(), "Changes for Profile have been saved."))>Save Profile</button>
                         <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => _isDeleteConfirmationDialogVisible = true)>Delete Profile</button>
@@ -63,7 +63,7 @@
 				        <label class="form-label">Import Profile:</label>
                         <ObjectSelect
                             GetSelectedItemIdHandler="@(e => e.ImportProfileId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Convert.ToInt32(e), _dummyImportProfile))"
+                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Guid.Parse(e), _dummyImportProfile))"
                             @bind-SelectedItem="@_dataContext.SelectedImportProfile"
                             AvailableItems="@_dataContext.AvailableImportProfiles"
                             OnSelectedItemChanged="@ImportProfile_SelectionChanged"
@@ -81,7 +81,7 @@
                         <label class="form-label">Target Account:</label>
                         <ObjectSelect
                             GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Convert.ToInt32(e), _dummyAccount))"
+                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Guid.Parse(e), _dummyAccount))"
                             @bind-SelectedItem="@_dataContext.SelectedAccount"
                             AvailableItems="@_dataContext.AvailableAccounts"
                             OnSelectedItemChanged="@TargetAccount_SelectionChanged"
@@ -479,20 +479,20 @@
     ElementReference _inputElement;
     ElementReference _step1AccordionButtonElement;
 
-    const int PlaceholderItemId = -1;
-    const string PlaceholderItemValue = "___PlaceholderItem___";
-    const string DummyColumn = "---Select Column---";
+    readonly Guid PlaceholderItemId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    readonly string PlaceholderItemValue = "___PlaceholderItem___";
+    readonly string DummyColumn = "---Select Column---";
 
     readonly ImportProfile _dummyImportProfile = new() 
     { 
-        ImportProfileId = PlaceholderItemId, 
+        ImportProfileId = Guid.Parse("11111111-1111-1111-1111-111111111111"), 
         ProfileName = "---Select Import Profile---",
-        AccountId = PlaceholderItemId
+        AccountId = Guid.Parse("11111111-1111-1111-1111-111111111111")
     };
 
     readonly OpenBudgeteer.Core.Models.Account _dummyAccount = new() 
     { 
-        AccountId = PlaceholderItemId, 
+        AccountId = Guid.Parse("11111111-1111-1111-1111-111111111111"), 
         Name = "---Select Target Account---" 
     };
 
@@ -563,7 +563,9 @@
         var result = await _dataContext.LoadProfileAsync();
         if (result.IsSuccessful)
         {
-            _step3Enabled = _dataContext.SelectedImportProfile.ImportProfileId > 0;
+            _step3Enabled = 
+                _dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty && 
+                _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId;
             CheckColumnMapping();
             StateHasChanged();
         }
@@ -577,7 +579,8 @@
     {
         _isDeleteConfirmationDialogVisible = false;
         HandleResult(_dataContext.DeleteProfile());
-        if (_dataContext.SelectedImportProfile.ImportProfileId < 1)
+        if (_dataContext.SelectedImportProfile.ImportProfileId == Guid.Empty ||
+            _dataContext.SelectedImportProfile.ImportProfileId == PlaceholderItemId)
         {
             _dataContext.SelectedImportProfile = _dummyImportProfile;
             _dataContext.AvailableImportProfiles.Insert(0, _dummyImportProfile);
@@ -646,12 +649,12 @@
         _step3Enabled = false;
         _step4Enabled = false;
         if (_dataContext.SelectedImportProfile != null &&
-            _dataContext.SelectedImportProfile.ImportProfileId != -1) await LoadProfile();
+            _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId) await LoadProfile();
     }
 
     void TargetAccount_SelectionChanged(ChangeEventArgs e)
     {
-        _dataContext.SelectedImportProfile.AccountId = _dataContext.SelectedAccount?.AccountId ?? 0;
+        _dataContext.SelectedImportProfile.AccountId = _dataContext.SelectedAccount?.AccountId ?? Guid.Empty;
     }
 
     void TransactionDateColumn_SelectionChanged(ChangeEventArgs e)

@@ -215,7 +215,7 @@ public class BucketViewModelItem : ViewModelBase
         _currentYearMonth = new DateTime(yearMonth.Year, yearMonth.Month, 1);
         BucketVersion = new BucketVersion()
         {
-            BucketId = 0,
+            BucketId = Guid.Empty,
             BucketType = 1,
             BucketTypeZParam = yearMonth,
             ValidFrom = yearMonth
@@ -236,7 +236,7 @@ public class BucketViewModelItem : ViewModelBase
         InModification = true;
         Bucket = new Bucket()
         {
-            BucketId = 0,
+            BucketId = Guid.Empty,
             BucketGroupId = bucketGroup.BucketGroupId,
             Name = "New Bucket",
             ColorCode = Color.Transparent.Name,
@@ -682,7 +682,7 @@ public class BucketViewModelItem : ViewModelBase
                         else
                         {
                             BucketVersion.Version++;
-                            BucketVersion.BucketVersionId = 0;
+                            BucketVersion.BucketVersionId = Guid.Empty;
                             BucketVersion.ValidFrom = _currentYearMonth;
                             if (dbContext.CreateBucketVersion(BucketVersion) == 0)
                                 throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +

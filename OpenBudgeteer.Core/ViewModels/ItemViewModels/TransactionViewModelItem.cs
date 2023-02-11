@@ -109,7 +109,7 @@ public class TransactionViewModelItem : ViewModelBase
         // Add empty Account for empty pre-selection
         AvailableAccounts.Add(new Account
         {
-            AccountId = 0,
+            AccountId = Guid.Empty,
             IsActive = 1,
             Name = "No Account"
         });
@@ -169,7 +169,7 @@ public class TransactionViewModelItem : ViewModelBase
                 else
                 {
                     // Most likely an imported Transaction where Bucket assignment still needs to be done
-                    var newItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket() { BucketId = 0 }, transaction.Amount);
+                    var newItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket() { BucketId = Guid.Empty }, transaction.Amount);
                     Buckets.Add(newItem);
                 }
             }
@@ -217,8 +217,8 @@ public class TransactionViewModelItem : ViewModelBase
         // Simulate a BankTransaction based on BucketMovement
         Transaction = new BankTransaction
         {
-            TransactionId = 0,
-            AccountId = 0,
+            TransactionId = Guid.Empty,
+            AccountId = Guid.Empty,
             Amount = bucketMovement.Amount,
             Memo = "Bucket Movement",
             Payee = string.Empty,
@@ -228,7 +228,7 @@ public class TransactionViewModelItem : ViewModelBase
         // Simulate Account
         SelectedAccount = new Account
         {
-            AccountId = 0,
+            AccountId = Guid.Empty,
             IsActive = 1,
             Name = string.Empty
         };
@@ -297,7 +297,7 @@ public class TransactionViewModelItem : ViewModelBase
         // Check if this current event was triggered while updating the amount for the "emptyItem"
         // Prevents Deadlock and StackOverflowException 
         if (changedArgs.Source.SelectedBucket == null ||
-            changedArgs.Source.SelectedBucket.BucketId == 0)
+            changedArgs.Source.SelectedBucket.BucketId == Guid.Empty)
         {
             return;
         }
@@ -309,7 +309,7 @@ public class TransactionViewModelItem : ViewModelBase
             // ignore "emptyItem" where existing Bucket is not yet assigned
             // this is the one where the amount has to be updated
 
-            if (bucket.SelectedBucket != null && bucket.SelectedBucket.BucketId != 0)
+            if (bucket.SelectedBucket != null && bucket.SelectedBucket.BucketId != Guid.Empty)
             {
                 assignedAmount += bucket.Amount;
             }
@@ -328,7 +328,7 @@ public class TransactionViewModelItem : ViewModelBase
         // Check if remaining amount left to be assigned to any Bucket
         if (assignedAmount != Transaction.Amount)
         {
-            if (Buckets.Last().SelectedBucket != null && Buckets.Last().SelectedBucket.BucketId != 0)
+            if (Buckets.Last().SelectedBucket != null && Buckets.Last().SelectedBucket.BucketId != Guid.Empty)
             {
                 // All items have a valid Bucket assignment, create a new "empty item"
                 AddBucketItem(Transaction.Amount - assignedAmount);
@@ -340,7 +340,7 @@ public class TransactionViewModelItem : ViewModelBase
             }
         }
         else if (Buckets.Last().SelectedBucket == null || 
-                 Buckets.Last().SelectedBucket.BucketId == 0)
+                 Buckets.Last().SelectedBucket.BucketId == Guid.Empty)
         {
             // Remove unnecessary "empty item" as amount is already assigned properly
             Buckets.Remove(Buckets.Last());
@@ -380,7 +380,7 @@ public class TransactionViewModelItem : ViewModelBase
                     var transactionId = Transaction.TransactionId;
                     Transaction.AccountId = SelectedAccount.AccountId;
 
-                    if (transactionId != 0)
+                    if (transactionId != Guid.Empty)
                     {
                         // Update BankTransaction in DB
                         dbContext.UpdateBankTransaction(Transaction);
@@ -438,7 +438,7 @@ public class TransactionViewModelItem : ViewModelBase
 
         // Consistency and Validity Checks
         if (Transaction == null) return new ViewModelOperationResult(false, "Errors in Transaction object.");
-        if (SelectedAccount == null || SelectedAccount.AccountId == 0) return new ViewModelOperationResult(false, "No Bank account selected.");
+        if (SelectedAccount == null || SelectedAccount.AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
         if (Buckets.Count == 0) return new ViewModelOperationResult(false, "No Bucket assigned to this Transaction.");
         
         foreach (var assignedBucket in Buckets)
@@ -446,7 +446,7 @@ public class TransactionViewModelItem : ViewModelBase
             if (assignedBucket.SelectedBucket == null)
                 return new ViewModelOperationResult(false, "Pending Bucket assignment for this Transaction.");
 
-            if (assignedBucket.SelectedBucket.BucketId == 0)
+            if (assignedBucket.SelectedBucket.BucketId == Guid.Empty)
             {
                 if (assignedBucket.SelectedBucket.Name == "No Selection")
                 {
@@ -518,13 +518,13 @@ public class TransactionViewModelItem : ViewModelBase
 
     public ViewModelOperationResult CreateItem()
     {
-        Transaction.TransactionId = 0; // Triggers CREATE during CreateOrUpdateTransaction()
+        Transaction.TransactionId = Guid.Empty; // Triggers CREATE during CreateOrUpdateTransaction()
         return CreateOrUpdateTransaction();
     }
 
     public ViewModelOperationResult UpdateItem()
     {
-        if (Transaction.TransactionId < 1) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
+        if (Transaction.TransactionId == Guid.Empty) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
 
         var result = CreateOrUpdateTransaction();
         if (!result.IsSuccessful)
@@ -555,7 +555,7 @@ public class TransactionViewModelItem : ViewModelBase
 
     private Bucket CheckMappingRules()
     {
-        var targetBucketId = 0;
+        var targetBucketId = Guid.Empty;
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             foreach (var ruleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
@@ -572,7 +572,7 @@ public class TransactionViewModelItem : ViewModelBase
                 }
             }
 
-            return targetBucketId != 0 ? dbContext.Bucket.First(i => i.BucketId == targetBucketId) : null;
+            return targetBucketId != Guid.Empty ? dbContext.Bucket.First(i => i.BucketId == targetBucketId) : null;
         }
 
         bool DoesRuleApply(MappingRule mappingRule)

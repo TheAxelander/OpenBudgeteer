@@ -96,7 +96,7 @@ public class ReportViewModel : ViewModelBase
                             budgetedTransaction.BucketId
                         })
                     .Where(i =>
-                        i.BucketId != 2 && 
+                        i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
                         i.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
                     .ToList();
 
@@ -152,7 +152,7 @@ public class ReportViewModel : ViewModelBase
                             budgetedTransaction.BucketId
                         })
                     .Where(i =>
-                        i.BucketId != 2 &&
+                        i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
                         i.TransactionDate >= currentMonth.AddYears((years - 1) * -1))
                     .ToList();
 
@@ -229,7 +229,10 @@ public class ReportViewModel : ViewModelBase
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
                 var buckets = dbContext.Bucket
-                    .Where(i => !i.IsInactive && i.BucketId > 2)
+                    .Where(i => 
+                        i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                        i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") && 
+                        !i.IsInactive)
                     .OrderBy(i => i.Name);
                 foreach (var bucket in buckets)
                 {

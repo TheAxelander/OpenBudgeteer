@@ -65,7 +65,7 @@ public class DataConsistencyViewModel : ViewModelBase
             var checkName = "Transfer Transaction reconciliation";
             using (var dbContext = new DatabaseContext(_dbOptions))
             {
-                var result = dbContext.BudgetedTransaction.Where(i => i.BucketId == 2).Sum(i => i.Amount);
+                var result = dbContext.BudgetedTransaction.Where(i => i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002")).Sum(i => i.Amount);
                 return result != 0 ?
                     new DataConsistencyCheckResult(checkName, StatusCode.Alert, 
                         $"Sum of all Transfer Transactions should be 0 but is {result}.", new List<string[]>()) :
@@ -89,7 +89,11 @@ public class DataConsistencyViewModel : ViewModelBase
                 var results = new List<Tuple<StatusCode, string[]>>();
                 var checkTasks = new List<Task>();
 
-                foreach (var bucket in dbContext.Bucket.Where(i => i.BucketId > 2).ToList())
+                foreach (var bucket in dbContext.Bucket
+                             .Where(i => 
+                                 i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                                 i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                             .ToList())
                 {
                     checkTasks.Add(Task.Run(() =>
                     {

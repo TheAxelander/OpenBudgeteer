@@ -7,8 +7,8 @@ namespace OpenBudgeteer.Core.Models;
 
 public class Bucket : BaseObject
 {
-    private int _bucketId;
-    public int BucketId
+    private Guid _bucketId;
+    public Guid BucketId
     {
         get => _bucketId;
         set => Set(ref _bucketId, value);
@@ -21,9 +21,9 @@ public class Bucket : BaseObject
         set => Set(ref _name, value);
     }
 
-    private int _bucketGroupId;
+    private Guid _bucketGroupId;
     [Required]
-    public int BucketGroupId
+    public Guid BucketGroupId
     {
         get => _bucketGroupId;
         set => Set(ref _bucketGroupId, value);

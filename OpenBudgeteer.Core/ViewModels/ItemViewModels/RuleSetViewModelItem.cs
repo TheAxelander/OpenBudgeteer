@@ -86,19 +86,21 @@ public class RuleSetViewModelItem : ViewModelBase
         _dbOptions = dbOptions;
         AvailableBuckets.Add(new Bucket
         {
-            BucketId = 0,
-            BucketGroupId = 0,
+            BucketId = Guid.Empty,
+            BucketGroupId = Guid.Empty,
             Name = "No Selection"
         });
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
-            foreach (var availableBucket in dbContext.Bucket.Where(i => i.BucketId <= 2))
-            {
-                AvailableBuckets.Add(availableBucket);
-            }
+            AvailableBuckets.Add(dbContext.Bucket.First(i =>
+                i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001")));
+            AvailableBuckets.Add(dbContext.Bucket.First(i =>
+                i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002")));
 
             var query = dbContext.Bucket
-                .Where(i => i.BucketId > 2 && !i.IsInactive)
+                .Where(i => i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                            i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
+                            !i.IsInactive)
                 .OrderBy(i => i.Name);
 
             foreach (var availableBucket in query.ToList())
@@ -178,7 +180,7 @@ public class RuleSetViewModelItem : ViewModelBase
             {
                 try
                 {
-                    if (RuleSet.BucketRuleSetId == 0)
+                    if (RuleSet.BucketRuleSetId == Guid.Empty)
                     {
                         // CREATE
                         if (dbContext.CreateBucketRuleSet(RuleSet) == 0)
@@ -203,7 +205,7 @@ public class RuleSetViewModelItem : ViewModelBase
 
                     foreach (var mappingRuleViewModelItem in MappingRules)
                     {
-                        mappingRuleViewModelItem.MappingRule.MappingRuleId = 0;
+                        mappingRuleViewModelItem.MappingRule.MappingRuleId = Guid.Empty;
                     }
                     dbContext.CreateMappingRules(MappingRules.Select(i => i.MappingRule).ToList());
                     

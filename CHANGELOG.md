@@ -1,6 +1,7 @@
 ### 1.7 (2023-xx-xx)
 
 * [Add] Confirmation Dialog before making a Bucket inactive [#119](https://github.com/TheAxelander/OpenBudgeteer/issues/119)
+* [Changed] Integer based IDs in database have been migrated to Guid
 * [Changed] Prevent any kind of interaction with Buckets marked as inactive [#111](https://github.com/TheAxelander/OpenBudgeteer/issues/111)
 * [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)  
 
