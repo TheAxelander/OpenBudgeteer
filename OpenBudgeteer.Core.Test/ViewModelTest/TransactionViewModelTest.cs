@@ -308,7 +308,7 @@ public class TransactionViewModelTest
     [Theory]
     [MemberData(nameof(TestData_AddRecurringTransactionsAsync_CheckRecurrance))]
     public async Task AddRecurringTransactionsAsync_CheckRecurrance(
-        DateTime firstOccurence,
+        DateTime firstOccurrence,
         int reccurenceType,
         int reccurenceAmount,
         string memo,
@@ -324,7 +324,7 @@ public class TransactionViewModelTest
                 dbContext.CreateAccount(testAccount);
                 dbContext.CreateRecurringBankTransaction(new RecurringBankTransaction
                 {
-                    FirstOccurrenceDate = firstOccurence,
+                    FirstOccurrenceDate = firstOccurrence,
                     AccountId = testAccount.AccountId,
                     RecurrenceType = reccurenceType,
                     RecurrenceAmount = reccurenceAmount,

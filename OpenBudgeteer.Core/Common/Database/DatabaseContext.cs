@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Models;
@@ -305,7 +306,12 @@ public class DatabaseContext : DbContext
 
     public int DeleteBuckets(IEnumerable<Bucket> buckets)
     {
-        Bucket.RemoveRange(buckets);
+        var validDeletions = buckets
+            .Where(i =>
+                i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002"))
+            .ToList();
+        Bucket.RemoveRange(validDeletions);
         return SaveChanges();
     }
 
@@ -314,7 +320,10 @@ public class DatabaseContext : DbContext
 
     public int DeleteBucketGroups(IEnumerable<BucketGroup> bucketGroups)
     {
-        BucketGroup.RemoveRange(bucketGroups);
+        var validDeletions = bucketGroups
+            .Where(i => i.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001"))
+            .ToList();
+        BucketGroup.RemoveRange(validDeletions);
         return SaveChanges();
     }
 
