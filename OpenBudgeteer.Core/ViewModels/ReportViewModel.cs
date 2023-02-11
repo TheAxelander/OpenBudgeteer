@@ -272,6 +272,7 @@ public class ReportViewModel : ViewModelBase
                                     YearMonth = i.Key,
                                     Balance = (i.Sum(j => j.Transaction.Amount)) * -1
                                 })
+                                .OrderBy(i => i.YearMonth)
                                 .ToList();
 
                             // Collect results
