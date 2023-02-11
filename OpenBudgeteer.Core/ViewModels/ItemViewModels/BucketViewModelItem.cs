@@ -256,7 +256,11 @@ public class BucketViewModelItem : ViewModelBase
     public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, Bucket bucket, DateTime yearMonth) : this(dbOptions, yearMonth)
     {
         Bucket = bucket;
-        CalculateValues();
+        // Exclude system default Buckets for any calculation
+        if (bucket.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001"))
+        {
+            CalculateValues();    
+        }
     }
 
     /// <summary>

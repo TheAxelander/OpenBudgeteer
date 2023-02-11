@@ -344,7 +344,7 @@ public class BucketViewModel : ViewModelBase
         try
         {
             var buckets = new List<BucketViewModelItem>();
-            foreach (var bucketGroup in BucketGroups)
+            foreach (var bucketGroup in BucketGroups.Where(i => i.BucketGroup.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001")))
             {
                 bucketGroup.TotalBalance = bucketGroup.Buckets.Sum(i => i.Balance);
                 bucketGroup.TotalWant = bucketGroup.Buckets.Where(i => i.Want > 0).Sum(i => i.Want);
