@@ -52,7 +52,7 @@
                                 <tr>
                                     <td style="width: 120px">
                                         <select class="form-select form-select-sm"
-                                                @bind:get="@mappingRule.MappingRule.ComparisionField"
+                                                @bind:get="mappingRule.MappingRule.ComparisionField"
                                                 @bind:set="(value) => { mappingRule.MappingRule.ComparisionField = Convert.ToInt32(value); }">
                                             @for (int i = 1; i <= 4; i++)
                                             {
@@ -62,7 +62,7 @@
                                     </td>
                                     <td style="width: 160px">
                                         <select class="form-select form-select-sm"
-                                                @bind:get="@mappingRule.MappingRule.ComparisionType"
+                                                @bind:get="mappingRule.MappingRule.ComparisionType"
                                                 @bind:set="(value) => { mappingRule.MappingRule.ComparisionType = Convert.ToInt32(value); }">
                                             @for (int i = 1; i <= 4; i++)
                                             {
@@ -121,7 +121,7 @@
                             <tr>
                                 <td style="width: 120px">
                                     <select class="form-select form-select-sm"
-                                            @bind:get="@mappingRule.MappingRule.ComparisionField"
+                                            @bind:get="mappingRule.MappingRule.ComparisionField"
                                             @bind:set="(value) => { mappingRule.MappingRule.ComparisionField = Convert.ToInt32(value); }">
                                         @for (int i = 1; i <= 4; i++)
                                         {
@@ -131,7 +131,7 @@
                                 </td>
                                 <td style="width: 160px">
                                     <select class="form-select form-select-sm"
-                                            @bind:get="@mappingRule.MappingRule.ComparisionType"
+                                            @bind:get="mappingRule.MappingRule.ComparisionType.ToString()"
                                             @bind:set="(value) => { mappingRule.MappingRule.ComparisionType = Convert.ToInt32(value); }">
                                         @for (int i = 1; i <= 4; i++)
                                         {

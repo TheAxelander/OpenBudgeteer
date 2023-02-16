@@ -10,7 +10,7 @@
 <div class="col-md-auto d-flex justify-content-end align-items-center">
     <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
     <select class="form-select form-select-sm element-margin" style="width: auto"
-            @bind:get="@DataContext.SelectedMonth"
+            @bind:get="DataContext.SelectedMonth.ToString()"
             @bind:set="(value) => { DataContext.SelectedMonth = Convert.ToInt32(value); }">
         @foreach (var month in DataContext.Months)
         {

@@ -35,7 +35,7 @@
     </div>
     <div class="col-md-auto">
         <select class="form-select form-select-sm" style="width: auto"
-                @bind:get="@_dataContext.CurrentFilter.ToString()"
+                @bind:get="_dataContext.CurrentFilter.ToString()"
                 @bind:set="(value) => { _dataContext.CurrentFilter = Enum.TryParse(typeof(TransactionViewModelFilter), value, out var result) ? (TransactionViewModelFilter)result : TransactionViewModelFilter.NoFilter; }">
             @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
             {
@@ -67,7 +67,7 @@
                 </td>
                 <td>
                     <select class="form-select form-select-sm"
-                            @bind:get="@_dataContext.NewTransaction.SelectedAccount.AccountId.ToString()"
+                            @bind:get="_dataContext.NewTransaction.SelectedAccount.AccountId.ToString()"
                             @bind:set="(value) => { _dataContext.NewTransaction.SelectedAccount = _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
                         @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
                         {
@@ -137,7 +137,7 @@
                 </td>
                 <td>
                     <select class="form-select form-select-sm"
-                            @bind:get="@transaction.SelectedAccount.AccountId.ToString()"
+                            @bind:get="transaction.SelectedAccount.AccountId.ToString()"
                             @bind:set="(value) => { transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
                         @foreach (var account in transaction.AvailableAccounts)
                         {

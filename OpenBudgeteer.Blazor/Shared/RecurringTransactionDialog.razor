@@ -51,7 +51,7 @@
                                         <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.RecurrenceAmount" /></td>
                                         <td style="width:130px">
                                             <select class="form-select form-select-sm" 
-                                                    @bind:get="@transaction.SelectedRecurrenceType.Key"
+                                                    @bind:get="transaction.SelectedRecurrenceType.Key.ToString()"
                                                     @bind:set="(value) => { transaction.SelectedRecurrenceType = transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(value)); }">
                                                 @foreach (var recurrenceType in transaction.AvailableRecurrenceTypes)
                                                 {
@@ -61,7 +61,7 @@
                                         </td>
                                         <td>
                                             <select class="form-select form-select-sm"
-                                                    @bind:get="@transaction.SelectedAccount.AccountId.ToString()"
+                                                    @bind:get="transaction.SelectedAccount.AccountId.ToString()"
                                                     @bind:set="(value) => { transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
                                                 @foreach (var account in transaction.AvailableAccounts)
                                                 {

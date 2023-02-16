@@ -18,7 +18,7 @@
                         <div class="col">
                             <label class="form-label">Bucket Type:</label>
                             <select class="form-select form-select-sm"
-                                    @bind:get="@DataContext.BucketVersion.BucketType"
+                                    @bind:get="DataContext.BucketVersion.BucketType.ToString()"
                                     @bind:set="(value) => { DataContext.BucketVersion.BucketType = Convert.ToInt32(value); }">
                                 @foreach (var bucketType in DataContext.AvailableBucketTypes)
                                 {
@@ -29,7 +29,7 @@
 						<div class="col">
                             <label class="form-label">Bucket Group:</label>
                             <select class="form-select form-select-sm" 
-                                    @bind:get="@DataContext.Bucket.BucketGroupId.ToString()"
+                                    @bind:get="DataContext.Bucket.BucketGroupId.ToString()"
                                     @bind:set="(value) => { DataContext.Bucket.BucketGroupId = Guid.Parse(value); }">
                                 @foreach (var bucketGroup in DataContext.AvailableBucketGroups)
                                 {
@@ -56,7 +56,7 @@
                         <div class="col">
                             <label class="form-label">Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
-                                    @bind:get="@DataContext.Bucket.ColorCode"
+                                    @bind:get="DataContext.Bucket.ColorCode"
                                     @bind:set="(value) => { DataContext.Bucket.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
                                 @foreach (var color in DataContext.AvailableColors)
                                 {

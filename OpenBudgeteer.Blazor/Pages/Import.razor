@@ -60,7 +60,7 @@
                     <div class="col">
                         <label class="form-label">Import Profile:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="@_dataContext.SelectedImportProfile.ImportProfileId.ToString()"
+                                @bind:get="_dataContext.SelectedImportProfile.ImportProfileId.ToString()"
                                 @bind:set="(value) => { _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Guid.Parse(value), _dummyImportProfile); ImportProfile_SelectionChanged(); }">
                             @foreach (var importProfile in _dataContext.AvailableImportProfiles)
                             {
@@ -75,7 +75,7 @@
                     <div class="col">
                         <label class="form-label">Target Account:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="@_dataContext.SelectedAccount.AccountId.ToString()"
+                                @bind:get="_dataContext.SelectedAccount.AccountId.ToString()"
                                 @bind:set="(value) => { _dataContext.SelectedAccount = _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Guid.Parse(value), _dummyAccount); TargetAccount_SelectionChanged(); }">
                             @foreach (var account in _dataContext.AvailableAccounts)
                             {
@@ -137,7 +137,7 @@
                     <div class="col">
                         <label class="form-label">Transaction Date:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="@_dataContext.SelectedImportProfile.TransactionDateColumnName"
+                                @bind:get="_dataContext.SelectedImportProfile.TransactionDateColumnName"
                                 @bind:set="(value) => { _dataContext.SelectedImportProfile.TransactionDateColumnName = value; CheckColumnMapping(); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
@@ -148,7 +148,7 @@
                     <div class="col">
                         <label class="form-label">Payee (optional):</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="@_dataContext.SelectedImportProfile.PayeeColumnName"
+                                @bind:get="_dataContext.SelectedImportProfile.PayeeColumnName"
                                 @bind:set="(value) => { _dataContext.SelectedImportProfile.PayeeColumnName = value; }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
@@ -159,7 +159,7 @@
                     <div class="col">
                         <label class="form-label">Memo:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="@_dataContext.SelectedImportProfile.MemoColumnName"
+                                @bind:get="_dataContext.SelectedImportProfile.MemoColumnName"
                                 @bind:set="(value) => { _dataContext.SelectedImportProfile.MemoColumnName = value; CheckColumnMapping(); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
@@ -170,7 +170,7 @@
                     <div class="col">
                         <label class="form-label">Amount / Debit:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="@_dataContext.SelectedImportProfile.AmountColumnName"
+                                @bind:get="_dataContext.SelectedImportProfile.AmountColumnName"
                                 @bind:set="(value) => { _dataContext.SelectedImportProfile.AmountColumnName = value; CheckColumnMapping(); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
@@ -207,7 +207,7 @@
                             <div class="col-3">
                                 <label class="form-label">Credit:</label>
                                 <select class="form-select form-select-sm"
-                                        @bind:get="@_dataContext.SelectedImportProfile.CreditColumnName"
+                                        @bind:get="_dataContext.SelectedImportProfile.CreditColumnName"
                                         @bind:set="(value) => { _dataContext.SelectedImportProfile.CreditColumnName = value; }">
                                     @foreach (var column in _dataContext.IdentifiedColumns)
                                     {
@@ -220,7 +220,7 @@
                             <div class="col-3">
                                 <label class="form-label">Column to identify Credit records:</label>
                                 <select class="form-select form-select-sm"
-                                        @bind:get="@_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName"
+                                        @bind:get="_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName"
                                         @bind:set="(value) => { _dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName = value; }">
                                     @foreach (var column in _dataContext.IdentifiedColumns)
                                     {
