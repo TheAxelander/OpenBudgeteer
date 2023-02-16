@@ -162,9 +162,8 @@ public class RecurringTransactionViewModelItem : ViewModelBase
         
         // Pre-selection the right RecurrenceType
         // or Pre-select RecurrenceType if no RecurrenceType was found (for new RecurringTransaction())
-        SelectedRecurrenceType = AvailableRecurrenceTypes.FirstOrDefault(i => i.Key == transaction.RecurrenceType,
-            AvailableRecurrenceTypes.First());
-
+        SelectedRecurrenceType = AvailableRecurrenceTypes.FirstOrDefault(i => 
+                i.Key == transaction.RecurrenceType, AvailableRecurrenceTypes.First());
     }
 
     /// <summary>
@@ -206,33 +205,31 @@ public class RecurringTransactionViewModelItem : ViewModelBase
         var result = PerformConsistencyCheck();
         if (!result.IsSuccessful) return result;
 
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        try
         {
-            try
-            {
-                var transactionId = Transaction.TransactionId;
-                Transaction.AccountId = SelectedAccount.AccountId;
-                Transaction.RecurrenceType = SelectedRecurrenceType.Key;
+            var transactionId = Transaction.TransactionId;
+            Transaction.AccountId = SelectedAccount.AccountId;
+            Transaction.RecurrenceType = SelectedRecurrenceType.Key;
 
-                if (transactionId != Guid.Empty)
-                {
-                    // Update RecurringBankTransaction in DB
-                    dbContext.UpdateRecurringBankTransaction(Transaction);
-                }
-                else
-                {
-                    // Create RecurringBankTransaction in DB
-                    if (dbContext.CreateRecurringBankTransaction(Transaction) == 0)
-                        throw new Exception("Recurring Transaction could not be created in database.");
-                }
-
-                return new ViewModelOperationResult(true);
-            }
-            catch (Exception e)
+            if (transactionId != Guid.Empty)
             {
-                return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+                // Update RecurringBankTransaction in DB
+                dbContext.UpdateRecurringBankTransaction(Transaction);
             }
-        }            
+            else
+            {
+                // Create RecurringBankTransaction in DB
+                if (dbContext.CreateRecurringBankTransaction(Transaction) == 0)
+                    throw new Exception("Recurring Transaction could not be created in database.");
+            }
+
+            return new ViewModelOperationResult(true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+        }
     }
     
     /// <summary>
@@ -255,20 +252,18 @@ public class RecurringTransactionViewModelItem : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     private ViewModelOperationResult DeleteTransaction()
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        try
         {
-            try
-            {
-                // Delete RecurringBankTransaction in DB
-                dbContext.DeleteRecurringBankTransaction(Transaction);
+            // Delete RecurringBankTransaction in DB
+            dbContext.DeleteRecurringBankTransaction(Transaction);
 
-                return new ViewModelOperationResult(true);
-            }
-            catch (Exception e)
-            {
-                return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
-            }
-        }            
+            return new ViewModelOperationResult(true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+        }
     }
     
     public void StartModification()
@@ -300,7 +295,8 @@ public class RecurringTransactionViewModelItem : ViewModelBase
 
     public ViewModelOperationResult UpdateItem()
     {
-        if (Transaction.TransactionId == Guid.Empty) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
+        if (Transaction.TransactionId == Guid.Empty) 
+            return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
 
         var result = CreateOrUpdateTransaction();
         if (!result.IsSuccessful)
@@ -316,8 +312,6 @@ public class RecurringTransactionViewModelItem : ViewModelBase
     public ViewModelOperationResult DeleteItem()
     {
         var result = DeleteTransaction();
-        if (!result.IsSuccessful) return result;
-       
-        return new ViewModelOperationResult(true, true);
+        return result.IsSuccessful ? new ViewModelOperationResult(true, true) : result;
     }
 }

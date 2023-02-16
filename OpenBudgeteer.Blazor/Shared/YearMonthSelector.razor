@@ -1,5 +1,4 @@
-﻿@using OpenBudgeteer.Blazor.Shared.Selector
-@using OpenBudgeteer.Core.ViewModels
+﻿@using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.Common
 
 <style>
@@ -10,15 +9,14 @@
 
 <div class="col-md-auto d-flex justify-content-end align-items-center">
     <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
-    <IntegerSelect
-        @bind-SelectedItem="@DataContext.SelectedMonth"
-        AvailableItems="@DataContext.Months"
-        SelectClasses="form-select form-select-sm element-margin"
-        SelectStyles="width: auto">
-         <SelectOption Context="month">
+    <select class="form-select form-select-sm element-margin" style="width: auto"
+            @bind:get="@DataContext.SelectedMonth"
+            @bind:set="(value) => { DataContext.SelectedMonth = Convert.ToInt32(value); }">
+        @foreach (var month in DataContext.Months)
+        {
             <option value="@month">@_monthConverter.ConvertMonth(month)</option>
-        </SelectOption>
-    </IntegerSelect>
+        }
+    </select>
     <input class="form-control form-control-sm element-margin" style="text-align: right; width: 50px" type="text" @bind="DataContext.SelectedYear" />
     <button class="btn btn-sm btn-primary element-margin" @onclick="@(DataContext.NextMonth)">&gt;</button>
 </div>

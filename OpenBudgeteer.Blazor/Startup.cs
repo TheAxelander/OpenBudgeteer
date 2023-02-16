@@ -69,7 +69,6 @@ public class Startup
         var iterations = 0;
         while (iterations < 10)
         {
-
             try
             {
                 var tcpClient = new TcpClient(

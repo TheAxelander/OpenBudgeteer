@@ -29,6 +29,13 @@ public class Bucket : BaseObject
         set => Set(ref _bucketGroupId, value);
     }
 
+    private BucketGroup _bucketGroup;
+    public BucketGroup BucketGroup
+    {
+        get => _bucketGroup;
+        set => Set(ref _bucketGroup, value);
+    }
+
     private string _colorCode;
     public string ColorCode
     {

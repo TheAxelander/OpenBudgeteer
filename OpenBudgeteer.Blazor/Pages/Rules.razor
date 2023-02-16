@@ -1,7 +1,6 @@
 ﻿@page "/rules"
 
 @using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Blazor.Shared.Selector
 @using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
@@ -52,24 +51,24 @@
                             {
                                 <tr>
                                     <td style="width: 120px">
-                                        <IntegerSelect
-                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionField"
-                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                            SelectClasses="form-select form-select-sm">
-                                            <SelectOption Context="comparisionField">
-                                                <option value="@comparisionField">@(new MappingRule(){ ComparisionField = comparisionField }.ComparisonFieldOutput)</option>
-                                            </SelectOption>
-                                        </IntegerSelect>
+                                        <select class="form-select form-select-sm"
+                                                @bind:get="@mappingRule.MappingRule.ComparisionField"
+                                                @bind:set="(value) => { mappingRule.MappingRule.ComparisionField = Convert.ToInt32(value); }">
+                                            @for (int i = 1; i <= 4; i++)
+                                            {
+                                                <option value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
+                                            }
+                                        </select>
                                     </td>
                                     <td style="width: 160px">
-                                        <IntegerSelect
-                                            @bind-SelectedItem="@mappingRule.MappingRule.ComparisionType"
-                                            AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                            SelectClasses="form-select form-select-sm">
-                                            <SelectOption Context="comparisionType">
-                                                <option value="@comparisionType">@(new MappingRule(){ ComparisionType = comparisionType }.ComparisionTypeOutput)</option>
-                                            </SelectOption>
-                                        </IntegerSelect>
+                                        <select class="form-select form-select-sm"
+                                                @bind:get="@mappingRule.MappingRule.ComparisionType"
+                                                @bind:set="(value) => { mappingRule.MappingRule.ComparisionType = Convert.ToInt32(value); }">
+                                            @for (int i = 1; i <= 4; i++)
+                                            {
+                                                <option value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
+                                            }
+                                        </select>
                                     </td>
                                     <td>
                                         <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
@@ -121,24 +120,24 @@
                         {
                             <tr>
                                 <td style="width: 120px">
-                                    <IntegerSelect
-                                        @bind-SelectedItem="@mappingRule.MappingRule.ComparisionField"
-                                        AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                        SelectClasses="form-select form-select-sm">
-                                        <SelectOption Context="comparisionField">
-                                            <option value="@comparisionField">@(new MappingRule(){ ComparisionField = comparisionField}.ComparisonFieldOutput)</option>
-                                        </SelectOption>
-                                    </IntegerSelect>
+                                    <select class="form-select form-select-sm"
+                                            @bind:get="@mappingRule.MappingRule.ComparisionField"
+                                            @bind:set="(value) => { mappingRule.MappingRule.ComparisionField = Convert.ToInt32(value); }">
+                                        @for (int i = 1; i <= 4; i++)
+                                        {
+                                            <option value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
+                                        }
+                                    </select>
                                 </td>
                                 <td style="width: 160px">
-                                    <IntegerSelect
-                                        @bind-SelectedItem="@mappingRule.MappingRule.ComparisionType"
-                                        AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                        SelectClasses="form-select form-select-sm">
-                                        <SelectOption Context="comparisionType">
-                                            <option value="@comparisionType">@(new MappingRule(){ ComparisionType = comparisionType}.ComparisionTypeOutput)</option>
-                                        </SelectOption>
-                                    </IntegerSelect>
+                                    <select class="form-select form-select-sm"
+                                            @bind:get="@mappingRule.MappingRule.ComparisionType"
+                                            @bind:set="(value) => { mappingRule.MappingRule.ComparisionType = Convert.ToInt32(value); }">
+                                        @for (int i = 1; i <= 4; i++)
+                                        {
+                                            <option value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
+                                        }
+                                    </select>
                                 </td>
                                 <td>
                                     <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />

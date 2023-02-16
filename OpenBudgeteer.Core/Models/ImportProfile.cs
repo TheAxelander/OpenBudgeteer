@@ -27,6 +27,14 @@ public class ImportProfile : BaseObject
         set => Set(ref _accountId, value);
     }
 
+    private Account _account;
+
+    public Account Account
+    {
+        get => _account;
+        set => Set(ref _account, value);
+    }
+
     private int _headerRow;
     public int HeaderRow
     {

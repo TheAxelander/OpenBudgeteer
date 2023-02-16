@@ -4,6 +4,7 @@ using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Common;
@@ -144,36 +145,36 @@ public class TransactionViewModelItem : ViewModelBase
         if (withBuckets)
         {
             // Get all assigned Buckets for this transaction
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                var assignedBuckets = dbContext.BudgetedTransaction
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var assignedBuckets = dbContext.BudgetedTransaction
                 .Where(i => i.TransactionId == transaction.TransactionId);
 
-                if (assignedBuckets.Any())
+            if (assignedBuckets.Any())
+            {
+                // Create a PartialBucketViewModelItem for each assignment
+                foreach (var assignedBucket in assignedBuckets)
                 {
-                    // Create a PartialBucketViewModelItem for each assignment
-                    foreach (var assignedBucket in assignedBuckets)
-                    {
-                        using (var bucketDbContext = new DatabaseContext(_dbOptions))
-                        {
-                            var newItem = new PartialBucketViewModelItem(_dbOptions,
-                                _yearMonthViewModel.CurrentMonth,
-                                bucketDbContext.Bucket.FirstOrDefault(i => i.BucketId == assignedBucket.BucketId),
-                                assignedBucket.Amount);
-                            newItem.SelectedBucketOutput =
-                                newItem.Amount != transaction.Amount ? $"{newItem.SelectedBucket.Name} ({newItem.Amount})" : newItem.SelectedBucket.Name;
-                            Buckets.Add(newItem);
-                        }
-                    }
-                }
-                else
-                {
-                    // Most likely an imported Transaction where Bucket assignment still needs to be done
-                    var newItem = new PartialBucketViewModelItem(_dbOptions, _yearMonthViewModel.CurrentMonth, new Bucket() { BucketId = Guid.Empty }, transaction.Amount);
+                    using var bucketDbContext = new DatabaseContext(_dbOptions);
+                    var newItem = new PartialBucketViewModelItem(_dbOptions,
+                        _yearMonthViewModel.CurrentMonth,
+                        bucketDbContext.Bucket.FirstOrDefault(i => i.BucketId == assignedBucket.BucketId),
+                        assignedBucket.Amount);
+                    newItem.SelectedBucketOutput = newItem.Amount != transaction.Amount 
+                        ?  $"{newItem.SelectedBucket.Name} ({newItem.Amount})" 
+                        :  newItem.SelectedBucket.Name;
                     Buckets.Add(newItem);
                 }
             }
-
+            else
+            {
+                // Most likely an imported Transaction where Bucket assignment still needs to be done
+                Buckets.Add(new PartialBucketViewModelItem(
+                    _dbOptions, 
+                    _yearMonthViewModel.CurrentMonth, 
+                    new Bucket() { BucketId = Guid.Empty }, 
+                    transaction.Amount));
+            }
+                
             // Subscribe Event Handler for Amount Changes (must be always the last step) and assignment deletion requests
             foreach (var bucket in Buckets)
             {
@@ -192,20 +193,19 @@ public class TransactionViewModelItem : ViewModelBase
             Payee = transaction.Payee,
             TransactionDate = transaction.TransactionDate
         };
+        
         // Pre-selection the right account
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var accountDbContext = new DatabaseContext(_dbOptions);
+        var account = accountDbContext.Account.First(i => i.AccountId == transaction.AccountId);
+        if (account is { IsActive: 0 })
         {
-            var account = dbContext.Account.First(i => i.AccountId == transaction.AccountId);
-            if (account is { IsActive: 0 })
-            {
-                account.Name += " (Inactive)";
-                AvailableAccounts.Add(account);
-            }
-            SelectedAccount = account;
+            account.Name += " (Inactive)";
+            AvailableAccounts.Add(account);
         }
+        SelectedAccount = account;
+            
         // Pre-select empty Account if no Account was found (for new BankTransaction())
         SelectedAccount ??= AvailableAccounts.First();
-        
     }
 
     /// <summary>
@@ -308,7 +308,6 @@ public class TransactionViewModelItem : ViewModelBase
         {
             // ignore "emptyItem" where existing Bucket is not yet assigned
             // this is the one where the amount has to be updated
-
             if (bucket.SelectedBucket != null && bucket.SelectedBucket.BucketId != Guid.Empty)
             {
                 assignedAmount += bucket.Amount;
@@ -371,58 +370,54 @@ public class TransactionViewModelItem : ViewModelBase
         var result = PerformConsistencyCheck(out var skipBucketAssignment);
         if (!result.IsSuccessful) return result;
 
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            var transactionId = Transaction.TransactionId;
+            Transaction.AccountId = SelectedAccount.AccountId;
+
+            if (transactionId != Guid.Empty)
             {
-                try
+                // Update BankTransaction in DB
+                dbContext.UpdateBankTransaction(Transaction);
+
+                // Delete all previous bucket assignments for transaction
+                var budgetedTransactions = dbContext.BudgetedTransaction
+                    .Where(i => i.TransactionId == transactionId);
+                dbContext.DeleteBudgetedTransactions(budgetedTransactions);
+            }
+            else
+            {
+                // Create BankTransaction in DB
+                if (dbContext.CreateBankTransaction(Transaction) == 0)
+                    throw new Exception("Transaction could not be created in database.");
+            }
+
+            if (!skipBucketAssignment)
+            {
+                // Create new bucket assignments
+                foreach (var bucket in Buckets)
                 {
-                    var transactionId = Transaction.TransactionId;
-                    Transaction.AccountId = SelectedAccount.AccountId;
-
-                    if (transactionId != Guid.Empty)
+                    var newBudgetedTransaction = new BudgetedTransaction
                     {
-                        // Update BankTransaction in DB
-                        dbContext.UpdateBankTransaction(Transaction);
-
-                        // Delete all previous bucket assignments for transaction
-                        var budgetedTransactions = dbContext.BudgetedTransaction
-                            .Where(i => i.TransactionId == transactionId);
-                        dbContext.DeleteBudgetedTransactions(budgetedTransactions);
-                    }
-                    else
-                    {
-                        // Create BankTransaction in DB
-                        if (dbContext.CreateBankTransaction(Transaction) == 0)
-                            throw new Exception("Transaction could not be created in database.");
-                    }
-
-                    if (!skipBucketAssignment)
-                    {
-                        // Create new bucket assignments
-                        foreach (var bucket in Buckets)
-                        {
-                            var newBudgetedTransaction = new BudgetedTransaction
-                            {
-                                TransactionId = Transaction.TransactionId,
-                                BucketId = bucket.SelectedBucket.BucketId,
-                                Amount = bucket.Amount
-                            };
-                            // Execute DB Update
-                            dbContext.CreateBudgetedTransaction(newBudgetedTransaction);
-                        }
-                    }
-
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true);
-                }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+                        TransactionId = Transaction.TransactionId,
+                        BucketId = bucket.SelectedBucket.BucketId,
+                        Amount = bucket.Amount
+                    };
+                    // Execute DB Update
+                    dbContext.CreateBudgetedTransaction(newBudgetedTransaction);
                 }
             }
-        }            
+
+            transaction.Commit();
+            return new ViewModelOperationResult(true);
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -463,9 +458,10 @@ public class TransactionViewModelItem : ViewModelBase
             assignedAmount += assignedBucket.Amount;
         }
 
-        if (assignedAmount != Transaction.Amount) return new ViewModelOperationResult(false, "Amount between Bucket assignment and Transaction not consistent.");
+        return assignedAmount == Transaction.Amount
+            ? new ViewModelOperationResult(true)
+            : new ViewModelOperationResult(false, "Amount between Bucket assignment and Transaction not consistent.");
 
-        return new ViewModelOperationResult(true);
     }
 
     /// <summary>
@@ -475,30 +471,26 @@ public class TransactionViewModelItem : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     private ViewModelOperationResult DeleteTransaction()
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
-            {
-                try
-                {
-                    // Delete BankTransaction in DB
-                    dbContext.DeleteBankTransaction(Transaction);
+            // Delete BankTransaction in DB
+            dbContext.DeleteBankTransaction(Transaction);
 
-                    // Delete all previous bucket assignments for transaction
-                    var budgetedTransactions = dbContext.BudgetedTransaction
-                        .Where(i => i.TransactionId == Transaction.TransactionId);
-                    dbContext.DeleteBudgetedTransactions(budgetedTransactions);
+            // Delete all previous bucket assignments for transaction
+            var budgetedTransactions = dbContext.BudgetedTransaction
+                .Where(i => i.TransactionId == Transaction.TransactionId);
+            dbContext.DeleteBudgetedTransactions(budgetedTransactions);
 
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true);
-                }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
-                }
-            }
-        }            
+            transaction.Commit();
+            return new ViewModelOperationResult(true);
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+        }
     }
 
     public void StartModification()
@@ -524,7 +516,8 @@ public class TransactionViewModelItem : ViewModelBase
 
     public ViewModelOperationResult UpdateItem()
     {
-        if (Transaction.TransactionId == Guid.Empty) return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
+        if (Transaction.TransactionId == Guid.Empty) 
+            return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
 
         var result = CreateOrUpdateTransaction();
         if (!result.IsSuccessful)
@@ -540,9 +533,9 @@ public class TransactionViewModelItem : ViewModelBase
     public ViewModelOperationResult DeleteItem()
     {
         var result = DeleteTransaction();
-        if (!result.IsSuccessful) return result;
-       
-        return new ViewModelOperationResult(true, true);
+        return result.IsSuccessful 
+            ? new ViewModelOperationResult(true, true) 
+            : result;
     }
 
     public void ProposeBucket()
@@ -556,66 +549,42 @@ public class TransactionViewModelItem : ViewModelBase
     private Bucket CheckMappingRules()
     {
         var targetBucketId = Guid.Empty;
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        foreach (var ruleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
         {
-            foreach (var ruleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
-            {
-                using (var mappingRuleDbContext = new DatabaseContext(_dbOptions))
-                {
-                    if (mappingRuleDbContext.MappingRule
-                        .Where(i => i.BucketRuleSetId == ruleSet.BucketRuleSetId)
-                        .All(DoesRuleApply))
-                    {
-                        targetBucketId = ruleSet.TargetBucketId;
-                        break;
-                    }
-                }
-            }
-
-            return targetBucketId != Guid.Empty ? dbContext.Bucket.First(i => i.BucketId == targetBucketId) : null;
+            using var mappingRuleDbContext = new DatabaseContext(_dbOptions);
+            if (!mappingRuleDbContext.MappingRule
+                    .Where(i => i.BucketRuleSetId == ruleSet.BucketRuleSetId)
+                    .All(DoesRuleApply)) continue;
+            targetBucketId = ruleSet.TargetBucketId;
+            break;
         }
+
+        return targetBucketId != Guid.Empty ? dbContext.Bucket.First(i => i.BucketId == targetBucketId) : null;
 
         bool DoesRuleApply(MappingRule mappingRule)
         {
             var cleanedComparisionValue = mappingRule.ComparisionValue.ToLower();
-            switch (mappingRule.ComparisionType)
+            return mappingRule.ComparisionType switch
             {
-                case 1:
-                    return cleanedComparisionValue == GetFieldValue(mappingRule.ComparisionField);
-                case 2:
-                    return cleanedComparisionValue != GetFieldValue(mappingRule.ComparisionField);
-                case 3:
-                    return GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue);
-                case 4:
-                    return !GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue);
-            }
-
-            return false;
+                1 => cleanedComparisionValue == GetFieldValue(mappingRule.ComparisionField),
+                2 => cleanedComparisionValue != GetFieldValue(mappingRule.ComparisionField),
+                3 => GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue),
+                4 => !GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue),
+                _ => false
+            };
         }
 
         string GetFieldValue(int comparisionField)
         {
-            string result;
-            switch (comparisionField)
+            return (comparisionField switch
             {
-                case 1:
-                    result = Transaction.AccountId.ToString();
-                    break;
-                case 2:
-                    result = Transaction.Payee;
-                    break;
-                case 3:
-                    result = Transaction.Memo;
-                    break;
-                case 4:
-                    result = Transaction.Amount.ToString();
-                    break;
-                default:
-                    result = null;
-                    break;
-            }
-
-            return result == null ? string.Empty : result.ToLower();
+                1 => Transaction.AccountId.ToString(),
+                2 => Transaction.Payee,
+                3 => Transaction.Memo,
+                4 => Transaction.Amount.ToString(CultureInfo.CurrentCulture),
+                _ => string.Empty
+            }).ToLower();
         }
     }
 }

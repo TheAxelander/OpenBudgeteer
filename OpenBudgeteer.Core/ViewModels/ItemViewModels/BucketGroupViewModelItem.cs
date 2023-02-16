@@ -184,43 +184,39 @@ public class BucketGroupViewModelItem : ViewModelBase
     public ViewModelOperationResult MoveGroup(int positions)
     {
         if (positions == 0) return new ViewModelOperationResult(true);
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            var bucketGroupCount = dbContext.BucketGroup.Count();
+            var targetPosition = BucketGroup.Position + positions;
+            if (targetPosition < 1) targetPosition = 1;
+            if (targetPosition > bucketGroupCount) targetPosition = bucketGroupCount;
+            if (targetPosition == BucketGroup.Position) return new ViewModelOperationResult(true); // Group is already at the end or top. No further action
+            // Move Group in an interim List
+            var existingBucketGroups = new ObservableCollection<BucketGroup>();
+            foreach (var bucketGroup in dbContext.BucketGroup.OrderBy(i => i.Position))
             {
-                try
-                {
-                    var bucketGroupCount = dbContext.BucketGroup.Count();
-                    var targetPosition = BucketGroup.Position + positions;
-                    if (targetPosition < 1) targetPosition = 1;
-                    if (targetPosition > bucketGroupCount) targetPosition = bucketGroupCount;
-                    if (targetPosition == BucketGroup.Position) return new ViewModelOperationResult(true); // Group is already at the end or top. No further action
-                    // Move Group in an interim List
-                    var existingBucketGroups = new ObservableCollection<BucketGroup>();
-                    foreach (var bucketGroup in dbContext.BucketGroup.OrderBy(i => i.Position))
-                    {
-                        existingBucketGroups.Add(bucketGroup);
-                    }
-                    existingBucketGroups.Move(BucketGroup.Position-1, targetPosition-1);
-                    
-                    // Update Position number
-                    var newPosition = 1;
-                    foreach (var bucketGroup in existingBucketGroups)
-                    {
-                        bucketGroup.Position = newPosition;
-                        dbContext.UpdateBucketGroup(bucketGroup);
-                        newPosition++;
-                    }
-
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true, true);
-                }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(false, $"Unable to move Bucket Group: {e.Message}");
-                }
+                existingBucketGroups.Add(bucketGroup);
             }
+            existingBucketGroups.Move(BucketGroup.Position-1, targetPosition-1);
+                    
+            // Update Position number
+            var newPosition = 1;
+            foreach (var bucketGroup in existingBucketGroups)
+            {
+                bucketGroup.Position = newPosition;
+                dbContext.UpdateBucketGroup(bucketGroup);
+                newPosition++;
+            }
+
+            transaction.Commit();
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            return new ViewModelOperationResult(false, $"Unable to move Bucket Group: {e.Message}");
         }
     }
 

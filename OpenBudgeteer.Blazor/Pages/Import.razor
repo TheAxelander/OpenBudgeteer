@@ -1,7 +1,5 @@
 ﻿@page "/import"
 
-@using OpenBudgeteer.Blazor.Shared.Selector
-@using OpenBudgeteer.Core.Common.EventClasses;
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.Common.Database
 @using Microsoft.EntityFrameworkCore
@@ -60,18 +58,15 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col">
-				        <label class="form-label">Import Profile:</label>
-                        <ObjectSelect
-                            GetSelectedItemIdHandler="@(e => e.ImportProfileId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Guid.Parse(e), _dummyImportProfile))"
-                            @bind-SelectedItem="@_dataContext.SelectedImportProfile"
-                            AvailableItems="@_dataContext.AvailableImportProfiles"
-                            OnSelectedItemChanged="@ImportProfile_SelectionChanged"
-                            SelectClasses="form-select form-select-sm">
-                            <SelectOption Context="importProfile">
+                        <label class="form-label">Import Profile:</label>
+                        <select class="form-select form-select-sm"
+                                @bind:get="@_dataContext.SelectedImportProfile.ImportProfileId.ToString()"
+                                @bind:set="(value) => { _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Guid.Parse(value), _dummyImportProfile); ImportProfile_SelectionChanged(); }">
+                            @foreach (var importProfile in _dataContext.AvailableImportProfiles)
+                            {
                                 <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
-                            </SelectOption>
-                        </ObjectSelect>
+                            }
+                        </select>
                     </div>
 			        <div class="col">
                         <label class="form-label">Profile Name:</label>
@@ -79,17 +74,14 @@
                     </div>
                     <div class="col">
                         <label class="form-label">Target Account:</label>
-                        <ObjectSelect
-                            GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                            SetSelectedItemHandler="@(e => _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Guid.Parse(e), _dummyAccount))"
-                            @bind-SelectedItem="@_dataContext.SelectedAccount"
-                            AvailableItems="@_dataContext.AvailableAccounts"
-                            OnSelectedItemChanged="@TargetAccount_SelectionChanged"
-                            SelectClasses="form-select form-select-sm">
-                            <SelectOption Context="account">
-                                 <option value="@account.AccountId">@account.Name</option>
-                            </SelectOption>
-                        </ObjectSelect>
+                        <select class="form-select form-select-sm"
+                                @bind:get="@_dataContext.SelectedAccount.AccountId.ToString()"
+                                @bind:set="(value) => { _dataContext.SelectedAccount = _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Guid.Parse(value), _dummyAccount); TargetAccount_SelectionChanged(); }">
+                            @foreach (var account in _dataContext.AvailableAccounts)
+                            {
+                                <option value="@account.AccountId">@account.Name</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <div class="row mb-3">
@@ -144,51 +136,47 @@
                 <div class="row mb-3">
                     <div class="col">
                         <label class="form-label">Transaction Date:</label>
-                        <StringSelect
-                            @bind-SelectedItem="@_dataContext.SelectedImportProfile.TransactionDateColumnName"
-                            AvailableItems="@_dataContext.IdentifiedColumns"
-                            OnSelectedItemChanged="@TransactionDateColumn_SelectionChanged"
-                            SelectClasses="form-select form-select-sm">
-                            <SelectOption Context="column">
-                                 <option value="@column">@column</option>
-                            </SelectOption>
-                        </StringSelect>
+                        <select class="form-select form-select-sm"
+                                @bind:get="@_dataContext.SelectedImportProfile.TransactionDateColumnName"
+                                @bind:set="(value) => { _dataContext.SelectedImportProfile.TransactionDateColumnName = value; CheckColumnMapping(); }">
+                            @foreach (var column in _dataContext.IdentifiedColumns)
+                            {
+                                <option value="@column">@column</option>
+                            }
+                        </select>
                     </div>
                     <div class="col">
                         <label class="form-label">Payee (optional):</label>
-                        <StringSelect
-                            @bind-SelectedItem="@_dataContext.SelectedImportProfile.PayeeColumnName"
-                            AvailableItems="@_dataContext.IdentifiedColumns"
-                            OnSelectedItemChanged="@PayeeColumn_SelectionChanged"
-                            SelectClasses="form-select form-select-sm">
-                            <SelectOption Context="column">
-                                 <option value="@column">@column</option>
-                            </SelectOption>
-                        </StringSelect>
+                        <select class="form-select form-select-sm"
+                                @bind:get="@_dataContext.SelectedImportProfile.PayeeColumnName"
+                                @bind:set="(value) => { _dataContext.SelectedImportProfile.PayeeColumnName = value; }">
+                            @foreach (var column in _dataContext.IdentifiedColumns)
+                            {
+                                <option value="@column">@column</option>
+                            }
+                        </select>
                     </div>
                     <div class="col">
                         <label class="form-label">Memo:</label>
-                        <StringSelect
-                            @bind-SelectedItem="@_dataContext.SelectedImportProfile.MemoColumnName"
-                            AvailableItems="@_dataContext.IdentifiedColumns"
-                            OnSelectedItemChanged="@MemoColumn_SelectionChanged"
-                            SelectClasses="form-select form-select-sm">
-                            <SelectOption Context="column">
-                                 <option value="@column">@column</option>
-                            </SelectOption>
-                        </StringSelect>
+                        <select class="form-select form-select-sm"
+                                @bind:get="@_dataContext.SelectedImportProfile.MemoColumnName"
+                                @bind:set="(value) => { _dataContext.SelectedImportProfile.MemoColumnName = value; CheckColumnMapping(); }">
+                            @foreach (var column in _dataContext.IdentifiedColumns)
+                            {
+                                <option value="@column">@column</option>
+                            }
+                        </select>
                     </div>
                     <div class="col">
                         <label class="form-label">Amount / Debit:</label>
-                        <StringSelect
-                            @bind-SelectedItem="@_dataContext.SelectedImportProfile.AmountColumnName"
-                            AvailableItems="@_dataContext.IdentifiedColumns"
-                            OnSelectedItemChanged="@AmountColumn_SelectionChanged"
-                            SelectClasses="form-select form-select-sm">
-                            <SelectOption Context="column">
-                                 <option value="@column">@column</option>
-                            </SelectOption>
-                        </StringSelect>
+                        <select class="form-select form-select-sm"
+                                @bind:get="@_dataContext.SelectedImportProfile.AmountColumnName"
+                                @bind:set="(value) => { _dataContext.SelectedImportProfile.AmountColumnName = value; CheckColumnMapping(); }">
+                            @foreach (var column in _dataContext.IdentifiedColumns)
+                            {
+                                <option value="@column">@column</option>
+                            }
+                        </select>
                     </div>
                 </div>
                 <h5>Additional Mapping Settings:</h5>
@@ -218,27 +206,27 @@
                         case 1:
                             <div class="col-3">
                                 <label class="form-label">Credit:</label>
-                                <StringSelect
-                                    @bind-SelectedItem="@_dataContext.SelectedImportProfile.CreditColumnName"
-                                    AvailableItems="@_dataContext.IdentifiedColumns"
-                                    SelectClasses="form-select form-select-sm">
-                                    <SelectOption Context="column">
-                                         <option value="@column">@column</option>
-                                    </SelectOption>
-                                </StringSelect>
+                                <select class="form-select form-select-sm"
+                                        @bind:get="@_dataContext.SelectedImportProfile.CreditColumnName"
+                                        @bind:set="(value) => { _dataContext.SelectedImportProfile.CreditColumnName = value; }">
+                                    @foreach (var column in _dataContext.IdentifiedColumns)
+                                    {
+                                        <option value="@column">@column</option>
+                                    }
+                                </select>
                             </div>
                             break;
                         case 2:
                             <div class="col-3">
                                 <label class="form-label">Column to identify Credit records:</label>
-                                <StringSelect
-                                    @bind-SelectedItem="@_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName"
-                                    AvailableItems="@_dataContext.IdentifiedColumns"
-                                    SelectClasses="form-select form-select-sm">
-                                    <SelectOption Context="column">
-                                         <option value="@column">@column</option>
-                                    </SelectOption>
-                                </StringSelect>
+                                <select class="form-select form-select-sm"
+                                        @bind:get="@_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName"
+                                        @bind:set="(value) => { _dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName = value; }">
+                                    @foreach (var column in _dataContext.IdentifiedColumns)
+                                    {
+                                        <option value="@column">@column</option>
+                                    }
+                                </select>
                             </div>
                             <div class="col-3">
                                 <label class="form-label">Column value to identify Credit records:</label>
@@ -558,21 +546,14 @@
         _step2Enabled = true;
     }
 
-    async Task LoadProfile()
+    void LoadProfile()
     {
-        var result = await _dataContext.LoadProfileAsync();
-        if (result.IsSuccessful)
-        {
-            _step3Enabled = 
-                _dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty && 
-                _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId;
-            CheckColumnMapping();
-            StateHasChanged();
-        }
-        else
-        {
-            HandleResult(result);    
-        }
+        _dataContext.InitializeDataFromImportProfile();
+        _step3Enabled = 
+            _dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty && 
+            _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId;
+        CheckColumnMapping();
+        StateHasChanged();
     }
 
     void DeleteProfile()
@@ -644,37 +625,17 @@
         StateHasChanged();
     }
 
-    async void ImportProfile_SelectionChanged(ChangeEventArgs e)
+    void ImportProfile_SelectionChanged()
     {
         _step3Enabled = false;
         _step4Enabled = false;
         if (_dataContext.SelectedImportProfile != null &&
-            _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId) await LoadProfile();
+            _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId) LoadProfile();
     }
 
-    void TargetAccount_SelectionChanged(ChangeEventArgs e)
+    void TargetAccount_SelectionChanged()
     {
         _dataContext.SelectedImportProfile.AccountId = _dataContext.SelectedAccount?.AccountId ?? Guid.Empty;
-    }
-
-    void TransactionDateColumn_SelectionChanged(ChangeEventArgs e)
-    {
-        CheckColumnMapping();
-    }
-
-    void PayeeColumn_SelectionChanged(ChangeEventArgs e)
-    {
-        //CheckColumnMapping();
-    }
-
-    void MemoColumn_SelectionChanged(ChangeEventArgs e)
-    {
-        CheckColumnMapping();
-    }
-
-    void AmountColumn_SelectionChanged(ChangeEventArgs e)
-    {
-        CheckColumnMapping();
     }
 
     void AdditionalSettingCreditValue_SelectionChanged(ChangeEventArgs e)

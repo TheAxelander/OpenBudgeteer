@@ -1,5 +1,4 @@
-﻿@using OpenBudgeteer.Blazor.Shared.Selector
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+﻿@using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using System.Drawing
 @if (IsDialogVisible)
 {
@@ -18,25 +17,25 @@
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">Bucket Type:</label>
-                            <IntegerSelect
-                                @bind-SelectedItem="@DataContext.BucketVersion.BucketType"
-                                AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                SelectClasses="form-select form-select-sm">
-                                <SelectOption Context="bucketType">
-                                    <option value="@bucketType">@DataContext.AvailableBucketTypes.ElementAt(bucketType - 1)</option>
-                                </SelectOption>
-                            </IntegerSelect>
+                            <select class="form-select form-select-sm"
+                                    @bind:get="@DataContext.BucketVersion.BucketType"
+                                    @bind:set="(value) => { DataContext.BucketVersion.BucketType = Convert.ToInt32(value); }">
+                                @foreach (var bucketType in DataContext.AvailableBucketTypes)
+                                {
+                                    <option value="@DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1">@bucketType</option>
+                                }
+                            </select>
                         </div>
 						<div class="col">
                             <label class="form-label">Bucket Group:</label>
-                            <GuidSelect
-                                @bind-SelectedItem="@DataContext.Bucket.BucketGroupId"
-                                AvailableItems="@DataContext.AvailableBucketGroups.Select(i => i.BucketGroupId).ToList()"
-                                SelectClasses="form-select form-select-sm">
-                                <SelectOption Context="bucketGroupId">
-                                    <option value="@bucketGroupId">@DataContext.AvailableBucketGroups.First(i => i.BucketGroupId == bucketGroupId).Name</option>
-                                </SelectOption>
-                            </GuidSelect>
+                            <select class="form-select form-select-sm" 
+                                    @bind:get="@DataContext.Bucket.BucketGroupId.ToString()"
+                                    @bind:set="(value) => { DataContext.Bucket.BucketGroupId = Guid.Parse(value); }">
+                                @foreach (var bucketGroup in DataContext.AvailableBucketGroups)
+                                {
+                                    <option value="@bucketGroup.BucketGroupId">@bucketGroup.Name</option>
+                                }
+                            </select>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -56,15 +55,14 @@
                         </div>
                         <div class="col">
                             <label class="form-label">Color:</label>
-                            <StringSelect
-                                @bind-SelectedItem="@DataContext.Bucket.ColorCode"
-                                AvailableItems="@DataContext.AvailableColors.Select(i => i.Name).ToList()"
-                                SelectClasses="form-select form-select-sm"
-                                SelectStyles="@($"background-color: {@ColorTranslator.ToHtml(DataContext.Bucket.Color)}")">
-                                <SelectOption Context="color">
-                                    <option style="background-color: @ColorTranslator.ToHtml(Color.FromName(color))" value="@color">@color</option>
-                                </SelectOption>
-                            </StringSelect>
+                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
+                                    @bind:get="@DataContext.Bucket.ColorCode"
+                                    @bind:set="(value) => { DataContext.Bucket.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
+                                @foreach (var color in DataContext.AvailableColors)
+                                {
+                                    <option style="background-color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
+                                }
+                            </select>
                         </div>
                     </div>
                     <div>

@@ -21,6 +21,13 @@ public class BucketMovement : BaseObject
         set => Set(ref _bucketId, value);
     }
 
+    private Bucket _bucket;
+    public Bucket Bucket
+    {
+        get => _bucket;
+        set => Set(ref _bucket, value);
+    }
+
     private decimal _amount;
     [Column(TypeName = "decimal(65, 2)")]
     public decimal Amount

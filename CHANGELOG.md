@@ -1,9 +1,13 @@
 ### 1.7 (2023-xx-xx)
 
-* [Add] Confirmation Dialog before making a Bucket inactive [#119](https://github.com/TheAxelander/OpenBudgeteer/issues/119)
+* [Add] Confirmation Dialog before setting a Bucket inactive [#119](https://github.com/TheAxelander/OpenBudgeteer/issues/119)
+* [Add] Some validations for creating and changing Rules
+* [Changed] Migrated to .Net 7
 * [Changed] Integer based IDs in database have been migrated to Guid
 * [Changed] Prevent any kind of interaction with Buckets marked as inactive [#111](https://github.com/TheAxelander/OpenBudgeteer/issues/111)
-* [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)  
+* [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)
+* [Changed] Replaced custom solution to fix [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) with new `bind:get` and `bind:set` feature from .Net 7
+* [Changed] Improved performance for duplicate check on Import Page
 
 ### 1.6.3 (2023-01-27)
 

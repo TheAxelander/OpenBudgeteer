@@ -149,27 +149,24 @@ public class TransactionViewModel : ViewModelBase
             // each passed transaction. It creates also the respective ViewModelObjects
             _transactions.Clear();
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var transactions = dbContext.BankTransaction
+                .Where(i =>
+                    i.TransactionDate.Year == _yearMonthViewModel.CurrentMonth.Year &&
+                    i.TransactionDate.Month == _yearMonthViewModel.CurrentMonth.Month)
+                .OrderBy(i => i.TransactionDate)
+                .ToList();
+
+            var transactionTasks = transactions
+                .Select(i => TransactionViewModelItem.CreateAsync(_dbOptions, _yearMonthViewModel, i))
+                .ToList();
+
+            foreach (var transaction in await Task.WhenAll(transactionTasks))
             {
-                var sql = $"SELECT * FROM {nameof(BankTransaction)} " +
-                      $"WHERE {nameof(BankTransaction.TransactionDate)} LIKE '{_yearMonthViewModel.CurrentMonth:yyyy-MM}%' " +
-                      $"ORDER BY {nameof(BankTransaction.TransactionDate)}";
-                var transactions = dbContext.BankTransaction.FromSqlRaw(sql);
-
-                var transactionTasks = new List<Task<TransactionViewModelItem>>();
-
-                foreach (var transaction in transactions)
-                {
-                    transactionTasks.Add(TransactionViewModelItem.CreateAsync(_dbOptions, _yearMonthViewModel, transaction));
-                }
-
-                foreach (var transaction in await Task.WhenAll(transactionTasks))
-                {
-                    _transactions.Add(transaction);
-                }
-
-                return new ViewModelOperationResult(true);
+                _transactions.Add(transaction);
             }
+
+            return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
@@ -190,50 +187,36 @@ public class TransactionViewModel : ViewModelBase
         {
             _transactions.Clear();
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+
+            // Get all BankTransaction
+            var results = dbContext.BudgetedTransaction
+                .Include(i => i.Transaction)
+                .Where(i => i.BucketId == bucket.BucketId)
+                .OrderByDescending(i => i.Transaction.TransactionDate)
+                .ToList();
+
+            var transactionTasks = results
+                .Select(i => 
+                    TransactionViewModelItem.CreateWithoutBucketsAsync(_dbOptions, _yearMonthViewModel, i.Transaction))
+                .ToList();
+
+            if (withMovements)
             {
-                var transactionTasks = new List<Task<TransactionViewModelItem>>();
-
-                // Get all BankTransaction
-                var results = dbContext.BankTransaction
-                    .Join(
-                        dbContext.BudgetedTransaction,
-                        bankTransaction => bankTransaction.TransactionId,
-                        budgetedTransaction => budgetedTransaction.TransactionId,
-                        (bankTransaction, budgetedTransaction) => new
-                        {
-                            BankTransaction = bankTransaction,
-                            BudgetedTransaction = budgetedTransaction
-                        })
-                    .Where(i => i.BudgetedTransaction.BucketId == bucket.BucketId)
-                    .OrderByDescending(i => i.BankTransaction.TransactionDate)
-                    .ToList();
-
-                foreach (var result in results)
-                {
-                    transactionTasks.Add(TransactionViewModelItem.CreateWithoutBucketsAsync(_dbOptions, _yearMonthViewModel, result.BankTransaction));
-                }
-
-                if (withMovements)
-                {
-                    // Get Bucket Movements
-                    var bucketMovements = dbContext.BucketMovement
-                            .Where(i => i.BucketId == bucket.BucketId)
-                            .ToList();
-                    foreach (var bucketMovement in bucketMovements)
-                    {
-                        transactionTasks.Add(TransactionViewModelItem.CreateFromBucketMovementAsync(bucketMovement));
-                    }
-                }
-
-                foreach (var transaction in (await Task.WhenAll(transactionTasks))
-                    .OrderByDescending(i => i.Transaction.TransactionDate))
-                {
-                    _transactions.Add(transaction);
-                }
-
-                return new ViewModelOperationResult(true);
+                // Get Bucket Movements
+                transactionTasks.AddRange(dbContext.BucketMovement
+                    .Where(i => i.BucketId == bucket.BucketId)
+                    .ToList()
+                    .Select(i => TransactionViewModelItem.CreateFromBucketMovementAsync(i)));
             }
+
+            foreach (var transaction in (await Task.WhenAll(transactionTasks))
+                     .OrderByDescending(i => i.Transaction.TransactionDate))
+            {
+                _transactions.Add(transaction);
+            }
+
+            return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
@@ -252,28 +235,25 @@ public class TransactionViewModel : ViewModelBase
         try
         {
             _transactions.Clear();
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var transactions = 
+                dbContext.BankTransaction
+                    .Where(i => i.AccountId == account.AccountId)
+                    .OrderByDescending(i => i.TransactionDate)
+                    .ToList()
+                    .GetRange(0, 100);
+
+            var transactionTasks = transactions
+                .Select(i => 
+                    TransactionViewModelItem.CreateWithoutBucketsAsync(_dbOptions, _yearMonthViewModel, i))
+                .ToList();
+
+            foreach (var transaction in await Task.WhenAll(transactionTasks))
             {
-                var results = 
-                    dbContext.BankTransaction
-                        .Where(i => i.AccountId == account.AccountId)
-                        .OrderByDescending(i => i.TransactionDate)
-                        .ToList();
-
-                var transactions = results.Count < 100 ? results : results.GetRange(0, 100);
-                var transactionTasks = new List<Task<TransactionViewModelItem>>();
-                foreach (var transaction in transactions)
-                {
-                    transactionTasks.Add(TransactionViewModelItem.CreateWithoutBucketsAsync(_dbOptions, _yearMonthViewModel, transaction));
-                }
-
-                foreach (var transaction in await Task.WhenAll(transactionTasks))
-                {
-                    _transactions.Add(transaction);
-                }
-
-                return new ViewModelOperationResult(true);
+                _transactions.Add(transaction);
             }
+
+            return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
@@ -356,8 +336,10 @@ public class TransactionViewModel : ViewModelBase
     public async Task ProposeBuckets()
     {
         CurrentFilter = TransactionViewModelFilter.InModification;
-        var unassignedTransactions = _transactions.Where(i => i.Buckets.First().SelectedBucket.BucketId == Guid.Empty);
-        ProposeBucketsCount = unassignedTransactions.Count();
+        var unassignedTransactions = _transactions
+            .Where(i => i.Buckets.First().SelectedBucket.BucketId == Guid.Empty)
+            .ToList();
+        ProposeBucketsCount = unassignedTransactions.Count;
         ProposeBucketsProgress = 0;
 
         var proposalTasks = unassignedTransactions.Select(transaction => 
@@ -366,8 +348,9 @@ public class TransactionViewModel : ViewModelBase
                 transaction.StartModification();
                 transaction.ProposeBucket();
                 ProposeBucketsProgress++;
-                ProposeBucketsPercentage = ProposeBucketsCount == 0 ? 
-                    0 : Convert.ToInt32(Decimal.Divide(ProposeBucketsProgress, ProposeBucketsCount) * 100);
+                ProposeBucketsPercentage = ProposeBucketsCount == 0 
+                    ? 0 
+                    : Convert.ToInt32(decimal.Divide(ProposeBucketsProgress, ProposeBucketsCount) * 100);
                 BucketProposalProgressChanged?.Invoke(this, 
                     new ProposeBucketChangedEventArgs(ProposeBucketsProgress, ProposeBucketsPercentage));
             }));
@@ -384,66 +367,53 @@ public class TransactionViewModel : ViewModelBase
     public async Task<ViewModelOperationResult> AddRecurringTransactionsAsync()
     {
         var reloadRequired = false;
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = await dbContext.Database.BeginTransactionAsync();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            var recurringBankTransactionTasks = new List<Task<List<BankTransaction>>>();
+            foreach (var recurringBankTransaction in dbContext.RecurringBankTransaction)
             {
-                try
+                recurringBankTransactionTasks.Add(Task.Run(() =>
                 {
-                    var recurringBankTransactionTasks = new List<Task<List<BankTransaction>>>();
-                    foreach (var recurringBankTransaction in dbContext.RecurringBankTransaction)
-                    {
-                        recurringBankTransactionTasks.Add(Task.Run(() =>
-                        {
-                            // Check if RecurringBankTransaction need to be created in current month
+                    // Check if RecurringBankTransaction need to be created in current month
                     
-                            // Iterate until Occurrence Date is no longer in the past
-                            var newOccurrenceDate = recurringBankTransaction.FirstOccurrenceDate;
-                            while (newOccurrenceDate < _yearMonthViewModel.CurrentMonth)
-                            {
-                                newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);
-                            }
-
-                            // Check if Occurrence Date is in current month and if yes how often it may occur 
-                            // Otherwise RecurringBankTransaction not relevant for current month
-                            var transactionsToBeCreated = new List<BankTransaction>();
-                            while (newOccurrenceDate.Month == _yearMonthViewModel.SelectedMonth &&
-                                   newOccurrenceDate.Year == _yearMonthViewModel.SelectedYear)
-                            {
-                                // Collect new BankTransactions                                
-                                transactionsToBeCreated.Add(recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
-                                // Create new BankTransaction
-                                //dbContext.CreateBankTransaction(recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
-                                
-                                //using (var dbCreateBankTransactionContext = new DatabaseContext(_dbOptions))
-                                //{
-                                //    dbCreateBankTransactionContext.CreateBankTransaction(
-                                //        recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
-                                //}
-                                reloadRequired = true;
-                        
-                                // Move to next iteration
-                                newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);
-                            }
-
-                            return transactionsToBeCreated;
-                        }));
-                    }
-                    // Create new BankTransactions
-                    foreach (var results in await Task.WhenAll(recurringBankTransactionTasks))
+                    // Iterate until Occurrence Date is no longer in the past
+                    var newOccurrenceDate = recurringBankTransaction.FirstOccurrenceDate;
+                    while (newOccurrenceDate < _yearMonthViewModel.CurrentMonth)
                     {
-                        dbContext.CreateBankTransactions(results);
+                        newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);
                     }
-                    //await Task.WhenAll(recurringBankTransactionTasks);
-                    await transaction.CommitAsync();
-                    return new ViewModelOperationResult(true, reloadRequired);
-                }
-                catch (Exception e)
-                {
-                    await transaction.RollbackAsync();
-                    return new ViewModelOperationResult(false, e.Message);
-                }
+
+                    // Check if Occurrence Date is in current month and if yes how often it may occur 
+                    // Otherwise RecurringBankTransaction not relevant for current month
+                    var transactionsToBeCreated = new List<BankTransaction>();
+                    while (newOccurrenceDate.Month == _yearMonthViewModel.SelectedMonth &&
+                           newOccurrenceDate.Year == _yearMonthViewModel.SelectedYear)
+                    {
+                        // Collect new BankTransactions                                
+                        transactionsToBeCreated.Add(recurringBankTransaction.GetAsBankTransaction(newOccurrenceDate));
+                        reloadRequired = true;
+                        
+                        // Move to next iteration
+                        newOccurrenceDate = recurringBankTransaction.GetNextIterationDate(newOccurrenceDate);
+                    }
+
+                    return transactionsToBeCreated;
+                }));
             }
+            // Create new BankTransactions
+            foreach (var results in await Task.WhenAll(recurringBankTransactionTasks))
+            {
+                dbContext.CreateBankTransactions(results);
+            }
+            await transaction.CommitAsync();
+            return new ViewModelOperationResult(true, reloadRequired);
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            return new ViewModelOperationResult(false, e.Message);
         }
     }
 }

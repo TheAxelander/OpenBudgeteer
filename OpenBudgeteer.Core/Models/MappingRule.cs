@@ -21,6 +21,14 @@ public class MappingRule : BaseObject
         set => Set(ref _bucketRuleSetId, value);
     }
 
+    private BucketRuleSet _bucketRuleSet;
+
+    public BucketRuleSet BucketRuleSet
+    {
+        get => _bucketRuleSet;
+        set => Set(ref _bucketRuleSet, value);
+    }
+
     private int _comparisionField;
     /// <summary>
     /// <see cref="BankTransaction"/> field which should be compared

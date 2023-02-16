@@ -21,12 +21,26 @@ public class BudgetedTransaction : BaseObject
         set => Set(ref _transactionId, value);
     }
 
+    private BankTransaction _transaction;
+    public BankTransaction Transaction
+    {
+        get => _transaction;
+        set => Set(ref _transaction, value);
+    }
+
     private Guid _bucketId;
     [Required]
     public Guid BucketId
     {
         get => _bucketId;
         set => Set(ref _bucketId, value);
+    }
+
+    private Bucket _bucket;
+    public Bucket Bucket
+    {
+        get => _bucket;
+        set => Set(ref _bucket, value);
     }
 
     private decimal _amount;

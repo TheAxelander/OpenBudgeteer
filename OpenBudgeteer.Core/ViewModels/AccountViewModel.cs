@@ -53,10 +53,8 @@ public class AccountViewModel : ViewModelBase
 
                     using (var transactionDbContext = new DatabaseContext(_dbOptions))
                     {
-                        var transactions = transactionDbContext.BankTransaction
-                            .Where(i => i.AccountId == account.AccountId);
-
-                        foreach (var transaction in transactions)
+                        foreach (var transaction in transactionDbContext.BankTransaction
+                                     .Where(i => i.AccountId == account.AccountId))
                         {
                             if (transaction.Amount > 0)
                                 newIn += transaction.Amount;

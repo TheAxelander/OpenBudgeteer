@@ -76,12 +76,11 @@ public class AccountViewModelItem : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult CreateUpdateAccount()
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
-        {
-            var result = Account.AccountId == Guid.Empty ? dbContext.CreateAccount(Account) : dbContext.UpdateAccount(Account);
-            if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
-            return new ViewModelOperationResult(true, true);
-        }
+        using var dbContext = new DatabaseContext(_dbOptions);
+        var result = Account.AccountId == Guid.Empty ? dbContext.CreateAccount(Account) : dbContext.UpdateAccount(Account);
+        return result == 0 
+            ? new ViewModelOperationResult(false, "Unable to save changes to database") 
+            : new ViewModelOperationResult(true, true);
     }
 
     /// <summary>
@@ -94,11 +93,10 @@ public class AccountViewModelItem : ViewModelBase
         if (Balance != 0) return new ViewModelOperationResult(false, "Balance must be 0 to close an Account");
 
         Account.IsActive = 0;
-        using (var dbContext = new DatabaseContext(_dbOptions))
-        {
-            var result = dbContext.UpdateAccount(Account);
-            if (result == 0) return new ViewModelOperationResult(false, "Unable to save changes to database");
-            return new ViewModelOperationResult(true, true);
-        }
+        using var dbContext = new DatabaseContext(_dbOptions);
+        var result = dbContext.UpdateAccount(Account);
+        return result == 0 
+            ? new ViewModelOperationResult(false, "Unable to save changes to database") 
+            : new ViewModelOperationResult(true, true);
     }
 }

@@ -17,7 +17,8 @@ public class YearMonthSelectorViewModel : ViewModelBase
         set
         {
             var valueChanged = Set(ref _selectedMonth, value);
-            if (!_yearMontIsChanging && valueChanged) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
+            if (!_yearMonthIsChanging && valueChanged) 
+                SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 
@@ -32,7 +33,8 @@ public class YearMonthSelectorViewModel : ViewModelBase
         set
         {
             var valueChanged = Set(ref _selectedYear, value);
-            if (!_yearMontIsChanging && valueChanged) SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
+            if (!_yearMonthIsChanging && valueChanged) 
+                SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
         }
     }
 
@@ -57,7 +59,7 @@ public class YearMonthSelectorViewModel : ViewModelBase
     /// </summary>
     public event EventHandler<ViewModelReloadEventArgs> SelectedYearMonthChanged;
 
-    private bool _yearMontIsChanging; // prevents double invoke of SelectedYearMonthChanged
+    private bool _yearMonthIsChanging; // prevents double invoke of SelectedYearMonthChanged
     
     /// <summary>
     /// Basic constructor
@@ -98,10 +100,10 @@ public class YearMonthSelectorViewModel : ViewModelBase
     /// <remarks>Triggers <see cref="SelectedYearMonthChanged"/> (only once)</remarks>
     private void UpdateYearMonth(DateTime newYearMonth)
     {
-        _yearMontIsChanging = true;
+        _yearMonthIsChanging = true;
         SelectedYear = newYearMonth.Year;
         SelectedMonth = newYearMonth.Month;
-        _yearMontIsChanging = false;
+        _yearMonthIsChanging = false;
         SelectedYearMonthChanged?.Invoke(this, new ViewModelReloadEventArgs(this));
     }
 }

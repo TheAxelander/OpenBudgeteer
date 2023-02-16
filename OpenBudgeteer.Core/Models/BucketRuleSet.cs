@@ -35,4 +35,11 @@ public class BucketRuleSet : BaseObject
         get => _targetBucketId;
         set => Set(ref _targetBucketId, value);
     }
+
+    private Bucket _targetBucket;
+    public Bucket TargetBucket
+    {
+        get => _targetBucket;
+        set => Set(ref _targetBucket, value);
+    }
 }

@@ -21,6 +21,13 @@ public class BucketVersion : BaseObject
         set => Set(ref _bucketId, value);
     }
 
+    private Bucket _bucket;
+    public Bucket Bucket
+    {
+        get => _bucket;
+        set => Set(ref _bucket, value);
+    }
+
     private int _version;
     [Required]
     public int Version

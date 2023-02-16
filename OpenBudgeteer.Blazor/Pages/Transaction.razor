@@ -1,12 +1,10 @@
 ﻿@page "/transaction"
 
-@using OpenBudgeteer.Blazor.Shared.Selector
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.Common.Database
 @using Microsoft.EntityFrameworkCore
 @using System.Drawing
 @using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Core.Common.EventClasses
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @inject DbContextOptions<DatabaseContext> DbContextOptions
@@ -36,18 +34,14 @@
         }
     </div>
     <div class="col-md-auto">
-        <ObjectSelect
-            GetSelectedItemIdHandler="@(e => e.ToString())"
-            SetSelectedItemHandler="@(e => Enum.TryParse(typeof(TransactionViewModelFilter), e, out var result) ?
-                (TransactionViewModelFilter)result : TransactionViewModelFilter.NoFilter)"
-            @bind-SelectedItem="@_dataContext.CurrentFilter"
-            AvailableItems="@(Enum.GetValues<TransactionViewModelFilter>())"
-            SelectClasses="form-select form-select-sm"
-            SelectStyles="width: auto">
-            <SelectOption Context="filter">
+        <select class="form-select form-select-sm" style="width: auto"
+                @bind:get="@_dataContext.CurrentFilter.ToString()"
+                @bind:set="(value) => { _dataContext.CurrentFilter = Enum.TryParse(typeof(TransactionViewModelFilter), value, out var result) ? (TransactionViewModelFilter)result : TransactionViewModelFilter.NoFilter; }">
+            @foreach (var filter in Enum.GetValues<TransactionViewModelFilter>())
+            {
                 <option value="@filter">@filter.GetStringValue()</option>
-            </SelectOption>
-        </ObjectSelect>
+            }
+        </select>
     </div>
     <YearMonthSelector DataContext="YearMonthDataContext" />
 </div>
@@ -72,16 +66,14 @@
                     <input class="form-control form-control-sm number-input" type="date" @bind="_dataContext.NewTransaction.Transaction.TransactionDate" />
                 </td>
                 <td>
-                    <ObjectSelect
-                        GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                        SetSelectedItemHandler="@(e => _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(e)))"
-                        @bind-SelectedItem="@_dataContext.NewTransaction.SelectedAccount"
-                        AvailableItems="@_dataContext.NewTransaction.AvailableAccounts"
-                        SelectClasses="form-select form-select-sm">
-                        <SelectOption Context="account">
-                             <option value="@account.AccountId">@account.Name</option>
-                        </SelectOption>
-                    </ObjectSelect>
+                    <select class="form-select form-select-sm"
+                            @bind:get="@_dataContext.NewTransaction.SelectedAccount.AccountId.ToString()"
+                            @bind:set="(value) => { _dataContext.NewTransaction.SelectedAccount = _dataContext.NewTransaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
+                        @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
+                        {
+                            <option value="@account.AccountId">@account.Name</option>
+                        }
+                    </select>
                 </td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Transaction.Payee" /></td>
                 <td><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Transaction.Memo"></textarea></td>
@@ -144,16 +136,14 @@
                     <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.TransactionDate" />
                 </td>
                 <td>
-                    <ObjectSelect
-                        GetSelectedItemIdHandler="@(e => e.AccountId.ToString())"
-                        SetSelectedItemHandler="@(e => transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(e)))"
-                        @bind-SelectedItem="@transaction.SelectedAccount"
-                        AvailableItems="@transaction.AvailableAccounts"
-                        SelectClasses="form-select form-select-sm">
-                        <SelectOption Context="account">
-                             <option value="@account.AccountId">@account.Name</option>
-                        </SelectOption>
-                    </ObjectSelect>
+                    <select class="form-select form-select-sm"
+                            @bind:get="@transaction.SelectedAccount.AccountId.ToString()"
+                            @bind:set="(value) => { transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
+                        @foreach (var account in transaction.AvailableAccounts)
+                        {
+                            <option value="@account.AccountId">@account.Name</option>
+                        }
+                    </select>
                 </td>
                 <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
                 <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
@@ -292,7 +282,7 @@
         YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) =>
         {
             await HandleResult(await _dataContext.LoadDataAsync());
-            base.StateHasChanged();
+            StateHasChanged();
         };
     }
 
@@ -330,7 +320,7 @@
     {
         _massEditEnabled = false;
         await HandleResult(await _dataContext.CancelAllTransactionAsync());
-        base.StateHasChanged();
+        StateHasChanged();
     }
 
     async void SaveTransaction(TransactionViewModelItem transaction)
