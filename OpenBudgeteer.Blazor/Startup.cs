@@ -1,6 +1,4 @@
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +9,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.ViewModels;
 using Tewr.Blazor.FileReader;
 

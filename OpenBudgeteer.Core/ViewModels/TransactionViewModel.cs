@@ -1,6 +1,4 @@
-﻿using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;

@@ -5,9 +5,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using static OpenBudgeteer.Core.Models.DataConsistencyCheckResult;
 
 namespace OpenBudgeteer.Core.ViewModels;
 

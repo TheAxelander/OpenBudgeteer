@@ -1,16 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace OpenBudgeteer.Core.ViewModels

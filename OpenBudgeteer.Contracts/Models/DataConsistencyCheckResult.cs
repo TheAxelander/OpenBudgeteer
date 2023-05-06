@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace OpenBudgeteer.Core.Models;
+﻿namespace OpenBudgeteer.Core.Models;
 
 public class DataConsistencyCheckResult 
 {

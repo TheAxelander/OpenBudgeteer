@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
