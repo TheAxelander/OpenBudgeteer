@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels;
 

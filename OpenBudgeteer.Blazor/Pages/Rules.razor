@@ -4,9 +4,9 @@
 @using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using System.Drawing
+@using OpenBudgeteer.Contracts.Models
 @using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Core.Common.Database
-@using OpenBudgeteer.Core.Models
+@using OpenBudgeteer.Data
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <div class="row">
@@ -265,7 +265,7 @@
         StateHasChanged();
     }
     
-    void UpdateSelectedBucket(Core.Models.Bucket selectedBucket)
+    void UpdateSelectedBucket(Contracts.Models.Bucket selectedBucket)
     {
         _ruleSetViewModelItemToBeUpdated.TargetBucket = selectedBucket;
         _ruleSetViewModelItemToBeUpdated.RuleSet.TargetBucketId = selectedBucket.BucketId;

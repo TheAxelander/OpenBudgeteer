@@ -13,8 +13,8 @@ using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
 using TinyCsvParser.TypeConverter;
 using System.Text.RegularExpressions;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 

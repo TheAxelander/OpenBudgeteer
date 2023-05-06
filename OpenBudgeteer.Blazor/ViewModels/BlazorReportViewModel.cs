@@ -14,8 +14,8 @@ using ChartJs.Blazor.ChartJS.Common.Time;
 using ChartJs.Blazor.ChartJS.LineChart;
 using ChartJs.Blazor.Util;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.ViewModels;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Blazor.ViewModels;
 

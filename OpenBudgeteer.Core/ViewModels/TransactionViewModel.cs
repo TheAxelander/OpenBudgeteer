@@ -5,11 +5,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Common.Extensions;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 

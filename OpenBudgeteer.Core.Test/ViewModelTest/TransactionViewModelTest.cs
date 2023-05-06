@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.ViewModels;
+using OpenBudgeteer.Data;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;

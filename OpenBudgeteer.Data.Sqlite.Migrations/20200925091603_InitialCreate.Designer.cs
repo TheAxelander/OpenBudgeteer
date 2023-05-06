@@ -3,7 +3,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using OpenBudgeteer.Core.Common.Database;
 
 namespace OpenBudgeteer.Data.Sqlite.Migrations
 {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
 
-namespace OpenBudgeteer.Core.Common.Database;
+namespace OpenBudgeteer.Data;
 
 public class DatabaseContext : DbContext
 {

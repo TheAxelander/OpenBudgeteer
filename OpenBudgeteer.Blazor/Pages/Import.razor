@@ -2,9 +2,9 @@
 
 @using OpenBudgeteer.Core.ViewModels
 @using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Contracts.Models
 @using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Core.Common.Database
-@using OpenBudgeteer.Core.Models
+@using OpenBudgeteer.Data
 @using Tewr.Blazor.FileReader
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject IFileReaderService FileReaderService
@@ -478,7 +478,7 @@
         AccountId = Guid.Parse("11111111-1111-1111-1111-111111111111")
     };
 
-    readonly OpenBudgeteer.Core.Models.Account _dummyAccount = new() 
+    readonly Contracts.Models.Account _dummyAccount = new() 
     { 
         AccountId = Guid.Parse("11111111-1111-1111-1111-111111111111"), 
         Name = "---Select Target Account---" 

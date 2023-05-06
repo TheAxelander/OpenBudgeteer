@@ -1,6 +1,6 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Test;
 

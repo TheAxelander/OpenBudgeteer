@@ -4,9 +4,9 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Drawing
 @using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Core.Common.Database
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@using OpenBudgeteer.Data
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
@@ -377,7 +377,7 @@
         StateHasChanged();
     }
     
-    void UpdateSelectedBucket(Core.Models.Bucket selectedBucket)
+    void UpdateSelectedBucket(Contracts.Models.Bucket selectedBucket)
     {
         _partialBucketViewModelItemToBeUpdated.SelectedBucket = selectedBucket;
         _isBucketSelectDialogVisible = false;

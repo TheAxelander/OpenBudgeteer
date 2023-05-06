@@ -5,9 +5,9 @@
 @using Microsoft.EntityFrameworkCore
 @using System.Drawing
 @using System.Globalization
+@using OpenBudgeteer.Contracts.Models
 @using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Core.Common.Database
-@using OpenBudgeteer.Core.Models
+@using OpenBudgeteer.Data
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
@@ -320,7 +320,7 @@
     bool _isEditBucketModalDialogVisible;
 
     BlazorBucketStatisticsViewModel _bucketDetailsModalDialogDataContext;
-    OpenBudgeteer.Core.Models.Bucket _transactionModalDialogBucket;
+    Contracts.Models.Bucket _transactionModalDialogBucket;
     bool _isBucketDetailsModalDialogVisible;
     bool _isBucketDetailsModalDialogDataContextLoading;
 

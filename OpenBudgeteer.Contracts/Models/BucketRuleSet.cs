@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace OpenBudgeteer.Core.Models;
+namespace OpenBudgeteer.Contracts.Models;
 
 public class BucketRuleSet : BaseObject
 {

@@ -1,4 +1,4 @@
-﻿namespace OpenBudgeteer.Core.Models;
+﻿namespace OpenBudgeteer.Contracts.Models;
 
 public class ImportProfile : BaseObject
 {

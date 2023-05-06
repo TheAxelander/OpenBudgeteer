@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Drawing;
 
-namespace OpenBudgeteer.Core.Models;
+namespace OpenBudgeteer.Contracts.Models;
 
 public class Bucket : BaseObject
 {

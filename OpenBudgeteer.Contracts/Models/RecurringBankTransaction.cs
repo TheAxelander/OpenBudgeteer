@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace OpenBudgeteer.Core.Models;
+namespace OpenBudgeteer.Contracts.Models;
 
 public class RecurringBankTransaction: BaseObject
 {

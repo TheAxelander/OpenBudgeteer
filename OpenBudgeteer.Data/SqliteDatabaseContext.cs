@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace OpenBudgeteer.Core.Common.Database;
+namespace OpenBudgeteer.Data;
 
 public class SqliteDatabaseContext : DatabaseContext
 {

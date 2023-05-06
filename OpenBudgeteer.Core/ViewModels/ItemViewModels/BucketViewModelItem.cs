@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels;
 

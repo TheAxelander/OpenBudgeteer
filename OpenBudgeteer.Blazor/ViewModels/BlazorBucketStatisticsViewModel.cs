@@ -13,8 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Blazor.ViewModels
 {

@@ -1,8 +1,8 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.ViewModels;
+using OpenBudgeteer.Data;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;

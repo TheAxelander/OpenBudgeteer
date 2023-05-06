@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace OpenBudgeteer.Core.Models;
+namespace OpenBudgeteer.Contracts.Models;
 
 public class BaseObject : INotifyPropertyChanged
 {
