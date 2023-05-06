@@ -48,6 +48,8 @@
     <ItemGroup>
       <ProjectReference Include="..\OpenBudgeteer.Contracts\OpenBudgeteer.Contracts.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Data.MySql.Migrations\OpenBudgeteer.Data.MySql.Migrations.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Data.Sqlite.Migrations\OpenBudgeteer.Data.Sqlite.Migrations.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Data\OpenBudgeteer.Data.csproj" />
     </ItemGroup>
 

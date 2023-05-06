@@ -18,7 +18,7 @@ public class SqliteDatabaseContextFactory : IDesignTimeDbContextFactory<SqliteDa
         var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>()
             .UseSqlite(
                 connectionString,
-                b => b.MigrationsAssembly("OpenBudgeteer.Core"));
+                b => b.MigrationsAssembly("OpenBudgeteer.Data.Sqlite.Migrations"));
         return new SqliteDatabaseContext(optionsBuilder.Options);
     }
 }

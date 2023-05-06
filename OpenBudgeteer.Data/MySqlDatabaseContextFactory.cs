@@ -37,7 +37,7 @@ public class MySqlDatabaseContextFactory : IDesignTimeDbContextFactory<MySqlData
             .UseMySql(
                 connectionString,
                 ServerVersion.AutoDetect(connectionString),
-                b => b.MigrationsAssembly("OpenBudgeteer.Core"));
+                b => b.MigrationsAssembly("OpenBudgeteer.Data.MySql.Migrations"));
         
         return new MySqlDatabaseContext(optionsBuilder.Options);
     }
