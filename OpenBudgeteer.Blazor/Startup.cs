@@ -114,7 +114,7 @@ public class Startup
         services.AddDbContext<DatabaseContext>(options => options.UseMySql(
             connectionString,
             ServerVersion.AutoDetect(connectionString),
-            b => b.MigrationsAssembly("OpenBudgeteer.Core")),
+            b => b.MigrationsAssembly("OpenBudgeteer.Data.MySql.Migrations")),
             ServiceLifetime.Transient);
 
         // Check on Pending Database Migrations
@@ -127,7 +127,7 @@ public class Startup
         var connectionString = "Data Source=database/openbudgeteer.db";
         services.AddDbContext<DatabaseContext>(options => options.UseSqlite(
             connectionString,
-            b => b.MigrationsAssembly("OpenBudgeteer.Core")),
+            b => b.MigrationsAssembly("OpenBudgeteer.Data.Sqlite.Migrations")),
             ServiceLifetime.Transient);
 
         // Check on Pending Db Migrations
