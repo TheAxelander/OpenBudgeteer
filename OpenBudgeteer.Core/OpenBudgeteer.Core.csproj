@@ -52,4 +52,8 @@
     <Folder Include="Migrations\Sqlite\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\OpenBudgeteer.Data\OpenBudgeteer.Data.csproj" />
+  </ItemGroup>
+
 </Project>

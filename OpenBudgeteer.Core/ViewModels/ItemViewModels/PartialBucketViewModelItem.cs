@@ -3,6 +3,8 @@ using OpenBudgeteer.Core.Common.EventClasses;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using OpenBudgeteer.Core.Common.Database;
+using OpenBudgeteer.Core.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels;
 

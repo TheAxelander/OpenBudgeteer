@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common.Database;
+using OpenBudgeteer.Core.Models;
 
 namespace OpenBudgeteer.Core.ViewModels
 {

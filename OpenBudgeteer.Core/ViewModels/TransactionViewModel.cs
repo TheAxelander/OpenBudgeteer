@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Common.Extensions;
+using OpenBudgeteer.Core.Models;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
