@@ -32,7 +32,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.5" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
       <PackageReference Include="xunit" Version="2.4.2" />
       <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -46,7 +46,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\OpenBudgeteer.Contracts\OpenBudgeteer.Contracts.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Data\OpenBudgeteer.Data.csproj" />
     </ItemGroup>
 
 </Project>
