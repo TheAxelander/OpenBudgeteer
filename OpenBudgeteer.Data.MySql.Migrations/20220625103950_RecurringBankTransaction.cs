@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OpenBudgeteer.Core.Migrations.MySql
+namespace OpenBudgeteer.Core.Migrations.MySql;
+
+public partial class RecurringBankTransaction : Migration
 {
-    public partial class RecurringBankTransaction : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateTable(
+        migrationBuilder.CreateTable(
                 name: "RecurringBankTransaction",
                 columns: table => new
                 {
@@ -30,13 +30,12 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                 {
                     table.PrimaryKey("PK_RecurringBankTransaction", x => x.TransactionId);
                 })
-                .Annotation("MySql:CharSet", "utf8mb4");
-        }
+            .Annotation("MySql:CharSet", "utf8mb4");
+    }
 
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
-                name: "RecurringBankTransaction");
-        }
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(
+            name: "RecurringBankTransaction");
     }
 }
