@@ -1,4 +1,6 @@
-﻿namespace OpenBudgeteer.Contracts.Models;
+﻿using System;
+
+namespace OpenBudgeteer.Contracts.Models;
 
 public class Account : BaseObject
 {

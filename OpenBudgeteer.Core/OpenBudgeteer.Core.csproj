@@ -16,8 +16,6 @@
 
   <ItemGroup>
     <Folder Include="Common\Database\" />
-    <Folder Include="Migrations\MySql\" />
-    <Folder Include="Migrations\Sqlite\" />
   </ItemGroup>
 
   <ItemGroup>

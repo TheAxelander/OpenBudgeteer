@@ -1,4 +1,6 @@
-﻿namespace OpenBudgeteer.Contracts.Models;
+﻿using System.Collections.Generic;
+
+namespace OpenBudgeteer.Contracts.Models;
 
 public class DataConsistencyCheckResult 
 {
