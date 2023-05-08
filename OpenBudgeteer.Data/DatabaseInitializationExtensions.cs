@@ -20,7 +20,7 @@ public static class DatabaseInitializationExtensions
             _ => new NoOpDatabaseInitializer()
         };
         
-        //initializer.InitializeDatabase(configuration);
+        initializer.InitializeDatabase(configuration);
 
         var dbContextOptions = DbContextOptionsFactory.GetContextOptions(configuration);
         var context = new DatabaseContext(dbContextOptions);
