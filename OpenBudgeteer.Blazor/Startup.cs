@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -116,23 +117,19 @@ public class Startup
             ServerVersion.AutoDetect(connectionString),
             b => b.MigrationsAssembly("OpenBudgeteer.Data.MySql.Migrations")),
             ServiceLifetime.Transient);
-
-        // Check on Pending Database Migrations
-        var mySqlDbContext = new MySqlDatabaseContextFactory().CreateDbContext(connectionString);
-        if (mySqlDbContext.Database.GetPendingMigrations().Any()) mySqlDbContext.Database.Migrate();
     }
 
     private void SetupSqliteConnection(IServiceCollection services)
     {
-        var connectionString = "Data Source=database/openbudgeteer.db";
+        var dbFilePath = Configuration.GetValue<string>(CONNECTION_DATABASE);
+        if (string.IsNullOrWhiteSpace(dbFilePath)) dbFilePath = Path.Combine(Directory.GetCurrentDirectory(), "database", "openbudgeteer.db");
+        Path.GetFullPath(dbFilePath);
+
+        var connectionString = $"Data Source={dbFilePath}";
         services.AddDbContext<DatabaseContext>(options => options.UseSqlite(
             connectionString,
             b => b.MigrationsAssembly("OpenBudgeteer.Data.Sqlite.Migrations")),
             ServiceLifetime.Transient);
-
-        // Check on Pending Db Migrations
-        var sqliteDbContext = new SqliteDatabaseContextFactory().CreateDbContext(connectionString);
-        if (sqliteDbContext.Database.GetPendingMigrations().Any()) sqliteDbContext.Database.Migrate();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
