@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +8,7 @@ using MySqlConnector;
 
 namespace OpenBudgeteer.Data;
 
-public static class DatabaseInitializationExtensions
+public static partial class DatabaseInitializationExtensions
 {
     private const string CONNECTION_PROVIDER = "CONNECTION_PROVIDER";
     private const string CONNECTION_SERVER = "CONNECTION_SERVER";
@@ -31,13 +32,19 @@ public static class DatabaseInitializationExtensions
         }
         else if (provider.Equals(PROVIDER_MYSQL, StringComparison.OrdinalIgnoreCase))
         {
+            var dbInitializer = new MariaDbDatabaseInitializer();
+            services.AddSingleton<IDatabaseInitializer>(dbInitializer);
+            dbInitializer.InitializeDatabase(configuration);
+            
             SetupMariaDbConnection(services, configuration);
-            services.AddTransient<IDatabaseInitializer, MariaDbDatabaseInitializer>();
         }
         else if (provider.Equals(PROVIDER_MARIADB, StringComparison.OrdinalIgnoreCase))
         {
+            var dbInitializer = new MariaDbDatabaseInitializer();
+            services.AddSingleton<IDatabaseInitializer>(dbInitializer);
+            dbInitializer.InitializeDatabase(configuration);
+            
             SetupMariaDbConnection(services, configuration);
-            services.AddTransient<IDatabaseInitializer, MariaDbDatabaseInitializer>();
         }
         else
         {
@@ -62,12 +69,24 @@ public static class DatabaseInitializationExtensions
 
     private static void SetupMariaDbConnection(IServiceCollection services, IConfiguration configuration)
     {
+        var databaseName = configuration.GetValue(CONNECTION_DATABASE, "openbudgeteer");
+        if (!DatabaseNameRegex().IsMatch(databaseName))
+        {
+            throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
+        }
+
+        var userName = configuration.GetValue(CONNECTION_USER, databaseName);
+        if (!DatabaseNameRegex().IsMatch(userName))
+        {
+            throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
+        }
+        
         var builder = new MySqlConnectionStringBuilder
         {
-            Server = configuration.GetValue<string>(CONNECTION_SERVER, "localhost"),
-            Port = configuration.GetValue<uint>(CONNECTION_PORT, 3306u),
-            Database = configuration.GetValue<string>(CONNECTION_DATABASE, "openbudgeteer"),
-            UserID = configuration.GetValue<string>(CONNECTION_USER, "openbudgeteer"),
+            Server = configuration.GetValue(CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue(CONNECTION_PORT, 3306u),
+            Database = databaseName,
+            UserID = userName,
             Password = configuration.GetValue<string>(CONNECTION_PASSWORD),
             ConnectionProtocol = MySqlConnectionProtocol.Tcp
         };
@@ -86,4 +105,7 @@ public static class DatabaseInitializationExtensions
 #endif
         }, ServiceLifetime.Transient);
     }
+    
+    [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]
+    private static partial Regex DatabaseNameRegex();
 }

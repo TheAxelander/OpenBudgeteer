@@ -32,10 +32,6 @@ public class Program
 
     private static void EnsureDatabaseMigrated(IServiceProvider serviceLocator)
     {
-        var initializer = serviceLocator.GetRequiredService<IDatabaseInitializer>();
-        var configuration = serviceLocator.GetRequiredService<IConfiguration>();
-        initializer.InitializeDatabase(configuration);
-            
         var db = serviceLocator.GetRequiredService<DatabaseContext>();
         if (db.Database.GetPendingMigrations().Any())
         {

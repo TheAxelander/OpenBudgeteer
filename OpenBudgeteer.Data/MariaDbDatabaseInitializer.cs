@@ -1,13 +1,15 @@
 using System;
 using System.Data;
 using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 
 namespace OpenBudgeteer.Data;
 
-public class MariaDbDatabaseInitializer : IDatabaseInitializer
+public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
 {
     private const string CONNECTION_SERVER = "CONNECTION_SERVER";
     private const string CONNECTION_PORT = "CONNECTION_PORT";
@@ -18,11 +20,22 @@ public class MariaDbDatabaseInitializer : IDatabaseInitializer
     
     public void InitializeDatabase(IConfiguration configuration)
     {
+        var databaseName = configuration.GetValue(CONNECTION_DATABASE, "openbudgeteer");
+        if (!DatabaseNameRegex().IsMatch(databaseName))
+        {
+            throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
+        }
+
+        var userName = configuration.GetValue(CONNECTION_USER, databaseName);
+        if (!DatabaseNameRegex().IsMatch(userName))
+        {
+            throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
+        }
+
         var connectionStringRoot = new MySqlConnectionStringBuilder
         {
-            Server = configuration.GetValue<string>(CONNECTION_SERVER, "localhost"),
-            Port = configuration.GetValue<uint>(CONNECTION_PORT, 3306u),
-            Database = configuration.GetValue<string>(CONNECTION_DATABASE, "openbudgeteer"),
+            Server = configuration.GetValue(CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue(CONNECTION_PORT, 3306u),
             UserID = "root",
             Password = configuration.GetValue<string>(CONNECTION_MYSQL_ROOT_PASSWORD),
             ConnectionProtocol = MySqlConnectionProtocol.Tcp
@@ -30,10 +43,10 @@ public class MariaDbDatabaseInitializer : IDatabaseInitializer
         
         var connectionStringUser = new MySqlConnectionStringBuilder
         {
-            Server = configuration.GetValue<string>(CONNECTION_SERVER, "localhost"),
-            Port = configuration.GetValue<uint>(CONNECTION_PORT, 3306u),
-            Database = configuration.GetValue<string>(CONNECTION_DATABASE, "openbudgeteer"),
-            UserID = configuration.GetValue<string>(CONNECTION_USER, "openbudgeteer"),
+            Server = configuration.GetValue(CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue(CONNECTION_PORT, 3306u),
+            Database = databaseName,
+            UserID = userName,
             Password = configuration.GetValue<string>(CONNECTION_PASSWORD),
             ConnectionProtocol = MySqlConnectionProtocol.Tcp
         };
@@ -43,35 +56,43 @@ public class MariaDbDatabaseInitializer : IDatabaseInitializer
             throw new InvalidOperationException("Specified server not available");
         }
         
-        const string createUserCommand = @"CREATE USER IF NOT EXISTS @userId IDENTIFIED WITH caching_sha2_password BY @password;";
-        const string createDatabaseCommand = @"CREATE DATABASE IF NOT EXISTS @database;";
-        const string rootDatabaseCommand = @"GRANT ALL PRIVILEGES ON @database TO @userId;";
-        
         using var connection = new MySqlConnection(connectionStringRoot.ConnectionString);
-        using (var command = new MySqlCommand(createUserCommand))
+        connection.Open();
+        
+        using (var command = new MySqlCommand("CREATE USER IF NOT EXISTS @userId IDENTIFIED BY @password;"))
         {
             command.Connection = connection;
-            command.Parameters.AddWithValue("@userId", connectionStringUser.UserID);
+            command.Parameters.AddWithValue("@userId", userName);
             command.Parameters.AddWithValue("@password", connectionStringUser.Password);
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
         }
         
-        using (var command = new MySqlCommand(createDatabaseCommand))
+        using (var command = new MySqlCommand())
         {
             command.Connection = connection;
-            command.Parameters.AddWithValue("@database", connectionStringUser.Database);
+            // SQLi - CREATE DATABASE with params is NOT supported in MySQL/MariaDB!
+            command.CommandText = $@"CREATE DATABASE IF NOT EXISTS `{databaseName}`;";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
         }
         
-        using (var command = new MySqlCommand(rootDatabaseCommand))
+        using (var command = new MySqlCommand())
         {
             command.Connection = connection;
-            command.Parameters.AddWithValue("@database", connectionStringUser.Database);
-            command.Parameters.AddWithValue("@userId", connectionStringUser.UserID);
+            // SQLi - GRANT with params is NOT supported in MySQL/MariaDB!
+            command.CommandText = @$"GRANT ALL PRIVILEGES ON {databaseName}.* TO '{userName}';";
+            command.CommandType = CommandType.Text;
+
+            command.ExecuteNonQuery();
+        }
+        
+        using (var command = new MySqlCommand())
+        {
+            command.Connection = connection;
+            command.CommandText = @$"FLUSH PRIVILEGES;";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
@@ -100,4 +121,7 @@ public class MariaDbDatabaseInitializer : IDatabaseInitializer
 
         return false;
     }
+
+    [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]
+    private static partial Regex DatabaseNameRegex();
 }

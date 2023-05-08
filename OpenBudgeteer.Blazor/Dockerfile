@@ -7,9 +7,6 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["OpenBudgeteer.Blazor/OpenBudgeteer.Blazor.csproj", "OpenBudgeteer.Blazor/"]
-COPY ["OpenBudgeteer.Core/OpenBudgeteer.Core.csproj", "OpenBudgeteer.Core/"]
-RUN dotnet restore "OpenBudgeteer.Blazor/OpenBudgeteer.Blazor.csproj"
 COPY . .
 WORKDIR "/src/OpenBudgeteer.Blazor"
 RUN dotnet build "OpenBudgeteer.Blazor.csproj" -c Release -o /app/build
