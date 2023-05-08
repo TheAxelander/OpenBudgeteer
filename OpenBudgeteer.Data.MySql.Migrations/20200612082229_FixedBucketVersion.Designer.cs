@@ -7,7 +7,7 @@ using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
-    [DbContext(typeof(MySqlDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20200612082229_FixedBucketVersion")]
     partial class FixedBucketVersion
     {

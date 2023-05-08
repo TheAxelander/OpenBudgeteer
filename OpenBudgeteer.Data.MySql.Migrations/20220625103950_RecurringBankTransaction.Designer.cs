@@ -10,7 +10,7 @@ using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
-    [DbContext(typeof(MySqlDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20220625103950_RecurringBankTransaction")]
     partial class RecurringBankTransaction
     {

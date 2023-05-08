@@ -9,7 +9,7 @@ using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Migrations.Sqlite
 {
-    [DbContext(typeof(SqliteDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     partial class SqliteDatabaseContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

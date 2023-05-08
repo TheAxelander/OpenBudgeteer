@@ -15,16 +15,20 @@ public class Program
     {
         var host = CreateHostBuilder(args).Build();
         
-        using (var scope = host.Services.CreateScope())
+        /*using (var scope = host.Services.CreateScope())
         {
             EnsureDatabaseMigrated(scope.ServiceProvider);
-        }
+        }*/
 
         host.Run();
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
+            .ConfigureServices(service =>
+            {
+                service.AddHostedService<HostedDatabaseMigrator>();
+            })
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
@@ -33,10 +37,7 @@ public class Program
     private static void EnsureDatabaseMigrated(IServiceProvider serviceLocator)
     {
         var db = serviceLocator.GetRequiredService<DatabaseContext>();
-        if (db.Database.GetPendingMigrations().Any())
-        {
-            db.Database.Migrate();
-        }
+        db.Database.Migrate();
     }
     
     

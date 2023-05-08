@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace OpenBudgeteer.Data.Sqlite.Migrations
 {
-    [DbContext(typeof(SqliteDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20200925091603_InitialCreate")]
     partial class InitialCreate
     {

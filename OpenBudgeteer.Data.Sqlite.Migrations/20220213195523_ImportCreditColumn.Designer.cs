@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace OpenBudgeteer.Data.Sqlite.Migrations
 {
-    [DbContext(typeof(SqliteDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20220213195523_ImportCreditColumn")]
     partial class ImportCreditColumn
     {

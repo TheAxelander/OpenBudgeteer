@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace OpenBudgeteer.Data.MySql.Migrations
 {
-    [DbContext(typeof(MySqlDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20220213195537_ImportCreditColumn")]
     partial class ImportCreditColumn
     {

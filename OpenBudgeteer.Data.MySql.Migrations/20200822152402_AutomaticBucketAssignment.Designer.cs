@@ -8,7 +8,7 @@ using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
-    [DbContext(typeof(MySqlDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20200822152402_AutomaticBucketAssignment")]
     partial class AutomaticBucketAssignment
     {

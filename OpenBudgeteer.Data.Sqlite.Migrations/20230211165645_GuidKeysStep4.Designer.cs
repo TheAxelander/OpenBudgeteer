@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace OpenBudgeteer.Data.Sqlite.Migrations
 {
-    [DbContext(typeof(SqliteDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20230211165645_GuidKeysStep4")]
     partial class GuidKeysStep4
     {

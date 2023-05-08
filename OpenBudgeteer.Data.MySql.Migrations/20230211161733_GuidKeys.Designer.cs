@@ -10,7 +10,7 @@ using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
-    [DbContext(typeof(MySqlDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20230211161733_GuidKeys")]
     partial class GuidKeys
     {

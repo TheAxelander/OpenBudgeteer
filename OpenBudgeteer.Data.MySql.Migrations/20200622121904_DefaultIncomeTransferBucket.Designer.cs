@@ -7,7 +7,7 @@ using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Migrations.MySql
 {
-    [DbContext(typeof(MySqlDatabaseContext))]
+    [DbContext(typeof(DatabaseContext))]
     [Migration("20200622121904_DefaultIncomeTransferBucket")]
     partial class DefaultIncomeTransferBucket
     {
