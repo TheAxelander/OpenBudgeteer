@@ -4,6 +4,7 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>disable</Nullable>
+        <BaseOutputPath>..\OpenBudgeteer.Data\bin\</BaseOutputPath>
     </PropertyGroup>
 
     <ItemGroup>
