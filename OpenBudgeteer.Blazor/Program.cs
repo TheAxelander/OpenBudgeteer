@@ -1,5 +1,8 @@
+using System;
+using System.Linq;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenBudgeteer.Data;
@@ -14,17 +17,31 @@ public class Program
         
         using (var scope = host.Services.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-            db.Database.Migrate();
+            EnsureDatabaseMigrated(scope.ServiceProvider);
         }
 
         host.Run();
     }
 
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
+    private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
             });
+
+    private static void EnsureDatabaseMigrated(IServiceProvider serviceLocator)
+    {
+        var initializer = serviceLocator.GetRequiredService<IDatabaseInitializer>();
+        var configuration = serviceLocator.GetRequiredService<IConfiguration>();
+        initializer.InitializeDatabase(configuration);
+            
+        var db = serviceLocator.GetRequiredService<DatabaseContext>();
+        if (db.Database.GetPendingMigrations().Any())
+        {
+            db.Database.Migrate();
+        }
+    }
+    
+    
 }

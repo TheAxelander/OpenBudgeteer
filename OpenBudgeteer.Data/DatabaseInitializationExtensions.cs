@@ -1,7 +1,5 @@
 using System;
 using System.IO;
-using System.Net.Sockets;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,14 +27,17 @@ public static class DatabaseInitializationExtensions
         if (provider.Equals(PROVIDER_SQLITE, StringComparison.OrdinalIgnoreCase))
         {
             SetupSqliteConnection(services, configuration);
+            services.AddTransient<IDatabaseInitializer, NoOpDatabaseInitializer>();
         }
         else if (provider.Equals(PROVIDER_MYSQL, StringComparison.OrdinalIgnoreCase))
         {
             SetupMariaDbConnection(services, configuration);
+            services.AddTransient<IDatabaseInitializer, MariaDbDatabaseInitializer>();
         }
         else if (provider.Equals(PROVIDER_MARIADB, StringComparison.OrdinalIgnoreCase))
         {
             SetupMariaDbConnection(services, configuration);
+            services.AddTransient<IDatabaseInitializer, MariaDbDatabaseInitializer>();
         }
         else
         {
@@ -63,11 +64,12 @@ public static class DatabaseInitializationExtensions
     {
         var builder = new MySqlConnectionStringBuilder
         {
-            Server = configuration.GetValue<string>(CONNECTION_SERVER),
-            Port = configuration.GetValue<uint>(CONNECTION_PORT),
-            Database = configuration.GetValue<string>(CONNECTION_DATABASE),
-            UserID = configuration.GetValue<string>(CONNECTION_USER),
-            Password = configuration.GetValue<string>(CONNECTION_PASSWORD)
+            Server = configuration.GetValue<string>(CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue<uint>(CONNECTION_PORT, 3306u),
+            Database = configuration.GetValue<string>(CONNECTION_DATABASE, "openbudgeteer"),
+            UserID = configuration.GetValue<string>(CONNECTION_USER, "openbudgeteer"),
+            Password = configuration.GetValue<string>(CONNECTION_PASSWORD),
+            ConnectionProtocol = MySqlConnectionProtocol.Tcp
         };
 
         var serverVersion = ServerVersion.AutoDetect(builder.ConnectionString);
