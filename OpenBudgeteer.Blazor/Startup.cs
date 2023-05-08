@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -46,19 +45,7 @@ public class Startup
         services.AddServerSideBlazor();
         services.AddFileReaderService();
         services.AddScoped<YearMonthSelectorViewModel>();
-        
-        var provider = Configuration.GetValue<string>(CONNECTION_PROVIDER);
-        switch (provider)
-        {
-            case "mysql":
-                SetupMySqlConnection(services);
-                break;
-            case "sqlite":
-                SetupSqliteConnection(services);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException($"Database provider {provider} not supported");
-        }
+        services.AddDatabase(Configuration);
         
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
     }
