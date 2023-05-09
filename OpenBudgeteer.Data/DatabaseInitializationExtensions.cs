@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,10 +28,9 @@ public static class DatabaseInitializationExtensions
         initializer.InitializeDatabase(configuration);
 
         var dbContextOptions = DbContextOptionsFactory.GetContextOptions(configuration);
-        var context = new DatabaseContext(dbContextOptions);
-
+        
         services.AddSingleton(initializer);
         services.AddSingleton(dbContextOptions);
-        services.AddSingleton(context);
+        services.AddScoped(x => new DatabaseContext(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
     }
 }

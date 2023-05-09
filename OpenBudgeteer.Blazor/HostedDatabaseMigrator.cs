@@ -9,16 +9,16 @@ namespace OpenBudgeteer.Blazor;
 
 public class HostedDatabaseMigrator : IHostedService
 {
-    private readonly DatabaseContext _dbContext;
+    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
     private readonly IConfiguration _configuration;
     private readonly IDatabaseInitializer _databaseInitializer;
 
     public HostedDatabaseMigrator(
-        DatabaseContext dbContext,
+        DbContextOptions<DatabaseContext> dbContextOptions,
         IConfiguration configuration,
         IDatabaseInitializer databaseInitializer)
     {
-        _dbContext = dbContext;
+        _dbContextOptions = dbContextOptions;
         _configuration = configuration;
         _databaseInitializer = databaseInitializer;
     }
@@ -26,7 +26,8 @@ public class HostedDatabaseMigrator : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _databaseInitializer.InitializeDatabase(_configuration);
-        await _dbContext.Database.MigrateAsync(cancellationToken: cancellationToken);
+        await using var context = new DatabaseContext(_dbContextOptions);
+        await context.Database.MigrateAsync(cancellationToken: cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
