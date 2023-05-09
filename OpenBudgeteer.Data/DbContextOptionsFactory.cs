@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MySqlConnector;
+using Npgsql;
 
 namespace OpenBudgeteer.Data;
 
@@ -17,33 +20,50 @@ public static partial class DbContextOptionsFactory
     private const string CONNECTION_USER = "CONNECTION_USER";
     private const string CONNECTION_PASSWORD = "CONNECTION_PASSWORD";
 
-    private const string PROVIDER_SQLITE = "SQLITE";
-    private const string PROVIDER_MYSQL = "MYSQL";
-    private const string PROVIDER_MARIADB = "MARIADB";
-    
+    private static readonly Dictionary<string, Action<DbContextOptionsBuilder, IConfiguration>> OptionsFactoryLookup = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["MEMORY"] = SetupSqliteInMemoryConnection,
+        ["TEMPDB"] = SetupSqliteTempDbConnection,
+        ["SQLITE"] = SetupSqliteConnection,
+        ["MYSQL"] = SetupMariaDbConnection,
+        ["MARIADB"] = SetupMariaDbConnection,
+        ["POSTGRES"] = SetupPostgresConnection,
+        ["POSTGRESQL"] = SetupPostgresConnection,
+    };
+
     public static DbContextOptions<DatabaseContext> GetContextOptions(IConfiguration configuration)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>();
         var provider = configuration.GetValue<string>(CONNECTION_PROVIDER).Trim();
-
-        if (provider.Equals(PROVIDER_SQLITE, StringComparison.OrdinalIgnoreCase))
+        if (!OptionsFactoryLookup.TryGetValue(provider, out var optionsFactoryMethod))
         {
-            SetupSqliteConnection(optionsBuilder, configuration);
+            throw new NotSupportedException($"Database provider {provider} is not supported.");
         }
-        else if (provider.Equals(PROVIDER_MYSQL, StringComparison.OrdinalIgnoreCase))
-        {
-            SetupMariaDbConnection(optionsBuilder, configuration);
-        }
-        else if (provider.Equals(PROVIDER_MARIADB, StringComparison.OrdinalIgnoreCase))
-        {
-            SetupMariaDbConnection(optionsBuilder, configuration);
-        }
-        else
-        {
-            throw new ArgumentOutOfRangeException($"Database provider {provider} not supported");
-        }
-
+        
+        var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>();
+        optionsFactoryMethod(optionsBuilder, configuration);
+        
+#if DEBUG
+        optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
+        optionsBuilder.EnableSensitiveDataLogging();
+        optionsBuilder.EnableDetailedErrors();
+#endif
+        
         return optionsBuilder.Options;
+    }
+
+    private static void SetupSqliteInMemoryConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
+    {
+        optionsBuilder.UseSqlite(
+            "Data Source=:memory:",
+            b => b.MigrationsAssembly("OpenBudgeteer.Data.Sqlite.Migrations"));
+    }
+    
+    private static void SetupSqliteTempDbConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
+    {
+        var dbFilePath = Path.GetTempFileName();
+        optionsBuilder.UseSqlite(
+            $"Data Source={dbFilePath}",
+            b => b.MigrationsAssembly("OpenBudgeteer.Data.Sqlite.Migrations"));
     }
 
     private static void SetupSqliteConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
@@ -87,13 +107,35 @@ public static partial class DbContextOptionsFactory
                 builder.ConnectionString,
                 serverVersion,
                 b => b.MigrationsAssembly("OpenBudgeteer.Data.MySql.Migrations"));
-#if DEBUG
-        optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
-        optionsBuilder.EnableSensitiveDataLogging();
-        optionsBuilder.EnableDetailedErrors();
-#endif
+
     }
-    
+
+    private static void SetupPostgresConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
+    {
+        var databaseName = configuration.GetValue(CONNECTION_DATABASE, "postgres");
+        if (!DatabaseNameRegex().IsMatch(databaseName))
+        {
+            throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
+        }
+
+        var userName = configuration.GetValue(CONNECTION_USER, databaseName);
+        if (!DatabaseNameRegex().IsMatch(userName))
+        {
+            throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
+        }
+        
+        var builder = new NpgsqlConnectionStringBuilder
+        {
+            Host = configuration.GetValue(CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue(CONNECTION_PORT, 5432),
+            Database = databaseName,
+            Username = userName,
+            Password = configuration.GetValue<string>(CONNECTION_PASSWORD, null)
+        };
+
+        optionsBuilder.UseNpgsql(builder.ConnectionString);
+    }
+
     [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]
     private static partial Regex DatabaseNameRegex();
 }

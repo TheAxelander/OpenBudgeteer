@@ -16,7 +16,7 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
     private const string CONNECTION_DATABASE = "CONNECTION_DATABASE";
     private const string CONNECTION_USER = "CONNECTION_USER";
     private const string CONNECTION_PASSWORD = "CONNECTION_PASSWORD";
-    private const string CONNECTION_MYSQL_ROOT_PASSWORD = "CONNECTION_MYSQL_ROOT_PASSWORD";
+    private const string CONNECTION_ROOT_PASSWORD = "CONNECTION_ROOT_PASSWORD";
     
     public void InitializeDatabase(IConfiguration configuration)
     {
@@ -37,7 +37,7 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
             Server = configuration.GetValue(CONNECTION_SERVER, "localhost"),
             Port = configuration.GetValue(CONNECTION_PORT, 3306u),
             UserID = "root",
-            Password = configuration.GetValue<string>(CONNECTION_MYSQL_ROOT_PASSWORD),
+            Password = configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD),
             ConnectionProtocol = MySqlConnectionProtocol.Tcp
         };
         

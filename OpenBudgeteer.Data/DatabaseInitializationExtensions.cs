@@ -9,6 +9,8 @@ public static class DatabaseInitializationExtensions
     
     private const string PROVIDER_MYSQL = "MYSQL";
     private const string PROVIDER_MARIADB = "MARIADB";
+    private const string PROVIDER_POSTGRES = "POSTGRES";
+    private const string PROVIDER_POSTGRESQL = "POSTGRESQL";
     
     public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
@@ -17,6 +19,8 @@ public static class DatabaseInitializationExtensions
         {
             PROVIDER_MARIADB => new MariaDbDatabaseInitializer(),
             PROVIDER_MYSQL => new MariaDbDatabaseInitializer(),
+            PROVIDER_POSTGRES => new PostgresDatabaseInitializer(),
+            PROVIDER_POSTGRESQL => new PostgresDatabaseInitializer(),
             _ => new NoOpDatabaseInitializer()
         };
         
