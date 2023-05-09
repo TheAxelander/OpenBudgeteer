@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data", "OpenB
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Contracts", "OpenBudgeteer.Contracts\OpenBudgeteer.Contracts.csproj", "{0AFB336B-8712-4983-A168-8547A29630B6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.Postgres.Migrations", "OpenBudgeteer.Data.Postgres.Migrations\OpenBudgeteer.Data.Postgres.Migrations.csproj", "{1CFB5354-FD8A-41AF-AB06-8929F163E04D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{0AFB336B-8712-4983-A168-8547A29630B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AFB336B-8712-4983-A168-8547A29630B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0AFB336B-8712-4983-A168-8547A29630B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

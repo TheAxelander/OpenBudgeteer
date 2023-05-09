@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
     <ProjectReference Include="..\OpenBudgeteer.Data.MySql.Migrations\OpenBudgeteer.Data.MySql.Migrations.csproj" />
+    <ProjectReference Include="..\OpenBudgeteer.Data.Postgres.Migrations\OpenBudgeteer.Data.Postgres.Migrations.csproj" />
     <ProjectReference Include="..\OpenBudgeteer.Data.Sqlite.Migrations\OpenBudgeteer.Data.Sqlite.Migrations.csproj" />
   </ItemGroup>
 
