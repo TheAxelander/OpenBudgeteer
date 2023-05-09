@@ -1,13 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
-using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels;
 

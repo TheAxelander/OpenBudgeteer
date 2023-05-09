@@ -1,6 +1,7 @@
-using System.Linq;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
+using Microsoft.Extensions.Configuration;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.Test;
 
@@ -8,16 +9,19 @@ public class DbConnector
 {
     public static DbContextOptions<DatabaseContext> GetDbContextOptions(string dbName)
     {
-        var connectionString = $"Data Source={dbName}.db";
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["CONNECTION_PROVIDER"] = "SQLITE",
+                ["CONNECTION_DATABASE"] = $"{dbName}.db"
+            })
+            .Build();
 
-        //Check on Pending Db Migrations
-       var sqliteDbContext = new SqliteDatabaseContextFactory().CreateDbContext(connectionString);
-        if (sqliteDbContext.Database.GetPendingMigrations().Any())
-            sqliteDbContext.Database.Migrate();
+        var contextOptions = DbContextOptionsFactory.GetContextOptions(configuration);
+        var dbContext = new DatabaseContext(contextOptions);
+        dbContext.Database.Migrate();
 
-        return new DbContextOptionsBuilder<DatabaseContext>()
-            .UseSqlite(connectionString)
-            .Options;
+        return contextOptions;
     }
 
     public static void CleanupDatabase(string dbName)

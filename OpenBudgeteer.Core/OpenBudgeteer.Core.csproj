@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.3">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -15,36 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Migrations\MySql\20200605093534_InitialCreate.Designer.cs">
-      <DependentUpon>20200605093534_InitialCreate.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200608152707_DecimalPrecision.Designer.cs">
-      <DependentUpon>20200608152707_DecimalPrecision.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200612082229_FixedBucketVersion.Designer.cs">
-      <DependentUpon>20200612082229_FixedBucketVersion.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200622121904_DefaultIncomeTransferBucket.Designer.cs">
-      <DependentUpon>20200622121904_DefaultIncomeTransferBucket.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200701071320_BucketColor.Designer.cs">
-      <DependentUpon>20200701071320_BucketColor.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200701133458_DateTimeDataType.Designer.cs">
-      <DependentUpon>20200701133458_DateTimeDataType.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200704081215_ImportProfileDelimiter.Designer.cs">
-      <DependentUpon>20200704081215_ImportProfileDelimiter.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200707141613_ImportProfileDateNumberFormat.Designer.cs">
-      <DependentUpon>20200707141613_ImportProfileDateNumberFormat.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200723111131_BucketNotes.Designer.cs">
-      <DependentUpon>20200723111131_BucketNotes.cs</DependentUpon>
-    </Compile>
-    <Compile Update="Migrations\MySql\20200822152402_AutomaticBucketAssignment.Designer.cs">
-      <DependentUpon>20200822152402_AutomaticBucketAssignment.cs</DependentUpon>
-    </Compile>
+    <ProjectReference Include="..\OpenBudgeteer.Data\OpenBudgeteer.Data.csproj" />
   </ItemGroup>
 
 </Project>

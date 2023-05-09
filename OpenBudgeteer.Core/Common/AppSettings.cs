@@ -1,6 +1,4 @@
-﻿using OpenBudgeteer.Core.Models;
-
-namespace OpenBudgeteer.Core.Common;
+﻿namespace OpenBudgeteer.Core.Common;
 
 public static class AppSettings
 {
