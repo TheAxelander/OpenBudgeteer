@@ -19,6 +19,7 @@ public static partial class DbContextOptionsFactory
     private const string CONNECTION_DATABASE = "CONNECTION_DATABASE";
     private const string CONNECTION_USER = "CONNECTION_USER";
     private const string CONNECTION_PASSWORD = "CONNECTION_PASSWORD";
+    private const string CONNECTION_ROOT_PASSWORD = "CONNECTION_ROOT_PASSWORD";
 
     private static readonly Dictionary<string, Action<DbContextOptionsBuilder, IConfiguration>> OptionsFactoryLookup = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -123,17 +124,26 @@ public static partial class DbContextOptionsFactory
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
-        
+
+        var password = configuration.GetValue<string>(CONNECTION_PASSWORD, null);
+        var rootPassword = configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD, null);
+        if (databaseName.Equals("postgres", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(password))
+        {
+            password = rootPassword;
+        }
+
         var builder = new NpgsqlConnectionStringBuilder
         {
             Host = configuration.GetValue(CONNECTION_SERVER, "localhost"),
             Port = configuration.GetValue(CONNECTION_PORT, 5432),
             Database = databaseName,
             Username = userName,
-            Password = configuration.GetValue<string>(CONNECTION_PASSWORD, null)
+            Password = password
         };
 
-        optionsBuilder.UseNpgsql(builder.ConnectionString);
+        optionsBuilder.UseNpgsql(
+            builder.ConnectionString,
+            b => b.MigrationsAssembly("OpenBudgeteer.Data.Postgres.Migrations"));
     }
 
     [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]

@@ -9,8 +9,8 @@ public class DesignTimeDbContext : IDesignTimeDbContextFactory<DatabaseContext>
     public DatabaseContext CreateDbContext(string[] args)
     {
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
+            //.SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false)
             .AddEnvironmentVariables()
             .AddCommandLine(args)
             .Build();
