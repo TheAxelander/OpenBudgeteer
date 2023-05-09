@@ -51,7 +51,7 @@ public partial class PostgresDatabaseInitializer : IDatabaseInitializer
         connection.Open();
 
         bool userExists;
-        using (var command = new NpgsqlCommand($"SELECT 1 FROM pg_user WHERE username = '{userName}'"))
+        using (var command = new NpgsqlCommand($"SELECT 1 FROM pg_user WHERE usename = '{userName}'"))
         {
             command.Connection = connection;
             command.CommandType = CommandType.Text;
