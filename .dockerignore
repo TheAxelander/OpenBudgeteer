@@ -23,3 +23,15 @@
 **/values.dev.yaml
 LICENSE
 README.md
+# directories
+**/bin/
+**/obj/
+**/out/
+
+# files
+Dockerfile*
+**/*.trx
+**/*.md
+**/*.ps1
+**/*.cmd
+**/*.sh

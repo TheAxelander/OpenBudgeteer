@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <UserSecretsId>c146cdfd-f78c-4fb3-8be0-4e15e589371a</UserSecretsId>
+    <InvariantGlobalization>false</InvariantGlobalization>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <AssemblyName>OpenBudgeteer</AssemblyName>
   </PropertyGroup>
