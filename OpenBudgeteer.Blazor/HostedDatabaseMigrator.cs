@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using OpenBudgeteer.Data;
+using OpenBudgeteer.Data.Initialization;
 
 namespace OpenBudgeteer.Blazor;
 

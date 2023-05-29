@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 namespace OpenBudgeteer.Data;
 
 // Provides a mock DB context for EF Core for the scaffolding of the databases
+// Database must exist and must be online - this needs to be ensured by the developer!
 public class DesignTimeDbContext : IDesignTimeDbContextFactory<DatabaseContext>
 {
     public DatabaseContext CreateDbContext(string[] args)
