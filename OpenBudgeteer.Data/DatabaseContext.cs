@@ -6,6 +6,7 @@ using OpenBudgeteer.Contracts.Models;
 
 namespace OpenBudgeteer.Data;
 
+// Unified Database Context for all database servers
 public class DatabaseContext : DbContext
 {
     public DbSet<Account> Account { get; set; }

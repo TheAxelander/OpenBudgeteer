@@ -6,6 +6,10 @@ using Npgsql;
 
 namespace OpenBudgeteer.Data;
 
+// Initializes Postgres database
+// Creates role (user) if not exists
+// Creates DB if not exists
+// Grants DBO to newly created role.ó
 public partial class PostgresDatabaseInitializer : IDatabaseInitializer
 {
     private const string CONNECTION_SERVER = "CONNECTION_SERVER";
@@ -98,7 +102,7 @@ public partial class PostgresDatabaseInitializer : IDatabaseInitializer
             
             command.Connection = connection;
             command.CommandType = CommandType.Text;
-            command.CommandText = $"CREATE DATABASE {databaseName} WITH OWNER {userName};";
+            command.CommandText = $"CREATE DATABASE {databaseName} OWNER {userName};";
             
             command.ExecuteNonQuery();
         }

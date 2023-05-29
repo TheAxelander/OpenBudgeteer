@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace OpenBudgeteer.Data;
 
+// Provides a mock DB context for EF Core for the scaffolding of the databases
 public class DesignTimeDbContext : IDesignTimeDbContextFactory<DatabaseContext>
 {
     public DatabaseContext CreateDbContext(string[] args)

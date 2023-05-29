@@ -9,6 +9,10 @@ using MySqlConnector;
 
 namespace OpenBudgeteer.Data;
 
+// Creates MySQL/MariaDB databases for the user
+// Creates user if not exists
+// Creates DB if not exists
+// Grants DBO to user on database
 public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
 {
     private const string CONNECTION_SERVER = "CONNECTION_SERVER";

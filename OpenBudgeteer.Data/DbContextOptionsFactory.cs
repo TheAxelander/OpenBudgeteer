@@ -10,6 +10,10 @@ using Npgsql;
 
 namespace OpenBudgeteer.Data;
 
+// Creates the DBContext options for runtime and design-time DBContext initialization
+// Generates the connection string from the supplied ConfigMap
+// Ensures that there's no SQLi using the DBName parameter in the config map for Postgres and MariaDB
+// Ensures directory tree created for SQLite
 public static partial class DbContextOptionsFactory
 {
     private const string CONNECTION_PROVIDER = "CONNECTION_PROVIDER";

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace OpenBudgeteer.Data;
 
+// Used for database systems where no initialization is necessary
 public class NoOpDatabaseInitializer : IDatabaseInitializer
 {
     public void InitializeDatabase(IConfiguration configuration)
