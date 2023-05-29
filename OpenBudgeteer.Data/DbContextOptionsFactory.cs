@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -70,8 +69,12 @@ public static partial class DbContextOptionsFactory
     private static void SetupSqliteConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
         var dbFilePath = configuration.GetValue<string>(CONNECTION_DATABASE);
-        if (string.IsNullOrWhiteSpace(dbFilePath)) dbFilePath = Path.Combine(Directory.GetCurrentDirectory(), "database", "openbudgeteer.db");
-        Path.GetFullPath(dbFilePath);
+        dbFilePath = string.IsNullOrWhiteSpace(dbFilePath)
+            ? Path.Combine(Directory.GetCurrentDirectory(), "database", "openbudgeteer.db") 
+            : Path.GetFullPath(dbFilePath);
+
+        var directory = Path.GetDirectoryName(dbFilePath);
+        if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
         var connectionString = $"Data Source={dbFilePath}";
         optionsBuilder.UseSqlite(
