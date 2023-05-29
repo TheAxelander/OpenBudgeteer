@@ -26,7 +26,7 @@ public static class DatabaseInitializationExtensions
         {
             ConfigurationKeyConstants.PROVIDER_MARIADB => new PingPortOnlineChecker(),
             ConfigurationKeyConstants.PROVIDER_MYSQL => new PingPortOnlineChecker(),
-            ConfigurationKeyConstants.PROVIDER_POSTGRES => new PingPortOnlineChecker(),
+            ConfigurationKeyConstants.PROVIDER_POSTGRES => new PostgresOnlineChecker(),
             ConfigurationKeyConstants.PROVIDER_POSTGRESQL => new PostgresOnlineChecker(),
             _ => new NoopOnlineChecker()
         };
