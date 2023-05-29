@@ -18,10 +18,10 @@ public static class DatabaseInitializationExtensions
     public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
         var provider = configuration.GetValue<string>(CONNECTION_PROVIDER).Trim().ToUpper();
-        var rootPasswordProvided = string.IsNullOrWhiteSpace(configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD, null));
+        var rootPasswordEmpty = string.IsNullOrWhiteSpace(configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD, null));
         IDatabaseInitializer initializer = provider switch
         {
-            _ when !rootPasswordProvided => new NoOpDatabaseInitializer(), // Short circuit when user did not provide root password.
+            _ when rootPasswordEmpty => new NoOpDatabaseInitializer(), // Short circuit when user did not provide root password.
             PROVIDER_MARIADB => new MariaDbDatabaseInitializer(),
             PROVIDER_MYSQL => new MariaDbDatabaseInitializer(),
             PROVIDER_POSTGRES => new PostgresDatabaseInitializer(),
