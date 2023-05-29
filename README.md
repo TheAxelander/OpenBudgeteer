@@ -40,18 +40,33 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ## Installation (Docker)
 
-You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing below variables.
-The usage of `CONNECTION_MYSQL_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer.
+You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a database which can be achieved by passing below variables.
+Currently, the following database servers are supported:
 
-| Variable | Description | Example |
-| --- | --- | --- |
-| CONNECTION_PROVIDER | Type of database that should be used | mysql |
-| CONNECTION_SERVER | IP Address to MySQL Server | 192.168.178.100 |
-| CONNECTION_PORT | Port to MySQL Server | 3306 |
-| CONNECTION_DATABASE | Database name | MyOpenBudgeteerDb |
-| CONNECTION_USER | Database user | MyOpenBudgeteerUser |
-| CONNECTION_PASSWORD | Database password | MyOpenBudgeteerPassword |
-| CONNECTION_MYSQL_ROOT_PASSWORD | Root Password | MyRootPassword |
+| CONNECTION_PROVIDER | Database system                                      |
+|---------------------|------------------------------------------------------|
+| MEMORY              | SQLite in-memory database                            |
+| TEMPDB              | SQLite in a temp file                                |
+| SQLITE              | SQLite. Use CONNECTION_DATABASE to specify file name |
+| MYSQL               | Oracle MySQL®                                        |
+| MARIADB             | MariaDB (FOSS MySQL fork)                            |
+| POSTGRES            | PostgreSQL                                           |
+| POSTGRESQL          | PostgreSQL                                           |
+
+Automated database initialization is only supported in case of MySQL, SQLite and MariaDB. In case of postgres, please consider the container-per database postgres pattern, and let container init take care of the database creation, or create the role and database yourself.
+For postgres, the database created by you must be empty, the role must exist, and should have CREATE permission for all objects in the public schema of the target database.
+
+The usage of `CONNECTION_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer in MariaDB or MySQL®.
+
+| Variable                 | Description                            | Example                 | Default value                          |
+|--------------------------|----------------------------------------|-------------------------|----------------------------------------|
+| CONNECTION_PROVIDER      | Type of database that should be used   | mysql                   | none, must be supplied                 |
+| CONNECTION_SERVER        | IP Address/FQDN of the database Server | 192.168.178.100         | localhost                              |
+| CONNECTION_PORT          | Port to database Server                | 3306                    | (default port for the chosen provider) |
+| CONNECTION_DATABASE      | Database name                          | MyOpenBudgeteerDb       | postgres for postgres                  |
+| CONNECTION_USER          | Database user                          | MyOpenBudgeteerUser     | postgres for postgres                  |
+| CONNECTION_PASSWORD      | Database password                      | MyOpenBudgeteerPassword | NULL                                   |
+| CONNECTION_ROOT_PASSWORD | Root Password                          | MyRootPassword          | Optional parameter                     |
 
 ```bash
 docker run -d --name='openbudgeteer' \
@@ -70,8 +85,9 @@ Alternatively you can use a local `Sqlite` database using the below settings:
 
 ```bash
 docker run -d --name='openbudgeteer' \
-    -e 'CONNECTION_PROVIDER'='sqlite' \
-    -v '/my/local/path:/app/database'  \
+    -e 'CONNECTION_PROVIDER'='SQLITE' \
+    -e 'CONNECTION_DATABASE'='/srv/openbudgeteer.db' \
+    -v '/my/local/path:/srv'  \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:latest'
 ```
