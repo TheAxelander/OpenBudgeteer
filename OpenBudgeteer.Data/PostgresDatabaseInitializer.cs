@@ -29,6 +29,13 @@ public partial class PostgresDatabaseInitializer : IDatabaseInitializer
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
+        
+        var rootPassword = configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD);
+        if (string.IsNullOrWhiteSpace(rootPassword))
+        {
+            // Assume DB created and migrated with init container/manually
+            return;
+        }
 
         var connectionStringRoot = new NpgsqlConnectionStringBuilder()
         {

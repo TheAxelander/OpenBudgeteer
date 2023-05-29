@@ -32,12 +32,19 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
 
+        var rootPassword = configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD);
+        if (string.IsNullOrWhiteSpace(rootPassword))
+        {
+            // Assume DB created and migrated with init container/manually
+            return;
+        }
+
         var connectionStringRoot = new MySqlConnectionStringBuilder
         {
             Server = configuration.GetValue(CONNECTION_SERVER, "localhost"),
             Port = configuration.GetValue(CONNECTION_PORT, 3306u),
             UserID = "root",
-            Password = configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD),
+            Password = rootPassword,
             ConnectionProtocol = MySqlConnectionProtocol.Tcp
         };
         
