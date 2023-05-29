@@ -12,8 +12,8 @@ public class DbConnector
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string>
             {
-                ["CONNECTION_PROVIDER"] = "SQLITE",
-                ["CONNECTION_DATABASE"] = $"{dbName}.db"
+                [ConfigurationKeyConstants.CONNECTION_PROVIDER] = ConfigurationKeyConstants.PROVIDER_SQLITE,
+                [ConfigurationKeyConstants.CONNECTION_DATABASE] = $"{dbName}.db"
             })
             .Build();
 

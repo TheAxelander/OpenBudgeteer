@@ -16,28 +16,20 @@ namespace OpenBudgeteer.Data;
 // Ensures directory tree created for SQLite
 public static partial class DbContextOptionsFactory
 {
-    private const string CONNECTION_PROVIDER = "CONNECTION_PROVIDER";
-    private const string CONNECTION_SERVER = "CONNECTION_SERVER";
-    private const string CONNECTION_PORT = "CONNECTION_PORT";
-    private const string CONNECTION_DATABASE = "CONNECTION_DATABASE";
-    private const string CONNECTION_USER = "CONNECTION_USER";
-    private const string CONNECTION_PASSWORD = "CONNECTION_PASSWORD";
-    private const string CONNECTION_ROOT_PASSWORD = "CONNECTION_ROOT_PASSWORD";
-
     private static readonly Dictionary<string, Action<DbContextOptionsBuilder, IConfiguration>> OptionsFactoryLookup = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["MEMORY"] = SetupSqliteInMemoryConnection,
-        ["TEMPDB"] = SetupSqliteTempDbConnection,
-        ["SQLITE"] = SetupSqliteConnection,
-        ["MYSQL"] = SetupMariaDbConnection,
-        ["MARIADB"] = SetupMariaDbConnection,
-        ["POSTGRES"] = SetupPostgresConnection,
-        ["POSTGRESQL"] = SetupPostgresConnection,
+        [ConfigurationKeyConstants.PROVIDER_MEMORY] = SetupSqliteInMemoryConnection,
+        [ConfigurationKeyConstants.PROVIDER_TEMPDB] = SetupSqliteTempDbConnection,
+        [ConfigurationKeyConstants.PROVIDER_SQLITE] = SetupSqliteConnection,
+        [ConfigurationKeyConstants.PROVIDER_MYSQL] = SetupMariaDbConnection,
+        [ConfigurationKeyConstants.PROVIDER_MARIADB] = SetupMariaDbConnection,
+        [ConfigurationKeyConstants.PROVIDER_POSTGRES] = SetupPostgresConnection,
+        [ConfigurationKeyConstants.PROVIDER_POSTGRESQL] = SetupPostgresConnection,
     };
 
     public static DbContextOptions<DatabaseContext> GetContextOptions(IConfiguration configuration)
     {
-        var provider = configuration.GetValue<string>(CONNECTION_PROVIDER).Trim();
+        var provider = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PROVIDER).Trim();
         if (!OptionsFactoryLookup.TryGetValue(provider, out var optionsFactoryMethod))
         {
             throw new NotSupportedException($"Database provider {provider} is not supported.");
@@ -72,7 +64,7 @@ public static partial class DbContextOptionsFactory
 
     private static void SetupSqliteConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
-        var dbFilePath = configuration.GetValue<string>(CONNECTION_DATABASE);
+        var dbFilePath = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_DATABASE);
         dbFilePath = string.IsNullOrWhiteSpace(dbFilePath)
             ? Path.Combine(Directory.GetCurrentDirectory(), "database", "openbudgeteer.db") 
             : Path.GetFullPath(dbFilePath);
@@ -88,13 +80,13 @@ public static partial class DbContextOptionsFactory
 
     private static void SetupMariaDbConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
-        var databaseName = configuration.GetValue(CONNECTION_DATABASE, "openbudgeteer");
+        var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "openbudgeteer");
         if (!DatabaseNameRegex().IsMatch(databaseName))
         {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
         }
 
-        var userName = configuration.GetValue(CONNECTION_USER, databaseName);
+        var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
         if (!DatabaseNameRegex().IsMatch(userName))
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
@@ -102,11 +94,11 @@ public static partial class DbContextOptionsFactory
         
         var builder = new MySqlConnectionStringBuilder
         {
-            Server = configuration.GetValue(CONNECTION_SERVER, "localhost"),
-            Port = configuration.GetValue(CONNECTION_PORT, 3306u),
+            Server = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_PORT, 3306u),
             Database = databaseName,
             UserID = userName,
-            Password = configuration.GetValue(CONNECTION_PASSWORD, userName),
+            Password = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_PASSWORD, userName),
             ConnectionProtocol = MySqlConnectionProtocol.Tcp
         };
 
@@ -120,20 +112,20 @@ public static partial class DbContextOptionsFactory
 
     private static void SetupPostgresConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
-        var databaseName = configuration.GetValue(CONNECTION_DATABASE, "postgres");
+        var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "postgres");
         if (!DatabaseNameRegex().IsMatch(databaseName))
         {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
         }
 
-        var userName = configuration.GetValue(CONNECTION_USER, databaseName);
+        var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
         if (!DatabaseNameRegex().IsMatch(userName))
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
 
-        var password = configuration.GetValue<string>(CONNECTION_PASSWORD, null);
-        var rootPassword = configuration.GetValue<string>(CONNECTION_ROOT_PASSWORD, null);
+        var password = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PASSWORD, null);
+        var rootPassword = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, null);
         if (databaseName.Equals("postgres", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(password))
         {
             password = rootPassword;
@@ -141,8 +133,8 @@ public static partial class DbContextOptionsFactory
 
         var builder = new NpgsqlConnectionStringBuilder
         {
-            Host = configuration.GetValue(CONNECTION_SERVER, "localhost"),
-            Port = configuration.GetValue(CONNECTION_PORT, 5432),
+            Host = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_SERVER, "localhost"),
+            Port = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_PORT, 5432),
             Database = databaseName,
             Username = userName,
             Password = password
