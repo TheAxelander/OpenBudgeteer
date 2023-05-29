@@ -12,6 +12,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{86A25C9F-8B53-47CC-B032-AF705FE284A2}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		README.md = README.md
+		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		CHANGELOG.md = CHANGELOG.md
+		LICENSE = LICENSE
+		LICENSE-3RD-PARTY = LICENSE-3RD-PARTY
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.Sqlite.Migrations", "OpenBudgeteer.Data.Sqlite.Migrations\OpenBudgeteer.Data.Sqlite.Migrations.csproj", "{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}"
