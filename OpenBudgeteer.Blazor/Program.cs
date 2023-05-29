@@ -19,10 +19,10 @@ public class Program
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder(args)
-            //.ConfigureServices(service =>
-            //{
-            //    service.AddHostedService<HostedDatabaseMigrator>();
-            //})
+            .ConfigureServices(service =>
+            {
+                service.AddHostedService<HostedDatabaseMigrator>();
+            })
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
