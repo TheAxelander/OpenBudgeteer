@@ -18,7 +18,6 @@ public static partial class DbContextOptionsFactory
 {
     private static readonly Dictionary<string, Action<DbContextOptionsBuilder, IConfiguration>> OptionsFactoryLookup = new(StringComparer.OrdinalIgnoreCase)
     {
-        [ConfigurationKeyConstants.PROVIDER_MEMORY] = SetupSqliteInMemoryConnection,
         [ConfigurationKeyConstants.PROVIDER_TEMPDB] = SetupSqliteTempDbConnection,
         [ConfigurationKeyConstants.PROVIDER_SQLITE] = SetupSqliteConnection,
         [ConfigurationKeyConstants.PROVIDER_MYSQL] = SetupMariaDbConnection,
@@ -47,13 +46,6 @@ public static partial class DbContextOptionsFactory
         return optionsBuilder.Options;
     }
 
-    private static void SetupSqliteInMemoryConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
-    {
-        optionsBuilder.UseSqlite(
-            "Data Source=:memory:",
-            b => b.MigrationsAssembly("OpenBudgeteer.Data.Sqlite.Migrations"));
-    }
-    
     private static void SetupSqliteTempDbConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
         var dbFilePath = Path.GetTempFileName();

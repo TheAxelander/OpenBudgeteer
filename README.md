@@ -45,7 +45,6 @@ Currently, the following database servers are supported:
 
 | CONNECTION_PROVIDER | Database system                                      |
 |---------------------|------------------------------------------------------|
-| MEMORY              | SQLite in-memory database                            |
 | TEMPDB              | SQLite in a temp file                                |
 | SQLITE              | SQLite. Use CONNECTION_DATABASE to specify file name |
 | MYSQL               | Oracle MySQL®                                        |
