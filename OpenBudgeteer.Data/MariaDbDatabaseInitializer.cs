@@ -122,6 +122,6 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
         return false;
     }
 
-    [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]
+    [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_-]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]
     private static partial Regex DatabaseNameRegex();
 }
