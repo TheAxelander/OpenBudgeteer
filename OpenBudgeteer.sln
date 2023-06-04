@@ -15,6 +15,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Dockerfile = Dockerfile
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Contracts", "OpenBudgeteer.Contracts\OpenBudgeteer.Contracts.csproj", "{354B9082-8781-4231-8594-46C2765FB35C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data", "OpenBudgeteer.Data\OpenBudgeteer.Data.csproj", "{59A73579-3AE6-4E27-BEE5-9CF8304598AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.MySql.Migrations", "OpenBudgeteer.Data.MySql.Migrations\OpenBudgeteer.Data.MySql.Migrations.csproj", "{F27A067B-512D-47B4-98BD-5601A85C9027}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.Postgres.Migrations", "OpenBudgeteer.Data.Postgres.Migrations\OpenBudgeteer.Data.Postgres.Migrations.csproj", "{39AA8458-F27A-4A95-82D2-F919DCB421F7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.Sqlite.Migrations", "OpenBudgeteer.Data.Sqlite.Migrations\OpenBudgeteer.Data.Sqlite.Migrations.csproj", "{FF420E7B-7B89-454E-8556-5253425B5446}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +43,26 @@ Global
 		{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{354B9082-8781-4231-8594-46C2765FB35C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{354B9082-8781-4231-8594-46C2765FB35C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{354B9082-8781-4231-8594-46C2765FB35C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{354B9082-8781-4231-8594-46C2765FB35C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59A73579-3AE6-4E27-BEE5-9CF8304598AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59A73579-3AE6-4E27-BEE5-9CF8304598AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59A73579-3AE6-4E27-BEE5-9CF8304598AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59A73579-3AE6-4E27-BEE5-9CF8304598AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F27A067B-512D-47B4-98BD-5601A85C9027}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F27A067B-512D-47B4-98BD-5601A85C9027}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F27A067B-512D-47B4-98BD-5601A85C9027}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F27A067B-512D-47B4-98BD-5601A85C9027}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39AA8458-F27A-4A95-82D2-F919DCB421F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39AA8458-F27A-4A95-82D2-F919DCB421F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39AA8458-F27A-4A95-82D2-F919DCB421F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39AA8458-F27A-4A95-82D2-F919DCB421F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF420E7B-7B89-454E-8556-5253425B5446}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF420E7B-7B89-454E-8556-5253425B5446}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF420E7B-7B89-454E-8556-5253425B5446}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF420E7B-7B89-454E-8556-5253425B5446}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
