@@ -13,14 +13,8 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var host = CreateHostBuilder(args).Build();
-        
-        /*using (var scope = host.Services.CreateScope())
-        {
-            EnsureDatabaseMigrated(scope.ServiceProvider);
-        }*/
-
-        host.Run();
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        CreateHostBuilder(args).Build().Run();
     }
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -33,12 +27,6 @@ public class Program
             {
                 webBuilder.UseStartup<Startup>();
             });
-
-    private static void EnsureDatabaseMigrated(IServiceProvider serviceLocator)
-    {
-        var db = serviceLocator.GetRequiredService<DatabaseContext>();
-        db.Database.Migrate();
-    }
     
     
 }

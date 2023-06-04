@@ -40,18 +40,32 @@ OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and ins
 
 ## Installation (Docker)
 
-You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a `MySQL` database which can be achieved by passing below variables.
-The usage of `CONNECTION_MYSQL_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer.
+You can use the pre-built Docker Image from [Docker Hub](https://hub.docker.com/r/axelander/openbudgeteer). It requires a connection to a database which can be achieved by passing below variables.
+Currently, the following database servers are supported:
 
-| Variable | Description | Example |
-| --- | --- | --- |
-| CONNECTION_PROVIDER | Type of database that should be used | mysql |
-| CONNECTION_SERVER | IP Address to MySQL Server | 192.168.178.100 |
-| CONNECTION_PORT | Port to MySQL Server | 3306 |
-| CONNECTION_DATABASE | Database name | MyOpenBudgeteerDb |
-| CONNECTION_USER | Database user | MyOpenBudgeteerUser |
-| CONNECTION_PASSWORD | Database password | MyOpenBudgeteerPassword |
-| CONNECTION_MYSQL_ROOT_PASSWORD | Root Password | MyRootPassword |
+| CONNECTION_PROVIDER | Database system                                      |
+|---------------------|------------------------------------------------------|
+| TEMPDB              | SQLite in a temp file                                |
+| SQLITE              | SQLite. Use CONNECTION_DATABASE to specify file name |
+| MYSQL               | Oracle MySQL®                                        |
+| MARIADB             | MariaDB (FOSS MySQL fork)                            |
+| POSTGRES            | PostgreSQL                                           |
+| POSTGRESQL          | PostgreSQL                                           |
+
+Automated database initialization is only supported in case of MySQL, SQLite and MariaDB. In case of postgres, please consider the container-per database postgres pattern, and let container init take care of the database creation, or create the role and database yourself.
+For postgres, the database created by you must be empty, the role must exist, and should have CREATE permission for all objects in the public schema of the target database.
+
+The usage of `CONNECTION_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer in MariaDB or MySQL®.
+
+| Variable                 | Description                            | Example                 | Default value                          |
+|--------------------------|----------------------------------------|-------------------------|----------------------------------------|
+| CONNECTION_PROVIDER      | Type of database that should be used   | mysql                   | none, must be supplied                 |
+| CONNECTION_SERVER        | IP Address/FQDN of the database Server | 192.168.178.100         | localhost                              |
+| CONNECTION_PORT          | Port to database Server                | 3306                    | (default port for the chosen provider) |
+| CONNECTION_DATABASE      | Database name                          | MyOpenBudgeteerDb       | postgres for postgres                  |
+| CONNECTION_USER          | Database user                          | MyOpenBudgeteerUser     | postgres for postgres                  |
+| CONNECTION_PASSWORD      | Database password                      | MyOpenBudgeteerPassword | NULL                                   |
+| CONNECTION_ROOT_PASSWORD | Root Password                          | MyRootPassword          | Optional parameter                     |
 
 ```bash
 docker run -d --name='openbudgeteer' \
@@ -70,8 +84,9 @@ Alternatively you can use a local `Sqlite` database using the below settings:
 
 ```bash
 docker run -d --name='openbudgeteer' \
-    -e 'CONNECTION_PROVIDER'='sqlite' \
-    -v '/my/local/path:/app/database'  \
+    -e 'CONNECTION_PROVIDER'='SQLITE' \
+    -e 'CONNECTION_DATABASE'='/srv/openbudgeteer.db' \
+    -v '/my/local/path:/srv'  \
     -p '6100:80/tcp' \
     'axelander/openbudgeteer:latest'
 ```
@@ -96,9 +111,8 @@ docker run -d --name='openbudgeteer' \
 
 ### Docker-Compose
 
-Below an example how to deploy OpenBudgeteer together with MySql Server and phpMyAdmin for administration. Please note that user and database `openbudgeteer` need to be available, otherwise the container `openbudgeteer` will not work.
-
-So what you can do this is running below Docker Compose, create user and database using phpMyAdmin and then restart either container `openbudgeteer` or the whole Docker Compose.
+Below an example how to deploy OpenBudgeteer together with PostgreSQL Server. 
+Please note that role and database `openbudgeteer` will be created with full authority on the `db` container on the first initialization of the database.
 
 ```yml
 version: "3"
@@ -106,7 +120,7 @@ version: "3"
 networks:
   app-global:
     external: true
-  mysql-internal:
+  db-internal:
 
 
 services:
@@ -116,40 +130,30 @@ services:
     ports:
       - 8081:80
     environment:
-      - CONNECTION_SERVER=openbudgeteer-mysql
-      - CONNECTION_PORT=3306
+      - CONNECTION_PROVIDER=postgres
+      - CONNECTION_SERVER=openbudgeteer-db
       - CONNECTION_DATABASE=openbudgeteer
       - CONNECTION_USER=openbudgeteer
-      - CONNECTION_PASSWORD=openbudgeteer
-      - CONNECTION_MYSQL_ROOT_PASSWORD=myRootPassword
+      - CONNECTION_PASSWORD=My$uP3rS3creTanDstr0ngP4ssw0rD!!!
       - APPSETTINGS_CULTURE=en-US
       - APPSETTINGS_THEME=solar
     depends_on:
-      - mysql
+      - db
     networks:
       - app-global
-      - mysql-internal
+      - db-internal
 
-  mysql:
-    image: mysql
-    container_name: openbudgeteer-mysql
+  db:
+    image: postgres:alpine
+    container_name: openbudgeteer-db
     environment:
-      MYSQL_ROOT_PASSWORD: myRootPassword
+      - POSTGRES_USER=openbudgeteer
+      - POSTGRES_PASSWORD=My$uP3rS3creTanDstr0ngP4ssw0rD!!!
+      - POSTGRES_DB=openbudgeteer
     volumes:
-      - data:/var/lib/mysql
+      - data:/var/lib/postgresql/data
     networks:
-      - mysql-internal
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: openbudgeteer-phpmyadmin
-    links:
-      - mysql:db
-    ports:
-      - 8080:80
-    networks:
-      - app-global
-      - mysql-internal
+      - db-internal
 
 volumes:
   data:
@@ -187,7 +191,7 @@ cd OpenBudgeteer/OpenBudgeteer.Blazor
 dotnet publish -c Release --self-contained -r linux-x64
 ```
 
-Modify `appsettings.json` and enter credentials for a running MySql Server or use Sqlite
+Modify `appsettings.json` and enter credentials for a running database server, or use sqlite
 
 ```bash
 cd bin/Release/net6.0/linux-x64/publish
@@ -205,7 +209,27 @@ For MySQL:
   "CONNECTION_PORT": "3306",
   "CONNECTION_USER": "openbudgeteer",
   "CONNECTION_PASSWORD": "openbudgeteer",
-  "CONNECTION_MYSQL_ROOT_PASSWORD": "myRootPassword",
+  "CONNECTION_ROOT_PASSWORD": "myRootPassword",
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*"
+}
+```
+
+For Postgres (please note that the target database must exist. If not sure, just create a docker container, and point the app to it.):
+
+```json
+{
+  "CONNECTION_PROVIDER": "postgresql",
+  "CONNECTION_DATABASE": "openbudgeteer",
+  "CONNECTION_SERVER": "192.168.178.100",
+  "CONNECTION_USER": "openbudgeteer",
+  "CONNECTION_PASSWORD": "openbudgeteer",
   "Logging": {
     "LogLevel": {
       "Default": "Information",
@@ -241,7 +265,7 @@ Start server running on port 5000
 
 ## Themes
 
-OpenBudgeteer is compatibel with [Bootswatch Themes](https://bootswatch.com)
+OpenBudgeteer is compatible with [Bootswatch Themes](https://bootswatch.com)
 
 ## Additional Settings
 
