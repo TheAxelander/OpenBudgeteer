@@ -2,12 +2,12 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS base
 WORKDIR /app
-RUN apk add --no-cache icu-libs
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 EXPOSE 80
 EXPOSE 443
+RUN apk add --no-cache icu-libs icu-data-full
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 
