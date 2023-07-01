@@ -54,8 +54,6 @@ Currently, the following database servers are supported:
 
 Automated database initialization is only supported for MySQL, SQLite and MariaDB.
 
-The usage of `CONNECTION_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer in MariaDB or MySQL.
-
 For PostgreSQL, please consider the container-per database PostgreSQL pattern, and let container init take care of the database creation, or create the role and database yourself. In this case, the database created by you must be empty, the role must exist, and should have CREATE permission for all objects in the public schema of the target database.
 
 | Variable                 | Description                                           | Used for database provider            | Example                 |
@@ -68,7 +66,7 @@ For PostgreSQL, please consider the container-per database PostgreSQL pattern, a
 | CONNECTION_PASSWORD      | Database password                                     | MySQL, MariaDB, PostgreSQL (optional) | MyOpenBudgeteerPassword |
 | CONNECTION_ROOT_PASSWORD | Root Password                                         | MySQL, MariaDB (optional)             | MyRootPassword          |
 
-Below an overview on which default values will be used depending on the selected database provider:
+Below an overview on which default values will be used depending on the selected database provider. Empty cells means there is no default defined:
 
 | Variable                 | SQLite                         | MySQL, MariaDB | PostgreSQL |
 |--------------------------|--------------------------------|----------------|------------|
@@ -79,6 +77,15 @@ Below an overview on which default values will be used depending on the selected
 | CONNECTION_USER          |                                | openbudgeteer  | postgres   |
 | CONNECTION_PASSWORD      |                                |                |            |
 | CONNECTION_ROOT_PASSWORD |                                |                |            |
+
+- `CONNECTION_PROVIDER` is case-insensitive, so you can use for example `mysql` or `MYSQL` 
+- Using MySQL, MariaDB or PostgreSQL parameter `CONNECTION_DATABASE` can have maximum lenght of 64 chars using below character sets:
+  - `0-9`
+  - `a-z`
+  - `A-Z`
+  - `$`, `_`
+  - `-` (not for PostgreSQL) 
+- The usage of `CONNECTION_ROOT_PASSWORD` is optional in case User and Database are not existing and should be created by OpenBudgeteer in MariaDB or MySQL.
 
 To start a container use a `docker run` command like below:
 
