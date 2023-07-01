@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Linq;
 using System.Threading.Tasks;
 using ChartJs.Blazor.ChartJS.BarChart;
 using ChartJs.Blazor.ChartJS.BarChart.Axes;
@@ -76,8 +77,8 @@ public class BlazorReportViewModel : ReportViewModel
                 }
             }
         };
-
-    protected BarConfig DefaultBucketExpensesBarConfig
+    
+    protected BarConfig DefaultZeroBasedBarConfig
     {
         get
         {
@@ -209,7 +210,7 @@ public class BlazorReportViewModel : ReportViewModel
 
     private async Task LoadMonthIncomeExpensesReportAsync()
     {
-        MonthIncomeExpensesConfig = DefaultBarConfig;
+        MonthIncomeExpensesConfig = DefaultZeroBasedBarConfig;
         MonthIncomeExpensesConfig.Options.Title.Text = "Income & Expenses per Month";
 
         var incomeResults = new List<object>();
@@ -247,7 +248,7 @@ public class BlazorReportViewModel : ReportViewModel
 
     private async Task LoadYearIncomeExpensesReportAsync()
     {
-        YearIncomeExpensesConfig = DefaultBarConfig;
+        YearIncomeExpensesConfig = DefaultZeroBasedBarConfig;
         YearIncomeExpensesConfig.Options.Title.Text = "Income & Expenses per Year";
 
         var incomeResults = new List<object>();
@@ -305,6 +306,21 @@ public class BlazorReportViewModel : ReportViewModel
             lineDataSet.Add(new TimeTuple<double>(new Moment(month), Convert.ToDouble(balance)));
         }
 
+        // Set yAxes min value to 0 in case there is no negative Bank Balance existing
+        if (!lineDataSet.Data.Any(i => i.YValue < 0))
+        {
+            BankBalancesConfig.Options.Scales.yAxes = new List<CartesianAxis>
+            {
+                new LinearCartesianAxis
+                {
+                    Ticks = new LinearCartesianTicks
+                    {
+                        Min = 0
+                    }
+                }
+            };
+        }
+
         BankBalancesConfig.Data.Datasets.Add(lineDataSet);
     }
 
@@ -313,7 +329,7 @@ public class BlazorReportViewModel : ReportViewModel
         MonthBucketExpensesConfigs.Clear();
         foreach (var result in await LoadMonthExpensesBucketAsync())
         {
-            var newConfig = DefaultBucketExpensesBarConfig;
+            var newConfig = DefaultZeroBasedBarConfig;
             newConfig.Options.Title.Display = false;
 
             var expensesResults = new List<object>();

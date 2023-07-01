@@ -13,6 +13,7 @@
 * [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)
 * [Changed] Replaced custom solution to fix [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) with new `bind:get` and `bind:set` feature from .Net 7
 * [Changed] Improved performance for duplicate check on Import Page
+* [Changed] Improved visibility of some reports on Report Page [#137](https://github.com/TheAxelander/OpenBudgeteer/issues/137)
 * [Fixed] Enable de-selection of Payee on Import Page [#148](https://github.com/TheAxelander/OpenBudgeteer/issues/148)
 
 ### 1.6.3 (2023-01-27)
