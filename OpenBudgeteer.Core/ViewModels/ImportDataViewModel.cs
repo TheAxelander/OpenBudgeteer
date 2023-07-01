@@ -62,7 +62,7 @@ public class ImportDataViewModel : ViewModelBase
                 new DateTimeConverter(importProfile.DateFormat));
             
             // Optional
-            if (!string.IsNullOrEmpty(importProfile.PayeeColumnName))
+            if (!string.IsNullOrEmpty(importProfile.PayeeColumnName) && importProfile.PayeeColumnName != "---Select Column---")
             {
                 MapProperty(
                     identifiedColumns.ToList().IndexOf(importProfile.PayeeColumnName), 
