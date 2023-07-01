@@ -8,7 +8,7 @@ networks:
 
 services:
   openbudgeteer:
-    image: openbudgeteer:alpha
+    image: openbudgeteer:pre-release
     container_name: openbudgeteer
     ports:
       - 8081:80
@@ -38,8 +38,8 @@ services:
     networks:
       - mysql-internal
 
-  phpmyadmin:
-    image: adminer
+  openbudgeteer-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.1.3
     container_name: openbudgeteer-phpmyadmin
     links:
       - mysql:db
