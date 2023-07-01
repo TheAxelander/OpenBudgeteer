@@ -221,7 +221,9 @@ namespace OpenBudgeteer.Core.ViewModels
             // Get all BankTransaction assigned to this Bucket
             var transactions = dbContext.BudgetedTransaction
                 .Include(i => i.Transaction)
-                .Where(i => i.Transaction.TransactionDate >= startingMonth)
+                .Where(i =>
+                    i.BucketId == Bucket.BucketId &&
+                    i.Transaction.TransactionDate >= startingMonth)
                 .Select(i => new BucketActivity(i))
                 .ToList();
 
