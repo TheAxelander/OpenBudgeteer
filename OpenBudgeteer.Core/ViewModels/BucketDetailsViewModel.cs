@@ -1,17 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels
 {
@@ -61,7 +55,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         private Bucket _bucket;
         /// <summary>
-        /// Current <see cref="Models.Bucket"/> that will be used
+        /// Current <see cref="Contracts.Models.Bucket"/> that will be used
         /// </summary>
         public Bucket Bucket
         {

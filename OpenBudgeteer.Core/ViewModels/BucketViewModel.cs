@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 

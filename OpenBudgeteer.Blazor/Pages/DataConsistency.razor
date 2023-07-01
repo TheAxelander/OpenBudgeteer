@@ -1,11 +1,9 @@
 ﻿@page "/dataconsistency"
 
 @using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Core.Common.Database
+@using OpenBudgeteer.Contracts.Models
 @using OpenBudgeteer.Core.ViewModels
-@using static Core.Models.DataConsistencyCheckResult
-@using System.Text.RegularExpressions
-@using System.Web
+@using OpenBudgeteer.Data
 
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
@@ -28,19 +26,19 @@
         <div class="card-body">
             @switch (result.Status)
             {
-                case StatusCode.Ok:
+                case DataConsistencyCheckResult.StatusCode.Ok:
                     <div class="alert alert-success d-flex align-items-center" role="alert" style="margin-bottom: 0">
                         <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Success:"><use xlink:href="#check-circle-fill"/></svg>
                         <div>@result.Message</div>
                     </div>
                     break;
-                case StatusCode.Warning:
+                case DataConsistencyCheckResult.StatusCode.Warning:
                     <div class="alert alert-warning d-flex align-items-center" role="alert" style="margin-bottom: 0">
                         <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Warning:"><use xlink:href="#exclamation-triangle-fill"/></svg>
                         <div>@result.Message</div>
                     </div>
                     break;
-                case StatusCode.Alert:
+                case DataConsistencyCheckResult.StatusCode.Alert:
                 default:
                     <div class="alert alert-danger d-flex align-items-center" role="alert" style="margin-bottom: 0">
                         <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:"><use xlink:href="#exclamation-triangle-fill"/></svg>

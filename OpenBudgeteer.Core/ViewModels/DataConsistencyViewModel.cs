@@ -5,9 +5,8 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using static OpenBudgeteer.Core.Models.DataConsistencyCheckResult;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
@@ -69,9 +68,9 @@ public class DataConsistencyViewModel : ViewModelBase
                 .Where(i => i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002"))
                 .Sum(i => i.Amount);
             return result != 0 
-                ? new DataConsistencyCheckResult(checkName, StatusCode.Alert,
+                ? new DataConsistencyCheckResult(checkName, DataConsistencyCheckResult.StatusCode.Alert,
                     $"Sum of all Transfer Transactions should be 0 but is {result}.", new List<string[]>()) 
-                : new DataConsistencyCheckResult(checkName, StatusCode.Ok, 
+                : new DataConsistencyCheckResult(checkName, DataConsistencyCheckResult.StatusCode.Ok, 
                     "Sum of all Transfer Transactions is 0", new List<string[]>());
         });
     }
@@ -86,7 +85,7 @@ public class DataConsistencyViewModel : ViewModelBase
         {
             var checkName = "Bucket balance";
             using var dbContext = new DatabaseContext(_dbOptions);
-            var results = new List<Tuple<StatusCode, string[]>>();
+            var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
             var checkTasks = new List<Task>();
 
             foreach (var bucket in dbContext.Bucket
@@ -106,18 +105,18 @@ public class DataConsistencyViewModel : ViewModelBase
                         .Where(i => i.BucketId == bucket.BucketId)
                         .Sum(i => i.Amount);
                     results.Add(bucketBalance < 0 
-                        ? new(StatusCode.Warning, new string[2] { bucket.Name, bucketBalance.ToString(CultureInfo.CurrentCulture) }) 
-                        : new(StatusCode.Ok, Array.Empty<string>()));
+                        ? new(DataConsistencyCheckResult.StatusCode.Warning, new string[2] { bucket.Name, bucketBalance.ToString(CultureInfo.CurrentCulture) }) 
+                        : new(DataConsistencyCheckResult.StatusCode.Ok, Array.Empty<string>()));
                 }));
             }
 
             await Task.WhenAll(checkTasks);
 
-            if (results.All(i => i.Item1 == StatusCode.Ok))
+            if (results.All(i => i.Item1 == DataConsistencyCheckResult.StatusCode.Ok))
             {
                 return new DataConsistencyCheckResult(
                     checkName, 
-                    StatusCode.Ok, 
+                    DataConsistencyCheckResult.StatusCode.Ok, 
                     "No negative Balances detected for Buckets", 
                     new List<string[]>());
             }
@@ -128,12 +127,12 @@ public class DataConsistencyViewModel : ViewModelBase
             };
 
             detailsBuilder.AddRange(results
-                .Where(i => i.Item1 != StatusCode.Ok)
+                .Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok)
                 .Select(i => i.Item2));
                     
             return new DataConsistencyCheckResult(
                 checkName,
-                StatusCode.Warning,
+                DataConsistencyCheckResult.StatusCode.Warning,
                 "Negative Balances detected for Buckets",
                 detailsBuilder);
         });
@@ -149,7 +148,7 @@ public class DataConsistencyViewModel : ViewModelBase
         {
             var checkName = "Transactions without Bucket assignment";
             using var dbContext = new DatabaseContext(_dbOptions);
-            var results = new List<Tuple<StatusCode, string[]>>();
+            var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
             var checkTasks = new List<Task>();
 
             foreach (var bankTransaction in dbContext.BankTransaction.ToList())
@@ -160,7 +159,7 @@ public class DataConsistencyViewModel : ViewModelBase
                     if (!checkDbContext.BudgetedTransaction.Any(i => i.TransactionId == bankTransaction.TransactionId))
                     {
                         results.Add(new(
-                            StatusCode.Warning,
+                            DataConsistencyCheckResult.StatusCode.Warning,
                             new string[3]
                             {
                                 bankTransaction.TransactionDate.ToShortDateString(),
@@ -172,11 +171,11 @@ public class DataConsistencyViewModel : ViewModelBase
             }
             await Task.WhenAll(checkTasks);
 
-            if (results.All(i => i.Item1 == StatusCode.Ok))
+            if (results.All(i => i.Item1 == DataConsistencyCheckResult.StatusCode.Ok))
             {
                 return new DataConsistencyCheckResult(
                     checkName,
-                    StatusCode.Ok,
+                    DataConsistencyCheckResult.StatusCode.Ok,
                     "All Transactions are assigned to at least one Bucket",
                     new List<string[]>());
             }
@@ -187,12 +186,12 @@ public class DataConsistencyViewModel : ViewModelBase
             };
 
             detailsBuilder.AddRange(results
-                .Where(i => i.Item1 != StatusCode.Ok)
+                .Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok)
                 .Select(i => i.Item2));
 
             return new DataConsistencyCheckResult(
                 checkName,
-                StatusCode.Warning,
+                DataConsistencyCheckResult.StatusCode.Warning,
                 "Some Transactions do not have any Bucket assigned",
                 detailsBuilder);
         });
@@ -209,7 +208,7 @@ public class DataConsistencyViewModel : ViewModelBase
         {
             var checkName = "Budgeted Transaction outside of validity date";
             using var dbContext = new DatabaseContext(_dbOptions);
-            var results = new List<Tuple<StatusCode, string, List<BankTransaction>>>();
+            var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string, List<BankTransaction>>>();
             var checkTasks = new List<Task>();
 
             foreach (var bucket in dbContext.Bucket.Where(i => i.IsInactive).ToList())
@@ -224,20 +223,20 @@ public class DataConsistencyViewModel : ViewModelBase
                             i.Transaction.TransactionDate > bucket.IsInactiveFrom);
 
                     results.Add(invalidTransactions.Any() 
-                        ? new(StatusCode.Alert,
+                        ? new(DataConsistencyCheckResult.StatusCode.Alert,
                             bucket.Name,
                             invalidTransactions.Select(i => i.Transaction).ToList()) 
-                        : new(StatusCode.Ok, bucket.Name, new List<BankTransaction>()));
+                        : new(DataConsistencyCheckResult.StatusCode.Ok, bucket.Name, new List<BankTransaction>()));
                 }));
             }
 
             await Task.WhenAll(checkTasks);
 
-            if (results.All(i => i.Item1 == StatusCode.Ok))
+            if (results.All(i => i.Item1 == DataConsistencyCheckResult.StatusCode.Ok))
             {
                 return new DataConsistencyCheckResult(
                     checkName,
-                    StatusCode.Ok,
+                    DataConsistencyCheckResult.StatusCode.Ok,
                     "No Buckets have Transactions assigned after invalidity date",
                     new List<string[]>());
             }
@@ -247,7 +246,7 @@ public class DataConsistencyViewModel : ViewModelBase
                 new string[4] { "Bucket", "Transaction Date", "Memo", "Amount" }
             };
 
-            foreach (var result in results.Where(i => i.Item1 != StatusCode.Ok))
+            foreach (var result in results.Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok))
             {
                 foreach (var transaction in result.Item3)
                 {
@@ -262,7 +261,7 @@ public class DataConsistencyViewModel : ViewModelBase
 
             return new DataConsistencyCheckResult(
                 checkName,
-                StatusCode.Alert,
+                DataConsistencyCheckResult.StatusCode.Alert,
                 "Some Buckets have Transactions assigned after invalidity date",
                 detailsBuilder);
         });

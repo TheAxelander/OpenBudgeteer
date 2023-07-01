@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,8 +12,9 @@ using TinyCsvParser;
 using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
 using TinyCsvParser.TypeConverter;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
