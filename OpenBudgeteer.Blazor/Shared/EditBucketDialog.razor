@@ -22,7 +22,7 @@
                                     @bind:set="(value) => { DataContext.BucketVersion.BucketType = Convert.ToInt32(value); }">
                                 @foreach (var bucketType in DataContext.AvailableBucketTypes)
                                 {
-                                    <option value="@DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1">@bucketType</option>
+                                    <option value="@(DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1)">@bucketType</option>
                                 }
                             </select>
                         </div>

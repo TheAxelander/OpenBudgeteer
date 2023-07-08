@@ -8,7 +8,7 @@ networks:
 
 services:
   openbudgeteer:
-    image: openbudgeteer:alpha
+    image: openbudgeteer:pre-release
     container_name: openbudgeteer
     ports:
       - 8081:80

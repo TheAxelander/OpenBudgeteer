@@ -1,13 +1,20 @@
 ### 1.7 (2023-xx-xx)
 
+* [Add] PostgreSQL support [#81](https://github.com/TheAxelander/OpenBudgeteer/issues/81) Thanks [csillaggyujto](https://github.com/csillaggyujto)
 * [Add] Confirmation Dialog before setting a Bucket inactive [#119](https://github.com/TheAxelander/OpenBudgeteer/issues/119)
 * [Add] Some validations for creating and changing Rules
+* [Breaking Change] Specific characters are no longer allowed for database names (SQL injection prevention)
+* [Breaking Change] For database type `sqlite` the parameter `CONNECTION_DATABASE` can now include a full path (no longer defaulted in `/app/database`). Consider updating your volume mapping.
 * [Changed] Migrated to .Net 7
 * [Changed] Integer based IDs in database have been migrated to Guid
+* [Changed] Overall refactoring of database backend including SQL injection protection. Thanks [csillaggyujto](https://github.com/csillaggyujto)
+* [Changed] Blazor Docker Image based on Alpine [#143](https://github.com/TheAxelander/OpenBudgeteer/issues/143) Thanks [csillaggyujto](https://github.com/csillaggyujto)
 * [Changed] Prevent any kind of interaction with Buckets marked as inactive [#111](https://github.com/TheAxelander/OpenBudgeteer/issues/111)
 * [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)
 * [Changed] Replaced custom solution to fix [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) with new `bind:get` and `bind:set` feature from .Net 7
 * [Changed] Improved performance for duplicate check on Import Page
+* [Changed] Improved visibility of some reports on Report Page [#137](https://github.com/TheAxelander/OpenBudgeteer/issues/137)
+* [Fixed] Enable de-selection of Payee on Import Page [#148](https://github.com/TheAxelander/OpenBudgeteer/issues/148)
 
 ### 1.6.3 (2023-01-27)
 

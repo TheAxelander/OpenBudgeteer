@@ -349,7 +349,6 @@ public class BucketViewModel : ViewModelBase
             var results = dbContext.BudgetedTransaction
                 .Include(i => i.Transaction)
                 .Where(i =>
-                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
                     i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
                     i.Transaction.TransactionDate.Year == _yearMonthViewModel.SelectedYear &&
                     i.Transaction.TransactionDate.Month == _yearMonthViewModel.SelectedMonth)
