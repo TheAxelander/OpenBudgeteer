@@ -15,7 +15,7 @@ WORKDIR /src
 COPY . .
 RUN dotnet restore -r linux-musl-x64
 WORKDIR "/src/OpenBudgeteer.Blazor"
-RUN dotnet publish "OpenBudgeteer.Blazor.csproj" -r linux-musl-x64 --no-self-contained -c Release -o /app/publish
+RUN dotnet publish "OpenBudgeteer.Blazor.csproj" --no-self-contained -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
