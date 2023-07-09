@@ -153,7 +153,7 @@ public class ImportDataViewModel : ViewModelBase
 
         public int GetHashCode(BankTransaction obj)
         {
-            return new { obj.TransactionDate.Date, obj.Amount, obj.Payee, obj.Memo }.GetHashCode();
+            return new { obj.TransactionDate.Date, obj.Amount }.GetHashCode();
         }
     }
 
