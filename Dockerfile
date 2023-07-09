@@ -13,9 +13,9 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 
 WORKDIR /src
 COPY . .
-RUN dotnet restore
+RUN dotnet restore-r linux-musl-x64
 WORKDIR "/src/OpenBudgeteer.Blazor"
-RUN dotnet publish "OpenBudgeteer.Blazor.csproj" --no-self-contained -c Release -o /app/publish
+RUN dotnet publish "OpenBudgeteer.Blazor.csproj"-r linux-musl-x64 --no-self-contained -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
