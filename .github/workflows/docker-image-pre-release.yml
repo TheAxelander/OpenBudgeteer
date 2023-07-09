@@ -55,5 +55,5 @@ jobs:
           context: .
           push: true
           tags: axelander/openbudgeteer:pre-release
-          file: OpenBudgeteer.Blazor/Dockerfile
+#          file: OpenBudgeteer.Blazor/Dockerfile
           platforms:  linux/arm64,linux/amd64
