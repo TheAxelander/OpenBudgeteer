@@ -39,7 +39,7 @@ services:
       - mysql-internal
 
   phpmyadmin:
-    image: adminer
+    image: phpmyadmin/phpmyadmin:5.1.3
     container_name: openbudgeteer-phpmyadmin
     links:
       - mysql:db
