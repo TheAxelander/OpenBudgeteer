@@ -8,7 +8,7 @@
 * [Changed] Migrated to .Net 7
 * [Changed] Integer based IDs in database have been migrated to Guid
 * [Changed] Overall refactoring of database backend including SQL injection protection. Thanks [csillaggyujto](https://github.com/csillaggyujto)
-* [Changed] Blazor Docker Image based on Alpine [#57](https://github.com/TheAxelander/OpenBudgeteer/issues/157) Thanks [csillaggyujto](https://github.com/csillaggyujto)
+* [Changed] Blazor Docker Image based on Alpine [#143](https://github.com/TheAxelander/OpenBudgeteer/issues/143) Thanks [csillaggyujto](https://github.com/csillaggyujto)
 * [Changed] Prevent any kind of interaction with Buckets marked as inactive [#111](https://github.com/TheAxelander/OpenBudgeteer/issues/111)
 * [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)
 * [Changed] Replaced custom solution to fix [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) with new `bind:get` and `bind:set` feature from .Net 7
