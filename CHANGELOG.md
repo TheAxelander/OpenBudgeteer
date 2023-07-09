@@ -15,6 +15,7 @@
 * [Changed] Improved performance for duplicate check on Import Page
 * [Changed] Improved visibility of some reports on Report Page [#137](https://github.com/TheAxelander/OpenBudgeteer/issues/137)
 * [Fixed] Enable de-selection of Payee on Import Page [#148](https://github.com/TheAxelander/OpenBudgeteer/issues/148)
+* [Fixed] Duplicate matching on Import Page [#151](https://github.com/TheAxelander/OpenBudgeteer/issues/151) Thanks [Lucaber](https://github.com/Lucaber)
 
 ### 1.6.3 (2023-01-27)
 
