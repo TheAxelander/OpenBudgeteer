@@ -241,7 +241,7 @@ public class TransactionViewModel : ViewModelBase
                     .Where(i => i.AccountId == account.AccountId)
                     .OrderByDescending(i => i.TransactionDate)
                     .ToList()
-                    .GetRange(0, 100);
+                    .Take(100);
 
             var transactionTasks = transactions
                 .Select(i => 
