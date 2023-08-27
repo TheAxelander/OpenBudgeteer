@@ -702,25 +702,32 @@ public class BucketViewModelItem : ViewModelBase
     /// <summary>
     /// Helper method to create a new <see cref="BucketMovement"/> record in the database based on User input
     /// </summary>
-    /// <remarks>Creation starts once Enter key is pressed</remarks>
     /// <remarks>Recalculates figures after database operations</remarks>
-    /// <param name="key">Pressed key</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult HandleInOutInput(string key)
+    public ViewModelOperationResult HandleInOutInput()
     {
-        if (key != "Enter") return new ViewModelOperationResult(true);
+        return HandleInOutInput(new DatabaseContext(_dbOptions));
+    }
+    
+    /// <summary>
+    /// Helper method to create a new <see cref="BucketMovement"/> record in the database based on User input
+    /// </summary>
+    /// <remarks>Recalculates figures after database operations</remarks>
+    /// <param name="dbContext">
+    /// Current <see cref="DatabaseContext"/> under which database changes should be written (prevents DB locks)
+    /// </param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult HandleInOutInput(DatabaseContext dbContext)
+    {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                var newMovement = new BucketMovement(Bucket, InOut, _currentYearMonth);
-                if (dbContext.CreateBucketMovement(newMovement) == 0)
-                    throw new Exception($"Unable to create new Bucket Movement.{Environment.NewLine}" +
-                                        $"{Environment.NewLine}" +
-                                        $"Bucket ID: {newMovement.BucketId}" +
-                                        $"Amount: {newMovement.Amount}" +
-                                        $"Movement Date: {newMovement.MovementDate.ToShortDateString()}");
-            }
+            var newMovement = new BucketMovement(Bucket, InOut, _currentYearMonth);
+            if (dbContext.CreateBucketMovement(newMovement) == 0)
+                throw new Exception($"Unable to create new Bucket Movement.{Environment.NewLine}" +
+                                    $"{Environment.NewLine}" +
+                                    $"Bucket ID: {newMovement.BucketId}" +
+                                    $"Amount: {newMovement.Amount}" +
+                                    $"Movement Date: {newMovement.MovementDate.ToShortDateString()}");
             //ViewModelReloadRequired?.Invoke(this);
             CalculateValues();
             return new ViewModelOperationResult(true);

@@ -310,7 +310,7 @@ public class BucketViewModel : ViewModelBase
             {
                 if (bucket.Want == 0) continue;
                 bucket.InOut = bucket.Want;
-                var result = bucket.HandleInOutInput("Enter");
+                var result = bucket.HandleInOutInput(dbContext);
                 if (!result.IsSuccessful) throw new Exception(result.Message);
             }
 

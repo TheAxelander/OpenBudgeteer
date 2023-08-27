@@ -438,7 +438,8 @@
 
     async void InOut_Changed(BucketViewModelItem bucket, KeyboardEventArgs args)
     {
-        var result = bucket.HandleInOutInput(args.Key);
+        if (args.Key != "Enter") return;
+        var result = bucket.HandleInOutInput();
         if (result.IsSuccessful)
         {
             await HandleResult(_dataContext.UpdateBalanceFigures());
