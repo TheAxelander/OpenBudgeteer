@@ -435,8 +435,11 @@ public class BucketViewModelItem : ViewModelBase
             else
             {
                 Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
-                if (Progress > 100) Progress = 100;
             }
+            
+            // Some additional consistency checks and fixes
+            if (Progress > 100) Progress = 100;
+            if (Progress < 0) Progress = 0;
             
             Details = $"{BucketVersion.BucketTypeYParam} until {targetDate:yyyy-MM}";
             IsProgressbarVisible = true;
