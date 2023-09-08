@@ -550,7 +550,7 @@
 
         if (query.TryGetValue("csv", out var csv64))
         {
-            HandleResult(await LoadCSVFromBase64String(csv64));
+            HandleResult(await LoadCsvFromBase64StringAsync(csv64));
         }
 
         if (_step2Enabled && query.TryGetValue("profile", out var profileName))
@@ -568,15 +568,15 @@
         }
     }
 
-    public async Task<ViewModelOperationResult> LoadCSVFromBase64String(String csv64)
+    async Task<ViewModelOperationResult> LoadCsvFromBase64StringAsync(string csv64)
     {
         try
         {
             var csv = Encoding.UTF8.GetString(Convert.FromBase64String(csv64));
             var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
-            writer.Write(csv);
-            writer.Flush();
+            await writer.WriteAsync(csv);
+            await writer.FlushAsync();
             stream.Position = 0;
             var res = await _dataContext.HandleOpenFileAsync(stream);
             if (res.IsSuccessful)
