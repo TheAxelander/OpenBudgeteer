@@ -569,9 +569,15 @@ public class BucketViewModelItem : ViewModelBase
             }
 
             // Check if target amount is 0 to prevent DivideByZeroException 
-            if ((BucketVersion.BucketType is 3 or 4) && BucketVersion.BucketTypeYParam == 0)
+            if ((BucketVersion.BucketType is 2 or 3 or 4) && BucketVersion.BucketTypeYParam <= 0)
             {
                 throw new Exception("Target amount must not be 0 for this Bucket Type.");
+            }
+            
+            // Check if number of months is not 0
+            if ((BucketVersion.BucketType == 3) && BucketVersion.BucketTypeXParam <= 0)
+            {
+                throw new Exception("Number of months must be positive for this Bucket Type.");
             }
             
             return new ViewModelOperationResult(true);
