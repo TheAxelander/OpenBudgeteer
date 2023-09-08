@@ -19,7 +19,9 @@
                             <label class="form-label">Bucket Type:</label>
                             <select class="form-select form-select-sm"
                                     @bind:get="DataContext.BucketVersion.BucketType.ToString()"
-                                    @bind:set="(value) => { DataContext.BucketVersion.BucketType = Convert.ToInt32(value); }">
+                                    @bind:set="(value) => { 
+                                        DataContext.BucketVersion.BucketType = Convert.ToInt32(value); 
+                                        BucketType_SelectionChanged();}">
                                 @foreach (var bucketType in DataContext.AvailableBucketTypes)
                                 {
                                     <option value="@(DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1)">@bucketType</option>
@@ -41,17 +43,38 @@
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">Number of months:</label>
-                            <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeXParam"/>
+                            @if (_isNumberOfMonthsEnabled)
+                            {
+                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeXParam"/>    
+                            }
+                            else
+                            {
+                                <input class="form-control form-control-sm" disabled style="text-align: right;" type="number"/>
+                            }
                         </div>
                         <div class="col">
                             <label class="form-label">Amount:</label>
-                            <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeYParam"/>
+                            @if (_isAmountEnabled)
+                            {
+                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeYParam"/>    
+                            }
+                            else
+                            {
+                                <input class="form-control form-control-sm" disabled style="text-align: right;" type="number"/>
+                            }
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">(First) Target Date:</label>
-                            <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeZParam" @bind:format="yyyy-MM-dd"/>
+                            @if (_isTargetDataEnabled)
+                            {
+                                <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeZParam" @bind:format="yyyy-MM-dd"/>    
+                            }
+                            else
+                            {
+                                <input class="form-control form-control-sm" disabled style="text-align: right;" type="date"/>
+                            }
                         </div>
                         <div class="col">
                             <label class="form-label">Color:</label>
@@ -81,18 +104,65 @@
 }
 
 @code {
+    bool _isNumberOfMonthsEnabled = true;
+    bool _isAmountEnabled = true;
+    bool _isTargetDataEnabled = true;
+    
     [Parameter]
     public string Title { get; set; }
 
     [Parameter]
     public BucketViewModelItem DataContext { get; set; }
 
+    private bool _isDialogVisible;
     [Parameter]
-    public bool IsDialogVisible { get; set; }
+    public bool IsDialogVisible
+    {
+        get => _isDialogVisible;
+        set
+        {
+            _isDialogVisible = value;
+            if (_isDialogVisible) BucketType_SelectionChanged();
+        }
+    }
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnCancelClickCallback { get; set; }
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
+
+    void BucketType_SelectionChanged()
+    {
+        if (DataContext == null) return; //Should not happen
+
+        switch (DataContext.BucketVersion.BucketType)
+        {
+            case 1:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = false;
+                _isTargetDataEnabled = false;
+                break;
+            case 2:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = false;
+                break;
+            case 3:
+                _isNumberOfMonthsEnabled = true;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = true;
+                break;
+            case 4:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = true;
+                break;
+            default:
+                _isNumberOfMonthsEnabled = true;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = true;
+                break;
+        }
+    }
 }

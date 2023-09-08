@@ -65,9 +65,11 @@ public class BucketVersion : BaseObject
                     BucketTypeZParam = DateTime.MinValue;
                     break;
                 case 3:
+                    BucketTypeZParam = DateTime.Now;
                     break;
                 case 4:
                     BucketTypeXParam = 0;
+                    BucketTypeZParam = DateTime.Now;
                     break;
             }
         }
