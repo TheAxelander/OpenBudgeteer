@@ -308,7 +308,7 @@
     Title="Bucket" 
     Message="@_errorModalDialogMessage" 
     IsDialogVisible="@_isErrorModalDialogVisible"
-    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
+    OnClickCallback="@CloseErrorDialog"/>
 
 @code {
     BucketViewModel _dataContext;
@@ -329,6 +329,7 @@
 
     bool _isErrorModalDialogVisible;
     string _errorModalDialogMessage;
+    bool _hasErrorInBucketModalDialog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -387,7 +388,14 @@
     async void SaveAndCloseEditBucketDialog()
     {
         _isEditBucketModalDialogVisible = false;
-        await SaveChanges(_editBucketDialogDataContext);
+        var result = _dataContext.SaveChanges(_editBucketDialogDataContext);
+        await HandleResult(result);
+        if (!result.IsSuccessful)
+        {
+            _hasErrorInBucketModalDialog = true; // Ensures that Dialog will be displayed again
+            return; // Error message is shown in HandleResult()
+        }
+        StateHasChanged();
     }
 
     async void CancelEditBucketDialog()
@@ -397,12 +405,6 @@
         StateHasChanged();
     }
 
-    async Task SaveChanges(BucketViewModelItem bucket)
-    {
-        await HandleResult(_dataContext.SaveChanges(bucket));
-        StateHasChanged();
-    }
-   
     void HandleBucketCloseRequest(BucketViewModelItem bucket)
     {
         _bucketToBeClosed = bucket;
@@ -461,5 +463,16 @@
 
         _isBucketDetailsModalDialogDataContextLoading = false;
         StateHasChanged();
+    }
+
+    void CloseErrorDialog()
+    {
+        _isErrorModalDialogVisible = false;
+        // In case error occuring in EditBucketDialog, display it again
+        if (_hasErrorInBucketModalDialog)
+        {
+            _isEditBucketModalDialogVisible = true;
+            _hasErrorInBucketModalDialog = false;
+        }
     }
 }
