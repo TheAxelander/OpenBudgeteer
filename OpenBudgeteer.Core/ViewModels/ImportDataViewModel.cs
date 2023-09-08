@@ -345,8 +345,8 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
-            FileText = File.ReadAllText(FilePath, Encoding.GetEncoding(1252));
-            _fileLines = File.ReadAllLines(FilePath, Encoding.GetEncoding(1252));
+            FileText = File.ReadAllText(FilePath, Encoding.GetEncoding("utf-8"));
+            _fileLines = File.ReadAllLines(FilePath, Encoding.GetEncoding("utf-8"));
 
             return new ViewModelOperationResult(true);
         }
@@ -389,7 +389,7 @@ public class ImportDataViewModel : ViewModelBase
 
             FilePath = string.Empty;
 
-            using var lineReader = new StreamReader(stream, Encoding.GetEncoding(1252));
+            using var lineReader = new StreamReader(stream, Encoding.GetEncoding("utf-8"));
             var line = await lineReader.ReadLineAsync();
             while(line != null)
             {
