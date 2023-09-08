@@ -114,17 +114,8 @@
     [Parameter]
     public BucketViewModelItem DataContext { get; set; }
 
-    private bool _isDialogVisible;
     [Parameter]
-    public bool IsDialogVisible
-    {
-        get => _isDialogVisible;
-        set
-        {
-            _isDialogVisible = value;
-            if (_isDialogVisible) BucketType_SelectionChanged();
-        }
-    }
+    public bool IsDialogVisible { get; set; }
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnCancelClickCallback { get; set; }
@@ -132,10 +123,14 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
 
+    protected override Task OnParametersSetAsync()
+    {
+        if (IsDialogVisible && DataContext != null) BucketType_SelectionChanged();
+        return base.OnParametersSetAsync();
+    }
+
     void BucketType_SelectionChanged()
     {
-        if (DataContext == null) return; //Should not happen
-
         switch (DataContext.BucketVersion.BucketType)
         {
             case 1:
