@@ -21,6 +21,7 @@
 * [Fixed] Sqlite Database locked while using "Distribute Budget" [#171](https://github.com/TheAxelander/OpenBudgeteer/issues/171)
 * [Fixed] Missing Unicode support for Import [#163](https://github.com/TheAxelander/OpenBudgeteer/issues/163)
 * [Fixed] Error message closes Modal Dialog for Create/Edit Bucket [#170](https://github.com/TheAxelander/OpenBudgeteer/issues/170)
+* [Fixed] Wrong selection after saving an Import Profile [#172](https://github.com/TheAxelander/OpenBudgeteer/issues/172)
 
 ### 1.6.3 (2023-01-27)
 

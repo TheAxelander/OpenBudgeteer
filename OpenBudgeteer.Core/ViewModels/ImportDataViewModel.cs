@@ -706,8 +706,6 @@ public class ImportDataViewModel : ViewModelBase
 
             using var dbContext = new DatabaseContext(_dbOptions);
             dbContext.UpdateImportProfile(SelectedImportProfile);
-            LoadAvailableProfiles();
-            SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
             
             return new ViewModelOperationResult(true);
         }
