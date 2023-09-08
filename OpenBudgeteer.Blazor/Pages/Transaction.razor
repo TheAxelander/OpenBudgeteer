@@ -183,7 +183,7 @@
         }
         else
         {
-            <tr @onmouseover="() => transaction.IsHovered = true" @onmouseout="() => transaction.IsHovered = false">
+            <tr @onmouseover="@(() => transaction.IsHovered = true)" @onmouseout="@(() => transaction.IsHovered = false)">
                 <td class="col-numbers">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
                 <td>@transaction.SelectedAccount.Name</td>
                 <td>@transaction.Transaction.Payee</td>

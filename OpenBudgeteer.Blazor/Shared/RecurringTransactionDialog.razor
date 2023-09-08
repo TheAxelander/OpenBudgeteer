@@ -80,7 +80,7 @@
                                 }
                                 else
                                 {
-                                    <tr @onmouseover="() => transaction.IsHovered = true" @onmouseout="() => transaction.IsHovered = false">
+                                    <tr @onmouseover="@(() => transaction.IsHovered = true)" @onmouseout="@(() => transaction.IsHovered = false)">
                                         <td class="col-numbers">@transaction.Transaction.FirstOccurrenceDate.ToShortDateString()</td>
                                         <td style="width:70px">Every @transaction.Transaction.RecurrenceAmount</td>
                                         <td style="width:130px">@transaction.SelectedRecurrenceType.Value</td>

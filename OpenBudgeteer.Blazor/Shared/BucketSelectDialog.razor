@@ -39,7 +39,7 @@
                         {
                             <table class="table table-sm bucket-table">
                                 <thead>
-                                    <tr class="header-row" @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
+                                    <tr class="header-row" @onmouseover="@(() => bucketGroup.IsHovered = true)" @onmouseout="@(() => bucketGroup.IsHovered = false)">
                                         <th>
                                             <div>
                                                 <button class="btn btn-sm header-action-button collapse-button"
@@ -60,7 +60,7 @@
                                 <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
                                     @foreach (var bucket in bucketGroup.Buckets)
                                     {
-                                        <tr @onmouseover="() => bucket.IsHovered = true" @onmouseout="() => bucket.IsHovered = false">
+                                        <tr @onmouseover="@(() => bucket.IsHovered = true)" @onmouseout="@(() => bucket.IsHovered = false)">
                                             <td>
                                                 <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket.Bucket)">
                                                     @if (bucket.Bucket.IsInactive)

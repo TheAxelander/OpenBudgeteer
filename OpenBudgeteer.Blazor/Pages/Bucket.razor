@@ -157,7 +157,7 @@
 {
     <table class="table table-sm bucket-table">
         <thead>
-        <tr class="header-row" @onmouseover="() => bucketGroup.IsHovered = true" @onmouseout="() => bucketGroup.IsHovered = false">
+        <tr class="header-row" @onmouseover="@(() => bucketGroup.IsHovered = true)" @onmouseout="@(() => bucketGroup.IsHovered = false)">
             @if (bucketGroup.InModification)
             {
                 <th colspan="8">
@@ -206,7 +206,7 @@
         <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
             @foreach (var bucket in bucketGroup.Buckets)
             {
-                <tr @onmouseover="() => bucket.IsHovered = true" @onmouseout="() => bucket.IsHovered = false">
+                <tr @onmouseover="@(() => bucket.IsHovered = true)" @onmouseout="@(() => bucket.IsHovered = false)">
                     <td>
                         @if (bucket.Bucket.IsInactive)
                         {
