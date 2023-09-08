@@ -57,12 +57,10 @@ public class RulesViewModel : ViewModelBase
             {
                 ResetNewRuleSet();
                 RuleSets.Clear();
-                using (var dbContext = new DatabaseContext(_dbOptions))
+                using var dbContext = new DatabaseContext(_dbOptions);
+                foreach (var bucketRuleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority).ToList())
                 {
-                    foreach (var bucketRuleSet in dbContext.BucketRuleSet.OrderBy(i => i.Priority))
-                    {
-                        RuleSets.Add(new RuleSetViewModelItem(_dbOptions, bucketRuleSet));
-                    }
+                    RuleSets.Add(new RuleSetViewModelItem(_dbOptions, bucketRuleSet));
                 }
 
                 return new ViewModelOperationResult(true);
