@@ -14,10 +14,13 @@
 * [Changed] Replaced custom solution to fix [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) with new `bind:get` and `bind:set` feature from .Net 7
 * [Changed] Improved performance for duplicate check on Import Page
 * [Changed] Improved visibility of some reports on Report Page [#137](https://github.com/TheAxelander/OpenBudgeteer/issues/137)
+* [Changed] Improved Bucket Type handling for Create/Edit Bucket [#184](https://github.com/TheAxelander/OpenBudgeteer/issues/184) [#160](https://github.com/TheAxelander/OpenBudgeteer/issues/160)
 * [Fixed] Enable de-selection of Payee on Import Page [#148](https://github.com/TheAxelander/OpenBudgeteer/issues/148)
 * [Fixed] Duplicate matching on Import Page [#151](https://github.com/TheAxelander/OpenBudgeteer/issues/151) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Negative progress for Buckets with type "Expenses every X months" [#158](https://github.com/TheAxelander/OpenBudgeteer/issues/158)
 * [Fixed] Sqlite Database locked while using "Distribute Budget" [#171](https://github.com/TheAxelander/OpenBudgeteer/issues/171)
+* [Fixed] Missing Unicode support for Import [#163](https://github.com/TheAxelander/OpenBudgeteer/issues/163)
+* [Fixed] Error message closes Modal Dialog for Create/Edit Bucket [#170](https://github.com/TheAxelander/OpenBudgeteer/issues/170)
 
 ### 1.6.3 (2023-01-27)
 
