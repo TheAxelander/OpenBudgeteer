@@ -259,7 +259,7 @@
         
         _ruleSetViewModelItemToBeUpdated = ruleSetViewModelItem;
         _bucketSelectDialogDataContext = new BucketViewModel(DbContextOptions, new YearMonthSelectorViewModel());
-        await _bucketSelectDialogDataContext.LoadDataAsync();
+        await _bucketSelectDialogDataContext.LoadDataAsync(false, true);
         
         _isBucketSelectDialogLoading = false;
         StateHasChanged();
