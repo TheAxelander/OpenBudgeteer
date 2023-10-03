@@ -24,6 +24,7 @@
 * [Fixed] Wrong selection after saving an Import Profile [#172](https://github.com/TheAxelander/OpenBudgeteer/issues/172)
 * [Fixed] Allow selection of default system buckets in rules [#191](https://github.com/TheAxelander/OpenBudgeteer/pull/191) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Fix navbar in portrait mode [#190](https://github.com/TheAxelander/OpenBudgeteer/pull/190) Thanks [Lucaber](https://github.com/Lucaber)
+* [Known issue] Update 1.7 doesn't compile currently for ARM64
 
 ### 1.6.3 (2023-01-27)
 
