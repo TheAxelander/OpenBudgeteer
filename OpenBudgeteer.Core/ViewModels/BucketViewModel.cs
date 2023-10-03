@@ -234,20 +234,36 @@ public class BucketViewModel : ViewModelBase
         
         // Set Id to 0 to enable creation
         newBucketGroup.BucketGroupId = Guid.Empty;
-
-        // Save Position, append Bucket Group and later move it to requested Position 
-        var requestedPosition = newBucketGroup.Position;
-        newBucketGroup.Position = BucketGroups.Count + 1;
-
+        
         using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        
+        // Update positions of existing BucketGroups in case requested position is first
+        if (newBucketGroup.Position == 1)
+        {
+            try
+            {
+                var bucketGroups = dbContext.BucketGroup
+                    .Where(i => i.Position > 0)
+                    .ToList();
+                foreach (var bucketGroup in bucketGroups)
+                {
+                    bucketGroup.Position++;
+                }
+
+                dbContext.UpdateBucketGroups(bucketGroups);
+            }
+            catch (Exception e)
+            {
+                transaction.Rollback();
+                return new ViewModelOperationResult(false, $"Unable to move Bucket Groups: {e.Message}");
+            }
+        }
+
         if (dbContext.CreateBucketGroup(newBucketGroup) == 0) 
             return new ViewModelOperationResult(false, "Unable to write changes to database");
 
-        var newlyCreatedBucketGroup = dbContext.BucketGroup.OrderBy(i => i.BucketGroupId).Last();
-        var newBucketGroupViewModelItem = new BucketGroupViewModelItem(_dbOptions, newlyCreatedBucketGroup,
-            _yearMonthViewModel.CurrentMonth);
-        newBucketGroupViewModelItem.MoveGroup(requestedPosition - newBucketGroupViewModelItem.BucketGroup.Position);
-            
+        transaction.Commit();
         return new ViewModelOperationResult(true, true);
     }
 

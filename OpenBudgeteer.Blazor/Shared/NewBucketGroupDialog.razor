@@ -68,6 +68,6 @@
     private void PositionSelectionChanged(ChangeEventArgs eventArgs)
     {
         var selectedOption = eventArgs.Value as string;
-        DataContext.Position = selectedOption == "firstPosition" ? 0 : -1;
+        DataContext.Position = selectedOption == "firstPosition" ? 1 : -1;
     }
 }
