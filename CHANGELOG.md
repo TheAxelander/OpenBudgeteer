@@ -22,6 +22,8 @@
 * [Fixed] Missing Unicode support for Import [#163](https://github.com/TheAxelander/OpenBudgeteer/issues/163)
 * [Fixed] Error message closes Modal Dialog for Create/Edit Bucket [#170](https://github.com/TheAxelander/OpenBudgeteer/issues/170)
 * [Fixed] Wrong selection after saving an Import Profile [#172](https://github.com/TheAxelander/OpenBudgeteer/issues/172)
+* [Fixed] Allow selection of default system buckets in rules [#191](https://github.com/TheAxelander/OpenBudgeteer/pull/191) Thanks [Lucaber](https://github.com/Lucaber)
+* [Fixed] Fix navbar in portrait mode [#190](https://github.com/TheAxelander/OpenBudgeteer/pull/190) Thanks [Lucaber](https://github.com/Lucaber)
 
 ### 1.6.3 (2023-01-27)
 
