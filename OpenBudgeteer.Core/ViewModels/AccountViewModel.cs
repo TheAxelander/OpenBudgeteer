@@ -2,10 +2,10 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
@@ -53,10 +53,8 @@ public class AccountViewModel : ViewModelBase
 
                     using (var transactionDbContext = new DatabaseContext(_dbOptions))
                     {
-                        var transactions = transactionDbContext.BankTransaction
-                            .Where(i => i.AccountId == account.AccountId);
-
-                        foreach (var transaction in transactions)
+                        foreach (var transaction in transactionDbContext.BankTransaction
+                                     .Where(i => i.AccountId == account.AccountId))
                         {
                             if (transaction.Amount > 0)
                                 newIn += transaction.Amount;
@@ -88,7 +86,7 @@ public class AccountViewModel : ViewModelBase
     {
         var result = new AccountViewModelItem(_dbOptions)
         {
-            Account = new Account { AccountId = 0, Name = "New Account", IsActive = 1 },
+            Account = new Account { AccountId = Guid.Empty, Name = "New Account", IsActive = 1 },
             Balance = 0,
             In = 0,
             Out = 0

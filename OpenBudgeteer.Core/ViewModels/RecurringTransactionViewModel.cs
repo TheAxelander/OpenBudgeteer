@@ -5,8 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
@@ -54,22 +54,20 @@ public class RecurringTransactionViewModel : ViewModelBase
         {
             _transactions.Clear();
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var transactionTasks = new List<Task<RecurringTransactionViewModelItem>>();
+
+            foreach (var transaction in dbContext.RecurringBankTransaction)
             {
-                var transactionTasks = new List<Task<RecurringTransactionViewModelItem>>();
-
-                foreach (var transaction in dbContext.RecurringBankTransaction)
-                {
-                    transactionTasks.Add(RecurringTransactionViewModelItem.CreateAsync(_dbOptions, transaction));
-                }
-
-                foreach (var transaction in await Task.WhenAll(transactionTasks))
-                {
-                    _transactions.Add(transaction);
-                }
-
-                return new ViewModelOperationResult(true);
+                transactionTasks.Add(RecurringTransactionViewModelItem.CreateAsync(_dbOptions, transaction));
             }
+
+            foreach (var transaction in await Task.WhenAll(transactionTasks))
+            {
+                _transactions.Add(transaction);
+            }
+
+            return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
@@ -80,7 +78,7 @@ public class RecurringTransactionViewModel : ViewModelBase
     /// <summary>
     /// Creates a new <see cref="RecurringTransactionViewModelItem"/> which can be modified directly
     /// </summary>
-    public void AddEmtpyTransaction()
+    public void AddEmptyTransaction()
     {
         var newTransaction = new RecurringTransactionViewModelItem(_dbOptions);
         newTransaction.InModification = true;

@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
 using OpenBudgeteer.Core.Common.EventClasses;
-using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels;
 
@@ -77,21 +77,23 @@ public class PartialBucketViewModelItem : ViewModelBase
     {
         AvailableBuckets = new ObservableCollection<Bucket>
         {
-            new Bucket {BucketId = 0, BucketGroupId = 0, Name = "No Selection"}
+            new() {BucketId = Guid.Empty, BucketGroupId = Guid.Empty, Name = "No Selection"}
         };
         // Add empty Bucket for empty pre-selection
         using (var dbContext = new DatabaseContext(dbOptions))
         {
-            foreach (var availableBucket in dbContext.Bucket.Where(i => i.BucketId <= 2))
-            {
-                AvailableBuckets.Add(availableBucket);
-            }
+            AvailableBuckets.Add(dbContext.Bucket.First(i =>
+                i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001")));
+            AvailableBuckets.Add(dbContext.Bucket.First(i =>
+                i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002")));
 
             var query = dbContext.Bucket
-                .Where(i => i.BucketId > 2 &&
-                            i.ValidFrom <= yearMonth &&
-                            (i.IsInactive == false ||
-                             (i.IsInactive && i.IsInactiveFrom > yearMonth)))
+                .Where(i => 
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
+                    i.ValidFrom <= yearMonth &&
+                    (i.IsInactive == false ||
+                    (i.IsInactive && i.IsInactiveFrom > yearMonth)))
                 .OrderBy(i => i.Name);
 
             foreach (var availableBucket in query.ToList())

@@ -1,3 +1,30 @@
+### 1.7 (2023-10-03)
+
+* [Add] PostgreSQL support [#81](https://github.com/TheAxelander/OpenBudgeteer/issues/81) Thanks [csillaggyujto](https://github.com/csillaggyujto)
+* [Add] Confirmation Dialog before setting a Bucket inactive [#119](https://github.com/TheAxelander/OpenBudgeteer/issues/119)
+* [Add] Some validations for creating and changing Rules
+* [Breaking Change] Specific characters are no longer allowed for database names (SQL injection prevention)
+* [Breaking Change] For database type `sqlite` the parameter `CONNECTION_DATABASE` can now include a full path (no longer defaulted in `/app/database`). Consider updating your volume mapping.
+* [Changed] Migrated to .Net 7
+* [Changed] Integer based IDs in database have been migrated to Guid
+* [Changed] Overall refactoring of database backend including SQL injection protection. Thanks [csillaggyujto](https://github.com/csillaggyujto)
+* [Changed] Blazor Docker Image based on Alpine [#143](https://github.com/TheAxelander/OpenBudgeteer/issues/143) Thanks [csillaggyujto](https://github.com/csillaggyujto)
+* [Changed] Prevent any kind of interaction with Buckets marked as inactive [#111](https://github.com/TheAxelander/OpenBudgeteer/issues/111)
+* [Changed] Bucket selection on Transaction and Rules Page now happens in a separate dialog which shows a similar overview like on Bucket page [#112](https://github.com/TheAxelander/OpenBudgeteer/issues/112)
+* [Changed] Replaced custom solution to fix [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) with new `bind:get` and `bind:set` feature from .Net 7
+* [Changed] Improved performance for duplicate check on Import Page
+* [Changed] Improved visibility of some reports on Report Page [#137](https://github.com/TheAxelander/OpenBudgeteer/issues/137)
+* [Changed] Improved Bucket Type handling for Create/Edit Bucket [#184](https://github.com/TheAxelander/OpenBudgeteer/issues/184) [#160](https://github.com/TheAxelander/OpenBudgeteer/issues/160)
+* [Fixed] Enable de-selection of Payee on Import Page [#148](https://github.com/TheAxelander/OpenBudgeteer/issues/148)
+* [Fixed] Duplicate matching on Import Page [#151](https://github.com/TheAxelander/OpenBudgeteer/issues/151) Thanks [Lucaber](https://github.com/Lucaber)
+* [Fixed] Negative progress for Buckets with type "Expenses every X months" [#158](https://github.com/TheAxelander/OpenBudgeteer/issues/158)
+* [Fixed] Sqlite Database locked while using "Distribute Budget" [#171](https://github.com/TheAxelander/OpenBudgeteer/issues/171)
+* [Fixed] Missing Unicode support for Import [#163](https://github.com/TheAxelander/OpenBudgeteer/issues/163)
+* [Fixed] Error message closes Modal Dialog for Create/Edit Bucket [#170](https://github.com/TheAxelander/OpenBudgeteer/issues/170)
+* [Fixed] Wrong selection after saving an Import Profile [#172](https://github.com/TheAxelander/OpenBudgeteer/issues/172)
+* [Fixed] Allow selection of default system buckets in rules [#191](https://github.com/TheAxelander/OpenBudgeteer/pull/191) Thanks [Lucaber](https://github.com/Lucaber)
+* [Fixed] Fix navbar in portrait mode [#190](https://github.com/TheAxelander/OpenBudgeteer/pull/190) Thanks [Lucaber](https://github.com/Lucaber)
+
 ### 1.6.3 (2023-01-27)
 
 * [Add] Several Confirmation Dialogs for Import Profile handling [#124](https://github.com/TheAxelander/OpenBudgeteer/issues/124)
@@ -7,11 +34,11 @@
 ### 1.6.2 (2023-01-11)
 
 * [Fixed] Due to implemented fix for [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) Column mapping on Import Page was not working properly [#121](https://github.com/TheAxelander/OpenBudgeteer/issues/121) [#122](https://github.com/TheAxelander/OpenBudgeteer/issues/122)
-
+ 
 ### 1.6.1 (2022-12-31)
 
 * [Changed] Slight visual changes for Mapping Rule modification
-* [Fixed] Rendering of correct Drop-down selection element for Firefox browser [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114)
+* [Fixed] Rendering of Drop-down selection element for Firefox browser [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114)
 
 ### 1.6 (2022-12-03)
 

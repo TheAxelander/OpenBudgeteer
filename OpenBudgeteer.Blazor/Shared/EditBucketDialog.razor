@@ -1,5 +1,4 @@
-﻿@using OpenBudgeteer.Blazor.Shared.Selector
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+﻿@using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using System.Drawing
 @if (IsDialogVisible)
 {
@@ -18,53 +17,75 @@
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">Bucket Type:</label>
-                            <IntegerSelect
-                                @bind-SelectedItem="@DataContext.BucketVersion.BucketType"
-                                AvailableItems="@(new int[] { 1, 2, 3, 4 })"
-                                SelectClasses="form-select form-select-sm">
-                                <SelectOption Context="bucketType">
-                                    <option value="@bucketType">@DataContext.AvailableBucketTypes.ElementAt(bucketType - 1)</option>
-                                </SelectOption>
-                            </IntegerSelect>
+                            <select class="form-select form-select-sm"
+                                    @bind:get="DataContext.BucketVersion.BucketType.ToString()"
+                                    @bind:set="(value) => { 
+                                        DataContext.BucketVersion.BucketType = Convert.ToInt32(value); 
+                                        BucketType_SelectionChanged();}">
+                                @foreach (var bucketType in DataContext.AvailableBucketTypes)
+                                {
+                                    <option value="@(DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1)">@bucketType</option>
+                                }
+                            </select>
                         </div>
 						<div class="col">
                             <label class="form-label">Bucket Group:</label>
-                            <IntegerSelect
-                                @bind-SelectedItem="@DataContext.Bucket.BucketGroupId"
-                                AvailableItems="@DataContext.AvailableBucketGroups.Select(i => i.BucketGroupId).ToList()"
-                                SelectClasses="form-select form-select-sm">
-                                <SelectOption Context="bucketGroupId">
-                                    <option value="@bucketGroupId">@DataContext.AvailableBucketGroups.First(i => i.BucketGroupId == bucketGroupId).Name</option>
-                                </SelectOption>
-                            </IntegerSelect>
+                            <select class="form-select form-select-sm" 
+                                    @bind:get="DataContext.Bucket.BucketGroupId.ToString()"
+                                    @bind:set="(value) => { DataContext.Bucket.BucketGroupId = Guid.Parse(value); }">
+                                @foreach (var bucketGroup in DataContext.AvailableBucketGroups)
+                                {
+                                    <option value="@bucketGroup.BucketGroupId">@bucketGroup.Name</option>
+                                }
+                            </select>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">Number of months:</label>
-                            <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeXParam"/>
+                            @if (_isNumberOfMonthsEnabled)
+                            {
+                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeXParam"/>    
+                            }
+                            else
+                            {
+                                <input class="form-control form-control-sm" disabled style="text-align: right;" type="number"/>
+                            }
                         </div>
                         <div class="col">
                             <label class="form-label">Amount:</label>
-                            <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeYParam"/>
+                            @if (_isAmountEnabled)
+                            {
+                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeYParam"/>    
+                            }
+                            else
+                            {
+                                <input class="form-control form-control-sm" disabled style="text-align: right;" type="number"/>
+                            }
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">(First) Target Date:</label>
-                            <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeZParam" @bind:format="yyyy-MM-dd"/>
+                            @if (_isTargetDataEnabled)
+                            {
+                                <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeZParam" @bind:format="yyyy-MM-dd"/>    
+                            }
+                            else
+                            {
+                                <input class="form-control form-control-sm" disabled style="text-align: right;" type="date"/>
+                            }
                         </div>
                         <div class="col">
                             <label class="form-label">Color:</label>
-                            <StringSelect
-                                @bind-SelectedItem="@DataContext.Bucket.ColorCode"
-                                AvailableItems="@DataContext.AvailableColors.Select(i => i.Name).ToList()"
-                                SelectClasses="form-select form-select-sm"
-                                SelectStyles="@($"background-color: {@ColorTranslator.ToHtml(DataContext.Bucket.Color)}")">
-                                <SelectOption Context="color">
-                                    <option style="background-color: @ColorTranslator.ToHtml(Color.FromName(color))" value="@color">@color</option>
-                                </SelectOption>
-                            </StringSelect>
+                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
+                                    @bind:get="DataContext.Bucket.ColorCode"
+                                    @bind:set="(value) => { DataContext.Bucket.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
+                                @foreach (var color in DataContext.AvailableColors)
+                                {
+                                    <option style="background-color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
+                                }
+                            </select>
                         </div>
                     </div>
                     <div>
@@ -83,6 +104,10 @@
 }
 
 @code {
+    bool _isNumberOfMonthsEnabled = true;
+    bool _isAmountEnabled = true;
+    bool _isTargetDataEnabled = true;
+    
     [Parameter]
     public string Title { get; set; }
 
@@ -97,4 +122,42 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (IsDialogVisible && DataContext != null) BucketType_SelectionChanged();
+        return base.OnParametersSetAsync();
+    }
+
+    void BucketType_SelectionChanged()
+    {
+        switch (DataContext.BucketVersion.BucketType)
+        {
+            case 1:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = false;
+                _isTargetDataEnabled = false;
+                break;
+            case 2:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = false;
+                break;
+            case 3:
+                _isNumberOfMonthsEnabled = true;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = true;
+                break;
+            case 4:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = true;
+                break;
+            default:
+                _isNumberOfMonthsEnabled = true;
+                _isAmountEnabled = true;
+                _isTargetDataEnabled = true;
+                break;
+        }
+    }
 }

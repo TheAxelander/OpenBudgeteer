@@ -5,6 +5,16 @@ button.header-action-button {
     margin-right: 5px;
 	margin-bottom: 5px;
 }
+button.collapse-button {
+    font-family: "Segoe UI Symbol";
+    padding: 0;
+    height: 25px;
+    width: 25px;
+}
+button.collapse-button:focus, button.collapse-button:active {
+    outline: none;
+    box-shadow: none;
+}
 input.number-input {
     text-align: right;
 }
@@ -12,11 +22,31 @@ table .header-row td, table .header-row th {
     border-top: none;
 	font-size: 1rem;
 }
+.bucket-table td {
+    border-top: none;
+    border-bottom: 1px solid;
+    border-bottom-color: inherit;
+}
 .col-numbers {
     text-align: right;
 }
+.col-bucket-numbers {
+    width: 90px;
+}
 .col-buttons {
     text-align: right;
+    white-space: nowrap;
+}
+.col-bucket-buttons {
+    width: 120px;
+}
+.col-bucket-details {
+    width: 250px;
+}
+.bucketgroup-header-text {
+    font-size: 1rem;
+    font-weight: bold;
+    vertical-align: middle;
 }
 .report-chart-box {
     width: 900px;
@@ -37,6 +67,11 @@ table .header-row td, table .header-row th {
 .bucket-indicator {
     border-radius: 25px;
     margin: 0.3rem 0
+}
+
+button.btn-bucket {
+    border-radius: 25px; 
+    width: 100%
 }
 
 /* Overwrite bootstrap styles */

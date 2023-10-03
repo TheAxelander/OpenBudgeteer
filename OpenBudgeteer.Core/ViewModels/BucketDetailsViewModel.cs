@@ -1,17 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels
 {
@@ -22,8 +16,8 @@ namespace OpenBudgeteer.Core.ViewModels
         /// </summary>
         private class BucketActivity : BaseObject
         {
-            private int _bucketId;
-            public int BucketId
+            private Guid _bucketId;
+            public Guid BucketId
             {
                 get => _bucketId;
                 set => Set(ref _bucketId, value);
@@ -43,10 +37,10 @@ namespace OpenBudgeteer.Core.ViewModels
                 set => Set(ref _amount, value);
             }
 
-            public BucketActivity(BankTransaction bankTransaction, BudgetedTransaction budgetedTransaction)
+            public BucketActivity(BudgetedTransaction budgetedTransaction)
             {
                 BucketId = budgetedTransaction.BucketId;
-                TransactionDate = bankTransaction.TransactionDate;
+                TransactionDate = budgetedTransaction.Transaction.TransactionDate;
                 Amount = budgetedTransaction.Amount;
             }
 
@@ -61,7 +55,7 @@ namespace OpenBudgeteer.Core.ViewModels
 
         private Bucket _bucket;
         /// <summary>
-        /// Current <see cref="Models.Bucket"/> that will be used
+        /// Current <see cref="Contracts.Models.Bucket"/> that will be used
         /// </summary>
         public Bucket Bucket
         {
@@ -140,7 +134,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 .ToList();
 
                 // Collect results
-                for (DateTime month = startingMonth; month <= _yearMonthViewModel.CurrentMonth; month = month.AddMonths(1))
+                for (var month = startingMonth; month <= _yearMonthViewModel.CurrentMonth; month = month.AddMonths(1))
                 {
                     if (monthBalances.Count != 0)
                     {
@@ -194,7 +188,7 @@ namespace OpenBudgeteer.Core.ViewModels
                 .ToList();
 
                 // Collect results
-                for (DateTime month = startingMonth; month <= _yearMonthViewModel.CurrentMonth; month = month.AddMonths(1))
+                for (var month = startingMonth; month <= _yearMonthViewModel.CurrentMonth; month = month.AddMonths(1))
                 {
                     if (monthBalances.Count != 0)
                     {
@@ -223,35 +217,25 @@ namespace OpenBudgeteer.Core.ViewModels
         /// <returns></returns>
         private List<BucketActivity> GetAllBucketActivities(DateTime startingMonth)
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                // Get all BankTransaction assigned to this Bucket
-                var transactions = dbContext.BankTransaction
-                    .Join(
-                        dbContext.BudgetedTransaction,
-                        bankTransaction => bankTransaction.TransactionId,
-                        budgetedTransaction => budgetedTransaction.TransactionId,
-                        (bankTransaction, budgetedTransaction) => new
-                        {
-                            BankTransaction = bankTransaction,
-                            BudgetedTransaction = budgetedTransaction
-                        })
-                    .Where(i =>
-                        i.BudgetedTransaction.BucketId == Bucket.BucketId &&
-                        i.BankTransaction.TransactionDate >= startingMonth)
-                    .Select(i => new BucketActivity(i.BankTransaction, i.BudgetedTransaction))
-                    .ToList();
+            using var dbContext = new DatabaseContext(_dbOptions);
+            // Get all BankTransaction assigned to this Bucket
+            var transactions = dbContext.BudgetedTransaction
+                .Include(i => i.Transaction)
+                .Where(i =>
+                    i.BucketId == Bucket.BucketId &&
+                    i.Transaction.TransactionDate >= startingMonth)
+                .Select(i => new BucketActivity(i))
+                .ToList();
 
-                // Append Bucket Movements
-                transactions.AddRange(dbContext.BucketMovement
-                    .Where(i =>
-                        i.BucketId == Bucket.BucketId &&
-                        i.MovementDate >= startingMonth)
-                    .Select(i => new BucketActivity(i))
-                    .ToList());
+            // Append Bucket Movements
+            transactions.AddRange(dbContext.BucketMovement
+                .Where(i =>
+                    i.BucketId == Bucket.BucketId &&
+                    i.MovementDate >= startingMonth)
+                .Select(i => new BucketActivity(i))
+                .ToList());
 
-                return transactions;
-            }
+            return transactions;
         }
 
         /// <summary>
@@ -272,38 +256,28 @@ namespace OpenBudgeteer.Core.ViewModels
                 var result = new List<Tuple<DateTime, decimal>>();
                 var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-                using (var dbContext = new DatabaseContext(_dbOptions))
+                using var dbContext = new DatabaseContext(_dbOptions);
+                for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
                 {
-                    for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
-                    {
-                        var month = currentMonth.AddMonths(monthIndex * -1);
-                        var transactions = dbContext.BankTransaction
-                            .Join(
-                                dbContext.BudgetedTransaction,
-                                bankTransaction => bankTransaction.TransactionId,
-                                budgetedTransaction => budgetedTransaction.TransactionId,
-                                (bankTransaction, budgetedTransaction) => new
-                                {
-                                    BankTransaction = bankTransaction,
-                                    BudgetedTransaction = budgetedTransaction
-                                })
-                            .Where(i =>
-                                i.BudgetedTransaction.BucketId == Bucket.BucketId &&
-                                i.BankTransaction.TransactionDate < month.AddMonths(1))
-                            .ToList();
+                    var month = currentMonth.AddMonths(monthIndex * -1);
+                    var transactions = dbContext.BudgetedTransaction
+                        .Include(i => i.Transaction)
+                        .Where(i =>
+                            i.BucketId == Bucket.BucketId &&
+                            i.Transaction.TransactionDate < month.AddMonths(1))
+                        .ToList();
+                        
+                    var bucketMovements = dbContext.BucketMovement
+                        .Where(i =>
+                            i.BucketId == Bucket.BucketId &&
+                            i.MovementDate < month.AddMonths(1))
+                        .ToList();
 
-                        var bucketMovements = dbContext.BucketMovement
-                            .Where(i =>
-                                i.BucketId == Bucket.BucketId &&
-                                i.MovementDate < month.AddMonths(1))
-                            .ToList();
-
-                        // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
-                        var bucketBalance = 
-                            transactions.Sum(i => i.BudgetedTransaction.Amount) +
-                            bucketMovements.Sum(i => i.Amount);
-                        result.Add(new Tuple<DateTime, decimal>(month, bucketBalance));
-                    }
+                    // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
+                    var bucketBalance = 
+                        transactions.Sum(i => i.Amount) +
+                        bucketMovements.Sum(i => i.Amount);
+                    result.Add(new Tuple<DateTime, decimal>(month, bucketBalance));
                 }
 
                 return result;

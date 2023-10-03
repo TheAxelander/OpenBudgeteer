@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.ViewModels.ItemViewModels;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
@@ -39,24 +39,22 @@ public class ReportViewModel : ViewModelBase
             var result = new List<Tuple<DateTime, decimal>>();
             var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                var transactions = dbContext.BankTransaction
-                    .Where(i => i.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
-                    .OrderBy(i => i.TransactionDate)
-                    .ToList();
-                var monthBalances = transactions
-                    .GroupBy(i => new DateTime(i.TransactionDate.Year, i.TransactionDate.Month, 1))
-                    .Select(i => new
-                    {
-                        YearMonth = i.Key,
-                        Balance = i.Sum(j => j.Amount)
-                    });
-
-                foreach (var group in monthBalances)
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var transactions = dbContext.BankTransaction
+                .Where(i => i.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
+                .OrderBy(i => i.TransactionDate)
+                .ToList();
+            var monthBalances = transactions
+                .GroupBy(i => new DateTime(i.TransactionDate.Year, i.TransactionDate.Month, 1))
+                .Select(i => new
                 {
-                    result.Add(new Tuple<DateTime, decimal>(group.YearMonth, group.Balance));
-                }
+                    YearMonth = i.Key,
+                    Balance = i.Sum(j => j.Amount)
+                });
+
+            foreach (var group in monthBalances)
+            {
+                result.Add(new Tuple<DateTime, decimal>(group.YearMonth, group.Balance));
             }
 
             return result;
@@ -80,40 +78,28 @@ public class ReportViewModel : ViewModelBase
             var result = new List<Tuple<DateTime, decimal, decimal>>();
             var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                // Get all Transactions which are not marked as "Transfer"
-                var transactions = dbContext.BankTransaction
-                    .Join(
-                        dbContext.BudgetedTransaction,
-                        bankTransaction => bankTransaction.TransactionId,
-                        budgetedTransaction => budgetedTransaction.TransactionId,
-                        (bankTransaction, budgetedTransaction) => new
-                        {
-                            bankTransaction.TransactionId,
-                            bankTransaction.TransactionDate,
-                            budgetedTransaction.Amount,
-                            budgetedTransaction.BucketId
-                        })
-                    .Where(i =>
-                        i.BucketId != 2 && 
-                        i.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
-                    .ToList();
+            using var dbContext = new DatabaseContext(_dbOptions);
+            // Get all Transactions which are not marked as "Transfer"
+            var transactions = dbContext.BudgetedTransaction
+                .Include(i => i.Transaction)
+                .Where(i =>
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
+                    i.Transaction.TransactionDate >= currentMonth.AddMonths((months - 1) * -1))
+                .ToList();
 
-                var monthIncomeExpenses = transactions
-                    .GroupBy(i => new DateTime(i.TransactionDate.Year, i.TransactionDate.Month, 1))
-                    .Select(i => new
-                    {
-                        YearMonth = i.Key,
-                        Income = i.Where(j => j.Amount > 0).Sum(j => j.Amount),
-                        Expenses = (i.Where(j => j.Amount < 0).Sum(j => j.Amount)) * -1
-                    })
-                    .OrderBy(i => i.YearMonth);
-
-                foreach (var group in monthIncomeExpenses)
+            var monthIncomeExpenses = transactions
+                .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
+                .Select(i => new
                 {
-                    result.Add(new Tuple<DateTime, decimal, decimal>(group.YearMonth, group.Income, group.Expenses));
-                }
+                    YearMonth = i.Key,
+                    Income = i.Where(j => j.Amount > 0).Sum(j => j.Amount),
+                    Expenses = (i.Where(j => j.Amount < 0).Sum(j => j.Amount)) * -1
+                })
+                .OrderBy(i => i.YearMonth);
+
+            foreach (var group in monthIncomeExpenses)
+            {
+                result.Add(new Tuple<DateTime, decimal, decimal>(group.YearMonth, group.Income, group.Expenses));
             }
 
             return result;
@@ -136,40 +122,28 @@ public class ReportViewModel : ViewModelBase
             var result = new List<Tuple<DateTime, decimal, decimal>>();
             var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                // Get all Transactions which are not marked as "Transfer"
-                var transactions = dbContext.BankTransaction
-                    .Join(
-                        dbContext.BudgetedTransaction,
-                        bankTransaction => bankTransaction.TransactionId,
-                        budgetedTransaction => budgetedTransaction.TransactionId,
-                        (bankTransaction, budgetedTransaction) => new
-                        {
-                            bankTransaction.TransactionId,
-                            bankTransaction.TransactionDate,
-                            budgetedTransaction.Amount,
-                            budgetedTransaction.BucketId
-                        })
-                    .Where(i =>
-                        i.BucketId != 2 &&
-                        i.TransactionDate >= currentMonth.AddYears((years - 1) * -1))
-                    .ToList();
+            using var dbContext = new DatabaseContext(_dbOptions);
+            // Get all Transactions which are not marked as "Transfer"
+            var transactions = dbContext.BudgetedTransaction
+                .Include(i => i.Transaction)
+                .Where(i =>
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
+                    i.Transaction.TransactionDate >= currentMonth.AddYears((years - 1) * -1))
+                .ToList();
 
-                var yearIncomeExpenses = transactions
-                    .GroupBy(i => new DateTime(i.TransactionDate.Year, 1, 1))
-                    .Select(i => new
-                    {
-                        Year = i.Key,
-                        Income = i.Where(j => j.Amount > 0).Sum(j => j.Amount),
-                        Expenses = (i.Where(j => j.Amount < 0).Sum(j => j.Amount)) * -1
-                    })
-                    .OrderBy(i => i.Year);
-
-                foreach (var group in yearIncomeExpenses)
+            var yearIncomeExpenses = transactions
+                .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, 1, 1))
+                .Select(i => new
                 {
-                    result.Add(new Tuple<DateTime, decimal, decimal>(group.Year, group.Income, group.Expenses));
-                }
+                    Year = i.Key,
+                    Income = i.Where(j => j.Amount > 0).Sum(j => j.Amount),
+                    Expenses = (i.Where(j => j.Amount < 0).Sum(j => j.Amount)) * -1
+                })
+                .OrderBy(i => i.Year);
+
+            foreach (var group in yearIncomeExpenses)
+            {
+                result.Add(new Tuple<DateTime, decimal, decimal>(group.Year, group.Income, group.Expenses));
             }
 
             return result;
@@ -193,19 +167,17 @@ public class ReportViewModel : ViewModelBase
             var result = new List<Tuple<DateTime, decimal>>();
             var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+            for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
             {
-                for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
-                {
-                    var month = currentMonth.AddMonths(monthIndex * -1);
-                    var bankTransactions = dbContext.BankTransaction
-                        .Where(i => i.TransactionDate < month.AddMonths(1))
-                        .OrderBy(i => i.TransactionDate)
-                        .ToList();
-                    // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
-                    var bankBalance = bankTransactions.Sum(i => i.Amount);
-                    result.Add(new Tuple<DateTime, decimal>(month, bankBalance));
-                }
+                var month = currentMonth.AddMonths(monthIndex * -1);
+                var bankTransactions = dbContext.BankTransaction
+                    .Where(i => i.TransactionDate < month.AddMonths(1))
+                    .OrderBy(i => i.TransactionDate)
+                    .ToList();
+                // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
+                var bankBalance = bankTransactions.Sum(i => i.Amount);
+                result.Add(new Tuple<DateTime, decimal>(month, bankBalance));
             }
 
             return result;
@@ -226,75 +198,68 @@ public class ReportViewModel : ViewModelBase
             var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1);
             var result = new List<MonthlyBucketExpensesReportViewModelItem>();
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var buckets = dbContext.Bucket
+                .Where(i => 
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") && 
+                    !i.IsInactive)
+                .OrderBy(i => i.Name);
+            foreach (var bucket in buckets)
             {
-                var buckets = dbContext.Bucket
-                    .Where(i => !i.IsInactive && i.BucketId > 2)
-                    .OrderBy(i => i.Name);
-                foreach (var bucket in buckets)
+                // Get latest BucketVersion based on passed parameter
+                using var bucketVersionDbContext = new DatabaseContext(_dbOptions);
+                var newReportRecord = new MonthlyBucketExpensesReportViewModelItem();
+                var latestVersion = bucketVersionDbContext.BucketVersion
+                    .Where(i => i.BucketId == bucket.BucketId)
+                    .ToList()
+                    .OrderByDescending(i => i.Version)
+                    .First();
+                if (latestVersion.BucketType != 2) continue;
+                using (var budgetedTransactionDbContext = new DatabaseContext(_dbOptions))
                 {
-                    // Get latest BucketVersion based on passed parameter
-                    using (var bucketVersionDbContext = new DatabaseContext(_dbOptions))
-                    {
-                        var newReportRecord = new MonthlyBucketExpensesReportViewModelItem();
-                        var latestVersion = bucketVersionDbContext.BucketVersion
-                            .Where(i => i.BucketId == bucket.BucketId)
-                            .ToList()
-                            .OrderByDescending(i => i.Version)
-                            .First();
-                        if (latestVersion.BucketType != 2) continue;
-                        using (var budgetedTransactionDbContext = new DatabaseContext(_dbOptions))
+                    var queryScope = budgetedTransactionDbContext.BudgetedTransaction
+                        .Include(i => i.Transaction)
+                        // Limit on Transactions for the current Bucket and the last x months
+                        .Where(i => i.BucketId == bucket.BucketId &&
+                                    i.Transaction.TransactionDate >= currentMonth.AddMonths((month - 1) * -1))
+                        .ToList();
+                    // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57) 
+                    var queryResults = queryScope    
+                        // Group the results per YearMonth
+                        .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
+                        // Create a new Grouped Object
+                        .Select(i => new
                         {
-                            var queryScope = budgetedTransactionDbContext.BankTransaction
-                                // Join with BudgetedTransaction
-                                .Join(budgetedTransactionDbContext.BudgetedTransaction,
-                                    transaction => transaction.TransactionId,
-                                    budgetedTransaction => budgetedTransaction.TransactionId,
-                                    ((transaction, budgetedTransaction) => new
-                                    {
-                                        Transaction = transaction,
-                                        BudgetedTransaction = budgetedTransaction
-                                    }))
-                                // Limit on Transactions for the current Bucket and the last x months
-                                .Where(i => i.BudgetedTransaction.BucketId == bucket.BucketId &&
-                                        i.Transaction.TransactionDate >= currentMonth.AddMonths((month - 1) * -1))
-                                .ToList();
-                            // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57) 
-                            var queryResults = queryScope    
-                                // Group the results per YearMonth
-                                .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
-                                // Create a new Grouped Object
-                                .Select(i => new
-                                {
-                                    YearMonth = i.Key,
-                                    Balance = (i.Sum(j => j.Transaction.Amount)) * -1
-                                })
-                                .ToList();
+                            YearMonth = i.Key,
+                            Balance = (i.Sum(j => j.Transaction.Amount)) * -1
+                        })
+                        .OrderBy(i => i.YearMonth)
+                        .ToList();
 
-                            // Collect results
-                            if (queryResults.Count == 0) continue; // No data available. Nothing to add
-                            newReportRecord.BucketName = bucket.Name;
-                            var reportInsertMonth = queryResults.First().YearMonth;
-                            foreach (var queryResult in queryResults)
-                            {
-                                // Create empty MonthlyResults in case no data for specific months are available
-                                while (queryResult.YearMonth != reportInsertMonth)
-                                {
-                                    newReportRecord.MonthlyResults.Add(new Tuple<DateTime, decimal>(
-                                        reportInsertMonth,
-                                        0));
-                                    reportInsertMonth = reportInsertMonth.AddMonths(1);
-                                }
-                                newReportRecord.MonthlyResults.Add(new Tuple<DateTime, decimal>(
-                                        queryResult.YearMonth,
-                                        queryResult.Balance));
-                                reportInsertMonth = reportInsertMonth.AddMonths(1);
-                            }
+                    // Collect results
+                    if (queryResults.Count == 0) continue; // No data available. Nothing to add
+                    newReportRecord.BucketName = bucket.Name;
+                    var reportInsertMonth = queryResults.First().YearMonth;
+                    foreach (var queryResult in queryResults)
+                    {
+                        // Create empty MonthlyResults in case no data for specific months are available
+                        while (queryResult.YearMonth != reportInsertMonth)
+                        {
+                            newReportRecord.MonthlyResults.Add(new Tuple<DateTime, decimal>(
+                                reportInsertMonth,
+                                0));
+                            reportInsertMonth = reportInsertMonth.AddMonths(1);
                         }
-                        result.Add(newReportRecord);
+                        newReportRecord.MonthlyResults.Add(new Tuple<DateTime, decimal>(
+                            queryResult.YearMonth,
+                            queryResult.Balance));
+                        reportInsertMonth = reportInsertMonth.AddMonths(1);
                     }
                 }
+                result.Add(newReportRecord);
             }
+
             return result;
         });
     }

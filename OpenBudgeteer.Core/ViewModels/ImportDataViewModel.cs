@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,8 +12,9 @@ using TinyCsvParser;
 using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
 using TinyCsvParser.TypeConverter;
-using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
@@ -23,18 +22,18 @@ public class ImportDataViewModel : ViewModelBase
 {    
     private class AmountDecimalConverter : DecimalConverter
     {
-        private ImportProfile importProfile;
+        private ImportProfile _importProfile;
 
         public AmountDecimalConverter(ImportProfile importProfile)
             : base(new CultureInfo(importProfile.NumberFormat), NumberStyles.Currency)
         {
-            this.importProfile = importProfile;
+            _importProfile = importProfile;
         }
 
         protected override bool InternalConvert(string value, out decimal result)
         {
-            if (importProfile.AdditionalSettingAmountCleanup)
-                value = Regex.Replace(value, importProfile.AdditionalSettingAmountCleanupValue, string.Empty);
+            if (_importProfile.AdditionalSettingAmountCleanup)
+                value = Regex.Replace(value, _importProfile.AdditionalSettingAmountCleanupValue, string.Empty);
 
             return base.InternalConvert(value, out result);
         }
@@ -51,7 +50,7 @@ public class ImportDataViewModel : ViewModelBase
         /// </remarks>
         /// <param name="importProfile">Instance required for CSV column name</param>
         /// <param name="identifiedColumns">Collection of all CSV columns</param>
-        public CsvBankTransactionMapping(ImportProfile importProfile, IEnumerable<string> identifiedColumns) : base()
+        public CsvBankTransactionMapping(ImportProfile importProfile, IReadOnlyCollection<string> identifiedColumns) : base()
         {
             // Mandatory
             MapProperty(
@@ -63,7 +62,7 @@ public class ImportDataViewModel : ViewModelBase
                 new DateTimeConverter(importProfile.DateFormat));
             
             // Optional
-            if (!string.IsNullOrEmpty(importProfile.PayeeColumnName))
+            if (!string.IsNullOrEmpty(importProfile.PayeeColumnName) && importProfile.PayeeColumnName != "---Select Column---")
             {
                 MapProperty(
                     identifiedColumns.ToList().IndexOf(importProfile.PayeeColumnName), 
@@ -134,6 +133,27 @@ public class ImportDataViewModel : ViewModelBase
                         new AmountDecimalConverter(importProfile));
                     break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Compares two <see cref="BankTransaction"/> if they are a potential match based on
+    /// Date, Amount and Payee or Memo
+    /// </summary>
+    private class DuplicateMatchComparer : IEqualityComparer<BankTransaction>
+    {
+        public bool Equals(BankTransaction x, BankTransaction y)
+        {
+            if (x is null || y is null) return false;
+            return 
+                x.TransactionDate.Date == y.TransactionDate.Date && 
+                x.Amount == y.Amount && 
+                (x.Payee == y.Payee || x.Memo == y.Memo);
+        }
+
+        public int GetHashCode(BankTransaction obj)
+        {
+            return new { obj.TransactionDate.Date, obj.Amount }.GetHashCode();
         }
     }
 
@@ -325,8 +345,8 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
-            FileText = File.ReadAllText(FilePath, Encoding.GetEncoding(1252));
-            _fileLines = File.ReadAllLines(FilePath, Encoding.GetEncoding(1252));
+            FileText = File.ReadAllText(FilePath, Encoding.GetEncoding("utf-8"));
+            _fileLines = File.ReadAllLines(FilePath, Encoding.GetEncoding("utf-8"));
 
             return new ViewModelOperationResult(true);
         }
@@ -364,17 +384,18 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
-            string line;
             var newLines = new List<string>();
             var stringBuilder = new StringBuilder();
 
             FilePath = string.Empty;
 
-            using var lineReader = new StreamReader(stream, Encoding.GetEncoding(1252));
-            while((line = await lineReader.ReadLineAsync()) != null)
+            using var lineReader = new StreamReader(stream, Encoding.GetEncoding("utf-8"));
+            var line = await lineReader.ReadLineAsync();
+            while(line != null)
             {
                 newLines.Add(line);
                 stringBuilder.AppendLine(line);
+                line = await lineReader.ReadLineAsync();
             }
 
             FileText = stringBuilder.ToString();
@@ -389,33 +410,16 @@ public class ImportDataViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Loads all settings based on <see cref="SelectedImportProfile"/>
+    /// Initialize all other data from the ViewModel after changing <see cref="SelectedImportProfile"/>
     /// </summary>
-    /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> LoadProfileAsync()
+    public void InitializeDataFromImportProfile()
     {
-        try
+        ResetLoadedProfileData();
+
+        // Set target Account
+        if (AvailableAccounts.Any(i => i.AccountId == SelectedImportProfile.AccountId))
         {
-            ResetLoadedProfileData();
-
-            // Set target Account
-            if (AvailableAccounts.Any(i => i.AccountId == SelectedImportProfile.AccountId))
-            {
-                SelectedAccount = AvailableAccounts.First(i => i.AccountId == SelectedImportProfile.AccountId);
-            }
-
-            // var result = LoadHeaders();
-            // if (!result.IsSuccessful) throw new Exception(result.Message);
-
-            //await ValidateDataAsync();
-            _isProfileValid = true;
-
-            return new ViewModelOperationResult(true);
-        }
-        catch (Exception e)
-        {
-            _isProfileValid = false;
-            return new ViewModelOperationResult(false, $"Unable to load Profile: {e.Message}");
+            SelectedAccount = AvailableAccounts.First(i => i.AccountId == SelectedImportProfile.AccountId);
         }
     }
 
@@ -502,7 +506,7 @@ public class ImportDataViewModel : ViewModelBase
             // Run pre-checks
             if (string.IsNullOrEmpty(SelectedImportProfile.NumberFormat)) throw new Exception("Missing Number Format");
             if (string.IsNullOrEmpty(SelectedImportProfile.DateFormat)) throw new Exception("Missing Date Format");
-            if (SelectedImportProfile.AccountId < 1) throw new Exception("No target account selected");
+            if (SelectedImportProfile.AccountId == Guid.Empty) throw new Exception("No target account selected");
 
             // Pre-Load Data for verification
             // Initialize CsvReader
@@ -564,23 +568,33 @@ public class ImportDataViewModel : ViewModelBase
     /// </summary>
     private async Task DuplicateCheckOnParsedRecordsAsync()
     {
-        foreach (var parsedRecord in ParsedRecords.Where(i => i.IsValid).ToList())
+        await Task.Run(() =>
         {
-            var duplicateSearches = Task.Run(() =>
-            {
-                using (var dbContext = new DatabaseContext(_dbOptions))
-                {
-                    var duplicates = dbContext.BankTransaction.Where(i =>
-                        i.TransactionDate.Date == parsedRecord.Result.TransactionDate.Date &&
-                        i.Amount == parsedRecord.Result.Amount &&
-                        (i.Memo == parsedRecord.Result.Memo || i.Payee == parsedRecord.Result.Payee));
-                    if (duplicates.Any())
-                        Duplicates.Add(new Tuple<CsvMappingResult<BankTransaction>, List<BankTransaction>>(parsedRecord, duplicates.ToList()));
-                }
-            });
+            using var dbContext = new DatabaseContext(_dbOptions);
+            var transactions = dbContext.BankTransaction.ToList();
+            var parsedRecords = ParsedRecords
+                .Where(i => i.IsValid)
+                .ToList();
 
-            await Task.WhenAll(duplicateSearches);
-        }
+            // GroupJoin transactions and parsedRecords with the match logic implemented in DuplicateMatchComparer
+            var matchQuery = parsedRecords
+                .GroupJoin(
+                    transactions,
+                    i => i.Result,
+                    j => j,
+                    (parsedRecord, matches) => 
+                        new { ParsedRecord = parsedRecord, MatchList = matches.ToList() },
+                    new DuplicateMatchComparer())
+                .ToList();
+
+            foreach (var matchQueryResults in matchQuery.Where(i => i.MatchList.Count > 0))
+            {
+                Duplicates.Add(
+                    new Tuple<CsvMappingResult<BankTransaction>, 
+                        List<BankTransaction>>(matchQueryResults.ParsedRecord, 
+                        matchQueryResults.MatchList));
+            }
+        });
     }
 
     /// <summary>
@@ -604,38 +618,38 @@ public class ImportDataViewModel : ViewModelBase
         if (!_isProfileValid) return new ViewModelOperationResult(false, "Unable to Import Data as current settings are invalid.");
         return await Task.Run(() =>
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            using var dbContext = new DatabaseContext(_dbOptions);
+            using var transaction = dbContext.Database.BeginTransaction();
+            try
             {
-                using (var transaction = dbContext.Database.BeginTransaction())
+                var importedCount = 0;
+                var newRecords = new List<BankTransaction>();
+                var recordsToImport = ParsedRecords
+                    .Where(i => i.IsValid)
+                    .ToList();
+
+                if (withoutDuplicates && Duplicates.Any())
                 {
-                    try
-                    {
-                        var importedCount = 0;
-                        var newRecords = new List<BankTransaction>();
-                        var recordsToImport = ParsedRecords.Where(i => i.IsValid).ToList();
-
-                        if (withoutDuplicates && Duplicates.Any())
-                        {
-                            recordsToImport.RemoveAll(i => Duplicates.Select(j => j.Item1).Contains(i));
-                        }
-
-                        foreach (var recordToImport in recordsToImport)
-                        {
-                            var newRecord = recordToImport.Result;
-                            newRecord.AccountId = SelectedAccount.AccountId;
-                            newRecords.Add(newRecord);
-                        }
-                        importedCount = dbContext.CreateBankTransactions(newRecords);
-
-                        transaction.Commit();
-                        return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
-                    }
-                    catch (Exception e)
-                    {
-                        transaction.Rollback();
-                        return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
-                    }
+                    recordsToImport.RemoveAll(i => Duplicates
+                        .Select(j => j.Item1)
+                        .Contains(i));
                 }
+
+                foreach (var recordToImport in recordsToImport)
+                {
+                    var newRecord = recordToImport.Result;
+                    newRecord.AccountId = SelectedAccount.AccountId;
+                    newRecords.Add(newRecord);
+                }
+                importedCount = dbContext.CreateBankTransactions(newRecords);
+
+                transaction.Commit();
+                return new ViewModelOperationResult(true, $"Successfully imported {importedCount} records.");
+            }
+            catch (Exception e)
+            {
+                transaction.Rollback();
+                return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
             }
         });
     }
@@ -646,12 +660,10 @@ public class ImportDataViewModel : ViewModelBase
     private void LoadAvailableProfiles()
     {
         AvailableImportProfiles.Clear();
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        foreach (var profile in dbContext.ImportProfile)
         {
-            foreach (var profile in dbContext.ImportProfile)
-            {
-                AvailableImportProfiles.Add(profile);
-            }
+            AvailableImportProfiles.Add(profile);
         }
     }
 
@@ -663,16 +675,15 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
-            if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) throw new Exception("Profile Name must not be empty.");
+            if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) 
+                throw new Exception("Profile Name must not be empty.");
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                SelectedImportProfile.ImportProfileId = 0;
-                if (dbContext.CreateImportProfile(SelectedImportProfile) == 0)
-                    throw new Exception("Profile could not be created in database.");
-                LoadAvailableProfiles();
-                SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
-            }    
+            using var dbContext = new DatabaseContext(_dbOptions);
+            SelectedImportProfile.ImportProfileId = Guid.Empty;
+            if (dbContext.CreateImportProfile(SelectedImportProfile) == 0)
+                throw new Exception("Profile could not be created in database.");
+            LoadAvailableProfiles();
+            SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
             
             return new ViewModelOperationResult(true);
         }
@@ -690,15 +701,11 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
-            if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) throw new Exception("Profile Name must not be empty.");
+            if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) 
+                throw new Exception("Profile Name must not be empty.");
 
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                dbContext.UpdateImportProfile(SelectedImportProfile);
-
-                LoadAvailableProfiles();
-                SelectedImportProfile = AvailableImportProfiles.First(i => i.ImportProfileId == SelectedImportProfile.ImportProfileId);
-            }        
+            using var dbContext = new DatabaseContext(_dbOptions);
+            dbContext.UpdateImportProfile(SelectedImportProfile);
             
             return new ViewModelOperationResult(true);
         }
@@ -716,10 +723,8 @@ public class ImportDataViewModel : ViewModelBase
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                dbContext.DeleteImportProfile(SelectedImportProfile);
-            }                
+            using var dbContext = new DatabaseContext(_dbOptions);
+            dbContext.DeleteImportProfile(SelectedImportProfile);
             //ResetLoadedProfileData();
             SelectedImportProfile = new();
             LoadAvailableProfiles();

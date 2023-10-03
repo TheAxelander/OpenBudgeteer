@@ -1,13 +1,13 @@
-﻿using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Data;
 
 namespace OpenBudgeteer.Core.ViewModels.ItemViewModels;
 
@@ -177,7 +177,9 @@ public class BucketViewModelItem : ViewModelBase
         AvailableBucketGroups = new ObservableCollection<BucketGroup>();
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
-            foreach (var item in dbContext.BucketGroup)
+            // Exclude System BucketGroup
+            foreach (var item in dbContext.BucketGroup
+                         .Where(i => i.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001")))
             {
                 AvailableBucketGroups.Add(item);
             }
@@ -215,7 +217,7 @@ public class BucketViewModelItem : ViewModelBase
         _currentYearMonth = new DateTime(yearMonth.Year, yearMonth.Month, 1);
         BucketVersion = new BucketVersion()
         {
-            BucketId = 0,
+            BucketId = Guid.Empty,
             BucketType = 1,
             BucketTypeZParam = yearMonth,
             ValidFrom = yearMonth
@@ -236,7 +238,7 @@ public class BucketViewModelItem : ViewModelBase
         InModification = true;
         Bucket = new Bucket()
         {
-            BucketId = 0,
+            BucketId = Guid.Empty,
             BucketGroupId = bucketGroup.BucketGroupId,
             Name = "New Bucket",
             ColorCode = Color.Transparent.Name,
@@ -256,7 +258,11 @@ public class BucketViewModelItem : ViewModelBase
     public BucketViewModelItem(DbContextOptions<DatabaseContext> dbOptions, Bucket bucket, DateTime yearMonth) : this(dbOptions, yearMonth)
     {
         Bucket = bucket;
-        CalculateValues();
+        // Exclude system default Buckets for any calculation
+        if (bucket.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001"))
+        {
+            CalculateValues();    
+        }
     }
 
     /// <summary>
@@ -289,7 +295,7 @@ public class BucketViewModelItem : ViewModelBase
                 .Where(i => i.BucketId == Bucket.BucketId)
                 .OrderByDescending(i => i.ValidFrom)
                 .ToList();
-            //var orderedBucketVersions = bucketVersions.OrderByDescending(i => i.ValidFrom);
+            
             foreach (var bucketVersion in bucketVersions)
             {
                 if (bucketVersion.ValidFrom > _currentYearMonth) continue;
@@ -305,19 +311,17 @@ public class BucketViewModelItem : ViewModelBase
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             Balance += dbContext.BudgetedTransaction
-                .Join(dbContext.BankTransaction,
-                    i => i.TransactionId,
-                    j => j.TransactionId,
-                    ((budgetedTransaction, bankTransaction) => new { budgetedTransaction, bankTransaction }))
-                .Where(i => i.budgetedTransaction.BucketId == Bucket.BucketId &&
-                            i.bankTransaction.TransactionDate < _currentYearMonth.AddMonths(1))
-                .Select(i => i.budgetedTransaction)
+                .Include(i => i.Transaction)
+                .Where(i => 
+                    i.BucketId == Bucket.BucketId &&
+                    i.Transaction.TransactionDate < _currentYearMonth.AddMonths(1))
                 .ToList()
                 .Sum(i => i.Amount);
 
             Balance += dbContext.BucketMovement
-                .Where(i => i.BucketId == Bucket.BucketId &&
-                            i.MovementDate < _currentYearMonth.AddMonths(1))
+                .Where(i => 
+                    i.BucketId == Bucket.BucketId &&
+                    i.MovementDate < _currentYearMonth.AddMonths(1))
                 .ToList()
                 .Sum(i => i.Amount);
         }
@@ -329,14 +333,11 @@ public class BucketViewModelItem : ViewModelBase
         using (var dbContext = new DatabaseContext(_dbOptions))
         {
             var bucketTransactionsCurrentMonth = dbContext.BudgetedTransaction
-                .Join(dbContext.BankTransaction,
-                    i => i.TransactionId,
-                    j => j.TransactionId,
-                    ((budgetedTransaction, bankTransaction) => new {budgetedTransaction, bankTransaction}))
-                .Where(i => i.budgetedTransaction.BucketId == Bucket.BucketId &&
-                            i.bankTransaction.TransactionDate.Year == _currentYearMonth.Year &&
-                            i.bankTransaction.TransactionDate.Month == _currentYearMonth.Month)
-                .Select(i => i.budgetedTransaction)
+                .Include(i => i.Transaction)
+                .Where(i => 
+                    i.BucketId == Bucket.BucketId &&
+                    i.Transaction.TransactionDate.Year == _currentYearMonth.Year &&
+                    i.Transaction.TransactionDate.Month == _currentYearMonth.Month)
                 .ToList();
             
             foreach (var bucketTransaction in bucketTransactionsCurrentMonth)
@@ -348,9 +349,10 @@ public class BucketViewModelItem : ViewModelBase
             }
 
             var bucketMovementsCurrentMonth = dbContext.BucketMovement
-                .Where(i => i.BucketId == Bucket.BucketId &&
-                            i.MovementDate.Year == _currentYearMonth.Year &&
-                            i.MovementDate.Month == _currentYearMonth.Month)
+                .Where(i => 
+                    i.BucketId == Bucket.BucketId &&
+                    i.MovementDate.Year == _currentYearMonth.Year &&
+                    i.MovementDate.Month == _currentYearMonth.Month)
                 .ToList();
 
             foreach (var bucketMovement in bucketMovementsCurrentMonth)
@@ -433,8 +435,11 @@ public class BucketViewModelItem : ViewModelBase
             else
             {
                 Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
-                if (Progress > 100) Progress = 100;
             }
+            
+            // Some additional consistency checks and fixes
+            if (Progress > 100) Progress = 100;
+            if (Progress < 0) Progress = 0;
             
             Details = $"{BucketVersion.BucketTypeYParam} until {targetDate:yyyy-MM}";
             IsProgressbarVisible = true;
@@ -470,69 +475,63 @@ public class BucketViewModelItem : ViewModelBase
     {
         if (Bucket.IsInactive) return new ViewModelOperationResult(false, "Bucket has been already set to inactive");
         if (Balance != 0) return new ViewModelOperationResult(false, "Balance must be 0 to close a Bucket");
-        
-        using (var dbContext = new DatabaseContext(_dbOptions))
+
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            if (dbContext.BudgetedTransaction.Any(i => i.BucketId == Bucket.BucketId) ||
+                dbContext.BucketMovement.Any(i => i.BucketId == Bucket.BucketId))
             {
-                try
+                // Bucket will be set to inactive for the next month
+                Bucket.IsInactive = true;
+                Bucket.IsInactiveFrom = _currentYearMonth.AddMonths(1);
+                if (dbContext.UpdateBucket(Bucket) == 0) 
+                    throw new Exception($"Unable to deactivate Bucket for next month.{Environment.NewLine}" +
+                                        $"{Environment.NewLine}" +
+                                        $"Bucket ID: {Bucket.BucketId}{Environment.NewLine}" +
+                                        $"Bucket Target Inactive Date: {Bucket.IsInactiveFrom.ToShortDateString()}");
+            }
+            else
+            {
+                // Bucket has no transactions & movements, so it can be directly deleted from the database
+                // Delete Bucket
+                if (dbContext.DeleteBucket(Bucket) == 0) 
+                    throw new Exception($"Unable to delete Bucket.{Environment.NewLine}" +
+                                        $"{Environment.NewLine}" +
+                                        $"Bucket ID: {Bucket.BucketId}{Environment.NewLine}");
+                        
+                // Delete all BucketVersion which refer to this Bucket
+                foreach (var bucketVersion in dbContext.BucketVersion
+                             .Where(i => i.BucketId == Bucket.BucketId)
+                             .ToList())
                 {
-                    if (dbContext.BudgetedTransaction.Any(i => i.BucketId == Bucket.BucketId) ||
-                        dbContext.BucketMovement.Any(i => i.BucketId == Bucket.BucketId))
-                    {
-                        // Bucket will be set to inactive for the next month
-                        Bucket.IsInactive = true;
-                        Bucket.IsInactiveFrom = _currentYearMonth.AddMonths(1);
-                        if (dbContext.UpdateBucket(Bucket) == 0) 
-                            throw new Exception($"Unable to deactivate Bucket for next month.{Environment.NewLine}" +
-                                                $"{Environment.NewLine}" +
-                                                $"Bucket ID: {Bucket.BucketId}{Environment.NewLine}" +
-                                                $"Bucket Target Inactive Date: {Bucket.IsInactiveFrom.ToShortDateString()}");
-                    }
-                    else
-                    {
-                        // Bucket has no transactions & movements, so it can be directly deleted from the database
-                        // Delete Bucket
-                        if (dbContext.DeleteBucket(Bucket) == 0) 
-                            throw new Exception($"Unable to delete Bucket.{Environment.NewLine}" +
-                                                $"{Environment.NewLine}" +
-                                                $"Bucket ID: {Bucket.BucketId}{Environment.NewLine}");
-                        
-                        // Delete all BucketVersion which refer to this Bucket
-                        var bucketVersions = dbContext.BucketVersion
-                            .Where(i => i.BucketId == Bucket.BucketId)
-                            .ToList();
-                        foreach (var bucketVersion in bucketVersions)
-                        {
-                            if (dbContext.DeleteBucketVersion(bucketVersion) == 0) 
-                                throw new Exception($"Unable to delete a Bucket Version.{Environment.NewLine}" +
-                                                    $"{Environment.NewLine}" +
-                                                    $"Bucket Version ID: {bucketVersion.BucketVersionId}{Environment.NewLine}" +
-                                                    $"Bucket Version: {bucketVersion.Version}");
-                        }
-                        
-                        // Delete all BucketRuleSet which refer to this Bucket
-                        var bucketRuleSets = dbContext.BucketRuleSet
-                            .Where(i => i.TargetBucketId == Bucket.BucketId)
-                            .ToList();
-                        foreach (var bucketRuleSet in bucketRuleSets)
-                        {
-                            if (dbContext.DeleteBucketRuleSet(bucketRuleSet) == 0)
-                                throw new Exception($"Unable to delete a Bucket Rule.{Environment.NewLine}" +
-                                                    $"{Environment.NewLine}" +
-                                                    $"Bucket Rule ID: {bucketRuleSet.BucketRuleSetId}{Environment.NewLine}");
-                        }
-                    }
-                    transaction.Commit();
+                    if (dbContext.DeleteBucketVersion(bucketVersion) == 0) 
+                        throw new Exception($"Unable to delete a Bucket Version.{Environment.NewLine}" +
+                                            $"{Environment.NewLine}" +
+                                            $"Bucket Version ID: {bucketVersion.BucketVersionId}{Environment.NewLine}" +
+                                            $"Bucket Version: {bucketVersion.Version}");
                 }
-                catch (Exception e)
+                        
+                // Delete all BucketRuleSet which refer to this Bucket
+                foreach (var bucketRuleSet in dbContext.BucketRuleSet
+                             .Where(i => i.TargetBucketId == Bucket.BucketId)
+                             .ToList())
                 {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
+                    if (dbContext.DeleteBucketRuleSet(bucketRuleSet) == 0)
+                        throw new Exception($"Unable to delete a Bucket Rule.{Environment.NewLine}" +
+                                            $"{Environment.NewLine}" +
+                                            $"Bucket Rule ID: {bucketRuleSet.BucketRuleSetId}{Environment.NewLine}");
                 }
             }
-        }            
-        return new ViewModelOperationResult(true, true);
+            transaction.Commit();
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
+        }
     }
 
     /// <summary>
@@ -570,17 +569,23 @@ public class BucketViewModelItem : ViewModelBase
             }
 
             // Check if target amount is 0 to prevent DivideByZeroException 
-            if ((BucketVersion.BucketType is 3 or 4) && BucketVersion.BucketTypeYParam == 0)
+            if ((BucketVersion.BucketType is 2 or 3 or 4) && BucketVersion.BucketTypeYParam <= 0)
             {
                 throw new Exception("Target amount must not be 0 for this Bucket Type.");
             }
+            
+            // Check if number of months is not 0
+            if ((BucketVersion.BucketType == 3) && BucketVersion.BucketTypeXParam <= 0)
+            {
+                throw new Exception("Number of months must be positive for this Bucket Type.");
+            }
+            
+            return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
             return new ViewModelOperationResult(false, e.Message);
         }
-
-        return new ViewModelOperationResult(true);
     }
 
     /// <summary>
@@ -591,36 +596,32 @@ public class BucketViewModelItem : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     private ViewModelOperationResult CreateBucket()
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
-            {
-                try
-                {
-                    if (dbContext.CreateBucket(Bucket) == 0)
-                        throw new Exception("Unable to create new Bucket.");
+            if (dbContext.CreateBucket(Bucket) == 0)
+                throw new Exception("Unable to create new Bucket.");
 
-                    var newBucketVersion = BucketVersion;
-                    newBucketVersion.BucketId = Bucket.BucketId;
-                    newBucketVersion.Version = 1;
-                    newBucketVersion.ValidFrom = _currentYearMonth;
-                    if (dbContext.CreateBucketVersion(newBucketVersion) == 0)
-                        throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
-                                            $"{Environment.NewLine}" +
-                                            $"Bucket ID: {newBucketVersion.BucketId}");
+            var newBucketVersion = BucketVersion;
+            newBucketVersion.BucketId = Bucket.BucketId;
+            newBucketVersion.Version = 1;
+            newBucketVersion.ValidFrom = _currentYearMonth;
+            if (dbContext.CreateBucketVersion(newBucketVersion) == 0)
+                throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
+                                    $"{Environment.NewLine}" +
+                                    $"Bucket ID: {newBucketVersion.BucketId}");
 
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true, true);
-                }
-                catch (Exception e)
-                {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(
-                        false, 
-                        $"Error during database update: {e.Message}", 
-                        true);
-                }
-            }
+            transaction.Commit();
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            return new ViewModelOperationResult(
+                false, 
+                $"Error during database update: {e.Message}", 
+                true);
         }
     }
 
@@ -632,103 +633,107 @@ public class BucketViewModelItem : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     private ViewModelOperationResult UpdateBucket()
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        using var dbContext = new DatabaseContext(_dbOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
         {
-            using (var transaction = dbContext.Database.BeginTransaction())
+            // Check on Bucket changes and update database
+            var dbBucket = dbContext.Bucket.First(i => i.BucketId == Bucket.BucketId);
+            if (dbBucket.Name != Bucket.Name ||
+                dbBucket.ColorCode != Bucket.ColorCode ||
+                dbBucket.BucketGroupId != Bucket.BucketGroupId)
             {
-                try
+                // BucketGroup update requires special handling as ViewModel needs to trigger reload
+                // to force re-rendering of Blazor Page
+                //if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
+
+                if (dbContext.UpdateBucket(Bucket) == 0)
+                    throw new Exception($"Error during database update: Unable to update Bucket.{Environment.NewLine}" +
+                                        $"{Environment.NewLine}" +
+                                        $"Bucket ID: {Bucket.BucketId}");
+            }
+
+            // Check on BucketVersion changes and create new BucketVersion
+            var dbBucketVersion =
+                dbContext.BucketVersion.First(i => i.BucketVersionId == BucketVersion.BucketVersionId);
+            if (dbBucketVersion.BucketType != BucketVersion.BucketType ||
+                dbBucketVersion.BucketTypeXParam != BucketVersion.BucketTypeXParam ||
+                dbBucketVersion.BucketTypeYParam != BucketVersion.BucketTypeYParam ||
+                dbBucketVersion.BucketTypeZParam != BucketVersion.BucketTypeZParam ||
+                dbBucketVersion.Notes != BucketVersion.Notes)
+            {
+                if (dbContext.BucketVersion.Any(i =>
+                        i.BucketId == BucketVersion.BucketId && 
+                        i.Version > BucketVersion.Version))
+                    throw new Exception("Cannot create new Version as already a newer Version exists");
+
+                if (BucketVersion.ValidFrom == _currentYearMonth)
                 {
-                    // Check on Bucket changes and update database
-                    var dbBucket = dbContext.Bucket.First(i => i.BucketId == Bucket.BucketId);
-                    if (dbBucket.Name != Bucket.Name ||
-                        dbBucket.ColorCode != Bucket.ColorCode ||
-                        dbBucket.BucketGroupId != Bucket.BucketGroupId)
-                    {
-                        // BucketGroup update requires special handling as ViewModel needs to trigger reload
-                        // to force re-rendering of Blazor Page
-                        //if (dbBucket.BucketGroupId != Bucket.BucketGroupId) forceViewModelReload = true;
-
-                        if (dbContext.UpdateBucket(Bucket) == 0)
-                            throw new Exception($"Error during database update: Unable to update Bucket.{Environment.NewLine}" +
-                                                $"{Environment.NewLine}" +
-                                                $"Bucket ID: {Bucket.BucketId}");
-                    }
-
-                    // Check on BucketVersion changes and create new BucketVersion
-                    var dbBucketVersion =
-                        dbContext.BucketVersion.First(i => i.BucketVersionId == BucketVersion.BucketVersionId);
-                    if (dbBucketVersion.BucketType != BucketVersion.BucketType ||
-                        dbBucketVersion.BucketTypeXParam != BucketVersion.BucketTypeXParam ||
-                        dbBucketVersion.BucketTypeYParam != BucketVersion.BucketTypeYParam ||
-                        dbBucketVersion.BucketTypeZParam != BucketVersion.BucketTypeZParam ||
-                        dbBucketVersion.Notes != BucketVersion.Notes)
-                    {
-                        if (dbContext.BucketVersion.Any(i =>
-                            i.BucketId == BucketVersion.BucketId && i.Version > BucketVersion.Version))
-                            throw new Exception("Cannot create new Version as already a newer Version exists");
-
-                        if (BucketVersion.ValidFrom == _currentYearMonth)
-                        {
-                            // Bucket Version modified in the same month,
-                            // so just update the version instead of creating a new version
-                            if (dbContext.UpdateBucketVersion(BucketVersion) == 0)
-                                throw new Exception($"Unable to update Bucket Version.{Environment.NewLine}" +
-                                                    $"{Environment.NewLine}" +
-                                                    $"Bucket Version ID: {BucketVersion.BucketVersionId}" +
-                                                    $"Bucket ID: {BucketVersion.BucketId}" +
-                                                    $"Bucket Version: {BucketVersion.Version}" +
-                                                    $"Bucket Version Start Date: {BucketVersion.ValidFrom.ToShortDateString()}");
-                        }
-                        else
-                        {
-                            BucketVersion.Version++;
-                            BucketVersion.BucketVersionId = 0;
-                            BucketVersion.ValidFrom = _currentYearMonth;
-                            if (dbContext.CreateBucketVersion(BucketVersion) == 0)
-                                throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
-                                                    $"{Environment.NewLine}" +
-                                                    $"Bucket ID: {BucketVersion.BucketId}" +
-                                                    $"Bucket Version: {BucketVersion.Version}" +
-                                                    $"Bucket Version Start Date: {BucketVersion.ValidFrom.ToShortDateString()}");
-                        }
-                    }
-                    transaction.Commit();
-                    return new ViewModelOperationResult(true, true);
+                    // Bucket Version modified in the same month,
+                    // so just update the version instead of creating a new version
+                    if (dbContext.UpdateBucketVersion(BucketVersion) == 0)
+                        throw new Exception($"Unable to update Bucket Version.{Environment.NewLine}" +
+                                            $"{Environment.NewLine}" +
+                                            $"Bucket Version ID: {BucketVersion.BucketVersionId}" +
+                                            $"Bucket ID: {BucketVersion.BucketId}" +
+                                            $"Bucket Version: {BucketVersion.Version}" +
+                                            $"Bucket Version Start Date: {BucketVersion.ValidFrom.ToShortDateString()}");
                 }
-                catch (Exception e)
+                else
                 {
-                    transaction.Rollback();
-                    return new ViewModelOperationResult(
-                        false,
-                        $"Error during database update: {e.Message}",
-                        true);
+                    BucketVersion.Version++;
+                    BucketVersion.BucketVersionId = Guid.Empty;
+                    BucketVersion.ValidFrom = _currentYearMonth;
+                    if (dbContext.CreateBucketVersion(BucketVersion) == 0)
+                        throw new Exception($"Unable to create new Bucket Version.{Environment.NewLine}" +
+                                            $"{Environment.NewLine}" +
+                                            $"Bucket ID: {BucketVersion.BucketId}" +
+                                            $"Bucket Version: {BucketVersion.Version}" +
+                                            $"Bucket Version Start Date: {BucketVersion.ValidFrom.ToShortDateString()}");
                 }
             }
+            transaction.Commit();
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            return new ViewModelOperationResult(
+                false,
+                $"Error during database update: {e.Message}",
+                true);
         }
     }
 
     /// <summary>
     /// Helper method to create a new <see cref="BucketMovement"/> record in the database based on User input
     /// </summary>
-    /// <remarks>Creation starts once Enter key is pressed</remarks>
     /// <remarks>Recalculates figures after database operations</remarks>
-    /// <param name="key">Pressed key</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult HandleInOutInput(string key)
+    public ViewModelOperationResult HandleInOutInput()
     {
-        if (key != "Enter") return new ViewModelOperationResult(true);
+        return HandleInOutInput(new DatabaseContext(_dbOptions));
+    }
+    
+    /// <summary>
+    /// Helper method to create a new <see cref="BucketMovement"/> record in the database based on User input
+    /// </summary>
+    /// <remarks>Recalculates figures after database operations</remarks>
+    /// <param name="dbContext">
+    /// Current <see cref="DatabaseContext"/> under which database changes should be written (prevents DB locks)
+    /// </param>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult HandleInOutInput(DatabaseContext dbContext)
+    {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                var newMovement = new BucketMovement(Bucket, InOut, _currentYearMonth);
-                if (dbContext.CreateBucketMovement(newMovement) == 0)
-                    throw new Exception($"Unable to create new Bucket Movement.{Environment.NewLine}" +
-                                        $"{Environment.NewLine}" +
-                                        $"Bucket ID: {newMovement.BucketId}" +
-                                        $"Amount: {newMovement.Amount}" +
-                                        $"Movement Date: {newMovement.MovementDate.ToShortDateString()}");
-            }
+            var newMovement = new BucketMovement(Bucket, InOut, _currentYearMonth);
+            if (dbContext.CreateBucketMovement(newMovement) == 0)
+                throw new Exception($"Unable to create new Bucket Movement.{Environment.NewLine}" +
+                                    $"{Environment.NewLine}" +
+                                    $"Bucket ID: {newMovement.BucketId}" +
+                                    $"Amount: {newMovement.Amount}" +
+                                    $"Movement Date: {newMovement.MovementDate.ToShortDateString()}");
             //ViewModelReloadRequired?.Invoke(this);
             CalculateValues();
             return new ViewModelOperationResult(true);

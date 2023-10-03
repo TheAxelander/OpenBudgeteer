@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
+using OpenBudgeteer.Contracts.Models;
 using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
+using OpenBudgeteer.Data;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
@@ -308,7 +307,7 @@ public class TransactionViewModelTest
     [Theory]
     [MemberData(nameof(TestData_AddRecurringTransactionsAsync_CheckRecurrance))]
     public async Task AddRecurringTransactionsAsync_CheckRecurrance(
-        DateTime firstOccurence,
+        DateTime firstOccurrence,
         int reccurenceType,
         int reccurenceAmount,
         string memo,
@@ -324,7 +323,7 @@ public class TransactionViewModelTest
                 dbContext.CreateAccount(testAccount);
                 dbContext.CreateRecurringBankTransaction(new RecurringBankTransaction
                 {
-                    FirstOccurenceDate = firstOccurence,
+                    FirstOccurrenceDate = firstOccurrence,
                     AccountId = testAccount.AccountId,
                     RecurrenceType = reccurenceType,
                     RecurrenceAmount = reccurenceAmount,

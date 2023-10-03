@@ -1,0 +1,55 @@
+version: "3"
+
+networks:
+  app-global:
+    external: true
+  db-internal:
+
+
+services:
+  openbudgeteer:
+    image: openbudgeteer:pre-release
+    container_name: openbudgeteer
+    ports:
+      - 8081:80
+    environment:
+      - CONNECTION_PROVIDER=postgres
+      - CONNECTION_SERVER=openbudgeteer-db
+      - CONNECTION_DATABASE=openbudgeteer_dev
+      - CONNECTION_USER=openbudgeteer_dev
+      - CONNECTION_PASSWORD=openbudgeteer_dev
+      - APPSETTINGS_CULTURE=en-US
+      - APPSETTINGS_THEME=solar
+    depends_on:
+      - db
+    networks:
+      - app-global
+      - db-internal
+
+  db:
+    image: postgres:alpine
+    container_name: openbudgeteer-db
+    environment:
+      - POSTGRES_USER=openbudgeteer_dev
+      - POSTGRES_PASSWORD=openbudgeteer_dev
+      - POSTGRES_DB=openbudgeteer_dev
+    volumes:
+      - data:/var/lib/postgresql/data
+    networks:
+      - db-internal
+
+  adminer:
+    image: adminer
+    container_name: openbudgeteer-adminer
+    links:
+      - db:db
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    networks:
+      - app-global
+      - db-internal
+
+volumes:
+  data:

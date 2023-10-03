@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  openbudgeteer:
+    image: openbudgeteer:pre-release
+    container_name: openbudgeteer
+    ports:
+      - 8081:80
+    environment:
+      - CONNECTION_PROVIDER=sqlite
+      - CONNECTION_DATABASE=/srv/openbudgeteer.db
+      - APPSETTINGS_CULTURE=en-US
+      - APPSETTINGS_THEME=solar
+    volumes:
+      - data:/srv
+
+volumes:
+  data:

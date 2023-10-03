@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+  openbudgeteer:
+    image: openbudgeteer:pre-release
+    container_name: openbudgeteer
+    ports:
+      - 8081:80
+    environment:
+      - CONNECTION_PROVIDER=tempdb
+      - APPSETTINGS_CULTURE=en-US
+      - APPSETTINGS_THEME=solar

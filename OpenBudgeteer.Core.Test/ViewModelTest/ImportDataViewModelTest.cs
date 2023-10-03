@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Common.Database;
-using OpenBudgeteer.Core.Models;
 using OpenBudgeteer.Core.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -8,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenBudgeteer.Contracts.Models;
+using OpenBudgeteer.Data;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
@@ -156,7 +156,7 @@ public class ImportDataViewModelTest
                 await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
-                await viewModel.LoadProfileAsync();
+                viewModel.InitializeDataFromImportProfile();
 
                 Assert.Equal(_testAccount.AccountId, viewModel.SelectedAccount.AccountId);
 
@@ -222,7 +222,7 @@ public class ImportDataViewModelTest
                 await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
-                await viewModel.LoadProfileAsync();
+                viewModel.InitializeDataFromImportProfile();
                 await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
@@ -318,7 +318,7 @@ public class ImportDataViewModelTest
                 await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
-                await viewModel.LoadProfileAsync();
+                viewModel.InitializeDataFromImportProfile();
                 await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
@@ -414,7 +414,7 @@ public class ImportDataViewModelTest
                 await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
-                await viewModel.LoadProfileAsync();
+                viewModel.InitializeDataFromImportProfile();
                 await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
@@ -496,7 +496,7 @@ public class ImportDataViewModelTest
                 await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath1));
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
-                await viewModel.LoadProfileAsync();
+                viewModel.InitializeDataFromImportProfile();
                 await viewModel.ValidateDataAsync();
                 
                 Assert.Equal(4, viewModel.TotalRecords);
@@ -591,7 +591,7 @@ public class ImportDataViewModelTest
                 await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
                 viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
                     i => i.ImportProfileId == importProfile.ImportProfileId);
-                await viewModel.LoadProfileAsync();
+                viewModel.InitializeDataFromImportProfile();
                 await viewModel.ValidateDataAsync();
 
                 Assert.Equal(4, viewModel.TotalRecords);
