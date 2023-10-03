@@ -1,4 +1,4 @@
-### 1.7 (2023-xx-xx)
+### 1.7 (2023-10-03)
 
 * [Add] PostgreSQL support [#81](https://github.com/TheAxelander/OpenBudgeteer/issues/81) Thanks [csillaggyujto](https://github.com/csillaggyujto)
 * [Add] Confirmation Dialog before setting a Bucket inactive [#119](https://github.com/TheAxelander/OpenBudgeteer/issues/119)
