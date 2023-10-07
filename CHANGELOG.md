@@ -1,5 +1,6 @@
 ### 1.8 (202x-xx-xx)
 * [Add] Data Consistency Check: Negative Transaction assigned to Income [#177](https://github.com/TheAxelander/OpenBudgeteer/issues/177)
+* [Add] Create Transaction keeps last input date [#187](https://github.com/TheAxelander/OpenBudgeteer/issues/187)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
 * [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
 * [Fixed] UI alignment for large numbers [#189](https://github.com/TheAxelander/OpenBudgeteer/issues/189)

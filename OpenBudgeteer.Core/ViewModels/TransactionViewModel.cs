@@ -132,8 +132,8 @@ public class TransactionViewModel : ViewModelBase
     {
         _dbOptions = dbOptions;
         _yearMonthViewModel = yearMonthViewModel;
-        ResetNewTransaction();
         _transactions = new ObservableCollection<TransactionViewModelItem>();
+        ResetNewTransaction();
         //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
     }
 
@@ -281,7 +281,11 @@ public class TransactionViewModel : ViewModelBase
     /// </summary>
     public void ResetNewTransaction()
     {
+        var lastEnteredDate = NewTransaction == null ?
+            _yearMonthViewModel.CurrentMonth :
+            NewTransaction.Transaction.TransactionDate;
         NewTransaction = new TransactionViewModelItem(_dbOptions, _yearMonthViewModel, true);
+        NewTransaction.Transaction.TransactionDate = lastEnteredDate;
     }
 
     /// <summary>
