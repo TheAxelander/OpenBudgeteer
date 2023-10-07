@@ -1,5 +1,6 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Contracts.Models
+@using System.Globalization
 
 @if (IsDialogVisible)
  {
@@ -35,7 +36,7 @@
                                          <td>@transaction.SelectedAccount.Name</td>
                                          <td>@transaction.Transaction.Payee</td>
                                          <td>@transaction.Transaction.Memo</td>
-                                         <td style="text-align: right">@transaction.Transaction.Amount</td>
+                                         <td style="text-align: right">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                      </tr>
                                  }
                              </tbody>

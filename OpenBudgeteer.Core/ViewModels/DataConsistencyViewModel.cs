@@ -106,7 +106,12 @@ public class DataConsistencyViewModel : ViewModelBase
                         .Where(i => i.BucketId == bucket.BucketId)
                         .Sum(i => i.Amount);
                     results.Add(bucketBalance < 0 
-                        ? new(DataConsistencyCheckResult.StatusCode.Warning, new string[2] { bucket.Name, bucketBalance.ToString(CultureInfo.CurrentCulture) }) 
+                        ? new(DataConsistencyCheckResult.StatusCode.Warning, 
+                            new string[2]
+                            {
+                                bucket.Name, 
+                                bucketBalance.ToString("C", CultureInfo.CurrentCulture)
+                            }) 
                         : new(DataConsistencyCheckResult.StatusCode.Ok, Array.Empty<string>()));
                 }));
             }
@@ -165,7 +170,7 @@ public class DataConsistencyViewModel : ViewModelBase
                             {
                                 bankTransaction.TransactionDate.ToShortDateString(),
                                 bankTransaction.Memo,
-                                bankTransaction.Amount.ToString(CultureInfo.CurrentCulture)
+                                bankTransaction.Amount.ToString("C", CultureInfo.CurrentCulture)
                             }));
                     }
                 }));
@@ -258,7 +263,7 @@ public class DataConsistencyViewModel : ViewModelBase
                         result.Item2,
                         transaction.TransactionDate.ToShortDateString(),
                         transaction.Memo,
-                        transaction.Amount.ToString(CultureInfo.CurrentCulture)
+                        transaction.Amount.ToString("C", CultureInfo.CurrentCulture)
                     });
                 }
             }
@@ -317,7 +322,7 @@ public class DataConsistencyViewModel : ViewModelBase
                 {
                     i.Item3.TransactionDate.ToShortDateString(),
                     i.Item3.Memo,
-                    i.Item3.Amount.ToString(CultureInfo.CurrentCulture)
+                    i.Item3.Amount.ToString("C", CultureInfo.CurrentCulture)
                 }));
 
             return Task.FromResult(new DataConsistencyCheckResult(

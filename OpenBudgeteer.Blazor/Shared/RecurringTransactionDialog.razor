@@ -1,6 +1,7 @@
 ﻿@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
+@using System.Globalization
 @using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @if (IsDialogVisible)
  {
@@ -87,7 +88,7 @@
                                         <td>@transaction.SelectedAccount.Name</td>
                                         <td>@transaction.Transaction.Payee</td>
                                         <td>@transaction.Transaction.Memo</td>
-                                        <td class="col-numbers">@transaction.Transaction.Amount</td>
+                                        <td class="col-numbers">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                         <td class="col-buttons">
                                             @if (transaction.IsHovered)
                                             {

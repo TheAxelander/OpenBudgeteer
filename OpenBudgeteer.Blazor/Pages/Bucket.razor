@@ -181,11 +181,11 @@
                         <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
                     </div>
                 </th>
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("N2")</span></th>
+                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
                 <th class="col-numbers col-bucket-numbers"></th>                                                                                            
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalWant == 0 ? string.Empty : bucketGroup.TotalWant.ToString("N2"))</span></th>
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("N2"))</span></th>
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("N2"))</span></th>
+                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalWant == 0 ? string.Empty : bucketGroup.TotalWant.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
                 <th class="col-buttons col-bucket-buttons" style="width: 370px">
                     @if (bucketGroup.IsHovered)
                     {
@@ -219,7 +219,7 @@
                             <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Bucket.Name</div>
                         }
                     </td>
-                    <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("N2")</td>
+                    <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
                     <td class="col-numbers col-bucket-numbers">
                         @if (bucket.Bucket.IsInactive)
                         {
@@ -232,9 +232,9 @@
                                    @onkeyup="@(args => InOut_Changed(bucket, args))"/>    
                         }
                     </td>
-                    <td class="col-numbers col-bucket-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("N2"))</td>
-                    <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
-                    <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
+                    <td class="col-numbers col-bucket-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("C", CultureInfo.CurrentCulture))</td>
+                    <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
+                    <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
                     <td class="col-bucket-details">
                         @if (bucket.IsProgressbarVisible)
                         {

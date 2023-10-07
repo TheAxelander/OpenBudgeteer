@@ -1,5 +1,6 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
+@using System.Globalization
 @using Microsoft.EntityFrameworkCore
 @using OpenBudgeteer.Contracts.Models
 @using OpenBudgeteer.Data
@@ -47,9 +48,9 @@
                                                 <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
                                             </div>
                                         </th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("N2")</span></th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("N2"))</span></th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("N2"))</span></th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
                                         <th class="col-bucket-details"></th>
                                     </tr>
                                 </thead>
@@ -73,9 +74,9 @@
                                                     }
                                                 </button>
                                             </td>
-                                            <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("N2")</td>
-                                            <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
-                                            <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
+                                            <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
+                                            <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
+                                            <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
                                             <td class="col-bucket-details">
                                             @if (bucket.IsProgressbarVisible)
                                             {
