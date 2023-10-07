@@ -1,3 +1,5 @@
+### 1.8 (202x-xx-xx)
+
 ### 1.7 (2023-10-03)
 
 * [Add] PostgreSQL support [#81](https://github.com/TheAxelander/OpenBudgeteer/issues/81) Thanks [csillaggyujto](https://github.com/csillaggyujto)
