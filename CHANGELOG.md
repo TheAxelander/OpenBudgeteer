@@ -1,6 +1,7 @@
 ### 1.8 (202x-xx-xx)
 * [Add] Data Consistency Check: Negative Transaction assigned to Income [#177](https://github.com/TheAxelander/OpenBudgeteer/issues/177)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
+* [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
 * [Fixed] UI alignment for large numbers [#189](https://github.com/TheAxelander/OpenBudgeteer/issues/189)
 
 ### 1.7 (2023-10-03)

@@ -157,7 +157,7 @@
 {
     <table class="table table-sm bucket-table">
         <thead>
-        <tr class="header-row" @onmouseover="@(() => bucketGroup.IsHovered = true)" @onmouseout="@(() => bucketGroup.IsHovered = false)">
+        <tr class="header-row">
             @if (bucketGroup.InModification)
             {
                 <th colspan="8">
@@ -187,14 +187,11 @@
                 <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
                 <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
                 <th class="col-buttons col-bucket-buttons" style="width: 370px">
-                    @if (bucketGroup.IsHovered)
-                    {
-                        <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
-                        <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
-                        <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
-                        <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleResult(_dataContext.DeleteGroup(bucketGroup)))"></button>
-                        <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => CreateBucket(bucketGroup))"></button>
-                    }
+                    <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
+                    <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
+                    <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleResult(_dataContext.DeleteGroup(bucketGroup)))"></button>
+                    <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => CreateBucket(bucketGroup))"></button>
                 </th>
             }
         </tr>
@@ -206,7 +203,7 @@
         <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
             @foreach (var bucket in bucketGroup.Buckets)
             {
-                <tr @onmouseover="@(() => bucket.IsHovered = true)" @onmouseout="@(() => bucket.IsHovered = false)">
+                <tr>
                     <td>
                         @if (bucket.Bucket.IsInactive)
                         {
@@ -255,18 +252,15 @@
                         }
                     </td>
                     <td class="col-buttons col-bucket-buttons">
-                        @if (bucket.IsHovered)
+                        @if (bucket.Bucket.IsInactive)
                         {
-                            if (bucket.Bucket.IsInactive)
-                            {
-                                <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
-                                <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
-                                <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketCloseRequest(bucket))"></button>
-                            }
+                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
+                            <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
+                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketCloseRequest(bucket))"></button>
                         }
                     </td>
                 </tr>

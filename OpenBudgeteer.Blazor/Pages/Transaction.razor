@@ -184,7 +184,7 @@
         }
         else
         {
-            <tr @onmouseover="@(() => transaction.IsHovered = true)" @onmouseout="@(() => transaction.IsHovered = false)">
+            <tr>
                 <td class="col-numbers">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
                 <td>@transaction.SelectedAccount.Name</td>
                 <td>@transaction.Transaction.Payee</td>
@@ -200,11 +200,8 @@
                     }
                 </td>
                 <td class="col-buttons">
-                    @if (transaction.IsHovered)
-                    {
-                        <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
-                        <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
-                    }
+                    <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
+                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
                 </td>
             </tr>
         }

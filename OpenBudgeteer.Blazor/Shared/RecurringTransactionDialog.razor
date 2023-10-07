@@ -81,7 +81,7 @@
                                 }
                                 else
                                 {
-                                    <tr @onmouseover="@(() => transaction.IsHovered = true)" @onmouseout="@(() => transaction.IsHovered = false)">
+                                    <tr>
                                         <td class="col-numbers">@transaction.Transaction.FirstOccurrenceDate.ToShortDateString()</td>
                                         <td style="width:70px">Every @transaction.Transaction.RecurrenceAmount</td>
                                         <td style="width:130px">@transaction.SelectedRecurrenceType.Value</td>
@@ -90,11 +90,8 @@
                                         <td>@transaction.Transaction.Memo</td>
                                         <td class="col-numbers">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                         <td class="col-buttons">
-                                            @if (transaction.IsHovered)
-                                            {
-                                                <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
-                                                <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
-                                            }
+                                            <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
+                                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
                                         </td>
                                     </tr>
                                 }
