@@ -45,7 +45,8 @@ public class DataConsistencyViewModel : ViewModelBase
             CheckTransferReconciliationAsync(),
             CheckBucketBalanceAsync(),
             CheckBankTransactionWithoutBucketAssignmentAsync(),
-            CheckBudgetedTransactionOutsideOfValidityDateAsync()
+            CheckBudgetedTransactionOutsideOfValidityDateAsync(),
+            CheckNegativeBankTransactionAssignedToIncomeAsync()
         };
 
         foreach (var result in await Task.WhenAll(checkTasks))
@@ -226,7 +227,9 @@ public class DataConsistencyViewModel : ViewModelBase
                         ? new(DataConsistencyCheckResult.StatusCode.Alert,
                             bucket.Name,
                             invalidTransactions.Select(i => i.Transaction).ToList()) 
-                        : new(DataConsistencyCheckResult.StatusCode.Ok, bucket.Name, new List<BankTransaction>()));
+                        : new(DataConsistencyCheckResult.StatusCode.Ok, 
+                            bucket.Name, 
+                            new List<BankTransaction>()));
                 }));
             }
 
@@ -246,7 +249,8 @@ public class DataConsistencyViewModel : ViewModelBase
                 new string[4] { "Bucket", "Transaction Date", "Memo", "Amount" }
             };
 
-            foreach (var result in results.Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok))
+            foreach (var result in results
+                         .Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok))
             {
                 foreach (var transaction in result.Item3)
                 {
@@ -264,6 +268,63 @@ public class DataConsistencyViewModel : ViewModelBase
                 DataConsistencyCheckResult.StatusCode.Alert,
                 "Some Buckets have Transactions assigned after invalidity date",
                 detailsBuilder);
+        });
+    }
+
+    /// <summary>
+    /// Checks if any negative <see cref="BankTransaction"/> has been assigned to <see cref="Bucket"/> Income
+    /// </summary>
+    /// <returns>Result of Data Consistency Check</returns>
+    public async Task<DataConsistencyCheckResult> CheckNegativeBankTransactionAssignedToIncomeAsync()
+    {
+        return await Task.Run(() =>
+        {
+            var checkName = "Negative Bank Transaction assigned to Income";
+            using var dbContext = new DatabaseContext(_dbOptions);
+
+            var bankTransactions = dbContext.BudgetedTransaction
+                .Include(i => i.Transaction)
+                .Where(i => 
+                    i.BucketId == new Guid("00000000-0000-0000-0000-000000000001") &&
+                    i.Amount < 0)
+                .Select(i => i.Transaction)
+                .ToList();
+
+            var results = bankTransactions
+                .Select(bankTransaction =>
+                    new Tuple<DataConsistencyCheckResult.StatusCode, string, BankTransaction>(
+                        DataConsistencyCheckResult.StatusCode.Warning,
+                        checkName,
+                        bankTransaction))
+                .ToList();
+
+            if (results.Count == 0)
+            {
+                return Task.FromResult(new DataConsistencyCheckResult(
+                    checkName,
+                    DataConsistencyCheckResult.StatusCode.Ok,
+                    "All Transactions assigned to Income are positive",
+                    new List<string[]>()));
+            }
+
+            var detailsBuilder = new List<string[]>()
+            {
+                new string[3] { "Transaction Date", "Memo", "Amount" }
+            };
+
+            detailsBuilder.AddRange(results
+                .Select(i => new[]
+                {
+                    i.Item3.TransactionDate.ToShortDateString(),
+                    i.Item3.Memo,
+                    i.Item3.Amount.ToString(CultureInfo.CurrentCulture)
+                }));
+
+            return Task.FromResult(new DataConsistencyCheckResult(
+                checkName,
+                DataConsistencyCheckResult.StatusCode.Warning,
+                "Some Transactions assigned to Income are negative",
+                detailsBuilder));
         });
     }
 }

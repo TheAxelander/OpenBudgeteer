@@ -1,4 +1,5 @@
 ### 1.8 (202x-xx-xx)
+* [Add] Data Consistency Check: Negative Transaction assigned to Income [#177](https://github.com/TheAxelander/OpenBudgeteer/issues/177)
 
 ### 1.7 (2023-10-03)
 
