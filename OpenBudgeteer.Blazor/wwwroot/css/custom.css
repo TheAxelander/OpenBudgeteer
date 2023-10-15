@@ -92,6 +92,14 @@ button.btn-bucket {
     display: inline-block; /* restore setting from bootstrap 4 */ 
 }
 
+.nav-link {
+    white-space: nowrap;
+}
+
+.navbar-toggler {
+    font-size: var(--bs-body-font-size);
+}
+
 .dropdown-item-sm {
     font-size: .875rem; /* Additional class to match font size of DropDownItem with SplitButton (btn-sm)*/
 }

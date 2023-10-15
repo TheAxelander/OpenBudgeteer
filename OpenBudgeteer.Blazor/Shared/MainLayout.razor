@@ -1,10 +1,45 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Data
+@inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <header>
-    <NavMenu />
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-dark">
+        <div class="container-fluid d-flex flex-column flex-lg-row align-items-start">
+            <div class="d-flex flex-row">
+                <button class="navbar-toggler d-block d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand" href="#">OpenBudgeteer</a>
+            </div>
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">OpenBudgeteer</h5>
+                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body justify-content-between">
+                    <NavMenu/>
+                    <div class="d-flex flex-column flex-xl-row justify-content-between navbar-text d-lg-none d-xl-block">
+                        <span class="mx-xl-2 my-2 my-xl-0">
+                            Database: @CurrentDatabase
+                        </span>
+                        <span class="mx-xl-2 my-2 my-xl-0">
+                            Version: 1.8 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 </header>
 <div class="main">
     <div class="content px-4" style="max-width: 1500px; margin: auto; margin-bottom: 100px">
         @Body
     </div>
 </div>
+
+@code {
+
+    public string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
+
+}

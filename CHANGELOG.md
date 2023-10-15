@@ -3,6 +3,7 @@
 * [Add] Create Transaction keeps last input date [#187](https://github.com/TheAxelander/OpenBudgeteer/issues/187)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
 * [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
+* [Changed] More responsive navigation bar [#175](https://github.com/TheAxelander/OpenBudgeteer/issues/175)
 * [Fixed] UI alignment for large numbers [#189](https://github.com/TheAxelander/OpenBudgeteer/issues/189)
 
 ### 1.7 (2023-10-03)

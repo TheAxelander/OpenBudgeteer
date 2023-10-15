@@ -1,75 +1,65 @@
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
-
-<nav class="navbar navbar-expand-sm navbar-dark sticky-top bg-dark">
-    <div class="row" style="width: 1500px; margin: auto">
-        <div class="col-md-auto">
-            <a class="navbar-brand" href="#">OpenBudgeteer</a>
-        </div>
-        <div class="col">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                        <i class="bi bi-house-door"></i> Home
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="account">
-                        <i class="bi bi-credit-card"></i> Account
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="transaction">
-                        <i class="bi bi-arrow-left-right"></i> Transaction
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="bucket">
-                        <i class="bi bi-bucket"></i> Bucket
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="import">
-                        <i class="bi bi-upload"></i> Import
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="report">
-                        <i class="bi bi-graph-up"></i> Report
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="rules">
-                        <i class="bi bi-file-ruled"></i> Rules
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="dataconsistency">
+<ul class="navbar-nav mr-auto">
+    <li class="nav-item">
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+            <i class="bi bi-house-door"></i> Home
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="account">
+            <i class="bi bi-credit-card"></i> Account
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="transaction">
+            <i class="bi bi-arrow-left-right"></i> Transaction
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="bucket">
+            <i class="bi bi-bucket"></i> Bucket
+        </NavLink>
+    </li>
+    <li class="nav-item">
+        <NavLink class="nav-link" href="import">
+            <i class="bi bi-upload"></i> Import
+        </NavLink>
+    </li>
+    <li class="nav-item d-xl-none d-xxl-block">
+        <NavLink class="nav-link" href="report">
+            <i class="bi bi-graph-up"></i> Report
+        </NavLink>
+    </li>
+    <li class="nav-item d-xl-none d-xxl-block">
+        <NavLink class="nav-link" href="rules">
+            <i class="bi bi-file-ruled"></i> Rules
+        </NavLink>
+    </li>
+    <li class="nav-item d-xl-none d-xxl-block">
+        <NavLink class="nav-link" href="dataconsistency">
+            <i class="bi bi-database-check"></i> Data Consistency
+        </NavLink>
+    </li>
+                
+    <li class="nav-item dropdown d-none d-xl-block d-xxl-none">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <li>
+                <NavLink class="dropdown-item" href="report">
+                    <i class="bi bi-graph-up"></i> Report
+                </NavLink>
+            </li>
+            <li>
+                <NavLink class="dropdown-item" href="rules">
+                    <i class="bi bi-file-ruled"></i> Rules
+                </NavLink>
+            </li>
+            <li>
+                <NavLink class="dropdown-item" href="dataconsistency">
+                    <div>
                         <i class="bi bi-database-check"></i> Data Consistency
-                    </NavLink>
-                </li>
-            </ul>
-        </div>
-        <div class="col-md-auto">
-            <div class="navbar-text" style="margin-right: 15px">
-                <span>
-                    Database: @CurrentDatabase
-                </span>
-            </div>
-        </div>
-        <div class="col-md-auto">
-            <div class="navbar-text">
-                <span>
-                    Version: 1.8 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
-                </span>
-            </div>
-        </div>
-    </div>
-</nav>
-
-@code {
-
-    public string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
-
-}
+                    </div>
+                </NavLink>
+            </li>
+        </ul>
+    </li>
+</ul>
