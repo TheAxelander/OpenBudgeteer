@@ -1,3 +1,7 @@
+### 1.7.1 (2023-10-16)
+
+* [Fixed] Potentially fixed crashes on Rules page due to an unnecessary parallel initialization [#165](https://github.com/TheAxelander/OpenBudgeteer/issues/165)
+
 ### 1.7 (2023-10-03)
 
 * [Add] PostgreSQL support [#81](https://github.com/TheAxelander/OpenBudgeteer/issues/81) Thanks [csillaggyujto](https://github.com/csillaggyujto)

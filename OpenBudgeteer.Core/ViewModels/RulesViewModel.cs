@@ -42,7 +42,6 @@ public class RulesViewModel : ViewModelBase
     {
         _dbOptions = dbOptions;
         RuleSets = new ObservableCollection<RuleSetViewModelItem>();
-        ResetNewRuleSet();
     }
     
     /// <summary>
