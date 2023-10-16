@@ -91,19 +91,7 @@ public class RuleSetViewModelItem : ViewModelBase
             Name = "No Selection"
         });
         using var dbContext = new DatabaseContext(_dbOptions);
-        AvailableBuckets.Add(dbContext.Bucket.First(i =>
-            i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001")));
-        AvailableBuckets.Add(dbContext.Bucket.First(i =>
-            i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002")));
-
-        var query = dbContext.Bucket
-            .Where(i => 
-                i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
-                i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
-                !i.IsInactive)
-            .OrderBy(i => i.Name);
-
-        foreach (var availableBucket in query.ToList())
+        foreach (var availableBucket in dbContext.Bucket.Where(i => !i.IsInactive).ToList())
         {
             AvailableBuckets.Add(availableBucket);
         }
