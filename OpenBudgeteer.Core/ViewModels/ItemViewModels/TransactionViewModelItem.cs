@@ -579,7 +579,7 @@ public class TransactionViewModelItem : ViewModelBase
         {
             return (comparisionField switch
             {
-                1 => Transaction.AccountId.ToString(),
+                1 => SelectedAccount?.Name ?? "",
                 2 => Transaction.Payee,
                 3 => Transaction.Memo,
                 4 => Transaction.Amount.ToString(CultureInfo.CurrentCulture),
