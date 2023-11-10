@@ -1,7 +1,7 @@
 ### 1.8 (202x-xx-xx)
 * [Add] Data Consistency Check: Negative Transaction assigned to Income [#177](https://github.com/TheAxelander/OpenBudgeteer/issues/177)
 * [Add] Create Transaction keeps last input date [#187](https://github.com/TheAxelander/OpenBudgeteer/issues/187)
-* [Add] An empty database can now be loaded with some demo data using `APPSETTINGS_DEMO_DATA: true` [#192](https://github.com/TheAxelander/OpenBudgeteer/issues/192)
+* [Add] An empty database can be loaded now with some demo data using `APPSETTINGS_DEMO_DATA: true` [#192](https://github.com/TheAxelander/OpenBudgeteer/issues/192)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
 * [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
 * [Changed] More responsive navigation bar [#175](https://github.com/TheAxelander/OpenBudgeteer/issues/175)
