@@ -168,10 +168,6 @@ public class RuleSetViewModelItem : ViewModelBase
                 // CREATE
                 if (dbContext.CreateBucketRuleSet(RuleSet) == 0)
                     throw new Exception("Rule could not be created in database.");
-                foreach (var mappingRule in MappingRules)
-                {
-                    mappingRule.MappingRule.BucketRuleSetId = RuleSet.BucketRuleSetId;
-                }
             }
             else
             {
@@ -180,15 +176,13 @@ public class RuleSetViewModelItem : ViewModelBase
                     i.BucketRuleSetId == RuleSet.BucketRuleSetId));
 
                 dbContext.UpdateBucketRuleSet(RuleSet);
-                foreach (var mappingRule in MappingRules)
-                {
-                    mappingRule.GenerateRuleOutput();
-                }
             }
 
             foreach (var mappingRuleViewModelItem in MappingRules)
             {
                 mappingRuleViewModelItem.MappingRule.MappingRuleId = Guid.Empty;
+                mappingRuleViewModelItem.MappingRule.BucketRuleSetId = RuleSet.BucketRuleSetId;
+                mappingRuleViewModelItem.GenerateRuleOutput();
             }
             dbContext.CreateMappingRules(MappingRules
                 .Select(i => i.MappingRule)
