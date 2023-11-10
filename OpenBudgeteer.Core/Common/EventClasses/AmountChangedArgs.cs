@@ -1,5 +1,5 @@
-﻿using OpenBudgeteer.Core.ViewModels.ItemViewModels;
-using System;
+﻿using System;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.Common.EventClasses;
 
@@ -8,11 +8,11 @@ namespace OpenBudgeteer.Core.Common.EventClasses;
 /// </summary>
 public class AmountChangedArgs : EventArgs
 {
-    public PartialBucketViewModelItem Source { get; private set; }
+    public PartialBucketViewModel Source { get; private set; }
 
     public decimal NewAmount { get; private set; }
 
-    public AmountChangedArgs(PartialBucketViewModelItem source, decimal newAmount)
+    public AmountChangedArgs(PartialBucketViewModel source, decimal newAmount)
     {
         Source = source;
         NewAmount = newAmount;

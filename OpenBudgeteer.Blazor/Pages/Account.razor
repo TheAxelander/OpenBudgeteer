@@ -1,12 +1,6 @@
 ﻿@page "/account"
 
-@using OpenBudgeteer.Core.ViewModels
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using System.Globalization
-@using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <div class="row">
     <div class="col">
@@ -35,8 +29,8 @@
     Title="@_editAccountDialogTitle"
     DataContext="@_editAccountDialogDataContext"
     IsDialogVisible="@_isEditAccountModalDialogVisible"
-    OnSaveClickCallback="@(() => SaveChanges(_editAccountDialogDataContext))"
-    OnCancelClickCallback="@(() => CancelChanges())"/>
+    OnSaveClickCallback="@(() => SaveChanges(_editAccountDialogDataContext!))"
+    OnCancelClickCallback="@(CancelChanges)"/>
 
 <TransactionDialog 
     Title="Account Transactions" 
@@ -50,83 +44,4 @@
     Message="@_errorModalDialogMessage" 
     IsDialogVisible="@_isErrorModalDialogVisible"
     OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
-
-@code {
-    AccountViewModel _dataContext;
-    TransactionViewModel _transactionModalDialogDataContext;
-
-    bool _isEditAccountModalDialogVisible;
-    string _editAccountDialogTitle;
-    AccountViewModelItem _editAccountDialogDataContext;
-
-
-    bool _isTransactionModalDialogVisible;
-    bool _isTransactionModalDialogDataContextLoading;
-
-    bool _isErrorModalDialogVisible;
-    string _errorModalDialogMessage;
-
-    protected override void OnInitialized()
-    {
-        _dataContext = new AccountViewModel(DbContextOptions);
-        HandleResult(_dataContext.LoadData());
-    }
-
-    private void CreateNewAccount()
-    {
-        _editAccountDialogTitle = "New Account";
-        _editAccountDialogDataContext = _dataContext.PrepareNewAccount();
-        _isEditAccountModalDialogVisible = true;
-    }
-
-    private void EditAccount(AccountViewModelItem account)
-    {
-        _editAccountDialogTitle = "Edit Account";
-        _editAccountDialogDataContext = account;
-        _isEditAccountModalDialogVisible = true;
-    }
-
-
-    private void SaveChanges(AccountViewModelItem account)
-    {
-        _isEditAccountModalDialogVisible = false;
-        HandleResult(account.CreateUpdateAccount());
-    }
-
-    private void CancelChanges()
-    {
-        _isEditAccountModalDialogVisible = false;
-        HandleResult(_dataContext.LoadData());
-    }
-
-    private void CloseAccount(AccountViewModelItem account)
-    {
-        HandleResult(account.CloseAccount());
-    }
-
-    void HandleResult(ViewModelOperationResult result)
-    {
-        if (!result.IsSuccessful)
-        {
-            _errorModalDialogMessage = result.Message;
-            _isErrorModalDialogVisible = true;
-        }
-        if (result.ViewModelReloadRequired)
-        {
-            _dataContext.LoadData();
-            StateHasChanged();
-        }
-    }
-
-    async void DisplayAccountTransactions(AccountViewModelItem account)
-    {
-        _isTransactionModalDialogVisible = true;
-        _isTransactionModalDialogDataContextLoading = true;
-
-        _transactionModalDialogDataContext = new TransactionViewModel(DbContextOptions, new YearMonthSelectorViewModel());
-        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(account.Account));
-
-        _isTransactionModalDialogDataContextLoading = false;
-        StateHasChanged();
-    }
-}
+    

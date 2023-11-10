@@ -2,7 +2,8 @@
 @using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
 @using System.Globalization
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
 @if (IsDialogVisible)
  {
     <div class="modal fade show" style=" display: block;">
@@ -53,7 +54,7 @@
                                         <td style="width:130px">
                                             <select class="form-select form-select-sm" 
                                                     @bind:get="transaction.SelectedRecurrenceType.Key.ToString()"
-                                                    @bind:set="(value) => { transaction.SelectedRecurrenceType = transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(value)); }">
+                                                    @bind:set="(value) => { TransactionRecurrenceType_SelectionChanged(value, transaction); }">
                                                 @foreach (var recurrenceType in transaction.AvailableRecurrenceTypes)
                                                 {
                                                     <option value="@recurrenceType.Key">@recurrenceType.Value</option>
@@ -62,11 +63,11 @@
                                         </td>
                                         <td>
                                             <select class="form-select form-select-sm"
-                                                    @bind:get="transaction.SelectedAccount.AccountId.ToString()"
-                                                    @bind:set="(value) => { transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
+                                                    @bind:get="transaction.SelectedAccount.Id.ToString()"
+                                                    @bind:set="(value) => { TransactionAccount_SelectionChanged(value, transaction); }">
                                                 @foreach (var account in transaction.AvailableAccounts)
                                                 {
-                                                    <option value="@account.AccountId">@account.Name</option>
+                                                    <option value="@account.Id">@account.Name</option>
                                                 }
                                             </select>
                                         </td>
@@ -124,7 +125,7 @@
 
 @code {
     [Parameter]
-    public RecurringTransactionViewModel DataContext { get; set; }
+    public RecurringTransactionHandlerViewModel DataContext { get; set; } = null!;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }
@@ -135,10 +136,10 @@
     bool _massEditEnabled;
 
     bool _isDeleteTransactionModalDialogVisible;
-    RecurringTransactionViewModelItem _transactionToBeDeleted;
+    RecurringTransactionViewModel? _transactionToBeDeleted;
 
     bool _isErrorModalDialogVisible;
-    string _errorModalDialogMessage;
+    string _errorModalDialogMessage = string.Empty;
 
     void EditAllTransaction()
     {
@@ -159,14 +160,26 @@
         StateHasChanged();
     }
 
-    async void SaveTransaction(RecurringTransactionViewModelItem transaction)
+    async void SaveTransaction(RecurringTransactionViewModel transaction)
     {
         await HandleResult(
-            transaction.Transaction.TransactionId == Guid.Empty ? 
+            transaction.Transaction.Id == Guid.Empty ? 
             transaction.CreateItem() : transaction.UpdateItem());
     }
 
-    void HandleTransactionDeletionRequest(RecurringTransactionViewModelItem transaction)
+    void TransactionRecurrenceType_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        transaction.SelectedRecurrenceType = transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(value));
+    }
+
+    void TransactionAccount_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.Id == Guid.Parse(value));
+    }
+
+    void HandleTransactionDeletionRequest(RecurringTransactionViewModel transaction)
     {
         _transactionToBeDeleted = transaction;
         _isDeleteTransactionModalDialogVisible = true;
@@ -181,7 +194,7 @@
     async void DeleteTransaction()
     {
         _isDeleteTransactionModalDialogVisible = false;
-        await HandleResult(_transactionToBeDeleted.DeleteItem());
+        await HandleResult(_transactionToBeDeleted!.DeleteItem());
     }
 
     async Task HandleResult(ViewModelOperationResult result)

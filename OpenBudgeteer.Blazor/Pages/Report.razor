@@ -1,10 +1,5 @@
 ﻿@page "/report"
-@using ChartJs.Blazor.ChartJS.BarChart
 @using ChartJs.Blazor.Charts
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Blazor.ViewModels
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <div class="row">
     <div class="col report-chart-box">
@@ -48,22 +43,3 @@
         }
     </div>
 </div>
-
-@code {
-    BlazorReportViewModel _dataContext;
-    List<Tuple<string, BarConfig>> _monthBucketExpensesConfigsLeft;
-    List<Tuple<string, BarConfig>> _monthBucketExpensesConfigsRight;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _monthBucketExpensesConfigsLeft = new List<Tuple<string, BarConfig>>();
-        _monthBucketExpensesConfigsRight = new List<Tuple<string, BarConfig>>();
-
-        _dataContext = new BlazorReportViewModel(DbContextOptions);
-        await _dataContext.LoadDataAsync();
-
-        var halfIndex = _dataContext.MonthBucketExpensesConfigs.Count / 2;
-        _monthBucketExpensesConfigsLeft.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(0,halfIndex));
-        _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(halfIndex,_dataContext.MonthBucketExpensesConfigs.Count - halfIndex));
-    }
-}

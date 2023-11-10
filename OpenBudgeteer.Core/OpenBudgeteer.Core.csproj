@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenBudgeteer.Data\OpenBudgeteer.Data.csproj" />
+    <ProjectReference Include="..\OpenBudgeteer.Core.Data.Repository\OpenBudgeteer.Core.Data.Repository.csproj" />
+    <ProjectReference Include="..\OpenBudgeteer.Core.Data.Services\OpenBudgeteer.Core.Data.Services.csproj" />
+    <ProjectReference Include="..\OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,10 +1,9 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
 @using System.Globalization
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Contracts.Models
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
+@using OpenBudgeteer.Core.Data
+@using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.Helper
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
 @if (IsDialogVisible)
@@ -114,8 +113,8 @@
 
 @code {
     [Parameter]
-    public BucketViewModel DataContext { get; set; }
-    
+    public BucketListingViewModel DataContext { get; set; } = null!;
+
     [Parameter]
     public bool IsDialogVisible { get; set; }
 

@@ -19,15 +19,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE-3RD-PARTY = LICENSE-3RD-PARTY
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.Sqlite.Migrations", "OpenBudgeteer.Data.Sqlite.Migrations\OpenBudgeteer.Data.Sqlite.Migrations.csproj", "{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Sqlite.Migrations", "OpenBudgeteer.Core.Data.Sqlite.Migrations\OpenBudgeteer.Core.Data.Sqlite.Migrations.csproj", "{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.MySql.Migrations", "OpenBudgeteer.Data.MySql.Migrations\OpenBudgeteer.Data.MySql.Migrations.csproj", "{3455E778-BED7-433F-A100-0874FF0D15C7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.MySql.Migrations", "OpenBudgeteer.Core.Data.MySql.Migrations\OpenBudgeteer.Core.Data.MySql.Migrations.csproj", "{3455E778-BED7-433F-A100-0874FF0D15C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data", "OpenBudgeteer.Data\OpenBudgeteer.Data.csproj", "{DEB5B758-7AA9-45C6-96C5-371DA35F9E5C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data", "OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj", "{DEB5B758-7AA9-45C6-96C5-371DA35F9E5C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Contracts", "OpenBudgeteer.Contracts\OpenBudgeteer.Contracts.csproj", "{0AFB336B-8712-4983-A168-8547A29630B6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Postgres.Migrations", "OpenBudgeteer.Core.Data.Postgres.Migrations\OpenBudgeteer.Core.Data.Postgres.Migrations.csproj", "{1CFB5354-FD8A-41AF-AB06-8929F163E04D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Data.Postgres.Migrations", "OpenBudgeteer.Data.Postgres.Migrations\OpenBudgeteer.Data.Postgres.Migrations.csproj", "{1CFB5354-FD8A-41AF-AB06-8929F163E04D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Entities", "OpenBudgeteer.Core.Data.Entities\OpenBudgeteer.Core.Data.Entities.csproj", "{867AE9C6-F97A-4417-9AF6-5F4293F70C81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Contracts", "OpenBudgeteer.Core.Data.Contracts\OpenBudgeteer.Core.Data.Contracts.csproj", "{BCA32F67-3FD5-44EC-904D-61E26CC7D7F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Repository", "OpenBudgeteer.Core.Data.Repository\OpenBudgeteer.Core.Data.Repository.csproj", "{8DF83EAC-6BB2-4952-A0F2-29A512CA2181}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Services", "OpenBudgeteer.Core.Data.Services\OpenBudgeteer.Core.Data.Services.csproj", "{B93B1889-EF69-4EA6-8B7B-C0BD7D59BC51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,14 +65,26 @@ Global
 		{DEB5B758-7AA9-45C6-96C5-371DA35F9E5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEB5B758-7AA9-45C6-96C5-371DA35F9E5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEB5B758-7AA9-45C6-96C5-371DA35F9E5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AFB336B-8712-4983-A168-8547A29630B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AFB336B-8712-4983-A168-8547A29630B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AFB336B-8712-4983-A168-8547A29630B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AFB336B-8712-4983-A168-8547A29630B6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1CFB5354-FD8A-41AF-AB06-8929F163E04D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{867AE9C6-F97A-4417-9AF6-5F4293F70C81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{867AE9C6-F97A-4417-9AF6-5F4293F70C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{867AE9C6-F97A-4417-9AF6-5F4293F70C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{867AE9C6-F97A-4417-9AF6-5F4293F70C81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCA32F67-3FD5-44EC-904D-61E26CC7D7F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCA32F67-3FD5-44EC-904D-61E26CC7D7F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCA32F67-3FD5-44EC-904D-61E26CC7D7F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCA32F67-3FD5-44EC-904D-61E26CC7D7F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DF83EAC-6BB2-4952-A0F2-29A512CA2181}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DF83EAC-6BB2-4952-A0F2-29A512CA2181}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DF83EAC-6BB2-4952-A0F2-29A512CA2181}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DF83EAC-6BB2-4952-A0F2-29A512CA2181}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B93B1889-EF69-4EA6-8B7B-C0BD7D59BC51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B93B1889-EF69-4EA6-8B7B-C0BD7D59BC51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B93B1889-EF69-4EA6-8B7B-C0BD7D59BC51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B93B1889-EF69-4EA6-8B7B-C0BD7D59BC51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

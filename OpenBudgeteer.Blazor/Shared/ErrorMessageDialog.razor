@@ -18,11 +18,12 @@
 }
 
 @code {
-    [Parameter]
-    public string Title { get; set; }
 
     [Parameter]
-    public string Message { get; set; }
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }

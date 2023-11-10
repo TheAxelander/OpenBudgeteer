@@ -20,7 +20,7 @@
     <div class="card card-tile">
         <div class="row align-items-center">
             <div class="col-md-4 card-img-col-padding">
-                <img class="card-img-top" src="css/icons8/code-fork.png"/>
+                <img class="card-img-top" src="css/icons8/code-fork.png" alt=""/>
             </div>
             <div class="col-md-8">
                 <div class="card-body">
@@ -33,7 +33,7 @@
     <div class="card card-tile">
         <div class="row align-items-center">
             <div class="col-md-4 card-img-col-padding">
-                <img class="card-img-top" src="css/icons8/answers.png"/>
+                <img class="card-img-top" src="css/icons8/answers.png" alt=""/>
             </div>
             <div class="col-md-8">
                 <div class="card-body">
@@ -46,7 +46,7 @@
     <div class="card card-tile">
         <div class="row align-items-center">
             <div class="col-md-4 card-img-col-padding">
-                <img class="card-img-top" src="css/icons8/question-group.png"/>
+                <img class="card-img-top" src="css/icons8/question-group.png" alt=""/>
             </div>
             <div class="col-md-8">
                 <div class="card-body">
@@ -69,33 +69,4 @@
         <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:"><use xlink:href="#exclamation-triangle-fill"/></svg>
         <div>Unable to load News</div>
     </div>
-}
-
-@code {
-    private string _newsSource = "https://raw.githubusercontent.com/TheAxelander/OpenBudgeteer-News/main/README.md";
-    private MarkupString _convertedHtml;
-    private bool _showErrorMessage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        await LoadNewsAsync();
-    }
-
-    async Task LoadNewsAsync()
-    {
-        try
-        {
-            _showErrorMessage = false;
-            var httpResponse = await new HttpClient().GetAsync(_newsSource);
-            httpResponse.EnsureSuccessStatusCode();
-            _convertedHtml = new MarkupString(await httpResponse.Content.ReadAsStringAsync());
-        }
-        catch
-        {
-            _convertedHtml = new MarkupString();
-            _showErrorMessage = true;
-        }
-    }
 }

@@ -1,15 +1,6 @@
 ﻿@page "/bucket"
-@using OpenBudgeteer.Blazor.ViewModels
-@using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
-@using Microsoft.EntityFrameworkCore
 @using System.Drawing
 @using System.Globalization
-@using OpenBudgeteer.Contracts.Models
-@using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
-@inject YearMonthSelectorViewModel YearMonthDataContext
 
 <style>
     /* Page specific styles */
@@ -29,7 +20,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/refund.png"/>
+                <img src="css/icons8/refund.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Income</span>
@@ -41,7 +32,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/cash-in-hand.png"/>
+                <img src="css/icons8/cash-in-hand.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Expenses</span>
@@ -53,7 +44,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/exchange.png"/>
+                <img src="css/icons8/exchange.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Month Balance</span>
@@ -65,7 +56,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/merchant-account.png"/>
+                <img src="css/icons8/merchant-account.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Bank Balance</span>
@@ -80,7 +71,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/banknotes.png"/>
+                <img src="css/icons8/banknotes.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Budget</span>
@@ -92,7 +83,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/receive-cash.png"/>
+                <img src="css/icons8/receive-cash.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Pending Want</span>
@@ -104,7 +95,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/money-bag-euro.png"/>
+                <img src="css/icons8/money-bag-euro.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Remaining Budget</span>
@@ -116,7 +107,7 @@
     <div class="col header-stats-tile">
         <div class="row">
             <div class="col-md-auto no-gutters">
-                <img src="css/icons8/high-priority.png"/>
+                <img src="css/icons8/high-priority.png" alt=""/>
             </div>
             <div class="col" style="text-align: center">
                 <span class="tile-header">Negative Bucket Balance</span>
@@ -270,7 +261,7 @@
 }
 
 <NewBucketGroupDialog
-    DataContext="@_newBucketGroupDialogDataContext"
+    DataContext="@_dataContext.NewBucketGroup"
     IsDialogVisible="@_isNewBucketGroupModalDialogVisible"
     OnCancelClickCallback="@(CancelNewBucketGroupDialog)"
     OnSaveClickCallback="@(SaveAndCloseNewBucketGroupDialog)"
@@ -302,170 +293,3 @@
     Message="@_errorModalDialogMessage" 
     IsDialogVisible="@_isErrorModalDialogVisible"
     OnClickCallback="@CloseErrorDialog"/>
-
-@code {
-    BucketViewModel _dataContext;
-
-    BucketGroup _newBucketGroupDialogDataContext;
-    bool _isNewBucketGroupModalDialogVisible;
-
-    BucketViewModelItem _editBucketDialogDataContext;
-    bool _isEditBucketModalDialogVisible;
-
-    BlazorBucketStatisticsViewModel _bucketDetailsModalDialogDataContext;
-    bool _isBucketDetailsModalDialogVisible;
-    bool _isBucketDetailsModalDialogDataContextLoading;
-
-    bool _isCloseBucketDialogVisible;
-    BucketViewModelItem _bucketToBeClosed;
-
-    bool _isErrorModalDialogVisible;
-    string _errorModalDialogMessage;
-    bool _hasErrorInBucketModalDialog;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _dataContext = new BucketViewModel(DbContextOptions, YearMonthDataContext);
-
-        await HandleResult(await _dataContext.LoadDataAsync());
-        
-        YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) => 
-        {
-            await HandleResult(await _dataContext.LoadDataAsync());
-            StateHasChanged();
-        };
-    }
-
-    async void DistributeBudget()
-    {
-        await HandleResult(_dataContext.DistributeBudget());
-    }
-
-    void CreateBucket(BucketGroupViewModelItem bucketGroup)
-    {
-        var newBucket = bucketGroup.CreateBucket();
-        ShowEditBucketDialog(newBucket);
-    }
-
-    void ShowNewBucketGroupDialog()
-    {
-        _newBucketGroupDialogDataContext = new BucketGroup
-        {
-            BucketGroupId = Guid.Empty,
-            Name = string.Empty,
-            Position = 1
-        };
-        _isNewBucketGroupModalDialogVisible = true;
-    }
-    
-    async void SaveAndCloseNewBucketGroupDialog()
-    {
-        _isNewBucketGroupModalDialogVisible = false;
-        // Requested Position is last, so set right position number 
-        if (_newBucketGroupDialogDataContext.Position == -1)
-            _newBucketGroupDialogDataContext.Position = _dataContext.BucketGroups.Count + 1;
-        await HandleResult(_dataContext.CreateGroup(_newBucketGroupDialogDataContext));
-    }
-
-    void CancelNewBucketGroupDialog()
-    {
-        _isNewBucketGroupModalDialogVisible = false;
-    }
-
-    void ShowEditBucketDialog(BucketViewModelItem bucket)
-    {
-        _editBucketDialogDataContext = bucket;
-        _isEditBucketModalDialogVisible = true;
-    }
-
-    async void SaveAndCloseEditBucketDialog()
-    {
-        _isEditBucketModalDialogVisible = false;
-        var result = _dataContext.SaveChanges(_editBucketDialogDataContext);
-        await HandleResult(result);
-        if (!result.IsSuccessful)
-        {
-            _hasErrorInBucketModalDialog = true; // Ensures that Dialog will be displayed again
-            return; // Error message is shown in HandleResult()
-        }
-        StateHasChanged();
-    }
-
-    async void CancelEditBucketDialog()
-    {
-        _isEditBucketModalDialogVisible = false;
-        await HandleResult(await _dataContext.LoadDataAsync());
-        StateHasChanged();
-    }
-
-    void HandleBucketCloseRequest(BucketViewModelItem bucket)
-    {
-        _bucketToBeClosed = bucket;
-        _isCloseBucketDialogVisible = true;
-    }
-
-    void CancelCloseBucket()
-    {
-        _isCloseBucketDialogVisible = false;
-        _bucketToBeClosed = null;
-    }
-
-    async void CloseBucket()
-    {
-        _isCloseBucketDialogVisible = false;
-        await HandleResult(_dataContext.CloseBucket(_bucketToBeClosed));
-        StateHasChanged();
-    }
-
-    async Task HandleResult(ViewModelOperationResult result)
-    {
-        if (!result.IsSuccessful)
-        {
-            _errorModalDialogMessage = result.Message;
-            _isErrorModalDialogVisible = true;
-        }
-		if (result.ViewModelReloadRequired)
-        {
-            await _dataContext.LoadDataAsync();
-            StateHasChanged();
-        }
-    }
-
-    async void InOut_Changed(BucketViewModelItem bucket, KeyboardEventArgs args)
-    {
-        if (args.Key != "Enter") return;
-        var result = bucket.HandleInOutInput();
-        if (result.IsSuccessful)
-        {
-            await HandleResult(_dataContext.UpdateBalanceFigures());
-            StateHasChanged();
-        }
-        else
-        {
-            await HandleResult(result);
-        }
-    }
-
-    async void DisplayBucketDetails(BucketViewModelItem bucket)
-    {
-        _isBucketDetailsModalDialogVisible = true;
-        _isBucketDetailsModalDialogDataContextLoading = true;
-
-        _bucketDetailsModalDialogDataContext = new BlazorBucketStatisticsViewModel(DbContextOptions, YearMonthDataContext, bucket.Bucket);
-        await _bucketDetailsModalDialogDataContext.LoadDataAsync(true);
-
-        _isBucketDetailsModalDialogDataContextLoading = false;
-        StateHasChanged();
-    }
-
-    void CloseErrorDialog()
-    {
-        _isErrorModalDialogVisible = false;
-        // In case error occuring in EditBucketDialog, display it again
-        if (_hasErrorInBucketModalDialog)
-        {
-            _isEditBucketModalDialogVisible = true;
-            _hasErrorInBucketModalDialog = false;
-        }
-    }
-}

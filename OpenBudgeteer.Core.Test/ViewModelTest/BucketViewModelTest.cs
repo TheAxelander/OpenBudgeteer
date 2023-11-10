@@ -2,23 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Contracts.Models;
-using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Core.ViewModels.ItemViewModels;
-using OpenBudgeteer.Data;
+using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
+using OpenBudgeteer.Core.ViewModels.Helper;
+using OpenBudgeteer.Core.ViewModels.PageViewModels;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
 
-public class BucketViewModelTest
+public class BucketPageViewModelTest : BaseTest
 {
-    private readonly DbContextOptions<DatabaseContext> _dbOptions;
-
-    public BucketViewModelTest()
+    public BucketPageViewModelTest() : base(nameof(BucketPageViewModelTest))
     {
-        _dbOptions = DbConnector.GetDbContextOptions(nameof(BucketViewModelTest));
-        DbConnector.CleanupDatabase(nameof(BucketViewModelTest));
     }
 
     public static IEnumerable<object[]> TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets
@@ -38,35 +33,34 @@ public class BucketViewModelTest
     [MemberData(nameof(TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets))]
     public async Task LoadDataAsync_CheckBucketGroupAssignedBuckets(List<string> bucketNames)
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
-        {
-            var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
-            dbContext.CreateBucketGroup(testBucketGroup);
+        var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
+        ServiceManager.BucketGroupService.Create(testBucketGroup);
 
-            foreach (var bucketName in bucketNames)
+        foreach (var bucketName in bucketNames)
+        {
+            var newBucket = new Bucket()
             {
-                dbContext.CreateBucket(new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = bucketName, 
-                    ColorCode = "Red", 
-                    ValidFrom = new DateTime(2010, 1, 1)
-                });
-            }
-                
-            var monthSelectorViewModel = new YearMonthSelectorViewModel();
-            var viewModel = new BucketViewModel(_dbOptions, monthSelectorViewModel);
-            await viewModel.LoadDataAsync();
-                
-            var testObject = viewModel.BucketGroups
-                .FirstOrDefault(i => i.BucketGroup.BucketGroupId == testBucketGroup.BucketGroupId);
-                
-            Assert.NotNull(testObject);
-            Assert.Equal(bucketNames.Count, testObject.Buckets.Count);
-            foreach (var bucketName in bucketNames)
-            {
-                Assert.Contains(testObject.Buckets, i => i.Bucket.Name == bucketName);
-            }
+                BucketGroupId = testBucketGroup.Id,
+                Name = bucketName,
+                ColorCode = "Red",
+                ValidFrom = new DateTime(2010, 1, 1)
+            };
+            var newBucketVersion = new BucketVersion() { BucketType = 1, Version = 1 };
+            ServiceManager.BucketService.Create(newBucket, newBucketVersion, newBucket.ValidFrom);
+        }
+            
+        var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager);
+        var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
+        await viewModel.LoadDataAsync();
+            
+        var testObject = viewModel.BucketGroups
+            .FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+            
+        Assert.NotNull(testObject);
+        Assert.Equal(bucketNames.Count, testObject.Buckets.Count);
+        foreach (var bucketName in bucketNames)
+        {
+            Assert.Contains(testObject.Buckets, i => i.Bucket.Name == bucketName);
         }
     }
 
@@ -85,36 +79,35 @@ public class BucketViewModelTest
     [MemberData(nameof(TestData_LoadDataAsync_CheckBucketSorting))]
     public async Task LoadDataAsync_CheckBucketSorting(List<string> bucketNamesUnsorted, List<string> expectedBucketNamesSorted)
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
+        ServiceManager.BucketGroupService.Create(testBucketGroup);
+
+        foreach (var bucketName in bucketNamesUnsorted)
         {
-            var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
-            dbContext.CreateBucketGroup(testBucketGroup);
-                
-            foreach (var bucketName in bucketNamesUnsorted)
+            var newBucket = new Bucket()
             {
-                dbContext.CreateBucket(new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = bucketName, 
-                    ColorCode = "Red", 
-                    ValidFrom = new DateTime(2010, 1, 1)
-                });
-            }
-                
-            var monthSelectorViewModel = new YearMonthSelectorViewModel();
-            var viewModel = new BucketViewModel(_dbOptions, monthSelectorViewModel);
-            await viewModel.LoadDataAsync();
+                BucketGroupId = testBucketGroup.Id,
+                Name = bucketName,
+                ColorCode = "Red",
+                ValidFrom = new DateTime(2010, 1, 1)
+            };
+            var newBucketVersion = new BucketVersion() { BucketType = 1, Version = 1 };
+            ServiceManager.BucketService.Create(newBucket, newBucketVersion, newBucket.ValidFrom);
+        }
+        
+        var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager);
+        var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
+        await viewModel.LoadDataAsync();
 
-            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.BucketGroupId == testBucketGroup.BucketGroupId);
-            Assert.NotNull(bucketGroup);
-            Assert.Equal(bucketNamesUnsorted.Count, bucketGroup.Buckets.Count);
+        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+        Assert.NotNull(bucketGroup);
+        Assert.Equal(bucketNamesUnsorted.Count, bucketGroup.Buckets.Count);
 
-            for (int i = 0; i < bucketGroup.Buckets.Count; i++)
-            {
-                Assert.Equal(
-                    expectedBucketNamesSorted.ElementAt(i),
-                    bucketGroup.Buckets.ElementAt(i).Bucket.Name);
-            }
+        for (int i = 0; i < bucketGroup.Buckets.Count; i++)
+        {
+            Assert.Equal(
+                expectedBucketNamesSorted.ElementAt(i),
+                bucketGroup.Buckets.ElementAt(i).Bucket.Name);
         }
     }
 
@@ -125,11 +118,11 @@ public class BucketViewModelTest
             return new[]
             {
                 // Active in current month
-                new object[] { new DateTime(2010,1,1), new DateTime(2010,1,1), false, null, true},
+                new object[] { new DateTime(2010,1,1), new DateTime(2010,1,1), false, DateTime.MaxValue, true},
                 // Active starting next month
-                new object[] { new DateTime(2010,1,1), new DateTime(2010,2,1), false, null, false},
+                new object[] { new DateTime(2010,1,1), new DateTime(2010,2,1), false, DateTime.MaxValue, false},
                 // Active starting next year
-                new object[] { new DateTime(2010,1,1), new DateTime(2011,1,1), false, null, false},
+                new object[] { new DateTime(2010,1,1), new DateTime(2011,1,1), false, DateTime.MaxValue, false},
                 // Inactive since current month
                 new object[] { new DateTime(2010,1,1), new DateTime(2009,1,1), true, new DateTime(2010,1,1), false},
                 // Inactive since last year
@@ -154,45 +147,42 @@ public class BucketViewModelTest
         bool expectedBucketAvailable
         )
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        var testAccount = new Account() {IsActive = 1, Name = "Account"};
+        var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+
+        ServiceManager.AccountService.Create(testAccount);
+        ServiceManager.BucketGroupService.Create(testBucketGroup);
+
+        var testBucket = new Bucket()
         {
-            var testAccount = new Account() {IsActive = 1, Name = "Account"};
-            var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+            BucketGroupId = testBucketGroup.Id,
+            Name = "Bucket",
+            ValidFrom = bucketActiveSince,
+            IsInactive = bucketIsInactive,
+            IsInactiveFrom = bucketIsInActiveFrom,
+        };
+        var testBucketVersion = new BucketVersion()
+        {
+            BucketId = testBucket.Id,
+            Version = 1,
+            BucketType = 1,
+            ValidFrom = bucketActiveSince
+        };
 
-            dbContext.CreateAccount(testAccount);
-            dbContext.CreateBucketGroup(testBucketGroup);
-
-            var testBucket = new Bucket()
-            {
-                BucketGroupId = testBucketGroup.BucketGroupId,
-                Name = "Bucket",
-                ValidFrom = bucketActiveSince,
-                IsInactive = bucketIsInactive,
-                IsInactiveFrom = bucketIsInActiveFrom,
-            };
-
-            dbContext.CreateBucket(testBucket);
-            dbContext.CreateBucketVersion(new BucketVersion()
-            {
-                BucketId = testBucket.BucketId, 
-                Version = 1, 
-                BucketType = 1, 
-                ValidFrom = bucketActiveSince
-            });
-                
-            var monthSelectorViewModel = new YearMonthSelectorViewModel()
-            {
-                SelectedYear = testMonth.Year,
-                SelectedMonth = testMonth.Month
-            };
-            var viewModel = new BucketViewModel(_dbOptions, monthSelectorViewModel);
-            await viewModel.LoadDataAsync();
+        ServiceManager.BucketService.Create(testBucket, testBucketVersion, bucketActiveSince);
             
-            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.BucketGroupId == testBucketGroup.BucketGroupId);
-            Assert.NotNull(bucketGroup);
-            
-            Assert.Equal(expectedBucketAvailable, bucketGroup.Buckets.Any());
-        }
+        var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager)
+        {
+            SelectedYear = testMonth.Year,
+            SelectedMonth = testMonth.Month
+        };
+        var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
+        await viewModel.LoadDataAsync();
+        
+        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+        Assert.NotNull(bucketGroup);
+        
+        Assert.Equal(expectedBucketAvailable, bucketGroup.Buckets.Any());
     }
 
     [Fact]
@@ -200,65 +190,60 @@ public class BucketViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                var testAccount = new Account() { IsActive = 1, Name = "Account" };
-                var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
+            var testAccount = new Account() {IsActive = 1, Name = "Account"};
+            var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
 
-                dbContext.CreateAccount(testAccount);
-                dbContext.CreateBucketGroup(testBucketGroup);
-
-                var testBucket1 = new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = "Bucket Active Current Month",
-                    ValidFrom = new DateTime(2010, 1, 1)
-                };
-                var testBucket2 = new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = "Bucket Active Past",
-                    ValidFrom = new DateTime(2009, 1, 1)
-                };
-                var testBucket3 = new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = "Bucket Active Future",
-                    ValidFrom = new DateTime(2010, 2, 1)
-                };
-
-                dbContext.CreateBuckets(new[]
-                {
-                    testBucket1, testBucket2, testBucket3
-                });
-                dbContext.CreateBucketVersions(new[]
-                {
-                    new BucketVersion() { BucketId = testBucket1.BucketId, Version = 1, BucketType = 1, ValidFrom = testBucket1.ValidFrom },
-                    new BucketVersion() { BucketId = testBucket2.BucketId, Version = 1, BucketType = 1, ValidFrom = testBucket2.ValidFrom },
-                    new BucketVersion() { BucketId = testBucket3.BucketId, Version = 1, BucketType = 1, ValidFrom = testBucket3.ValidFrom },
-                });
-
-
-                var monthSelectorViewModel = new YearMonthSelectorViewModel()
-                {
-                    SelectedYear = 2010,
-                    SelectedMonth = 1
-                };
-                var viewModel = new BucketViewModel(_dbOptions, monthSelectorViewModel);
-                await viewModel.LoadDataAsync();
+            ServiceManager.AccountService.Create(testAccount);
+            ServiceManager.BucketGroupService.Create(testBucketGroup);
             
-                var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.BucketGroupId == testBucketGroup.BucketGroupId);
-                Assert.NotNull(bucketGroup);
-                
-                Assert.Equal(2, bucketGroup.Buckets.Count);
-                Assert.Contains(bucketGroup.Buckets, i => i.Bucket.BucketId == testBucket1.BucketId);
-                Assert.Contains(bucketGroup.Buckets, i => i.Bucket.BucketId == testBucket2.BucketId);
-                Assert.DoesNotContain(bucketGroup.Buckets, i => i.Bucket.BucketId == testBucket3.BucketId);
-            }
+            var testBucket1 = new Bucket()
+            {
+                BucketGroupId = testBucketGroup.Id, 
+                Name = "Bucket Active Current Month",
+                ValidFrom = new DateTime(2010, 1, 1)
+            };
+            var testBucket2 = new Bucket()
+            {
+                BucketGroupId = testBucketGroup.Id, 
+                Name = "Bucket Active Past",
+                ValidFrom = new DateTime(2009, 1, 1)
+            };
+            var testBucket3 = new Bucket()
+            {
+                BucketGroupId = testBucketGroup.Id, 
+                Name = "Bucket Active Future",
+                ValidFrom = new DateTime(2010, 2, 1)
+            };
+            var testBucketVersion1 = new BucketVersion()
+                { Version = 1, BucketType = 1 };
+            var testBucketVersion2 = new BucketVersion()
+                { Version = 1, BucketType = 1 };
+            var testBucketVersion3 = new BucketVersion()
+                { Version = 1, BucketType = 1 };
+
+            ServiceManager.BucketService.Create(testBucket1, testBucketVersion1, testBucket1.ValidFrom);
+            ServiceManager.BucketService.Create(testBucket2, testBucketVersion2, testBucket2.ValidFrom);
+            ServiceManager.BucketService.Create(testBucket3, testBucketVersion3, testBucket3.ValidFrom);
+
+            var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager)
+            {
+                SelectedYear = 2010,
+                SelectedMonth = 1
+            };
+            var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
+            await viewModel.LoadDataAsync();
+        
+            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+            Assert.NotNull(bucketGroup);
+            
+            Assert.Equal(2, bucketGroup.Buckets.Count);
+            Assert.Contains(bucketGroup.Buckets, i => i.Bucket.Id == testBucket1.Id);
+            Assert.Contains(bucketGroup.Buckets, i => i.Bucket.Id == testBucket2.Id);
+            Assert.DoesNotContain(bucketGroup.Buckets, i => i.Bucket.Id == testBucket3.Id);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(BucketViewModelTest));
+            Cleanup();
         }
     }
 
@@ -267,94 +252,93 @@ public class BucketViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            var testAccount = new Account() {IsActive = 1, Name = "Account"};
+            var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+
+            ServiceManager.AccountService.Create(testAccount);
+            ServiceManager.BucketGroupService.Create(testBucketGroup);
+
+            var testBucket1 = new Bucket()
             {
-                var testAccount = new Account() { IsActive = 1, Name = "Account" };
-                var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
+                BucketGroupId = testBucketGroup.Id, 
+                Name = "Bucket 1", 
+                ValidFrom = new DateTime(2010, 1, 1)
+            };
+            var testBucket2 = new Bucket()
+            {
+                BucketGroupId = testBucketGroup.Id, 
+                Name = "Bucket 2", 
+                ValidFrom = new DateTime(2010, 1, 1)
+            };
+            var testBucketVersion1 = new BucketVersion() { Version = 1, BucketType = 1 };
+            var testBucketVersion2 = new BucketVersion() { Version = 1, BucketType = 1 };
+            
+            ServiceManager.BucketService.Create(testBucket1, testBucketVersion1, testBucket1.ValidFrom);
+            ServiceManager.BucketService.Create(testBucket2, testBucketVersion2, testBucket2.ValidFrom);
 
-                dbContext.CreateAccount(testAccount);
-                dbContext.CreateBucketGroup(testBucketGroup);
-
-                var testBucket1 = new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = "Bucket 1", 
-                    ValidFrom = new DateTime(2010, 1, 1)
-                };
-                var testBucket2 = new Bucket()
-                {
-                    BucketGroupId = testBucketGroup.BucketGroupId, 
-                    Name = "Bucket 2", 
-                    ValidFrom = new DateTime(2010, 1, 1)
-                };
-
-                dbContext.CreateBuckets(new[]
-                {
-                    testBucket1, testBucket2
-                });
-                dbContext.CreateBucketVersions(new[]
-                {
-                    new BucketVersion() { BucketId = testBucket1.BucketId, Version = 1, BucketType = 1, ValidFrom = testBucket1.ValidFrom },
-                    new BucketVersion() { BucketId = testBucket2.BucketId, Version = 1, BucketType = 1, ValidFrom = testBucket2.ValidFrom },
-                });
-
-                var testTransactions = new[]
-                {
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2010,1,1), Amount = 1 },
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2010,1,1), Amount = -10 },
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2010,1,1), Amount = 100 },
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2010,1,1), Amount = -1000 },
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2010,1,1), Amount = 10000 },
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2009,1,1), Amount = 100000 },
-                    new BankTransaction() { AccountId = testAccount.AccountId, TransactionDate = new DateTime(2010,2,1), Amount = 1000000 },
-                };
-                dbContext.CreateBankTransactions(testTransactions);
-
-                dbContext.CreateBudgetedTransactions(new[]
-                {
-                    new BudgetedTransaction() { TransactionId = testTransactions[0].TransactionId, BucketId = testBucket1.BucketId, Amount = 1 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[1].TransactionId, BucketId = testBucket1.BucketId, Amount = -5 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[1].TransactionId, BucketId = testBucket2.BucketId, Amount = -5 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[2].TransactionId, BucketId = testBucket1.BucketId, Amount = 100 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[3].TransactionId, BucketId = testBucket2.BucketId, Amount = -1000 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[4].TransactionId, BucketId = testBucket2.BucketId, Amount = 10000 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[5].TransactionId, BucketId = testBucket2.BucketId, Amount = 100000 },
-                    new BudgetedTransaction() { TransactionId = testTransactions[6].TransactionId, BucketId = testBucket2.BucketId, Amount = 1000000 },
-                });
-
-                var monthSelectorViewModel = new YearMonthSelectorViewModel()
-                {
-                    SelectedYear = 2010,
-                    SelectedMonth = 1
-                };
-                var viewModel = new BucketViewModel(_dbOptions, monthSelectorViewModel);
-                await viewModel.LoadDataAsync();
-
-                var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.BucketGroupId == testBucketGroup.BucketGroupId);
-                Assert.NotNull(bucketGroup);
-
-                // This test includes:
-                // - Bucket Split
-                var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.BucketId == testBucket1.BucketId);
-                Assert.NotNull(testObject);
-                Assert.Equal(-5, testObject.Activity);
-                Assert.Equal(96, testObject.Balance);
-                Assert.Equal(101, testObject.In);
-
-                // This test includes:
-                // - Bucket Split
-                // - Include Transactions in previous months for Balance
-                // - Exclude Transactions in the future
-                testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.BucketId == testBucket2.BucketId);
-                Assert.NotNull(testObject);
-                Assert.Equal(-1005, testObject.Activity);
-                Assert.Equal(108995, testObject.Balance);
-                Assert.Equal(10000, testObject.In);
+            var testTransactions = new List<BankTransaction>
+            {
+                new() { AccountId = testAccount.Id, TransactionDate = new DateTime(2010,1,1), Amount = 1 },
+                new () { AccountId = testAccount.Id, TransactionDate = new DateTime(2010,1,1), Amount = -10 },
+                new () { AccountId = testAccount.Id, TransactionDate = new DateTime(2010,1,1), Amount = 100 },
+                new () { AccountId = testAccount.Id, TransactionDate = new DateTime(2010,1,1), Amount = -1000 },
+                new () { AccountId = testAccount.Id, TransactionDate = new DateTime(2010,1,1), Amount = 10000 },
+                new () { AccountId = testAccount.Id, TransactionDate = new DateTime(2009,1,1), Amount = 100000 },
+                new () { AccountId = testAccount.Id, TransactionDate = new DateTime(2010,2,1), Amount = 1000000 },
+            };
+            foreach (var transaction in testTransactions)
+            {
+                ServiceManager.BankTransactionService.Create(transaction);
             }
+
+            var testBudgetedTransactions = new List<BudgetedTransaction>
+            {
+                new () { TransactionId = testTransactions[0].Id, BucketId = testBucket1.Id, Amount = 1 },
+                new () { TransactionId = testTransactions[1].Id, BucketId = testBucket1.Id, Amount = -5 },
+                new () { TransactionId = testTransactions[1].Id, BucketId = testBucket2.Id, Amount = -5 },
+                new () { TransactionId = testTransactions[2].Id, BucketId = testBucket1.Id, Amount = 100 },
+                new () { TransactionId = testTransactions[3].Id, BucketId = testBucket2.Id, Amount = -1000 },
+                new () { TransactionId = testTransactions[4].Id, BucketId = testBucket2.Id, Amount = 10000 },
+                new () { TransactionId = testTransactions[5].Id, BucketId = testBucket2.Id, Amount = 100000 },
+                new () { TransactionId = testTransactions[6].Id, BucketId = testBucket2.Id, Amount = 1000000 },
+            };
+            foreach (var budgetedTransaction in testBudgetedTransactions)
+            {
+                ServiceManager.BudgetedTransactionService.Create(budgetedTransaction);
+            }
+
+            var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager)
+            {
+                SelectedYear = 2010,
+                SelectedMonth = 1
+            };
+            var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
+            await viewModel.LoadDataAsync();
+
+            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+            Assert.NotNull(bucketGroup);
+
+            // This test includes:
+            // - Bucket Split
+            var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.Id == testBucket1.Id);
+            Assert.NotNull(testObject);
+            Assert.Equal(-5, testObject.Activity);
+            Assert.Equal(96, testObject.Balance);
+            Assert.Equal(101, testObject.In);
+
+            // This test includes:
+            // - Bucket Split
+            // - Include Transactions in previous months for Balance
+            // - Exclude Transactions in the future
+            testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.Id == testBucket2.Id);
+            Assert.NotNull(testObject);
+            Assert.Equal(-1005, testObject.Activity);
+            Assert.Equal(108995, testObject.Balance);
+            Assert.Equal(10000, testObject.In);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(BucketViewModelTest));
+            Cleanup();
         }
     }
 
@@ -379,7 +363,7 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>()
                     {
-                        new BucketMovement { MovementDate = new DateTime(2010, 1, 1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2010, 1, 1), Amount = 10 }
                     },
                     0, 10 ,0
                 },
@@ -389,7 +373,7 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2010,1,1), Amount = -10 }
+                        new() { TransactionDate = new DateTime(2010,1,1), Amount = -10 }
                     },
                     new List<BucketMovement>(),
                     10, 0, -10
@@ -400,11 +384,11 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2010,1,1), Amount = -10 }
+                        new() { TransactionDate = new DateTime(2010,1,1),  Amount = -10 }
                     },
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2010, 1, 1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2010, 1, 1), Amount = 10 }
                     },
                     0, 10, -10
                 },
@@ -415,7 +399,7 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2010, 1, 1), Amount = 5 }
+                        new() { MovementDate = new DateTime(2010, 1, 1), Amount = 5 }
                     },
                     5, 5, 0
                 },
@@ -426,7 +410,7 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2010, 1, 1), Amount = 15 }
+                        new() { MovementDate = new DateTime(2010, 1, 1), Amount = 15 }
                     },
                     0, 15 ,0
                 }
@@ -458,7 +442,7 @@ public class BucketViewModelTest
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(BucketViewModelTest));
+            Cleanup();
         }
     }
 
@@ -483,7 +467,7 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2010,1,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2010,1,1), Amount = 10 }
                     },
                     0, 10, 0, 10, "120 until 2010-12", 8
                 },
@@ -494,12 +478,12 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 10 }
                     },
                     10, 0, 0, 60, "120 until 2010-06", 50
                 },
@@ -510,13 +494,13 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2010,1,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2010,1,1), Amount = 10 }
                     },
                     0, 10, 0, 70, "120 until 2010-06", 58
                 },
@@ -527,12 +511,12 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 20 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 20 }
                     },
                     0, 0, 0, 120, "120 until 2010-06", 100
                 },
@@ -543,12 +527,12 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 30 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 30 }
                     },
                     0, 0, 0, 130, "120 until 2010-06", 100
                 },
@@ -567,9 +551,9 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 10 }
                     },
                     15, 0, 0, 30, "120 until 2010-06", 25
                 },
@@ -588,8 +572,8 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 33.33m },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 33.33m }
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 33.33m },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 33.33m }
                     },
                     33.34m, 0, 0, 66.66m, "100 until 2010-01", 67
                 },
@@ -600,8 +584,8 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 12.34m },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 56.78m }
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 12.34m },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 56.78m }
                     },
                     30.88m, 0, 0, 69.12m, "100 until 2010-01", 69
                 },
@@ -611,17 +595,17 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2009,9,2), Amount = -30 },
-                        new BankTransaction { TransactionDate = new DateTime(2010,1,2), Amount = -10 }
+                        new() { TransactionDate = new DateTime(2009,9,2), Amount = -30 },
+                        new() { TransactionDate = new DateTime(2010,1,2), Amount = -10 }
                     },
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 10 }
                     },
                     16.67m, 0, -10, 20, "120 until 2010-06", 17
                 },
@@ -631,28 +615,28 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,6,1) },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2009,6,1), Amount = -120 }
+                        new() { TransactionDate = new DateTime(2009,6,1), Amount = -120 }
                     },
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2008,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2008,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2008,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2008,10,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2008,11,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2008,12,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,1,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,2,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,3,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,4,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,5,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,6,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2008,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2008,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2008,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2008,10,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2008,11,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2008,12,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,1,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,2,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,3,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,4,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,5,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,6,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 10 }
                     },
                     10, 0, 0, 60, "120 until 2010-06", 50
                 }
@@ -681,7 +665,7 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2010,1,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2010,1,1), Amount = 10 }
                     },
                     0, 10, 0, 10, "120 until 2010-12", 8
                 },
@@ -692,12 +676,12 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 10 }
                     },
                     10, 0, 0, 60, "120 until 2010-06", 50
                 },
@@ -708,12 +692,12 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 20 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 20 }
                     },
                     0, 0, 0, 120, "120 until 2010-06", 100
                 },
@@ -724,12 +708,12 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,8,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,11,1), Amount = 20 },
-                        new BucketMovement { MovementDate = new DateTime(2009,12,1), Amount = 30 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,8,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,11,1), Amount = 20 },
+                        new() { MovementDate = new DateTime(2009,12,1), Amount = 30 }
                     },
                     0, 0, 0, 130, "120 until 2010-06", 100
                 },
@@ -740,9 +724,9 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                     },
                     15, 0, 0, 30, "120 until 2010-06", 25
                 },
@@ -753,9 +737,9 @@ public class BucketViewModelTest
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                     },
                     0, 0, 0, 30, "120 until 2009-12", 25
                 },
@@ -765,13 +749,13 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2010,1,5), Amount = -30 }
+                        new() { TransactionDate = new DateTime(2010,1,5), Amount = -30 }
                     },
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                     },
                     0, 0, -30, 0, "30 until 2010-01", 100
                 },
@@ -781,13 +765,13 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2010,1,5), Amount = -20 }
+                        new() { TransactionDate = new DateTime(2010,1,5),  Amount = -20 }
                     },
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                     },
                     0, 0, -20, 10, "30 until 2010-01", 100
                 },
@@ -797,13 +781,13 @@ public class BucketViewModelTest
                     new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
                     new List<BankTransaction>
                     {
-                        new BankTransaction { TransactionDate = new DateTime(2010,1,5), Amount = -40 }
+                        new() { TransactionDate = new DateTime(2010,1,5), Amount = -40 }
                     },
                     new List<BucketMovement>
                     {
-                        new BucketMovement { MovementDate = new DateTime(2009,7,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,9,1), Amount = 10 },
-                        new BucketMovement { MovementDate = new DateTime(2009,10,1), Amount = 10 }
+                        new() { MovementDate = new DateTime(2009,7,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,9,1), Amount = 10 },
+                        new() { MovementDate = new DateTime(2009,10,1), Amount = 10 }
                     },
                     10, 0, -40, -10, "30 until 2010-01", 75
                 }
@@ -841,66 +825,61 @@ public class BucketViewModelTest
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(BucketViewModelTest));
+            Cleanup();
         }
     }
 
-    private async Task<BucketViewModelItem> ExecuteBucketCreationAndTransactionMovementsAsync(
+    private async Task<BucketViewModel> ExecuteBucketCreationAndTransactionMovementsAsync(
         Bucket testBucket,
         BucketVersion testBucketVersion,
         IEnumerable<BankTransaction> testTransactions,
         IEnumerable<BucketMovement> testBucketMovements,
         DateTime testMonth)
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        var testAccount = new Account() {IsActive = 1, Name = "Account"};
+        var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+
+        ServiceManager.AccountService.Create(testAccount);
+        ServiceManager.BucketGroupService.Create(testBucketGroup);
+
+        testBucket.BucketGroupId = testBucketGroup.Id;
+        testBucketVersion.BucketId = testBucket.Id;
+        
+        ServiceManager.BucketService.Create(testBucket, testBucketVersion, testBucket.ValidFrom);
+
+        foreach (var testTransaction in testTransactions)
         {
-            var testAccount = new Account() { IsActive = 1, Name = "Account" };
-            var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
-
-            dbContext.CreateAccount(testAccount);
-            dbContext.CreateBucketGroup(testBucketGroup);
-
-            testBucket.BucketGroupId = testBucketGroup.BucketGroupId;
-            dbContext.CreateBucket(testBucket);
-
-            testBucketVersion.BucketId = testBucket.BucketId;
-            testBucketVersion.ValidFrom = testBucket.ValidFrom;
-            dbContext.CreateBucketVersion(testBucketVersion);
-
-            foreach (var testTransaction in testTransactions)
+            testTransaction.AccountId = testAccount.Id;
+            ServiceManager.BankTransactionService.Create(testTransaction);
+            ServiceManager.BudgetedTransactionService.Create(new BudgetedTransaction()
             {
-                testTransaction.AccountId = testAccount.AccountId;
-                dbContext.CreateBankTransaction(testTransaction);
-                dbContext.CreateBudgetedTransaction(new BudgetedTransaction()
-                {
-                    TransactionId = testTransaction.TransactionId,
-                    BucketId = testBucket.BucketId,
-                    Amount = testTransaction.Amount
-                });
-            }
-            
-            foreach (var testBucketMovement in testBucketMovements)
-            {
-                testBucketMovement.BucketId = testBucket.BucketId;
-                dbContext.CreateBucketMovement(testBucketMovement);
-            }
-            
-            var monthSelectorViewModel = new YearMonthSelectorViewModel()
-            {
-                SelectedYear = testMonth.Year,
-                SelectedMonth = testMonth.Month
-            };
-            var viewModel = new BucketViewModel(_dbOptions, monthSelectorViewModel);
-            await viewModel.LoadDataAsync();
-
-            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.BucketGroupId == testBucketGroup.BucketGroupId);
-            Assert.NotNull(bucketGroup);
-
-            var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.BucketId == testBucket.BucketId);
-            Assert.NotNull(testObject);
-
-            return testObject;
+                TransactionId = testTransaction.Id,
+                BucketId = testBucket.Id,
+                Amount = testTransaction.Amount
+            });
         }
+        
+        foreach (var testBucketMovement in testBucketMovements)
+        {
+            testBucketMovement.BucketId = testBucket.Id;
+            ServiceManager.BucketMovementService.Create(testBucketMovement);
+        }
+        
+        var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager)
+        {
+            SelectedYear = testMonth.Year,
+            SelectedMonth = testMonth.Month
+        };
+        var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
+        await viewModel.LoadDataAsync();
+
+        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+        Assert.NotNull(bucketGroup);
+
+        var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.Id == testBucket.Id);
+        Assert.NotNull(testObject);
+
+        return testObject;
     }
 
     public static IEnumerable<object[]> TestData_DistributeBudget_CheckDistributedMoney
@@ -923,21 +902,16 @@ public class BucketViewModelTest
     public void DistributeBudget_CheckDistributedMoney(
         IEnumerable<Tuple<Bucket, BucketVersion>> testBuckets)
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        var testAccount = new Account() {IsActive = 1, Name = "Account"};
+        var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+
+        ServiceManager.AccountService.Create(testAccount);
+        ServiceManager.BucketGroupService.Create(testBucketGroup);
+        
+        foreach (var (bucket, bucketVersion) in testBuckets)
         {
-            var testAccount = new Account() { IsActive = 1, Name = "Account" };
-            var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
-
-            dbContext.CreateAccount(testAccount);
-            dbContext.CreateBucketGroup(testBucketGroup);
-
-            foreach (var (bucket, bucketVersion) in testBuckets)
-            {
-                bucket.BucketGroupId = testBucketGroup.BucketGroupId;
-                dbContext.CreateBucket(bucket);
-                bucketVersion.BucketId = bucket.BucketId;
-                dbContext.CreateBucketVersion(bucketVersion);
-            }
+            bucket.BucketGroupId = testBucketGroup.Id;
+            ServiceManager.BucketService.Create(bucket, bucketVersion, bucket.ValidFrom);
         }
     }
 }

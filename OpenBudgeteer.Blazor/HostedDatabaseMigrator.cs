@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using OpenBudgeteer.Data;
-using OpenBudgeteer.Data.Initialization;
-using OpenBudgeteer.Data.OnlineChecker;
+using OpenBudgeteer.Core.Data.Entities;
+using OpenBudgeteer.Core.Data.Initialization;
+using OpenBudgeteer.Core.Data.OnlineChecker;
 
 namespace OpenBudgeteer.Blazor;
 

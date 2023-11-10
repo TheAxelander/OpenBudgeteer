@@ -1,4 +1,4 @@
-﻿@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+﻿@using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @if (IsDialogVisible)
  {
     <div class="modal fade show" style=" display: block;">
@@ -26,10 +26,10 @@
 
 @code {
     [Parameter]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [Parameter]
-    public AccountViewModelItem DataContext { get; set; }
+    public AccountViewModel DataContext { get; set; } = null!;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }

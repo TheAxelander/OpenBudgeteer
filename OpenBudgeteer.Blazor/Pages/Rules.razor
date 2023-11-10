@@ -1,13 +1,7 @@
 ﻿@page "/rules"
 
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
 @using System.Drawing
-@using OpenBudgeteer.Contracts.Models
-@using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
+@using OpenBudgeteer.Core.Data.Entities.Models
 
 <div class="row">
     <div class="col">
@@ -18,7 +12,7 @@
         }
         else
         {
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _newMappingRuleSetIsEnabled = true)">Create Rule</button>
+            <button class="btn btn-sm btn-primary header-action-button" @onclick="@StartCreateMappingRuleSet">Create Rule</button>
             <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllRules">Edit all</button>
         }
     </div>
@@ -37,10 +31,10 @@
         </thead>
         <tbody>
             <tr>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet.RuleSet.Priority" /></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet!.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.RuleSet.Name" /></td>
                 <td>
-                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)" @onclick="() => HandleUpdateSelectedBucketRequest(_dataContext.NewRuleSet)">
+                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)" @onclick="() => HandleShowSelectBucketDialog(_dataContext.NewRuleSet)">
                         @_dataContext.NewRuleSet.TargetBucket.Name
                     </button>
                 </td>
@@ -109,7 +103,7 @@
                 <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
                 <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.RuleSet.Name" /></td>
                 <td>
-                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)" @onclick="() => HandleUpdateSelectedBucketRequest(ruleSet)">
+                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)" @onclick="() => HandleShowSelectBucketDialog(ruleSet)">
                         @ruleSet.TargetBucket.Name
                     </button>
                 </td>
@@ -173,7 +167,7 @@
                 </td>
                 <td class="col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ruleSet.StartModification())"></button>
-                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleRuleSetDeletionRequest(ruleSet))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleShowDeleteRuleSetDialog(ruleSet))"></button>
                 </td>
             </tr>
         }
@@ -191,7 +185,7 @@
 <DeleteConfirmationDialog 
     Title="Delete Rule" 
     Message="Do you really want to delete this Rule?" 
-    IsDialogVisible="@_isDeleteRuleSetModalDialogVisible"
+    IsDialogVisible="@_isDeleteRuleSetDialogVisible"
     OnDeleteClickCallback="DeleteRule"
     OnCancelClickCallback="CancelDeleteRule"/>
 
@@ -200,104 +194,3 @@
     Message="@_errorModalDialogMessage" 
     IsDialogVisible="@_isErrorModalDialogVisible"
     OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
-
-@code {
-    RulesViewModel _dataContext;
-    bool _massEditEnabled;
-    bool _newMappingRuleSetIsEnabled;
-    
-    BucketViewModel _bucketSelectDialogDataContext;
-    bool _isBucketSelectDialogVisible;
-    bool _isBucketSelectDialogLoading;
-    RuleSetViewModelItem _ruleSetViewModelItemToBeUpdated;
-
-    bool _isDeleteRuleSetModalDialogVisible;
-    RuleSetViewModelItem _ruleSetToBeDeleted;
-
-    bool _isErrorModalDialogVisible;
-    string _errorModalDialogMessage;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _dataContext = new RulesViewModel(DbContextOptions);
-
-        await HandleResult(await _dataContext.LoadDataAsync());
-    }
-
-	void CancelNewBucketRule()
-    {
-        _newMappingRuleSetIsEnabled = false;
-        _dataContext.ResetNewRuleSet();
-    }
-
-    void EditAllRules()
-    {
-        _massEditEnabled = true;
-        _dataContext.EditAllRules();
-    }
-
-    async void SaveAllRules()
-    {
-        _massEditEnabled = false;
-        await HandleResult(_dataContext.SaveAllRules());
-    }
-
-    async void CancelAllRules()
-    {
-        _massEditEnabled = false;
-        await HandleResult(await _dataContext.LoadDataAsync());
-        StateHasChanged();
-    }
-    
-    async void HandleUpdateSelectedBucketRequest(RuleSetViewModelItem ruleSetViewModelItem)
-    {
-        _isBucketSelectDialogVisible = true;
-        _isBucketSelectDialogLoading = true;
-        
-        _ruleSetViewModelItemToBeUpdated = ruleSetViewModelItem;
-        _bucketSelectDialogDataContext = new BucketViewModel(DbContextOptions, new YearMonthSelectorViewModel());
-        await _bucketSelectDialogDataContext.LoadDataAsync(false, true);
-        
-        _isBucketSelectDialogLoading = false;
-        StateHasChanged();
-    }
-    
-    void UpdateSelectedBucket(Contracts.Models.Bucket selectedBucket)
-    {
-        _ruleSetViewModelItemToBeUpdated.TargetBucket = selectedBucket;
-        _ruleSetViewModelItemToBeUpdated.RuleSet.TargetBucketId = selectedBucket.BucketId;
-        _isBucketSelectDialogVisible = false;
-    }
-
-	void HandleRuleSetDeletionRequest(RuleSetViewModelItem ruleSet)
-    {
-        _ruleSetToBeDeleted = ruleSet;
-        _isDeleteRuleSetModalDialogVisible = true;
-    }
-
-	void CancelDeleteRule()
-    {
-        _isDeleteRuleSetModalDialogVisible = false;
-        _ruleSetToBeDeleted = null;
-    }
-
-    async void DeleteRule()
-    {
-        _isDeleteRuleSetModalDialogVisible = false;
-        await HandleResult(_dataContext.DeleteRuleSetItem(_ruleSetToBeDeleted));
-    }
-
-    async Task HandleResult(ViewModelOperationResult result)
-    {
-        if (!result.IsSuccessful)
-        {
-            _errorModalDialogMessage = result.Message;
-            _isErrorModalDialogVisible = true;
-        }
-		if (result.ViewModelReloadRequired)
-        {
-            await _dataContext.LoadDataAsync();
-            StateHasChanged();
-        }
-    }
-}

@@ -1,16 +1,6 @@
 ﻿@page "/import"
-
-@using OpenBudgeteer.Core.ViewModels
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Contracts.Models
-@using OpenBudgeteer.Core.Common
-@using OpenBudgeteer.Data
 @using Tewr.Blazor.FileReader
-@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Components
-@using System.IO
-@using System.Text
-@inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject IFileReaderService FileReaderService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavManager
@@ -55,7 +45,7 @@
                     {
                         <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile(), "Profile has been created."))>Create Profile</button>
                     }
-                    @if (_dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty)
+                    @if (_dataContext.SelectedImportProfile.Id != Guid.Empty)
                     {
                         <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.SaveProfile(), "Changes for Profile have been saved."))>Save Profile</button>
                         <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => _isDeleteConfirmationDialogVisible = true)>Delete Profile</button>
@@ -65,11 +55,11 @@
                     <div class="col">
                         <label class="form-label">Import Profile:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="_dataContext.SelectedImportProfile.ImportProfileId.ToString()"
-                                @bind:set="(value) => { _dataContext.SelectedImportProfile = _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ImportProfileId == Guid.Parse(value), _dummyImportProfile); ImportProfile_SelectionChanged(); }">
+                                @bind:get="_dataContext.SelectedImportProfile.Id.ToString()"
+                                @bind:set="SelectedImportProfile_SelectionChanged">
                             @foreach (var importProfile in _dataContext.AvailableImportProfiles)
                             {
-                                <option value="@importProfile.ImportProfileId">@importProfile.ProfileName</option>
+                                <option value="@importProfile.Id">@importProfile.ProfileName</option>
                             }
                         </select>
                     </div>
@@ -80,11 +70,11 @@
                     <div class="col">
                         <label class="form-label">Target Account:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="_dataContext.SelectedAccount.AccountId.ToString()"
-                                @bind:set="(value) => { _dataContext.SelectedAccount = _dataContext.AvailableAccounts.FirstOrDefault(i => i.AccountId == Guid.Parse(value), _dummyAccount); TargetAccount_SelectionChanged(); }">
+                                @bind:get="_dataContext.SelectedAccount.Id.ToString()"
+                                @bind:set="TargetAccount_SelectionChanged">
                             @foreach (var account in _dataContext.AvailableAccounts)
                             {
-                                <option value="@account.AccountId">@account.Name</option>
+                                <option value="@account.Id">@account.Name</option>
                             }
                         </select>
                     </div>
@@ -142,8 +132,8 @@
                     <div class="col">
                         <label class="form-label">Transaction Date:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="_dataContext.SelectedImportProfile.TransactionDateColumnName"
-                                @bind:set="(value) => { _dataContext.SelectedImportProfile.TransactionDateColumnName = value; CheckColumnMapping(); }">
+                                @bind:get="_dataContext.SelectedImportProfile.TransactionDateColumnName ?? DUMMY_COLUMN"
+                                @bind:set="(value) => { ColumnMapping_SelectionChanged(value, MappingColumn.TransactionDate); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
                                 <option value="@column">@column</option>
@@ -153,8 +143,8 @@
                     <div class="col">
                         <label class="form-label">Payee (optional):</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="_dataContext.SelectedImportProfile.PayeeColumnName"
-                                @bind:set="(value) => { _dataContext.SelectedImportProfile.PayeeColumnName = value; }">
+                                @bind:get="_dataContext.SelectedImportProfile.PayeeColumnName ?? DUMMY_COLUMN"
+                                @bind:set="(value) => { ColumnMapping_SelectionChanged(value, MappingColumn.Payee); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
                                 <option value="@column">@column</option>
@@ -164,8 +154,8 @@
                     <div class="col">
                         <label class="form-label">Memo:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="_dataContext.SelectedImportProfile.MemoColumnName"
-                                @bind:set="(value) => { _dataContext.SelectedImportProfile.MemoColumnName = value; CheckColumnMapping(); }">
+                                @bind:get="_dataContext.SelectedImportProfile.MemoColumnName ?? DUMMY_COLUMN"
+                                @bind:set="(value) => { ColumnMapping_SelectionChanged(value, MappingColumn.Memo); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
                                 <option value="@column">@column</option>
@@ -175,8 +165,8 @@
                     <div class="col">
                         <label class="form-label">Amount / Debit:</label>
                         <select class="form-select form-select-sm"
-                                @bind:get="_dataContext.SelectedImportProfile.AmountColumnName"
-                                @bind:set="(value) => { _dataContext.SelectedImportProfile.AmountColumnName = value; CheckColumnMapping(); }">
+                                @bind:get="_dataContext.SelectedImportProfile.AmountColumnName ?? DUMMY_COLUMN"
+                                @bind:set="(value) => { ColumnMapping_SelectionChanged(value, MappingColumn.Amount); }">
                             @foreach (var column in _dataContext.IdentifiedColumns)
                             {
                                 <option value="@column">@column</option>
@@ -212,8 +202,8 @@
                             <div class="col-3">
                                 <label class="form-label">Credit:</label>
                                 <select class="form-select form-select-sm"
-                                        @bind:get="_dataContext.SelectedImportProfile.CreditColumnName"
-                                        @bind:set="(value) => { _dataContext.SelectedImportProfile.CreditColumnName = value; }">
+                                        @bind:get="_dataContext.SelectedImportProfile.CreditColumnName ?? DUMMY_COLUMN"
+                                        @bind:set="(value) => { ColumnMapping_SelectionChanged(value, MappingColumn.Credit); }">
                                     @foreach (var column in _dataContext.IdentifiedColumns)
                                     {
                                         <option value="@column">@column</option>
@@ -225,8 +215,8 @@
                             <div class="col-3">
                                 <label class="form-label">Column to identify Credit records:</label>
                                 <select class="form-select form-select-sm"
-                                        @bind:get="_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName"
-                                        @bind:set="(value) => { _dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName = value; }">
+                                        @bind:get="_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName ?? DUMMY_COLUMN"
+                                        @bind:set="(value) => { ColumnMapping_SelectionChanged(value, MappingColumn.CreditColumnIdentifier); }">
                                     @foreach (var column in _dataContext.IdentifiedColumns)
                                     {
                                         <option value="@column">@column</option>
@@ -237,9 +227,6 @@
                                 <label class="form-label">Column value to identify Credit records:</label>
                                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.CreditColumnIdentifierValue"/>
                             </div>
-                            break;
-                        case 0:
-                        default:
                             break;
                     }
                 </div>
@@ -465,259 +452,3 @@
     Message="@_errorModalDialogMessage" 
     IsDialogVisible="@_isErrorModalDialogVisible"
     OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
-
-@code {
-    ImportDataViewModel _dataContext;
-
-    ElementReference _inputElement;
-    ElementReference _step1AccordionButtonElement;
-    ElementReference _step4AccordionButtonElement;
-
-    readonly Guid PlaceholderItemId = Guid.Parse("11111111-1111-1111-1111-111111111111");
-    readonly string PlaceholderItemValue = "___PlaceholderItem___";
-    readonly string DummyColumn = "---Select Column---";
-
-    readonly ImportProfile _dummyImportProfile = new() 
-    { 
-        ImportProfileId = Guid.Parse("11111111-1111-1111-1111-111111111111"), 
-        ProfileName = "---Select Import Profile---",
-        AccountId = Guid.Parse("11111111-1111-1111-1111-111111111111")
-    };
-
-    readonly Contracts.Models.Account _dummyAccount = new() 
-    { 
-        AccountId = Guid.Parse("11111111-1111-1111-1111-111111111111"), 
-        Name = "---Select Target Account---" 
-    };
-
-    bool _step2Enabled;
-    bool _step3Enabled;
-    bool _step4Enabled;
-    bool _forceShowStep1;
-    bool _forceShowStep4;
-
-    bool _isValidationRunning;
-    bool _isImportRunning;
-
-    string _validationErrorMessage = string.Empty;
-
-    bool _isConfirmationModalDialogVisible;
-    string _importConfirmationMessage;
-
-    bool _isInfoDialogVisible;
-    string _infoDialogMessage;
-
-    bool _isDeleteConfirmationDialogVisible;
-
-    bool _isErrorModalDialogVisible;
-    string _errorModalDialogMessage;
-
-    protected override void OnInitialized()
-    {
-        _dataContext = new ImportDataViewModel(DbContextOptions);
-        LoadData();
-        LoadFromQueryParams();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if (_forceShowStep1)
-        {
-            _forceShowStep1 = false;
-            await JSRuntime.InvokeVoidAsync("ImportPage.triggerClick", _step1AccordionButtonElement);
-        }
-        if (_forceShowStep4)
-        {
-            _forceShowStep4 = false;
-            await JSRuntime.InvokeVoidAsync("ImportPage.triggerClick", _step4AccordionButtonElement);
-        }
-    }
-
-    void LoadData()
-    {
-        HandleResult(_dataContext.LoadData());
-        _dataContext.AvailableImportProfiles.Insert(0, _dummyImportProfile);
-        _dataContext.AvailableAccounts.Insert(0, _dummyAccount);
-        _dataContext.SelectedImportProfile = _dummyImportProfile;
-        _dataContext.SelectedAccount = _dummyAccount;
-    }
-
-    async void LoadFromQueryParams()
-    {
-        var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
-        var query = QueryHelpers.ParseQuery(uri.Query);
-
-        if (query.TryGetValue("csv", out var csv64))
-        {
-            HandleResult(await LoadCsvFromBase64StringAsync(csv64));
-        }
-
-        if (_step2Enabled && query.TryGetValue("profile", out var profileName))
-        {
-            var profile = _dataContext.AvailableImportProfiles.FirstOrDefault(i => i.ProfileName == profileName, _dummyImportProfile);
-            _dataContext.SelectedImportProfile = profile;
-            ImportProfile_SelectionChanged();
-        }
-
-        if (_step4Enabled)
-        {
-            await ValidateDataAsync();
-            _forceShowStep4 = true;
-            StateHasChanged();
-        }
-    }
-
-    async Task<ViewModelOperationResult> LoadCsvFromBase64StringAsync(string csv64)
-    {
-        try
-        {
-            var csv = Encoding.UTF8.GetString(Convert.FromBase64String(csv64));
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            await writer.WriteAsync(csv);
-            await writer.FlushAsync();
-            stream.Position = 0;
-            var res = await _dataContext.HandleOpenFileAsync(stream);
-            if (res.IsSuccessful)
-            {
-                _step2Enabled = true;
-            }
-            return res;
-        }
-        catch (Exception e)
-        {
-             return new ViewModelOperationResult(false, $"Failed to load CSV: {e.Message}");
-        }
-    }
-
-    async Task ReadFileAsync()
-    {
-        _step2Enabled = false;
-        _step3Enabled = false;
-        _step4Enabled = false;
-        _dataContext.SelectedImportProfile = _dummyImportProfile;
-        _dataContext.SelectedAccount = _dummyAccount;
-
-        var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
-        if (file == null) return;
-        HandleResult(await _dataContext.HandleOpenFileAsync(await file.OpenReadAsync()));
-        _step2Enabled = true;
-    }
-
-    void LoadProfile()
-    {
-        _dataContext.InitializeDataFromImportProfile();
-        _step3Enabled = 
-            _dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty && 
-            _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId;
-        _dataContext.IdentifiedColumns.Insert(0, DummyColumn);
-        CheckColumnMapping();
-        StateHasChanged();
-    }
-
-    void DeleteProfile()
-    {
-        _isDeleteConfirmationDialogVisible = false;
-        HandleResult(_dataContext.DeleteProfile());
-        if (_dataContext.SelectedImportProfile.ImportProfileId == Guid.Empty ||
-            _dataContext.SelectedImportProfile.ImportProfileId == PlaceholderItemId)
-        {
-            _dataContext.SelectedImportProfile = _dummyImportProfile;
-            _dataContext.AvailableImportProfiles.Insert(0, _dummyImportProfile);
-            _dataContext.SelectedAccount = _dummyAccount;
-        }
-    }
-
-    void LoadHeaders()
-    {
-        var result = _dataContext.LoadHeaders();
-        if (result.IsSuccessful)
-        {
-            _dataContext.IdentifiedColumns.Insert(0, DummyColumn);
-            _step3Enabled = true;
-        }
-        else
-        {
-            HandleResult(result);
-        }
-    }
-
-    void CheckColumnMapping()
-    {
-        _step4Enabled = false;
-        if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.TransactionDateColumnName) || 
-            _dataContext.SelectedImportProfile.TransactionDateColumnName == PlaceholderItemValue) return;
-        // Make Payee optional
-        //if (string.IsNullOrEmpty(_dataContext.PayeeColumn) || _dataContext.PayeeColumn == _placeholderItemValue) return;
-        if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.MemoColumnName) || 
-            _dataContext.SelectedImportProfile.MemoColumnName == PlaceholderItemValue) return;
-        if (string.IsNullOrEmpty(_dataContext.SelectedImportProfile.AmountColumnName) || 
-            _dataContext.SelectedImportProfile.AmountColumnName == PlaceholderItemValue) return;
-        _step4Enabled = true;
-    }
-
-    async Task ValidateDataAsync()
-    {
-        _isValidationRunning = true;
-        _dataContext.IdentifiedColumns.Remove(DummyColumn); // Remove DummyColumn to prevent wrong column index 
-        _validationErrorMessage = (await _dataContext.ValidateDataAsync()).Message;
-        _dataContext.IdentifiedColumns.Insert(0, DummyColumn);
-        _isValidationRunning = false;
-    }
-
-    async Task ImportDataAsync(bool withoutDuplicates)
-    {
-        _isImportRunning = true;
-        var result = await _dataContext.ImportDataAsync(withoutDuplicates);
-        _importConfirmationMessage = result.Message;
-        _isImportRunning = false;
-        _isConfirmationModalDialogVisible = true;
-    }
-
-    async Task ClearFormAsync()
-    {
-        _isConfirmationModalDialogVisible = false;
-        _step2Enabled = false;
-        _step3Enabled = false;
-        _step4Enabled = false;
-        await FileReaderService.CreateReference(_inputElement).ClearValue();
-        _dataContext = new ImportDataViewModel(DbContextOptions);
-        LoadData();
-        _forceShowStep1 = true;
-        StateHasChanged();
-    }
-
-    void ImportProfile_SelectionChanged()
-    {
-        _step3Enabled = false;
-        _step4Enabled = false;
-        if (_dataContext.SelectedImportProfile != null &&
-            _dataContext.SelectedImportProfile.ImportProfileId != PlaceholderItemId) LoadProfile();
-    }
-
-    void TargetAccount_SelectionChanged()
-    {
-        _dataContext.SelectedImportProfile.AccountId = _dataContext.SelectedAccount?.AccountId ?? Guid.Empty;
-    }
-
-    void AdditionalSettingCreditValue_SelectionChanged(ChangeEventArgs e)
-    {
-        var value = Convert.ToInt32(e.Value);
-        _dataContext.SelectedImportProfile.AdditionalSettingCreditValue = value;
-    }
-
-    void HandleResult(ViewModelOperationResult result, string successMessage = "")
-    {
-        if (!result.IsSuccessful)
-        {
-            _errorModalDialogMessage = result.Message;
-            _isErrorModalDialogVisible = true;
-            return;
-        }
-        if (string.IsNullOrEmpty(successMessage)) return;
-
-        _infoDialogMessage = successMessage;
-        _isInfoDialogVisible = true;
-    }
-}

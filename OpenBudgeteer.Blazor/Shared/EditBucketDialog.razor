@@ -1,5 +1,5 @@
-﻿@using OpenBudgeteer.Core.ViewModels.ItemViewModels
-@using System.Drawing
+﻿@using System.Drawing
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @if (IsDialogVisible)
 {
     <div class="modal fade show" style=" display: block;">
@@ -18,11 +18,9 @@
                         <div class="col">
                             <label class="form-label">Bucket Type:</label>
                             <select class="form-select form-select-sm"
-                                    @bind:get="DataContext.BucketVersion.BucketType.ToString()"
-                                    @bind:set="(value) => { 
-                                        DataContext.BucketVersion.BucketType = Convert.ToInt32(value); 
-                                        BucketType_SelectionChanged();}">
-                                @foreach (var bucketType in DataContext.AvailableBucketTypes)
+                                    @bind:get="DataContext.BucketVersion!.BucketType.ToString()"
+                                    @bind:set="BucketType_SelectionChanged">
+                                @foreach (var bucketType in DataContext.AvailableBucketTypes!)
                                 {
                                     <option value="@(DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1)">@bucketType</option>
                                 }
@@ -32,10 +30,10 @@
                             <label class="form-label">Bucket Group:</label>
                             <select class="form-select form-select-sm" 
                                     @bind:get="DataContext.Bucket.BucketGroupId.ToString()"
-                                    @bind:set="(value) => { DataContext.Bucket.BucketGroupId = Guid.Parse(value); }">
-                                @foreach (var bucketGroup in DataContext.AvailableBucketGroups)
+                                    @bind:set="BucketGroup_SelectionChanged">
+                                @foreach (var bucketGroup in DataContext.AvailableBucketGroups!)
                                 {
-                                    <option value="@bucketGroup.BucketGroupId">@bucketGroup.Name</option>
+                                    <option value="@bucketGroup.Id">@bucketGroup.Name</option>
                                 }
                             </select>
                         </div>
@@ -79,9 +77,9 @@
                         <div class="col">
                             <label class="form-label">Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
-                                    @bind:get="DataContext.Bucket.ColorCode"
+                                    @bind:get="DataContext.Bucket.ColorCode!"
                                     @bind:set="(value) => { DataContext.Bucket.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
-                                @foreach (var color in DataContext.AvailableColors)
+                                @foreach (var color in DataContext.AvailableColors!)
                                 {
                                     <option style="background-color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
                                 }
@@ -109,10 +107,10 @@
     bool _isTargetDataEnabled = true;
     
     [Parameter]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [Parameter]
-    public BucketViewModelItem DataContext { get; set; }
+    public BucketViewModel DataContext { get; set; } = null!;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }
@@ -125,13 +123,20 @@
 
     protected override Task OnParametersSetAsync()
     {
-        if (IsDialogVisible && DataContext != null) BucketType_SelectionChanged();
+        if (IsDialogVisible) UpdateInputFieldsState();
         return base.OnParametersSetAsync();
     }
 
-    void BucketType_SelectionChanged()
+    void BucketType_SelectionChanged(string? value)
     {
-        switch (DataContext.BucketVersion.BucketType)
+        if (string.IsNullOrEmpty(value)) return;
+        DataContext.BucketVersion!.BucketType = Convert.ToInt32(value);
+        UpdateInputFieldsState();
+    }
+
+    void UpdateInputFieldsState()
+    {
+        switch (DataContext.BucketVersion!.BucketType)
         {
             case 1:
                 _isNumberOfMonthsEnabled = false;
@@ -159,5 +164,11 @@
                 _isTargetDataEnabled = true;
                 break;
         }
+    }
+    
+    void BucketGroup_SelectionChanged(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        DataContext.Bucket.BucketGroupId = Guid.Parse(value);
     }
 }

@@ -2,17 +2,17 @@ using System;
 using System.Globalization;
 using System.Linq;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.ViewModels;
+using OpenBudgeteer.Core.ViewModels.Helper;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
 
-public class YearMonthSelectorViewModelTest
+public class YearMonthSelectorViewModelTest : BaseTest
 {
     private readonly ITestOutputHelper _output;
 
-    public YearMonthSelectorViewModelTest(ITestOutputHelper output)
+    public YearMonthSelectorViewModelTest(ITestOutputHelper output) : base(nameof(YearMonthSelectorViewModelTest))
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
     }
@@ -20,7 +20,7 @@ public class YearMonthSelectorViewModelTest
     [Fact]
     public void Constructor_CheckDefaults()
     {
-        var viewModel = new YearMonthSelectorViewModel();
+        var viewModel = new YearMonthSelectorViewModel(ServiceManager);
 
         Assert.Equal(DateTime.Now.Year, viewModel.SelectedYear);
         Assert.Equal(DateTime.Now.Month, viewModel.SelectedMonth);
@@ -58,7 +58,7 @@ public class YearMonthSelectorViewModelTest
     [Fact]
     public void PreviousMonth_CheckMonth()
     {
-        var viewModel = new YearMonthSelectorViewModel()
+        var viewModel = new YearMonthSelectorViewModel(ServiceManager)
         {
             SelectedYear = 2010,
             SelectedMonth = 2
@@ -78,7 +78,7 @@ public class YearMonthSelectorViewModelTest
     [Fact]
     public void NextMonth_CheckMonth()
     {
-        var viewModel = new YearMonthSelectorViewModel()
+        var viewModel = new YearMonthSelectorViewModel(ServiceManager)
         {
             SelectedYear = 2009,
             SelectedMonth = 11
@@ -98,7 +98,7 @@ public class YearMonthSelectorViewModelTest
     [Fact]
     public void SelectedYearMonthChanged_CheckEventHasBeenInvoked()
     {
-        var viewModel = new YearMonthSelectorViewModel()
+        var viewModel = new YearMonthSelectorViewModel(ServiceManager)
         {
             SelectedYear = 2010,
             SelectedMonth = 1

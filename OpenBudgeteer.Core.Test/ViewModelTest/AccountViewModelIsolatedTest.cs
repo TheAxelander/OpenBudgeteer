@@ -1,39 +1,35 @@
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Contracts.Models;
-using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Data;
+using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.PageViewModels;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
 
 [CollectionDefinition("AccountViewModelIsolatedTest", DisableParallelization = true)]
-public class AccountViewModelIsolatedTest
+public class AccountViewModelIsolatedTest : BaseTest
 {
-    private readonly DbContextOptions<DatabaseContext> _dbOptions;
-
-    public AccountViewModelIsolatedTest()
+    public AccountViewModelIsolatedTest() : base(nameof(AccountViewModelIsolatedTest))
     {
-        _dbOptions = DbConnector.GetDbContextOptions(nameof(AccountViewModelIsolatedTest));
-        DbConnector.CleanupDatabase(nameof(AccountViewModelIsolatedTest));
     }
 
     [Fact]
     public void LoadData_CheckNameAndLoadOnlyActiveAccounts()
     {
-        DbConnector.CleanupDatabase(nameof(AccountViewModelIsolatedTest));
-        
-        using (var dbContext = new DatabaseContext(_dbOptions))
+        Cleanup();
+
+        var accounts = new List<Account>()
         {
-            dbContext.CreateAccounts(new[]
-            {
-                new Account() {Name = "Test Account1", IsActive = 1},
-                new Account() {Name = "Test Account2", IsActive = 1},
-                new Account() {Name = "Test Account3", IsActive = 0}
-            });
+            new() {Name = "Test Account1", IsActive = 1},
+            new() {Name = "Test Account2", IsActive = 1},
+            new() {Name = "Test Account3", IsActive = 0}
+        };
+        foreach (var account in accounts)
+        {
+            ServiceManager.AccountService.Create(account);
         }
 
-        var viewModel = new AccountViewModel(_dbOptions);
+        var viewModel = new AccountPageViewModel(ServiceManager);
         viewModel.LoadData();
 
         Assert.Equal(2, viewModel.Accounts.Count);

@@ -1,12 +1,16 @@
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenBudgeteer.Core.Common;
-using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Data;
+using OpenBudgeteer.Core.Data;
+using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.Data.Entities;
+using OpenBudgeteer.Core.Data.Services;
+using OpenBudgeteer.Core.ViewModels.Helper;
 using Tewr.Blazor.FileReader;
 
 namespace OpenBudgeteer.Blazor;
@@ -31,8 +35,9 @@ public class Startup
         services.AddRazorPages();
         services.AddServerSideBlazor();
         services.AddFileReaderService();
-        services.AddScoped<YearMonthSelectorViewModel>();
         services.AddDatabase(Configuration);
+        services.AddScoped<IServiceManager, ServiceManager>(x => new ServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
+        services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
         
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
     }
@@ -54,8 +59,8 @@ public class Startup
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         
-        app.UseRequestLocalization(Configuration.GetValue<string>(APPSETTINGS_CULTURE));
-        AppSettings.Theme = Configuration.GetValue(APPSETTINGS_THEME, "Default");
+        app.UseRequestLocalization(Configuration.GetValue<string>(APPSETTINGS_CULTURE, "en-US") ?? "en-US");
+        AppSettings.Theme = Configuration.GetValue(APPSETTINGS_THEME, "Default") ?? "Default";
 
         app.UseRouting();
 

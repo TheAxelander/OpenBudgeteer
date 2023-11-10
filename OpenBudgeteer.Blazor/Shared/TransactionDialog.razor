@@ -1,6 +1,7 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Contracts.Models
 @using System.Globalization
+@using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.Helper
 
 @if (IsDialogVisible)
  {
@@ -33,7 +34,7 @@
                                  {
                                      <tr>
                                          <td style="text-align: right">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
-                                         <td>@transaction.SelectedAccount.Name</td>
+                                         <td>@transaction.Transaction.Account!.Name</td>
                                          <td>@transaction.Transaction.Payee</td>
                                          <td>@transaction.Transaction.Memo</td>
                                          <td style="text-align: right">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
@@ -53,11 +54,12 @@
  }
 
 @code {
-    [Parameter]
-    public string Title { get; set; }
 
     [Parameter]
-    public TransactionViewModel DataContext { get; set; }
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public TransactionListingViewModel DataContext { get; set; } = null!;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }
@@ -66,7 +68,7 @@
     public bool IsDialogLoading { get; set; }
 
 	[Parameter]
-    public Bucket CurrentBucket { get; set; }
+    public Bucket CurrentBucket { get; set; } = null!;
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
