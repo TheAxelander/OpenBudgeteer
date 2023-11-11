@@ -77,7 +77,8 @@ public abstract class ReportPageViewModel : ViewModelBase
                 {
                     YearMonth = i.Key,
                     Balance = i.Sum(j => j.Amount)
-                });
+                })
+                .OrderBy(i => i.YearMonth);
 
             return monthBalances
                 .Select(group => new Tuple<DateTime, decimal>(group.YearMonth, group.Balance))
