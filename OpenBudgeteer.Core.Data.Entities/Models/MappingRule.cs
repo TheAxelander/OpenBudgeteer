@@ -81,5 +81,5 @@ public class MappingRule : IEntity
     }
 
     [Required]
-    public string ComparisionValue { get; set; } = string.Empty;
+    public string ComparisionValue { get; set; } = null!;
 }

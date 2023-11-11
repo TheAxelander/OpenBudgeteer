@@ -12,7 +12,7 @@ public class BucketRuleSet : IEntity
     [Required]
     public int Priority { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
 
     [Required]
     public Guid TargetBucketId { get; set; }

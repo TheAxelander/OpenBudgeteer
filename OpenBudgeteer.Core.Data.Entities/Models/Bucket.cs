@@ -9,7 +9,7 @@ public class Bucket : IEntity
     [Key, Column("BucketId")]
     public Guid Id { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
 
     [Required]
     public Guid BucketGroupId { get; set; }

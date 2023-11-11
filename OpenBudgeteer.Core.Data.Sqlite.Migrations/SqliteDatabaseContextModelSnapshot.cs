@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Entities;
 
 #nullable disable
@@ -16,13 +15,14 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.2");
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.5");
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.Account", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Account", b =>
                 {
-                    b.Property<Guid>("AccountId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("AccountId");
 
                     b.Property<int>("IsActive")
                         .HasColumnType("INTEGER");
@@ -30,16 +30,17 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("AccountId");
+                    b.HasKey("Id");
 
                     b.ToTable("Account");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BankTransaction", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BankTransaction", b =>
                 {
-                    b.Property<Guid>("TransactionId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("TransactionId");
 
                     b.Property<Guid>("AccountId")
                         .HasColumnType("TEXT");
@@ -56,18 +57,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("TransactionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.ToTable("BankTransaction");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.Bucket", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Bucket", b =>
                 {
-                    b.Property<Guid>("BucketId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("BucketId");
 
                     b.Property<Guid>("BucketGroupId")
                         .HasColumnType("TEXT");
@@ -87,18 +89,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<DateTime>("ValidFrom")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("BucketId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BucketGroupId");
 
                     b.ToTable("Bucket");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketGroup", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketGroup", b =>
                 {
-                    b.Property<Guid>("BucketGroupId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("BucketGroupId");
 
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
@@ -106,16 +109,17 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<int>("Position")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("BucketGroupId");
+                    b.HasKey("Id");
 
                     b.ToTable("BucketGroup");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketMovement", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketMovement", b =>
                 {
-                    b.Property<Guid>("BucketMovementId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("BucketMovementId");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
@@ -126,18 +130,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<DateTime>("MovementDate")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("BucketMovementId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BucketId");
 
                     b.ToTable("BucketMovement");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketRuleSet", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketRuleSet", b =>
                 {
-                    b.Property<Guid>("BucketRuleSetId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("BucketRuleSetId");
 
                     b.Property<string>("Name")
                         .HasColumnType("TEXT");
@@ -148,18 +153,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<Guid>("TargetBucketId")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("BucketRuleSetId");
+                    b.HasKey("Id");
 
                     b.HasIndex("TargetBucketId");
 
                     b.ToTable("BucketRuleSet");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketVersion", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketVersion", b =>
                 {
-                    b.Property<Guid>("BucketVersionId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("BucketVersionId");
 
                     b.Property<Guid>("BucketId")
                         .HasColumnType("TEXT");
@@ -185,18 +191,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<int>("Version")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("BucketVersionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BucketId");
 
                     b.ToTable("BucketVersion");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BudgetedTransaction", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BudgetedTransaction", b =>
                 {
-                    b.Property<Guid>("BudgetedTransactionId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("BudgetedTransactionId");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
@@ -207,7 +214,7 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<Guid>("TransactionId")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("BudgetedTransactionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BucketId");
 
@@ -216,11 +223,12 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.ToTable("BudgetedTransaction");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.ImportProfile", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.ImportProfile", b =>
                 {
-                    b.Property<Guid>("ImportProfileId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("ImportProfileId");
 
                     b.Property<Guid>("AccountId")
                         .HasColumnType("TEXT");
@@ -273,18 +281,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<string>("TransactionDateColumnName")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ImportProfileId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.ToTable("ImportProfile");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.MappingRule", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.MappingRule", b =>
                 {
-                    b.Property<Guid>("MappingRuleId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("MappingRuleId");
 
                     b.Property<Guid>("BucketRuleSetId")
                         .HasColumnType("TEXT");
@@ -299,18 +308,19 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("MappingRuleId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BucketRuleSetId");
 
                     b.ToTable("MappingRule");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.RecurringBankTransaction", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.RecurringBankTransaction", b =>
                 {
-                    b.Property<Guid>("TransactionId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("TEXT")
+                        .HasColumnName("TransactionId");
 
                     b.Property<Guid>("AccountId")
                         .HasColumnType("TEXT");
@@ -333,16 +343,16 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<int>("RecurrenceType")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("TransactionId");
+                    b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.ToTable("RecurringBankTransaction");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BankTransaction", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BankTransaction", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Account", "Account")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Account", "Account")
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -351,9 +361,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.Bucket", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Bucket", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.BucketGroup", "BucketGroup")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.BucketGroup", "BucketGroup")
                         .WithMany()
                         .HasForeignKey("BucketGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -362,9 +372,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("BucketGroup");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketMovement", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketMovement", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Bucket", "Bucket")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "Bucket")
                         .WithMany()
                         .HasForeignKey("BucketId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -373,9 +383,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("Bucket");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketRuleSet", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketRuleSet", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Bucket", "TargetBucket")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "TargetBucket")
                         .WithMany()
                         .HasForeignKey("TargetBucketId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -384,9 +394,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("TargetBucket");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BucketVersion", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketVersion", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Bucket", "Bucket")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "Bucket")
                         .WithMany()
                         .HasForeignKey("BucketId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -395,15 +405,15 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("Bucket");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.BudgetedTransaction", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BudgetedTransaction", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Bucket", "Bucket")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "Bucket")
                         .WithMany()
                         .HasForeignKey("BucketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OpenBudgeteer.Core.Models.BankTransaction", "Transaction")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.BankTransaction", "Transaction")
                         .WithMany()
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -414,9 +424,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("Transaction");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.ImportProfile", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.ImportProfile", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Account", "Account")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Account", "Account")
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -425,9 +435,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.MappingRule", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.MappingRule", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.BucketRuleSet", "BucketRuleSet")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.BucketRuleSet", "BucketRuleSet")
                         .WithMany()
                         .HasForeignKey("BucketRuleSetId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -436,9 +446,9 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Navigation("BucketRuleSet");
                 });
 
-            modelBuilder.Entity("OpenBudgeteer.Core.Models.RecurringBankTransaction", b =>
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.RecurringBankTransaction", b =>
                 {
-                    b.HasOne("OpenBudgeteer.Core.Models.Account", "Account")
+                    b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Account", "Account")
                         .WithMany()
                         .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)

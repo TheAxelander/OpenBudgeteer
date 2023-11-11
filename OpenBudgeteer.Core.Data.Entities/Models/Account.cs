@@ -9,7 +9,7 @@ public class Account : IEntity
     [Key, Column("AccountId")]
     public Guid Id { get; set; }
 
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
 
     public int IsActive { get; set; }
 }

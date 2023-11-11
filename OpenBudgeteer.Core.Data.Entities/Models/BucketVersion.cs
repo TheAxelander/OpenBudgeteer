@@ -18,7 +18,7 @@ public class BucketVersion : IEntity
     public int Version { get; set; }
         
     [Required]
-    public int BucketType{ get; set; }
+    public int BucketType { get; set; }
 
     public int BucketTypeXParam { get; set; }
 

@@ -9,7 +9,7 @@ public class ImportProfile : IEntity
     [Key, Column("ImportProfileId")]
     public Guid Id { get; set; }
 
-    public string ProfileName { get; set; } = string.Empty;
+    public string? ProfileName { get; set; }
 
     public Guid AccountId { get; set; }
 

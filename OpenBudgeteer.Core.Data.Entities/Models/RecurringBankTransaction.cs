@@ -22,9 +22,9 @@ public class RecurringBankTransaction: IEntity
     
     public DateTime FirstOccurrenceDate { get; set; }
 
-    public string Payee { get; set; } = string.Empty;
+    public string? Payee { get; set; }
 
-    public string Memo { get; set; } = string.Empty;
+    public string? Memo { get; set; }
 
     [Column(TypeName = "decimal(65, 2)")]
     public decimal Amount { get; set; }
