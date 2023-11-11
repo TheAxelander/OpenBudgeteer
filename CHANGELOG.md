@@ -5,6 +5,7 @@
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
 * [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
 * [Changed] More responsive navigation bar [#175](https://github.com/TheAxelander/OpenBudgeteer/issues/175)
+* [Changed] Enable editing of imported file [#196](https://github.com/TheAxelander/OpenBudgeteer/issues/196)
 * [Fixed] UI alignment for large numbers [#189](https://github.com/TheAxelander/OpenBudgeteer/issues/189)
 * [Fixed] Mapping Rules using the Account Name instead of Account Id [#199](https://github.com/TheAxelander/OpenBudgeteer/pull/199) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Adding a Mapping Rule to an existing Rule Set failed [#200](https://github.com/TheAxelander/OpenBudgeteer/pull/200) Thanks [Lucaber](https://github.com/Lucaber)

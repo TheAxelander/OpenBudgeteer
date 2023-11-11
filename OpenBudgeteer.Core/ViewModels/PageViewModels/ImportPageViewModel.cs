@@ -34,7 +34,12 @@ public class ImportPageViewModel : ViewModelBase
     public string FileText
     {
         get => _fileText;
-        set => Set(ref _fileText, value);
+        set
+        {
+            if (value == _fileText) return;
+            Set(ref _fileText, value);
+            _fileLines = value.Split(Environment.NewLine);
+        }
     }
 
     private Account _selectedAccount;
@@ -178,7 +183,6 @@ public class ImportPageViewModel : ViewModelBase
         try
         {
             FileText = File.ReadAllText(FilePath, Encoding.GetEncoding("utf-8"));
-            _fileLines = File.ReadAllLines(FilePath, Encoding.GetEncoding("utf-8"));
 
             return new ViewModelOperationResult(true);
         }
@@ -231,7 +235,6 @@ public class ImportPageViewModel : ViewModelBase
             }
 
             FileText = stringBuilder.ToString();
-            _fileLines = newLines.ToArray();
 
             return new ViewModelOperationResult(true);
         }
