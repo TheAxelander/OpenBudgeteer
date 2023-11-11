@@ -36,6 +36,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\OpenBudgeteer.Core.Data.Entities\OpenBudgeteer.Core.Data.Entities.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Core.Data.MySql.Migrations\OpenBudgeteer.Core.Data.MySql.Migrations.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Core.Data.Postgres.Migrations\OpenBudgeteer.Core.Data.Postgres.Migrations.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Core.Data.Sqlite.Migrations\OpenBudgeteer.Core.Data.Sqlite.Migrations.csproj" />
     </ItemGroup>
 
 </Project>
