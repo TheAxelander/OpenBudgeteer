@@ -5,26 +5,25 @@ namespace OpenBudgeteer.Core.Common;
 
 public class MonthOutputConverter
 {
-    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    public string Convert(int value, CultureInfo culture)
     {
-        if (!(value is int month)) return string.Empty;
-        var date = new DateTime(1, month, 1);
+        var date = new DateTime(1, value, 1);
         return date.ToString("MMM", culture);
     }
 
-    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    public int ConvertBack(string value, CultureInfo culture)
     {
-        if ((!(value is string month))) return DateTime.Now.Month;
+        if (string.IsNullOrWhiteSpace(value)) return DateTime.Now.Month;
         for (var i = 1; i < 13; i++)
         {
             var date = new DateTime(1, i, 1);
-            if (date.ToString("MMM") == month) return i;
+            if (date.ToString("MMM", culture) == value) return i;
         }
         return DateTime.Now.Month;
     }
 
-    public string ConvertMonth(object value, CultureInfo culture = null)
+    public string ConvertMonth(int value, CultureInfo culture)
     {
-        return Convert(value, typeof(string), null, culture ?? CultureInfo.CurrentCulture).ToString();
+        return Convert(value, culture);
     }
 }

@@ -37,7 +37,7 @@ public class AccountViewModelIsolatedTest : BaseTest
         var testItem1 = viewModel.Accounts.ElementAt(0);
         var testItem2 = viewModel.Accounts.ElementAt(1);
 
-        Assert.Equal("Test Account1", testItem1.Account.Name);
-        Assert.Equal("Test Account2", testItem2.Account.Name);
+        Assert.Equal("Test Account1", testItem1.Name);
+        Assert.Equal("Test Account2", testItem2.Name);
     }
 }

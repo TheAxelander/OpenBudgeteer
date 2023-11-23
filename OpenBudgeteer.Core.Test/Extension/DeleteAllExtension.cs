@@ -13,7 +13,7 @@ public static class DeleteAllExtension<TRepository, TEntity>
     {
         foreach (var entity in repository.All().ToList())
         {
-            repository.Delete(entity);
+            repository.Delete(entity.Id);
         }
     }
 }

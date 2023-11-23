@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -9,11 +8,29 @@ namespace OpenBudgeteer.Core.Data.Services;
 
 internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSetService
 {
-    internal BucketRuleSetService(DbContextOptions<DatabaseContext> dbContextOptions) 
-        : base(dbContextOptions)
+    internal BucketRuleSetService(DbContextOptions<DatabaseContext> dbContextOptions)  
+        : base(dbContextOptions, new BucketRuleSetRepository(new DatabaseContext(dbContextOptions)))
     {
     }
-    
+
+    public override BucketRuleSet Get(Guid id)
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(DbContextOptions);
+            var repository = new BucketRuleSetRepository(dbContext);
+            
+            var result = repository.ByIdWithIncludedEntities(id);
+            if (result == null) throw new Exception($"{typeof(BucketRuleSet)} not found in database");
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
+
     public override IEnumerable<BucketRuleSet> GetAll()
     {
         try
@@ -21,7 +38,7 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketRuleSetRepository(dbContext);
             return repository
-                .All()
+                .AllWithIncludedEntities()
                 .OrderBy(i => i.Priority)
                 .ToList();
         }
@@ -39,6 +56,7 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new MappingRuleRepository(dbContext);
             return repository
+                .AllWithIncludedEntities()
                 .Where(i => i.BucketRuleSetId == bucketRuleSetId)
                 .ToList();
         }
@@ -49,49 +67,8 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
         }
     }
 
-    public override BucketRuleSet Create(BucketRuleSet entity)
-    {
-        throw new NotSupportedException(
-            "Please use alternative Create procedure as creation of Mapping Rules is mandatory");
-    }
-    
-    public Tuple<BucketRuleSet, List<MappingRule>> Create(BucketRuleSet entity, List<MappingRule> mappingRules)
-    {
-        using var dbContext = new DatabaseContext(DbContextOptions);
-        using var transaction = dbContext.Database.BeginTransaction();
-        try
-        {
-            var bucketRuleSetRepository = new BucketRuleSetRepository(dbContext);
-            var mappingRuleRepository = new MappingRuleRepository(dbContext);
-            
-            bucketRuleSetRepository.Create(entity);
-
-            foreach (var mappingRule in mappingRules)
-            {
-                mappingRule.Id = Guid.Empty;
-                mappingRule.BucketRuleSetId = entity.Id;
-            }
-            mappingRuleRepository.CreateRange(mappingRules);
-            
-            transaction.Commit();
-            return new Tuple<BucketRuleSet, List<MappingRule>>(entity, mappingRules);
-        }
-        catch (Exception e)
-        {
-            transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
-        }
-    }
-
     public override BucketRuleSet Update(BucketRuleSet entity)
     {
-        throw new NotSupportedException(
-            "Please use alternative Update procedure as update of Mapping Rules is required");
-    }
-    
-    public Tuple<BucketRuleSet, List<MappingRule>> Update(BucketRuleSet entity, List<MappingRule> mappingRules)
-    {
         using var dbContext = new DatabaseContext(DbContextOptions);
         using var transaction = dbContext.Database.BeginTransaction();
         try
@@ -99,52 +76,58 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
             var bucketRuleSetRepository = new BucketRuleSetRepository(dbContext);
             var mappingRuleRepository = new MappingRuleRepository(dbContext);
             
-            // Delete all existing Mapping Rules
-            mappingRuleRepository.DeleteRange(mappingRuleRepository
+            // Check if Mapping Rules need to be deleted
+            var deletedIds = 
+                // Collect database entities
+                mappingRuleRepository.All()
                 .Where(i => i.BucketRuleSetId == entity.Id)
-                .ToList());
-            
-            // Update BucketRuleSet
-            bucketRuleSetRepository.Update(entity);
-            
-            // (Re)Create Mapping Rules
-            foreach (var mappingRule in mappingRules)
+                .ToList()
+                // Select which of the database IDs are no longer available in entity
+                .Where(i => entity.MappingRules
+                    .All(j => j.Id != i.Id))
+                .Select(i => i.Id)
+                .ToList();
+            if (deletedIds.Any())
             {
-                mappingRule.Id = Guid.Empty;
-                mappingRule.BucketRuleSetId = entity.Id;
+                var result = mappingRuleRepository.DeleteRange(deletedIds);
+                if (result != deletedIds.Count) 
+                    throw new Exception("Unable to delete old MappingRules of that BucketRuleSet");
             }
-            mappingRuleRepository.CreateRange(mappingRules);
             
-            transaction.Commit();
-            return new Tuple<BucketRuleSet, List<MappingRule>>(entity, mappingRules);
-        }
-        catch (Exception e)
-        {
-            transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
-        }
-    }
-
-    public override BucketRuleSet Delete(BucketRuleSet entity)
-    {
-        using var dbContext = new DatabaseContext(DbContextOptions);
-        using var transaction = dbContext.Database.BeginTransaction();
-        try
-        {
-            var bucketRuleSetRepository = new BucketRuleSetRepository(dbContext);
-            var mappingRuleRepository = new MappingRuleRepository(dbContext);
-            
-            // Delete all existing Mapping Rules
-            mappingRuleRepository.DeleteRange(mappingRuleRepository
-                .Where(i => i.BucketRuleSetId == entity.Id)
-                .ToList());
-            
-            // Delete BucketRuleSet
-            bucketRuleSetRepository.Delete(entity);
+            // Update BucketRuleSet including MappingRules
+            bucketRuleSetRepository.Update(entity);
             
             transaction.Commit();
             return entity;
+        }
+        catch (Exception e)
+        {
+            transaction.Rollback();
+            Console.WriteLine(e);
+            throw new Exception($"Errors during database update: {e.Message}");
+        }
+    }
+
+    public override void Delete(Guid id)
+    {
+        using var dbContext = new DatabaseContext(DbContextOptions);
+        using var transaction = dbContext.Database.BeginTransaction();
+        try
+        {
+            var bucketRuleSetRepository = new BucketRuleSetRepository(dbContext);
+            var mappingRuleRepository = new MappingRuleRepository(dbContext);
+            
+            // Delete all existing Mapping Rules
+            mappingRuleRepository.DeleteRange(mappingRuleRepository
+                .All()
+                .Where(i => i.BucketRuleSetId == id)
+                .Select(i => i.Id)
+                .ToList());
+            
+            // Delete BucketRuleSet
+            bucketRuleSetRepository.Delete(id);
+            
+            transaction.Commit();
         }
         catch (Exception e)
         {

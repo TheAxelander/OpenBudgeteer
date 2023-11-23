@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -12,6 +13,7 @@ public class MappingRule : IEntity
     [Required]
     public Guid BucketRuleSetId { get; set; }
 
+    [JsonIgnore]
     public BucketRuleSet? BucketRuleSet { get; set; }
 
     /// <summary>
@@ -26,27 +28,6 @@ public class MappingRule : IEntity
     [Required]
     public int ComparisionField { get; set; }
     
-    [NotMapped]
-    public string ComparisonFieldOutput
-    {
-        get
-        {
-            switch (ComparisionField)
-            {
-                case 1:
-                    return nameof(Account);
-                case 2:
-                    return nameof(BankTransaction.Payee);
-                case 3:
-                    return nameof(BankTransaction.Memo);
-                case 4:
-                    return nameof(BankTransaction.Amount);
-                default:
-                    return string.Empty;
-            }
-        }
-    }
-
     /// <summary>
     /// Identifier how Comparison should happen
     /// <para>
@@ -59,27 +40,6 @@ public class MappingRule : IEntity
     [Required]
     public int ComparisionType { get; set; }
     
-    [NotMapped]
-    public string ComparisionTypeOutput
-    {
-        get
-        {
-            switch (ComparisionType)
-            {
-                case 1:
-                    return "equal";
-                case 2:
-                    return "not equal";
-                case 3:
-                    return "contains";
-                case 4:
-                    return "does not contain";
-                default:
-                    return string.Empty;
-            }
-        }
-    }
-
     [Required]
     public string ComparisionValue { get; set; } = null!;
 }

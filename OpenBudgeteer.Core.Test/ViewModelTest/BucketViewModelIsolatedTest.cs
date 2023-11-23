@@ -36,13 +36,13 @@ public class BucketPageViewModelIsolatedTest : BaseTest
         await viewModel.LoadDataAsync();
 
         Assert.Equal(3, viewModel.BucketGroups.Count);
-        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(0).BucketGroup.Name);
-        Assert.Equal("Bucket Group 3", viewModel.BucketGroups.ElementAt(1).BucketGroup.Name);
-        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(2).BucketGroup.Name);
+        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(0).Name);
+        Assert.Equal("Bucket Group 3", viewModel.BucketGroups.ElementAt(1).Name);
+        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(2).Name);
 
-        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).BucketGroup.Position);
-        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).BucketGroup.Position);
-        Assert.Equal(3, viewModel.BucketGroups.ElementAt(2).BucketGroup.Position);
+        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).Position);
+        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).Position);
+        Assert.Equal(3, viewModel.BucketGroups.ElementAt(2).Position);
     }
     
     [Fact]
@@ -67,19 +67,19 @@ public class BucketPageViewModelIsolatedTest : BaseTest
         Assert.Equal(3, viewModel.BucketGroups.Count);
         
         viewModel.CreateEmptyGroup();
-        var result = viewModel.CreateGroup();
+        var result = viewModel.NewBucketGroup!.CreateGroup();
         await viewModel.LoadDataAsync();
         
         Assert.True(result.IsSuccessful);
         Assert.Equal(4, viewModel.BucketGroups.Count);
-        Assert.Equal("New Bucket Group", viewModel.BucketGroups.ElementAt(0).BucketGroup.Name);
-        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(1).BucketGroup.Name);
-        Assert.Equal("Bucket Group 3", viewModel.BucketGroups.ElementAt(2).BucketGroup.Name);
-        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(3).BucketGroup.Name);
-        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).BucketGroup.Position);
-        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).BucketGroup.Position);
-        Assert.Equal(3, viewModel.BucketGroups.ElementAt(2).BucketGroup.Position);
-        Assert.Equal(4, viewModel.BucketGroups.ElementAt(3).BucketGroup.Position);
+        Assert.Equal("New Bucket Group", viewModel.BucketGroups.ElementAt(0).Name);
+        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(1).Name);
+        Assert.Equal("Bucket Group 3", viewModel.BucketGroups.ElementAt(2).Name);
+        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(3).Name);
+        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).Position);
+        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).Position);
+        Assert.Equal(3, viewModel.BucketGroups.ElementAt(2).Position);
+        Assert.Equal(4, viewModel.BucketGroups.ElementAt(3).Position);
     }
     
     [Fact]
@@ -103,7 +103,7 @@ public class BucketPageViewModelIsolatedTest : BaseTest
         await viewModel.LoadDataAsync();
 
         var groupToDelete = viewModel.BucketGroups.ElementAt(1);
-        var result = viewModel.DeleteGroup(groupToDelete);
+        var result = groupToDelete.DeleteGroup();
         
         Assert.True(result.IsSuccessful);
         Assert.True(result.ViewModelReloadRequired);
@@ -111,18 +111,18 @@ public class BucketPageViewModelIsolatedTest : BaseTest
         await viewModel.LoadDataAsync();
         
         Assert.Equal(2, viewModel.BucketGroups.Count);
-        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(0).BucketGroup.Name);
-        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(1).BucketGroup.Name);
-        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).BucketGroup.Position);
-        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).BucketGroup.Position);
+        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(0).Name);
+        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(1).Name);
+        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).Position);
+        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).Position);
         
         // Reload ViewModel to see if changes has been also reflected onto the database
         await viewModel.LoadDataAsync();
         
         Assert.Equal(2, viewModel.BucketGroups.Count);
-        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(0).BucketGroup.Name);
-        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(1).BucketGroup.Name);
-        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).BucketGroup.Position);
-        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).BucketGroup.Position);
+        Assert.Equal("Bucket Group 1", viewModel.BucketGroups.ElementAt(0).Name);
+        Assert.Equal("Bucket Group 2", viewModel.BucketGroups.ElementAt(1).Name);
+        Assert.Equal(1, viewModel.BucketGroups.ElementAt(0).Position);
+        Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).Position);
     }
 }

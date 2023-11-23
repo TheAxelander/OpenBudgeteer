@@ -42,11 +42,14 @@ public class TransactionListingViewModel : ViewModelBase
     {
         try
         {
-            // Get all available transactions. The TransactionViewModelItem takes care to find all assigned buckets for 
-            // each passed transaction. It creates also the respective ViewModelObjects
+            // Get all available transactions. The TransactionViewModel takes care to
+            // find all assigned buckets for each passed transaction.
             _transactions.Clear();
             
-            var availableAccounts = ServiceManager.AccountService.GetActiveAccounts().ToList();
+            var availableAccounts = ServiceManager.AccountService
+                .GetActiveAccounts()
+                .Select(i => AccountViewModel.CreateFromAccount(ServiceManager, i))
+                .ToList();
             var availableBuckets = ServiceManager.BucketService.GetActiveBuckets(_yearMonthViewModel.CurrentMonth).ToList();
             var transactionTasks = ServiceManager.BankTransactionService
                 .GetAll(
@@ -72,17 +75,17 @@ public class TransactionListingViewModel : ViewModelBase
     /// Initialize ViewModel and load data from database but only for <see cref="BankTransaction"/> assigned to the
     /// passed <see cref="Bucket"/>. Optionally <see cref="BucketMovement"/> will be transformed to <see cref="BankTransaction"/>
     /// </summary>
-    /// <param name="bucket">Bucket for which Transactions should be loaded</param>
+    /// <param name="bucketId">Bucket Id for which Transactions should be loaded</param>
     /// <param name="withMovements">Include <see cref="BucketMovement"/> which will be transformed to <see cref="BankTransaction"/></param>
     /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> LoadDataAsync(Bucket bucket, bool withMovements)
+    public async Task<ViewModelOperationResult> LoadDataAsync(Guid bucketId, bool withMovements)
     {
         try
         {
             _transactions.Clear();
 
             // Get all BankTransaction
-            var transactionTasks = ServiceManager.BudgetedTransactionService.GetAllFromBucket(bucket.Id)
+            var transactionTasks = ServiceManager.BudgetedTransactionService.GetAllFromBucket(bucketId)
                 .Select(i => 
                     TransactionViewModel.CreateFromTransactionWithoutBucketsAsync(ServiceManager, i.Transaction))
                 .ToList();
@@ -90,13 +93,13 @@ public class TransactionListingViewModel : ViewModelBase
             if (withMovements)
             {
                 // Get Bucket Movements
-                transactionTasks.AddRange(ServiceManager.BucketMovementService.GetAllFromBucket(bucket.Id)
+                transactionTasks.AddRange(ServiceManager.BucketMovementService.GetAllFromBucket(bucketId)
                     .Select(i => 
                         TransactionViewModel.CreateFromBucketMovementAsync(ServiceManager, i)));
             }
 
             foreach (var transaction in (await Task.WhenAll(transactionTasks))
-                     .OrderByDescending(i => i.Transaction.TransactionDate))
+                     .OrderByDescending(i => i.TransactionDate))
             {
                 _transactions.Add(transaction);
             }
@@ -113,14 +116,14 @@ public class TransactionListingViewModel : ViewModelBase
     /// Initialize ViewModel and load data from database but only for <see cref="BankTransaction"/> assigned to the
     /// passed <see cref="Account"/>
     /// </summary>
-    /// <param name="account">Account for which Transactions should be loaded</param>
+    /// <param name="accountId">Account Id for which Transactions should be loaded</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> LoadDataAsync(Account account)
+    public async Task<ViewModelOperationResult> LoadDataAsync(Guid accountId)
     {
         try
         {
             _transactions.Clear();
-            var transactionTasks = ServiceManager.BankTransactionService.GetFromAccount(account.Id)
+            var transactionTasks = ServiceManager.BankTransactionService.GetFromAccount(accountId)
                 .Select(i => 
                     TransactionViewModel.CreateFromTransactionWithoutBucketsAsync(ServiceManager, i));
 

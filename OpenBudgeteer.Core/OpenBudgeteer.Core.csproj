@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\OpenBudgeteer.Core.Data.Repository\OpenBudgeteer.Core.Data.Repository.csproj" />
     <ProjectReference Include="..\OpenBudgeteer.Core.Data.Services\OpenBudgeteer.Core.Data.Services.csproj" />
     <ProjectReference Include="..\OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿@using System.Drawing
+@using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @if (IsDialogVisible)
 {
@@ -12,24 +13,24 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Name:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="DataContext.Bucket.Name"/>
+                        <input class="form-control form-control-sm" type="text" @bind="DataContext.Name"/>
                     </div>
                     <div class="row mb-3">
                         <div class="col">
                             <label class="form-label">Bucket Type:</label>
                             <select class="form-select form-select-sm"
-                                    @bind:get="DataContext.BucketVersion!.BucketType.ToString()"
+                                    @bind:get="((int)DataContext.BucketVersion.BucketTypeParameter).ToString()"
                                     @bind:set="BucketType_SelectionChanged">
-                                @foreach (var bucketType in DataContext.AvailableBucketTypes!)
+                                @for (int i = 1; i <= 4; i++)
                                 {
-                                    <option value="@(DataContext.AvailableBucketTypes.IndexOf(bucketType) + 1)">@bucketType</option>
+                                    <option value="@i">@(((BucketVersionViewModel.BucketType)i).GetStringValue())</option>
                                 }
                             </select>
                         </div>
 						<div class="col">
                             <label class="form-label">Bucket Group:</label>
                             <select class="form-select form-select-sm" 
-                                    @bind:get="DataContext.Bucket.BucketGroupId.ToString()"
+                                    @bind:get="DataContext.BucketGroupId.ToString()"
                                     @bind:set="BucketGroup_SelectionChanged">
                                 @foreach (var bucketGroup in DataContext.AvailableBucketGroups!)
                                 {
@@ -43,7 +44,7 @@
                             <label class="form-label">Number of months:</label>
                             @if (_isNumberOfMonthsEnabled)
                             {
-                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeXParam"/>    
+                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeIntParameter"/>    
                             }
                             else
                             {
@@ -54,7 +55,7 @@
                             <label class="form-label">Amount:</label>
                             @if (_isAmountEnabled)
                             {
-                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeYParam"/>    
+                                <input class="form-control form-control-sm" style="text-align: right;" type="number" @bind="DataContext.BucketVersion.BucketTypeDecimalParameter"/>    
                             }
                             else
                             {
@@ -67,7 +68,7 @@
                             <label class="form-label">(First) Target Date:</label>
                             @if (_isTargetDataEnabled)
                             {
-                                <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeZParam" @bind:format="yyyy-MM-dd"/>    
+                                <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeDateParameter" @bind:format="yyyy-MM-dd"/>    
                             }
                             else
                             {
@@ -76,9 +77,9 @@
                         </div>
                         <div class="col">
                             <label class="form-label">Color:</label>
-                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Bucket.Color)"
-                                    @bind:get="DataContext.Bucket.ColorCode!"
-                                    @bind:set="(value) => { DataContext.Bucket.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
+                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color)"
+                                    @bind:get="DataContext.ColorCode"
+                                    @bind:set="(value) => { DataContext.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
                                 @foreach (var color in DataContext.AvailableColors!)
                                 {
                                     <option style="background-color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
@@ -130,30 +131,30 @@
     void BucketType_SelectionChanged(string? value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        DataContext.BucketVersion!.BucketType = Convert.ToInt32(value);
+        DataContext.BucketVersion.BucketTypeParameter = (BucketVersionViewModel.BucketType)Convert.ToInt32(value);
         UpdateInputFieldsState();
     }
 
     void UpdateInputFieldsState()
     {
-        switch (DataContext.BucketVersion!.BucketType)
+        switch (DataContext.BucketVersion!.BucketTypeParameter)
         {
-            case 1:
+            case BucketVersionViewModel.BucketType.StandardBucket:
                 _isNumberOfMonthsEnabled = false;
                 _isAmountEnabled = false;
                 _isTargetDataEnabled = false;
                 break;
-            case 2:
+            case BucketVersionViewModel.BucketType.MonthlyExpense:
                 _isNumberOfMonthsEnabled = false;
                 _isAmountEnabled = true;
                 _isTargetDataEnabled = false;
                 break;
-            case 3:
+            case BucketVersionViewModel.BucketType.ExpenseEveryXMonths:
                 _isNumberOfMonthsEnabled = true;
                 _isAmountEnabled = true;
                 _isTargetDataEnabled = true;
                 break;
-            case 4:
+            case BucketVersionViewModel.BucketType.SaveXUntilYDate:
                 _isNumberOfMonthsEnabled = false;
                 _isAmountEnabled = true;
                 _isTargetDataEnabled = true;
@@ -169,6 +170,6 @@
     void BucketGroup_SelectionChanged(string? value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        DataContext.Bucket.BucketGroupId = Guid.Parse(value);
+        DataContext.BucketGroupId = Guid.Parse(value);
     }
 }

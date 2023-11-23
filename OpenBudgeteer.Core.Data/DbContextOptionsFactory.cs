@@ -29,11 +29,12 @@ public static partial class DbContextOptionsFactory
 
     public static DbContextOptions<DatabaseContext> GetContextOptions(IConfiguration configuration)
     {
-        var provider = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PROVIDER).Trim();
+        var provider = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PROVIDER);
+        if (string.IsNullOrEmpty(provider)) throw new Exception("Database provider not defined.");
+
+        provider = provider.Trim();
         if (!OptionsFactoryLookup.TryGetValue(provider, out var optionsFactoryMethod))
-        {
             throw new NotSupportedException($"Database provider {provider} is not supported.");
-        }
         
         var optionsBuilder = new DbContextOptionsBuilder<DatabaseContext>();
         optionsFactoryMethod(optionsBuilder, configuration);
@@ -63,6 +64,7 @@ public static partial class DbContextOptionsFactory
             : Path.GetFullPath(dbFilePath);
 
         var directory = Path.GetDirectoryName(dbFilePath);
+        if (string.IsNullOrEmpty(directory)) throw new Exception("Unable to operate on provided directory");
         if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
 
         var connectionString = $"Data Source={dbFilePath}";
@@ -74,13 +76,13 @@ public static partial class DbContextOptionsFactory
     private static void SetupMariaDbConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
         var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "openbudgeteer");
-        if (!DatabaseNameRegex().IsMatch(databaseName))
+        if (!DatabaseNameRegex().IsMatch(databaseName!))
         {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
         }
 
         var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
-        if (!DatabaseNameRegex().IsMatch(userName))
+        if (!DatabaseNameRegex().IsMatch(userName!))
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
@@ -106,20 +108,20 @@ public static partial class DbContextOptionsFactory
     private static void SetupPostgresConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
         var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "postgres");
-        if (!DatabaseNameRegex().IsMatch(databaseName))
+        if (!DatabaseNameRegex().IsMatch(databaseName!))
         {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
         }
 
         var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
-        if (!DatabaseNameRegex().IsMatch(userName))
+        if (!DatabaseNameRegex().IsMatch(userName!))
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
 
-        var password = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PASSWORD, null);
-        var rootPassword = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, null);
-        if (databaseName.Equals("postgres", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(password))
+        var password = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_PASSWORD, string.Empty);
+        var rootPassword = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, string.Empty);
+        if (databaseName!.Equals("postgres", StringComparison.OrdinalIgnoreCase) && string.IsNullOrWhiteSpace(password))
         {
             password = rootPassword;
         }

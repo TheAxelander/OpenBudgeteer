@@ -49,7 +49,7 @@ public class AccountViewModelTest : BaseTest
         var viewModel = new AccountPageViewModel(ServiceManager);
         viewModel.LoadData();
         var testItem1 = viewModel.Accounts
-            .FirstOrDefault(i => i.Account.Id == testAccount.Id);
+            .FirstOrDefault(i => i.AccountId == testAccount.Id);
         
         Assert.NotNull(testItem1);
         Assert.Equal(expectedBalance, testItem1.Balance);

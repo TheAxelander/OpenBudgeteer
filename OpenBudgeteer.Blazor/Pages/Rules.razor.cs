@@ -77,13 +77,12 @@ public partial class Rules : ComponentBase
         StateHasChanged();
     }
 
-    private void UpdateSelectedBucket(Core.Data.Entities.Models.Bucket selectedBucket)
+    private void UpdateSelectedBucket(BucketViewModel selectedBucket)
     {
-        _ruleSetViewModelToBeUpdated!.TargetBucket = selectedBucket;
-        _ruleSetViewModelToBeUpdated.RuleSet.TargetBucketId = selectedBucket.Id;
+        _ruleSetViewModelToBeUpdated!.UpdateSelectedBucket(selectedBucket);
         _isBucketSelectDialogVisible = false;
     }
-
+    
     private void HandleShowDeleteRuleSetDialog(RuleSetViewModel ruleSet)
     {
         _ruleSetToBeDeleted = ruleSet;

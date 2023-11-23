@@ -12,7 +12,7 @@ public class BankTransaction : IEntity
     [Required]
     public Guid AccountId { get; set; }
 
-    public Account? Account { get; set; }
+    public Account Account { get; set; } = null!;
 
     public DateTime TransactionDate { get; set; }
 
@@ -22,4 +22,6 @@ public class BankTransaction : IEntity
 
     [Column(TypeName = "decimal(65, 2)")]
     public decimal Amount { get; set; }
+    
+    public ICollection<BudgetedTransaction>? BudgetedTransactions { get; set; }
 }

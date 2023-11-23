@@ -33,11 +33,11 @@
                                  @foreach (var transaction in DataContext.Transactions)
                                  {
                                      <tr>
-                                         <td style="text-align: right">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
-                                         <td>@transaction.Transaction.Account!.Name</td>
-                                         <td>@transaction.Transaction.Payee</td>
-                                         <td>@transaction.Transaction.Memo</td>
-                                         <td style="text-align: right">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
+                                         <td style="text-align: right">@transaction.TransactionDate.ToShortDateString()</td>
+                                         <td>@transaction.AccountName</td>
+                                         <td>@transaction.Payee</td>
+                                         <td>@transaction.Memo</td>
+                                         <td style="text-align: right">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                      </tr>
                                  }
                              </tbody>

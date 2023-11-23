@@ -1,5 +1,6 @@
 @using System.Drawing
 @using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @if (IsDialogVisible)
  {
      <div class="modal fade show" style=" display: block;">
@@ -53,7 +54,7 @@
 
 @code {
     [Parameter]
-    public BucketGroup DataContext { get; set; } = null!;
+    public BucketGroupViewModel DataContext { get; set; } = null!;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }

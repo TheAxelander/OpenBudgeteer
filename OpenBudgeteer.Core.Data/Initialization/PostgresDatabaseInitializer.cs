@@ -22,13 +22,13 @@ public partial class PostgresDatabaseInitializer : IDatabaseInitializer
         }
         
         var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "postgres");
-        if (!DatabaseNameRegex().IsMatch(databaseName))
+        if (!DatabaseNameRegex().IsMatch(databaseName!))
         {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
         }
 
         var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
-        if (!DatabaseNameRegex().IsMatch(userName))
+        if (!DatabaseNameRegex().IsMatch(userName!))
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
@@ -47,7 +47,7 @@ public partial class PostgresDatabaseInitializer : IDatabaseInitializer
             Port = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_PORT, 5432),
             Database = databaseName,
             Username = userName,
-            Password = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PASSWORD, null),
+            Password = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PASSWORD, string.Empty),
         };
 
         using var connection = new NpgsqlConnection(connectionStringRoot.ConnectionString);

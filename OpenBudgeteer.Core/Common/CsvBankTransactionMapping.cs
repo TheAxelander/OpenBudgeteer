@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using TinyCsvParser.Mapping;
 using TinyCsvParser.TypeConverter;
 
@@ -12,17 +13,25 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
 {
     private class AmountDecimalConverter : DecimalConverter
     {
-        private readonly ImportProfile _importProfile;
+        private readonly ImportProfileViewModel _importProfile;
 
-        public AmountDecimalConverter(ImportProfile importProfile)
-            : base(new CultureInfo(importProfile.NumberFormat), NumberStyles.Currency)
+        private AmountDecimalConverter(ImportProfileViewModel importProfile, CultureInfo cultureInfo)
+            : base(cultureInfo, NumberStyles.Currency)
         {
             _importProfile = importProfile;
         }
 
+        public static AmountDecimalConverter CreateConverter(ImportProfileViewModel importProfile)
+        {
+            var culture = string.IsNullOrEmpty(importProfile.NumberFormat)
+                ? CultureInfo.CurrentCulture
+                : new CultureInfo(importProfile.NumberFormat);
+            return new AmountDecimalConverter(importProfile, culture);
+        }
+
         protected override bool InternalConvert(string value, out decimal result)
         {
-            if (_importProfile.AdditionalSettingAmountCleanup)
+            if (_importProfile.AdditionalSettingAmountCleanup && !string.IsNullOrEmpty(_importProfile.AdditionalSettingAmountCleanupValue))
                 value = Regex.Replace(value, _importProfile.AdditionalSettingAmountCleanupValue, string.Empty);
 
             return base.InternalConvert(value, out result);
@@ -38,7 +47,7 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
     /// </remarks>
     /// <param name="importProfile">Instance required for CSV column name</param>
     /// <param name="identifiedColumns">Collection of all CSV columns</param>
-    public CsvBankTransactionMapping(ImportProfile importProfile, IReadOnlyCollection<string> identifiedColumns) : base()
+    public CsvBankTransactionMapping(ImportProfileViewModel importProfile, IReadOnlyCollection<string> identifiedColumns)
     {
         // Mandatory
         MapProperty(
@@ -61,7 +70,7 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
         switch (importProfile.AdditionalSettingCreditValue)
         {
             // Credit values are in separate columns
-            case 1:
+            case ImportProfileViewModel.AdditionalSettingsForCreditValues.CreditInSeparateColumns:
                 MapUsing((transaction, row) =>
                 {
                     if (string.IsNullOrEmpty(importProfile.CreditColumnName)) return false;
@@ -74,7 +83,7 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
                     if (string.IsNullOrWhiteSpace(debitValue) && string.IsNullOrWhiteSpace(creditValue)) return false;
 
 
-                    var converter = new AmountDecimalConverter(importProfile);
+                    var converter = AmountDecimalConverter.CreateConverter(importProfile);
                     converter.TryConvert(debitValue, out var parsedDebitValue);
                     converter.TryConvert(creditValue, out var parsedCreditValue);
                     
@@ -91,7 +100,7 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
                 });
                 break;
             // Debit and Credit values are in the same column but always positive
-            case 2:
+            case ImportProfileViewModel.AdditionalSettingsForCreditValues.DebitCreditAlwaysPositive:
                 MapUsing((transaction, row) =>
                 {
                     if (string.IsNullOrEmpty(importProfile.AmountColumnName)) return false;
@@ -104,7 +113,7 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
 
                     if (string.IsNullOrWhiteSpace(amountValue)) return false;
                     
-                    var converter = new AmountDecimalConverter(importProfile);
+                    var converter = AmountDecimalConverter.CreateConverter(importProfile);
                     converter.TryConvert(amountValue, out var parsedAmountValue);
 
                     transaction.Amount = creditColumnIdentifierValue == importProfile.CreditColumnIdentifierValue ?
@@ -115,11 +124,12 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
                 });
                 break;
             // No special settings for Debit and Credit
+            case ImportProfileViewModel.AdditionalSettingsForCreditValues.NoSettings:
             default:
                 MapProperty(
                     identifiedColumns.ToList().IndexOf(importProfile.AmountColumnName!),
                     x => x.Amount,
-                    new AmountDecimalConverter(importProfile));
+                    AmountDecimalConverter.CreateConverter(importProfile));
                 break;
         }
     }

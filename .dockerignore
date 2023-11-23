@@ -30,6 +30,7 @@ README.md
 
 # files
 Dockerfile*
+**/appsettings.Development.json*
 **/*.trx
 **/*.md
 **/*.ps1

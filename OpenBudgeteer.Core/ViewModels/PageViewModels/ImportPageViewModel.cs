@@ -9,6 +9,7 @@ using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using TinyCsvParser;
 using TinyCsvParser.Mapping;
 using TinyCsvParser.Tokenizer.RFC4180;
@@ -42,21 +43,11 @@ public class ImportPageViewModel : ViewModelBase
         }
     }
 
-    private Account _selectedAccount;
-    /// <summary>
-    /// Target <see cref="Account"/> for which all imported <see cref="BankTransaction"/> should be added
-    /// </summary>
-    public Account SelectedAccount
-    {
-        get => _selectedAccount;
-        set => Set(ref _selectedAccount, value);
-    }
-
-    private ImportProfile _selectedImportProfile;
+    private ImportProfileViewModel _selectedImportProfile;
     /// <summary>
     /// Selected profile with import settings from the database
     /// </summary>
-    public ImportProfile SelectedImportProfile
+    public ImportProfileViewModel SelectedImportProfile
     {
         get => _selectedImportProfile;
         set
@@ -111,12 +102,12 @@ public class ImportPageViewModel : ViewModelBase
     /// <summary>
     /// Available <see cref="ImportProfile"/> in the database
     /// </summary>
-    public readonly ObservableCollection<ImportProfile> AvailableImportProfiles;
+    public readonly ObservableCollection<ImportProfileViewModel> AvailableImportProfiles;
 
     /// <summary>
     /// Helper collection to list all available <see cref="Account"/> in the database
     /// </summary>
-    public readonly ObservableCollection<Account> AvailableAccounts;
+    public readonly ObservableCollection<AccountViewModel> AvailableAccounts;
 
     /// <summary>
     /// Collection of columns that have been identified in the CSV file
@@ -136,21 +127,22 @@ public class ImportPageViewModel : ViewModelBase
     private bool _isProfileValid;
     private string[]? _fileLines;
 
+    public const string DummyColumn = "---Select Column---";
+
     /// <summary>
     /// Basic constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     public ImportPageViewModel(IServiceManager serviceManager) : base(serviceManager)
     {
-        AvailableImportProfiles = new ObservableCollection<ImportProfile>();
-        AvailableAccounts = new ObservableCollection<Account>();
+        AvailableImportProfiles = new ObservableCollection<ImportProfileViewModel>();
+        AvailableAccounts = new ObservableCollection<AccountViewModel>();
         IdentifiedColumns = new ObservableCollection<string>();
         ParsedRecords = new ObservableCollection<CsvMappingResult<ParsedBankTransaction>>();
         Duplicates = new ObservableCollection<Tuple<CsvMappingResult<ParsedBankTransaction>, List<BankTransaction>>>();
         _filePath = string.Empty;
         _fileText = string.Empty;
-        _selectedImportProfile = new ImportProfile();
-        _selectedAccount = new Account();
+        _selectedImportProfile = ImportProfileViewModel.CreateDummy(serviceManager);
     }
 
     /// <summary>
@@ -161,11 +153,23 @@ public class ImportPageViewModel : ViewModelBase
     {
         try
         {
+            // Handle available ImportProfiles
             LoadAvailableProfiles();
+            SelectedImportProfile = ImportProfileViewModel.CreateDummy(ServiceManager); // Pre-select Dummy Import Profile
+            
+            // Handle available Accounts
+            AvailableAccounts.Clear();
             foreach (var account in ServiceManager.AccountService.GetActiveAccounts())
             {
-                AvailableAccounts.Add(account);
+                AvailableAccounts.Add(AccountViewModel.CreateFromAccount(ServiceManager, account));
             }
+            var dummyAccount = AccountViewModel.CreateEmpty(ServiceManager);
+            dummyAccount.Name = "---Select Target Account---";
+            AvailableAccounts.Insert(0, dummyAccount);
+            
+            // Handle Dummy Column
+            IdentifiedColumns.Insert(0, DummyColumn);
+            
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
@@ -220,16 +224,13 @@ public class ImportPageViewModel : ViewModelBase
     {
         try
         {
-            var newLines = new List<string>();
             var stringBuilder = new StringBuilder();
-
             FilePath = string.Empty;
 
             using var lineReader = new StreamReader(stream, Encoding.GetEncoding("utf-8"));
             var line = await lineReader.ReadLineAsync();
             while(line != null)
             {
-                newLines.Add(line);
                 stringBuilder.AppendLine(line);
                 line = await lineReader.ReadLineAsync();
             }
@@ -245,21 +246,16 @@ public class ImportPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Initialize all other data from the ViewModel after changing <see cref="SelectedImportProfile"/>
+    /// Reset all figures and parsed records
     /// </summary>
-    public void InitializeDataFromImportProfile()
+    public void ResetLoadFigures()
     {
-        ResetLoadedProfileData();
-
-        try
-        {
-            // Set target Account
-            SelectedAccount = ServiceManager.AccountService.Get(SelectedImportProfile.AccountId);
-        }
-        catch
-        {
-            //Account not set or not available --> ignore
-        }
+        ParsedRecords.Clear();
+        TotalRecords = 0;
+        RecordsWithErrors = 0;
+        ValidRecords = 0;
+        PotentialDuplicates = 0;
+        Duplicates.Clear();
     }
 
     /// <summary>
@@ -274,7 +270,7 @@ public class ImportPageViewModel : ViewModelBase
         var result = LoadHeaders(SelectedImportProfile);
         
         // If possible and necessary make initial selections after loading headers
-        if (IdentifiedColumns.Count == 0) return result;
+        //if (IdentifiedColumns.Count == 0) return result;
         var firstSelection = IdentifiedColumns.First();
         SelectedImportProfile.TransactionDateColumnName = firstSelection;
         SelectedImportProfile.PayeeColumnName = firstSelection;
@@ -289,9 +285,9 @@ public class ImportPageViewModel : ViewModelBase
     /// <summary>
     /// Reads column headers from the loaded file
     /// </summary>
-    /// <param name="importProfile"><see cref="ImportProfile"/> containing the settings how to parse the headers</param>
+    /// <param name="importProfile"><see cref="ImportProfileViewModel"/> containing the settings how to parse the headers</param>
     /// <returns>Object which contains information and results of this method</returns>
-    private ViewModelOperationResult LoadHeaders(ImportProfile importProfile)
+    private ViewModelOperationResult LoadHeaders(ImportProfileViewModel importProfile)
     {
         try
         {
@@ -299,8 +295,9 @@ public class ImportPageViewModel : ViewModelBase
             if (importProfile.HeaderRow < 1 || importProfile.HeaderRow > _fileLines.Length)
                 throw new Exception("Cannot read headers with given header row.");
 
-            // Set ComboBox selection for Column Mapping
+            // Collect Columns for Column Mapping selection
             IdentifiedColumns.Clear();
+            IdentifiedColumns.Add(DummyColumn);
             var headerLine = _fileLines[importProfile.HeaderRow - 1];
             var columns = headerLine.Split(importProfile.Delimiter);
             foreach (var column in columns)
@@ -316,21 +313,7 @@ public class ImportPageViewModel : ViewModelBase
             return new ViewModelOperationResult(false, $"Unable to load Headers: {e.Message}");
         }
     }
-
-    /// <summary>
-    /// Reset all figures and parsed records
-    /// </summary>
-    private void ResetLoadedProfileData()
-    {
-        SelectedAccount = new Account();
-        ParsedRecords.Clear();
-        TotalRecords = 0;
-        RecordsWithErrors = 0;
-        ValidRecords = 0;
-        PotentialDuplicates = 0;
-        Duplicates.Clear();
-    }
-
+    
     /// <summary>
     /// Reads the file and parses the content to a set of <see cref="BankTransaction"/>.
     /// Results will be stored in <see cref="ParsedRecords"/>
@@ -349,9 +332,12 @@ public class ImportPageViewModel : ViewModelBase
             if (string.IsNullOrEmpty(SelectedImportProfile.MemoColumnName)) throw new Exception("Missing Mapping for Memo");
             if (string.IsNullOrEmpty(SelectedImportProfile.TransactionDateColumnName)) throw new Exception("Missing Mapping for Transaction Date");
             if (string.IsNullOrEmpty(SelectedImportProfile.AmountColumnName)) throw new Exception("Missing Mapping for Amount");
-            if (SelectedImportProfile.AccountId == Guid.Empty) throw new Exception("No target account selected");
+            if (SelectedImportProfile.Account.AccountId == Guid.Empty) throw new Exception("No target account selected");
             if (_fileLines == null) throw new Exception("File content not loaded.");
-            
+
+            // Remove DummyColumn to prevent wrong column index
+            IdentifiedColumns.Remove(DummyColumn);
+
             // Pre-Load Data for verification
             // Initialize CsvReader
             var options = new Options(SelectedImportProfile.TextQualifier, '\\', SelectedImportProfile.Delimiter);
@@ -363,7 +349,7 @@ public class ImportPageViewModel : ViewModelBase
 
             // Read File and Skip rows based on HeaderRow
             var stringBuilder = new StringBuilder();
-            for (int i = SelectedImportProfile.HeaderRow-1; i < _fileLines.Length; i++)
+            for (int i = SelectedImportProfile.HeaderRow - 1; i < _fileLines.Length; i++)
             {
                 stringBuilder.AppendLine(_fileLines[i]);
             }
@@ -393,6 +379,13 @@ public class ImportPageViewModel : ViewModelBase
             ParsedRecords.Clear();
             Duplicates.Clear();
             return new ViewModelOperationResult(false, e.Message);
+        }
+        finally
+        {
+            // Ensure that DummyColumn still exists
+            if (!IdentifiedColumns.Any() || 
+                IdentifiedColumns.First() != DummyColumn) 
+                IdentifiedColumns.Insert(0, DummyColumn);
         }
     }
 
@@ -477,7 +470,7 @@ public class ImportPageViewModel : ViewModelBase
 
                 foreach (var newRecord in recordsToImport.Select(i => i.Result.AsBankTransaction()))
                 {
-                    newRecord.AccountId = SelectedAccount.Id;
+                    newRecord.AccountId = SelectedImportProfile.Account.AccountId;
                     newRecords.Add(newRecord);
                 }
                 var result = ServiceManager.BankTransactionService
@@ -501,8 +494,10 @@ public class ImportPageViewModel : ViewModelBase
         AvailableImportProfiles.Clear();
         foreach (var profile in ServiceManager.ImportProfileService.GetAll())
         {
-            AvailableImportProfiles.Add(profile);
+            AvailableImportProfiles.Add(ImportProfileViewModel.CreateFromImportProfile(ServiceManager, profile));
         }
+        var dummyImportProfile = ImportProfileViewModel.CreateDummy(ServiceManager);
+        AvailableImportProfiles.Insert(0, dummyImportProfile);
     }
 
     /// <summary>
@@ -513,19 +508,14 @@ public class ImportPageViewModel : ViewModelBase
     {
         try
         {
-            if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) 
-                throw new Exception("Profile Name must not be empty.");
-
-            SelectedImportProfile.Id = Guid.Empty;
-            ServiceManager.ImportProfileService.Create(SelectedImportProfile);
+            var result = SelectedImportProfile.CreateProfile();
+            if (!result.IsSuccessful) throw new Exception(result.Message);
             LoadAvailableProfiles();
-            SelectedImportProfile = AvailableImportProfiles.First(i => i.Id == SelectedImportProfile.Id);
-            
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to create Import Profile: {e.Message}");
+            return new ViewModelOperationResult(false, e.Message);
         }
     }
 
@@ -535,19 +525,10 @@ public class ImportPageViewModel : ViewModelBase
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult SaveProfile()
     {
-        try
-        {
-            if (string.IsNullOrEmpty(SelectedImportProfile.ProfileName)) 
-                throw new Exception("Profile Name must not be empty.");
-
-            ServiceManager.ImportProfileService.Update(SelectedImportProfile);
-            
-            return new ViewModelOperationResult(true);
-        }
-        catch (Exception e)
-        {
-            return new ViewModelOperationResult(false, $"Unable to save Import Profile: {e.Message}");
-        }
+        var result = SelectedImportProfile.SaveProfile();
+        LoadAvailableProfiles();
+        
+        return result;
     }
 
     /// <summary>
@@ -558,16 +539,17 @@ public class ImportPageViewModel : ViewModelBase
     {
         try
         {
-            ServiceManager.ImportProfileService.Delete(SelectedImportProfile);
-            //ResetLoadedProfileData();
-            SelectedImportProfile = new();
+            var result = SelectedImportProfile.DeleteProfile();
+            if (!result.IsSuccessful) throw new Exception(result.Message);
             LoadAvailableProfiles();
+            SelectedImportProfile = ImportProfileViewModel.CreateDummy(ServiceManager);
+            AvailableImportProfiles.Insert(0, SelectedImportProfile);
 
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to delete Import Profile: {e.Message}");
+            return new ViewModelOperationResult(false, e.Message);
         }
     }
 }

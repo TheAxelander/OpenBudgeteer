@@ -17,5 +17,7 @@ public class BucketRuleSet : IEntity
     [Required]
     public Guid TargetBucketId { get; set; }
 
-    public Bucket? TargetBucket { get; set; }
+    public Bucket TargetBucket { get; set; } = null!;
+    
+    public ICollection<MappingRule> MappingRules { get; set; }
 }

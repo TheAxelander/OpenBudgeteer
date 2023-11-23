@@ -6,26 +6,68 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository;
 
-public class RecurringBankTransactionRepository : BaseRepository<RecurringBankTransaction>, IRecurringBankTransactionRepository
+public class RecurringBankTransactionRepository : IRecurringBankTransactionRepository
 {
-    public RecurringBankTransactionRepository(DatabaseContext databaseContext) : base(databaseContext)
+    private DatabaseContext DatabaseContext { get; }
+    
+    public RecurringBankTransactionRepository(DatabaseContext databaseContext)
     {
+        DatabaseContext = databaseContext;
     }
     
-    public override IQueryable<RecurringBankTransaction> All() => DatabaseContext
-        .Set<RecurringBankTransaction>()
+    public IQueryable<RecurringBankTransaction> All() => DatabaseContext.RecurringBankTransaction
+        .AsNoTracking();
+    
+    public IQueryable<RecurringBankTransaction> AllWithIncludedEntities() => DatabaseContext.RecurringBankTransaction
         .Include(i => i.Account)
         .AsNoTracking();
 
-    public override IQueryable<RecurringBankTransaction> Where(Expression<Func<RecurringBankTransaction, bool>> expression) 
-        => DatabaseContext
-            .Set<RecurringBankTransaction>()
-            .Include(i => i.Account)
-            .Where(expression)
-            .AsNoTracking();
+    public RecurringBankTransaction? ById(Guid id) => DatabaseContext.RecurringBankTransaction
+        .FirstOrDefault(i => i.Id == id);
     
-    public override RecurringBankTransaction? ById(Guid id) => DatabaseContext
-        .Set<RecurringBankTransaction>()
+    public RecurringBankTransaction? ByIdWithIncludedEntities(Guid id) => DatabaseContext.RecurringBankTransaction
         .Include(i => i.Account)
         .FirstOrDefault(i => i.Id == id);
+
+    public int Create(RecurringBankTransaction entity)
+    {
+        DatabaseContext.RecurringBankTransaction.Add(entity);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int CreateRange(IEnumerable<RecurringBankTransaction> entities)
+    {
+        DatabaseContext.RecurringBankTransaction.AddRange(entities);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int Update(RecurringBankTransaction entity)
+    {
+        DatabaseContext.RecurringBankTransaction.Update(entity);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int UpdateRange(IEnumerable<RecurringBankTransaction> entities)
+    {
+        DatabaseContext.RecurringBankTransaction.UpdateRange(entities);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int Delete(Guid id)
+    {
+        var entity = DatabaseContext.RecurringBankTransaction.FirstOrDefault(i => i.Id == id);
+        if (entity == null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
+
+        DatabaseContext.RecurringBankTransaction.Remove(entity);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int DeleteRange(IEnumerable<Guid> ids)
+    {
+        var entities = DatabaseContext.RecurringBankTransaction.Where(i => ids.Contains(i.Id));
+        if (!entities.Any()) throw new Exception($"No RecurringBankTransactions found with passed IDs.");
+
+        DatabaseContext.RecurringBankTransaction.RemoveRange(entities);
+        return DatabaseContext.SaveChanges();
+    }
 }

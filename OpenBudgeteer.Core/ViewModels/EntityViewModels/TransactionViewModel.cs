@@ -11,16 +11,73 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class TransactionViewModel : ViewModelBase
+public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
 {
-    private BankTransaction _transaction;
+    #region Properties & Fields
+    
     /// <summary>
-    /// Reference to model object in the database
+    /// Database Id of the BankTransaction
     /// </summary>
-    public BankTransaction Transaction
-    {
-        get => _transaction;
-        private set => Set(ref _transaction, value);
+    public readonly Guid TransactionId;
+    
+    private Guid _accountId;
+    /// <summary>
+    /// Database Id of the selected Account
+    /// </summary>
+    public Guid AccountId 
+    { 
+        get => _accountId;
+        set => Set(ref _accountId, value);
+    }
+    
+    private string _accountName;
+    /// <summary>
+    /// Name of the selected Account
+    /// </summary>
+    public string AccountName 
+    { 
+        get => _accountName;
+        set => Set(ref _accountName, value);
+    }
+    
+    private DateTime _transactionDate;
+    /// <summary>
+    /// Booking Date of the BankTransaction 
+    /// </summary>
+    public DateTime TransactionDate 
+    { 
+        get => _transactionDate;
+        set => Set(ref _transactionDate, value);
+    }
+    
+    private string _payee;
+    /// <summary>
+    /// Payee of the BankTransaction
+    /// </summary>
+    public string Payee 
+    { 
+        get => _payee;
+        set => Set(ref _payee, value);
+    }
+    
+    private string _memo;
+    /// <summary>
+    /// Memo of the BankTransaction
+    /// </summary>
+    public string Memo 
+    { 
+        get => _memo;
+        set => Set(ref _memo, value);
+    }
+    
+    private decimal _amount;
+    /// <summary>
+    /// Amount of the BankTransaction
+    /// </summary>
+    public decimal Amount 
+    { 
+        get => _amount;
+        set => Set(ref _amount, value);
     }
 
     private bool _inModification;
@@ -46,7 +103,7 @@ public class TransactionViewModel : ViewModelBase
     /// <summary>
     /// Returns the difference between the transaction amount and the sum of all bucket amounts.
     /// </summary>
-    public decimal Difference => Transaction.Amount - Buckets.Sum(b => b.Amount);
+    public decimal Difference => Amount - Buckets.Sum(b => b.Amount);
     
     private ObservableCollection<PartialBucketViewModel> _buckets;
     /// <summary>
@@ -61,30 +118,34 @@ public class TransactionViewModel : ViewModelBase
     /// <summary>
     /// Helper collection to list all existing Account
     /// </summary>
-    public readonly ObservableCollection<Account> AvailableAccounts;
+    public readonly ObservableCollection<AccountViewModel> AvailableAccounts;
     
     /// <summary>
     /// Helper collection to list all existing Buckets
     /// </summary>
-    public readonly ObservableCollection<Bucket> AvailableBuckets;
+    private readonly ObservableCollection<Bucket> _availableBuckets;
 
     private TransactionViewModel? _oldTransactionViewModelItem;
     private DateTime CurrentMonth => new DateTime(
-        Transaction.TransactionDate.Year, Transaction.TransactionDate.Month, 1);
+        TransactionDate.Year, TransactionDate.Month, 1);
+    
+    #endregion
+    
+    #region Constructors
     
     /// <summary>
-    /// Initialize ViewModel with an existing <see cref="BankTransaction"/> object (with Buckets)
+    /// Initialize ViewModel based on an existing <see cref="BankTransaction"/> object (with Buckets)
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="availableAccounts">List of all available <see cref="Account"/> from database. (Use a cached list here)</param>
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="transaction">Transaction instance</param>
-    protected TransactionViewModel(IServiceManager serviceManager, IEnumerable<Account>? availableAccounts, 
+    protected TransactionViewModel(IServiceManager serviceManager, IEnumerable<AccountViewModel>? availableAccounts, 
         IEnumerable<Bucket>? availableBuckets, BankTransaction? transaction) : base(serviceManager)
     {
         _buckets = new();
-        AvailableBuckets = new();
-        AvailableAccounts = new ObservableCollection<Account>();
+        _availableBuckets = new();
+        AvailableAccounts = new ObservableCollection<AccountViewModel>();
         
         // Handle Accounts
         if (availableAccounts != null)
@@ -100,7 +161,7 @@ public class TransactionViewModel : ViewModelBase
         {
             foreach (var availableBucket in availableBuckets)
             {
-                AvailableBuckets.Add(availableBucket);
+                _availableBuckets.Add(availableBucket);
             }
         }
 
@@ -112,64 +173,57 @@ public class TransactionViewModel : ViewModelBase
                 IsActive = 1,
                 Name = "No Account"
             };
-            _transaction = new BankTransaction()
-            {
-                TransactionDate = DateTime.Now,
-                Account = noAccount
-            };
+            TransactionId = Guid.Empty;
+            _accountId = noAccount.Id;
+            _accountName = noAccount.Name;
+            _transactionDate = DateTime.Now;
+            _payee = string.Empty;
+            _memo = string.Empty;
+            _amount = 0;
             
             // Create an empty Bucket Assignment if requested (required for "Create new Transaction")
             if (availableBuckets != null)
             {
-                var emptyBucket = PartialBucketViewModel.CreateNoSelection(serviceManager, AvailableBuckets);
+                var emptyBucket = PartialBucketViewModel.CreateNoSelection(serviceManager);
                 emptyBucket.AmountChanged += CheckBucketAssignments;
                 emptyBucket.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
                 Buckets.Add(emptyBucket);
             }
             
             // Add the "No Account" for pre-selection
-            AvailableAccounts.Add(noAccount);
+            AvailableAccounts.Add(AccountViewModel.CreateFromAccount(serviceManager, noAccount));
         }
         else
         {
-            // Make a copy of the object to prevent any double Bindings
-            _transaction = new BankTransaction
-            {
-                Id = transaction.Id,
-                AccountId = transaction.AccountId,
-                Account = new Account()
-                {
-                    Id = transaction.Account.Id,
-                    Name = transaction.Account.Name,
-                    IsActive = transaction.Account.IsActive
-                },
-                Amount = transaction.Amount,
-                Memo = transaction.Memo,
-                Payee = transaction.Payee,
-                TransactionDate = transaction.TransactionDate
-            };
-
+            TransactionId = transaction.Id;
+            _accountId = transaction.AccountId;
+            _accountName = transaction.Account.Name ?? string.Empty;
+            _transactionDate = transaction.TransactionDate;
+            _payee = transaction.Payee ?? string.Empty;
+            _memo = transaction.Memo ?? string.Empty;
+            _amount = transaction.Amount;
+            
+            
             // Handle Buckets
             if (availableBuckets == null) return;
                 
             // Get all assigned Buckets for this transaction
-            var assignedBuckets = ServiceManager.BudgetedTransactionService
+            var budgetedTransactions = serviceManager.BudgetedTransactionService
                 .GetAllFromTransaction(transaction.Id)
                 .ToList();
                 
-            if (assignedBuckets.Any())
+            if (budgetedTransactions.Any())
             {
                 // Create a PartialBucketViewModel for each assignment
-                foreach (var assignedBucket in assignedBuckets)
+                foreach (var budgetedTransaction in budgetedTransactions)
                 {
-                    var newItem = PartialBucketViewModel.CreateFromBucketWithAmount(
-                        serviceManager, 
-                        AvailableBuckets,
-                        ServiceManager.BucketService.Get(assignedBucket.BucketId),
-                        assignedBucket.Amount);
-                    newItem.SelectedBucketOutput = newItem.Amount != transaction.Amount 
-                        ?  $"{newItem.SelectedBucket.Name} ({newItem.Amount})" 
-                        :  newItem.SelectedBucket.Name;
+                    var newItem = PartialBucketViewModel.CreateFromBucket(
+                        serviceManager,
+                        _availableBuckets.First(i => i.Id == budgetedTransaction.BucketId),
+                        budgetedTransaction.Amount);
+                    newItem.SelectedBucketOutput = (newItem.Amount != transaction.Amount 
+                        ?  $"{newItem.SelectedBucketName} ({newItem.Amount})" 
+                        :  newItem.SelectedBucketName) ?? string.Empty;
                     Buckets.Add(newItem);
                 }
             }
@@ -178,7 +232,6 @@ public class TransactionViewModel : ViewModelBase
                 // Most likely an imported Transaction where Bucket assignment still needs to be done
                 Buckets.Add(PartialBucketViewModel.CreateNoSelection(
                     serviceManager, 
-                    AvailableBuckets, 
                     transaction.Amount));
             }
                     
@@ -190,6 +243,49 @@ public class TransactionViewModel : ViewModelBase
             }
         }
     }
+
+    /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="viewModel">Current ViewModel instance</param>
+    protected TransactionViewModel(TransactionViewModel viewModel) : base(viewModel.ServiceManager)
+    {
+        // Handle Buckets
+        _buckets = new();
+        foreach (var bucket in viewModel.Buckets)
+        {
+            _buckets.Add(bucket);
+        }
+        
+        // Handle Available Accounts
+        AvailableAccounts = new ObservableCollection<AccountViewModel>();
+        foreach (var availableAccount in viewModel.AvailableAccounts)
+        {
+            AvailableAccounts.Add(availableAccount);
+        }
+        
+        // Handle Available Buckets
+        _availableBuckets = new();
+        foreach (var availableBucket in viewModel._availableBuckets)
+        {
+            _availableBuckets.Add(availableBucket);
+        }
+
+        TransactionId = viewModel.TransactionId;
+        _accountId = viewModel.AccountId;
+        _accountName = viewModel.AccountName;
+        _transactionDate = viewModel.TransactionDate;
+        _payee = viewModel.Payee;
+        _memo = viewModel.Memo;
+        _amount = viewModel.Amount;
+        
+        // Subscribe Event Handler for Amount Changes (must be always the last step) and assignment deletion requests
+        foreach (var bucket in Buckets)
+        {
+            bucket.AmountChanged += CheckBucketAssignments;
+            bucket.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
+        }
+    }
     
     /// <summary>
     /// Initialize ViewModel used to create a new <see cref="BankTransaction"/> object
@@ -198,7 +294,11 @@ public class TransactionViewModel : ViewModelBase
     /// <returns>New ViewModel instance</returns>
     public static TransactionViewModel CreateEmpty(IServiceManager serviceManager)
     {
-        var availableAccounts = serviceManager.AccountService.GetActiveAccounts().ToList();
+        var availableAccounts = serviceManager.AccountService
+            .GetActiveAccounts()
+            .Select(i => AccountViewModel.CreateFromAccount(serviceManager, i))
+            .ToList();
+        
         var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
         var availableBuckets = serviceManager.BucketService.GetActiveBuckets(currentMonth).ToList();
         var result = new TransactionViewModel(serviceManager, availableAccounts, availableBuckets, null);
@@ -216,7 +316,7 @@ public class TransactionViewModel : ViewModelBase
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
     public static TransactionViewModel CreateFromTransaction(IServiceManager serviceManager, 
-        IEnumerable<Account> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
+        IEnumerable<AccountViewModel> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
     {
         return new TransactionViewModel(serviceManager, availableAccounts, availableBuckets, transaction);
     }
@@ -230,7 +330,7 @@ public class TransactionViewModel : ViewModelBase
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
     public static async Task<TransactionViewModel> CreateFromTransactionAsync(IServiceManager serviceManager, 
-        IEnumerable<Account> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
+        IEnumerable<AccountViewModel> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
     {
         return await Task.Run(() => CreateFromTransaction(serviceManager, availableAccounts, availableBuckets, transaction));
     }
@@ -265,6 +365,7 @@ public class TransactionViewModel : ViewModelBase
             {
                 Id = Guid.Empty,
                 AccountId = Guid.Empty,
+                Account = new Account(),
                 Amount = bucketMovement.Amount,
                 Memo = "Bucket Movement",
                 Payee = string.Empty,
@@ -272,6 +373,40 @@ public class TransactionViewModel : ViewModelBase
             };
             return new TransactionViewModel(serviceManager, null, null, transformedMovement);
         });
+    }
+    
+    #endregion
+    
+    #region Modification Handler
+    
+    internal override BankTransaction ConvertToDto()
+    {
+        return new BankTransaction()
+        {
+            Id = TransactionId,
+            AccountId = AccountId,
+            TransactionDate = TransactionDate,
+            Payee = Payee,
+            Memo = Memo,
+            Amount = Amount
+        };
+    }
+    
+    internal BankTransaction ConvertToDtoWithBuckets()
+    {
+        var result = ConvertToDto();
+        result.BudgetedTransactions = new List<BudgetedTransaction>();
+        foreach (var bucket in Buckets)
+        {
+            result.BudgetedTransactions.Add(new BudgetedTransaction()
+            {
+                TransactionId = TransactionId, 
+                BucketId = bucket.SelectedBucketId, 
+                Amount = bucket.Amount
+            });
+        }
+
+        return result;
     }
     
     /// <summary>
@@ -285,7 +420,7 @@ public class TransactionViewModel : ViewModelBase
         if (newBucketItem == null)
         {
             var availableBuckets = ServiceManager.BucketService.GetActiveBuckets(CurrentMonth).ToList();
-            newBucketItem = PartialBucketViewModel.CreateNoSelection(ServiceManager, availableBuckets);
+            newBucketItem = PartialBucketViewModel.CreateNoSelection(ServiceManager);
         }
             
         newBucketItem.AmountChanged += CheckBucketAssignments;
@@ -302,40 +437,40 @@ public class TransactionViewModel : ViewModelBase
     {
         // Check if this current event was triggered while updating the amount for the "emptyItem"
         // Prevents Deadlock and StackOverflowException 
-        if (changedArgs.Source.SelectedBucket.Id == Guid.Empty) return;
+        if (changedArgs.Source.SelectedBucketId == Guid.Empty) return;
 
         // Calculate total amount assigned to any Bucket
         var assignedAmount = Buckets
             // ignore "emptyItem" where existing Bucket is not yet assigned
             // this is the one where the amount has to be updated
-            .Where(i => i.SelectedBucket.Id != Guid.Empty)
+            .Where(i => i.SelectedBucketId != Guid.Empty)
             .Sum(i => i.Amount);
 
         // Consistency check
-        if ((Transaction.Amount < 0 && assignedAmount > 0) || 
-            (Transaction.Amount > 0 && assignedAmount < 0) ||
+        if ((Amount < 0 && assignedAmount > 0) || 
+            (Amount > 0 && assignedAmount < 0) ||
             // Check over-provisioning of amount assignment
-            (Transaction.Amount < 0 && Transaction.Amount - assignedAmount > 0) ||
-            (Transaction.Amount > 0 && Transaction.Amount - assignedAmount < 0))
+            (Amount < 0 && Amount - assignedAmount > 0) ||
+            (Amount > 0 && Amount - assignedAmount < 0))
         {
             return; // Inconsistency, better to do nothing, Error handling while saving
         }
 
         // Check if remaining amount left to be assigned to any Bucket
-        if (assignedAmount != Transaction.Amount)
+        if (assignedAmount != Amount)
         {
-            if (Buckets.Last().SelectedBucket.Id != Guid.Empty)
+            if (Buckets.Last().SelectedBucketId != Guid.Empty)
             {
                 // All items have a valid Bucket assignment, create a new "empty item"
-                AddBucketItem(Transaction.Amount - assignedAmount);
+                AddBucketItem(Amount - assignedAmount);
             }
             else
             {
                 // "emptyItem" exists, update remaining amount to be assigned
-                Buckets.Last().Amount = Transaction.Amount - assignedAmount;
+                Buckets.Last().Amount = Amount - assignedAmount;
             }
         }
-        else if (Buckets.Last().SelectedBucket.Id == Guid.Empty)
+        else if (Buckets.Last().SelectedBucketId == Guid.Empty)
         {
             // Remove unnecessary "empty item" as amount is already assigned properly
             Buckets.Remove(Buckets.Last());
@@ -357,46 +492,32 @@ public class TransactionViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Creates or updates a record in the database based on <see cref="Transaction"/> object
+    /// Creates or updates a record in the database based ViewModel data
     /// </summary>
     /// <remarks>(Re)Creates also <see cref="BudgetedTransaction"/> records for each assigned Bucket</remarks>
     /// <returns>Object which contains information and results of this method</returns>
-    private ViewModelOperationResult CreateOrUpdateTransaction()
+    public ViewModelOperationResult CreateOrUpdateTransaction()
     {
         var result = PerformConsistencyCheck(out var canSkipBucketAssignment);
         if (!result.IsSuccessful) return result;
 
         try
         {
-            if (Transaction.Id == Guid.Empty)
+            if (TransactionId == Guid.Empty)
             {
-                if (canSkipBucketAssignment)
-                    ServiceManager.BankTransactionService.Create(Transaction);
-                else
-                    ServiceManager.BankTransactionService.Create(Transaction, 
-                        Buckets
-                            .Select(i => new BudgetedTransaction
-                            {
-                                TransactionId = Transaction.Id, 
-                                BucketId = i.SelectedBucket.Id, 
-                                Amount = i.Amount
-                            }));
+                ServiceManager.BankTransactionService.Create(canSkipBucketAssignment
+                    ? ConvertToDto()
+                    : ConvertToDtoWithBuckets());
             }
             else
             {
-                if (canSkipBucketAssignment)
-                    ServiceManager.BankTransactionService.Update(Transaction);
-                else
-                    ServiceManager.BankTransactionService.Update(
-                        Transaction, 
-                        Buckets
-                            .Select(i => new BudgetedTransaction
-                            {
-                                TransactionId = Transaction.Id, 
-                                BucketId = i.SelectedBucket.Id, 
-                                Amount = i.Amount
-                            }));
+                ServiceManager.BankTransactionService.Update(canSkipBucketAssignment
+                    ? ConvertToDto()
+                    : ConvertToDtoWithBuckets());
             }
+            
+            _oldTransactionViewModelItem = null;
+            InModification = false;
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
@@ -417,15 +538,14 @@ public class TransactionViewModel : ViewModelBase
         skipBucketAssignment = false;
 
         // Consistency and Validity Checks
-        //if (Transaction == null) return new ViewModelOperationResult(false, "Errors in Transaction object.");
-        if (Transaction.Account.Id == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
+        if (AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
         if (Buckets.Count == 0) return new ViewModelOperationResult(false, "No Bucket assigned to this Transaction.");
         
         foreach (var assignedBucket in Buckets)
         {
-            if (assignedBucket.SelectedBucket.Id == Guid.Empty)
+            if (assignedBucket.SelectedBucketId == Guid.Empty)
             {
-                if (assignedBucket.SelectedBucket.Name == "No Selection")
+                if (assignedBucket.SelectedBucketName == "No Selection")
                 {
                     // Imported Transaction where Bucket assignment is pending
                     // Allow Transaction Update but Skip DB Updates for Bucket assignment
@@ -440,22 +560,22 @@ public class TransactionViewModel : ViewModelBase
             assignedAmount += assignedBucket.Amount;
         }
 
-        return assignedAmount == Transaction.Amount
+        return assignedAmount == Amount
             ? new ViewModelOperationResult(true)
             : new ViewModelOperationResult(false, "Amount between Bucket assignment and Transaction not consistent.");
 
     }
 
     /// <summary>
-    /// Removes a record in the database based on <see cref="Transaction"/> object
+    /// Removes a record in the database based on ViewModel data
     /// </summary>
     /// <remarks>Removes also all its assigned Buckets</remarks>
     /// <returns>Object which contains information and results of this method</returns>
-    private ViewModelOperationResult DeleteTransaction()
+    public ViewModelOperationResult DeleteTransaction()
     {
         try
         {
-            ServiceManager.BankTransactionService.Delete(Transaction);
+            ServiceManager.BankTransactionService.Delete(TransactionId);
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
@@ -466,59 +586,42 @@ public class TransactionViewModel : ViewModelBase
 
     public void StartModification()
     {
-        _oldTransactionViewModelItem = CreateFromTransaction(ServiceManager, AvailableAccounts, AvailableBuckets, Transaction);
+        _oldTransactionViewModelItem = new TransactionViewModel(this);
         InModification = true;
     }
 
     public void CancelModification()
     {
-        Transaction = _oldTransactionViewModelItem!.Transaction;
+        AccountId = _oldTransactionViewModelItem!.AccountId;
+        AccountName = _oldTransactionViewModelItem.AccountName;
+        TransactionDate = _oldTransactionViewModelItem.TransactionDate;
+        Payee = _oldTransactionViewModelItem.Payee;
+        Memo = _oldTransactionViewModelItem.Memo;
+        Amount = _oldTransactionViewModelItem.Amount;
         Buckets = _oldTransactionViewModelItem.Buckets;
         InModification = false;
         _oldTransactionViewModelItem = null;
     }
 
-    public ViewModelOperationResult CreateItem()
+    public void UpdateSelectedAccount(Guid accountId)
     {
-        Transaction.Id = Guid.Empty; // Triggers CREATE during CreateOrUpdateTransaction()
-        return CreateOrUpdateTransaction();
+        AccountId = accountId;
+        AccountName = AvailableAccounts.First(i => i.AccountId == accountId).Name;
     }
-
-    public ViewModelOperationResult UpdateItem()
-    {
-        if (Transaction.Id == Guid.Empty) 
-            return new ViewModelOperationResult(false, "Transaction needs to be created first in database");
-
-        var result = CreateOrUpdateTransaction();
-        if (!result.IsSuccessful)
-        {
-            return new ViewModelOperationResult(false, result.Message, true);
-        }
-        _oldTransactionViewModelItem = null;
-        InModification = false;
-
-        return new ViewModelOperationResult(true);
-    }
-
-    public ViewModelOperationResult DeleteItem()
-    {
-        var result = DeleteTransaction();
-        return result.IsSuccessful 
-            ? new ViewModelOperationResult(true, true) 
-            : result;
-    }
+    
+    #endregion
+    
+    #region Misc
 
     public void ProposeBucket()
     {
         var proposal = CheckMappingRules();
         if (proposal == null) return;
         Buckets.Clear();
-        var availableBuckets = ServiceManager.BucketService.GetActiveBuckets(CurrentMonth).ToList();
-        Buckets.Add(PartialBucketViewModel.CreateFromBucketWithAmount(
-            ServiceManager,
-            availableBuckets, 
+        Buckets.Add(PartialBucketViewModel.CreateFromBucket(
+            ServiceManager, 
             proposal, 
-            Transaction.Amount));
+            Amount));
     }
 
     private Bucket? CheckMappingRules()
@@ -548,14 +651,17 @@ public class TransactionViewModel : ViewModelBase
 
         string GetFieldValue(int comparisionField)
         {
-            return (comparisionField switch
+            var fieldValue = comparisionField switch
             {
-                1 => Transaction.Account.Name,
-                2 => Transaction.Payee ?? "",
-                3 => Transaction.Memo ?? "",
-                4 => Transaction.Amount.ToString(CultureInfo.CurrentCulture),
+                1 => AccountName,
+                2 => Payee ?? "",
+                3 => Memo ?? "",
+                4 => Amount.ToString(CultureInfo.CurrentCulture),
                 _ => string.Empty
-            }).ToLower();
+            };
+            return fieldValue!.ToLower();
         }
     }
+    
+    #endregion
 }

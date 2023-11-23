@@ -4,8 +4,8 @@ namespace OpenBudgeteer.Core.Data.Contracts.Services;
 
 public interface IBucketGroupService : IBaseService<BucketGroup>
 {
+    public BucketGroup GetWithBuckets(Guid id);
     public IEnumerable<BucketGroup> GetAllFull();
     public IEnumerable<BucketGroup> GetSystemBucketGroups();
-    public IEnumerable<Bucket> GetBuckets(Guid bucketGroupId);
     public BucketGroup Move(Guid bucketGroupId, int positions);
 }

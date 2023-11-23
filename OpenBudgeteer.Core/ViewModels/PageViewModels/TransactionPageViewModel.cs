@@ -80,12 +80,12 @@ public class TransactionPageViewModel : TransactionListingViewModel
                 case TransactionFilter.HideMapped:
                     return new ObservableCollection<TransactionViewModel>(
                         _transactions.Where(i => 
-                            i.Buckets.First().SelectedBucket.Id == Guid.Empty ||
+                            i.Buckets.First().SelectedBucketId == Guid.Empty ||
                             i.InModification));
                 case TransactionFilter.OnlyMapped:
                     return new ObservableCollection<TransactionViewModel>(
                         _transactions.Where(i => 
-                            i.Buckets.First().SelectedBucket.Id != Guid.Empty ||
+                            i.Buckets.First().SelectedBucketId != Guid.Empty ||
                             i.InModification));
                 case TransactionFilter.InModification:
                     return new ObservableCollection<TransactionViewModel>(
@@ -129,8 +129,7 @@ public class TransactionPageViewModel : TransactionListingViewModel
         try
         {
             if (NewTransaction == null) throw new Exception("New Transaction has not been initialized");
-            NewTransaction.Transaction.Id = Guid.Empty;
-            var result = NewTransaction.CreateItem();
+            var result = NewTransaction.CreateOrUpdateTransaction();
             if (!result.IsSuccessful) return result;
             ResetNewTransaction();
         
@@ -147,11 +146,9 @@ public class TransactionPageViewModel : TransactionListingViewModel
     /// </summary>
     public void ResetNewTransaction()
     {
-        var lastEnteredDate = NewTransaction == null ?
-            _yearMonthViewModel.CurrentMonth :
-            NewTransaction.Transaction.TransactionDate;
+        var lastEnteredDate = NewTransaction?.TransactionDate ?? _yearMonthViewModel.CurrentMonth;
         NewTransaction = TransactionViewModel.CreateEmpty(ServiceManager);
-        NewTransaction.Transaction.TransactionDate = lastEnteredDate;
+        NewTransaction.TransactionDate = lastEnteredDate;
     }
     
     /// <summary>
@@ -177,7 +174,7 @@ public class TransactionPageViewModel : TransactionListingViewModel
         {
             foreach (var transaction in _transactions.Where(i => i.InModification))
             {
-                var result = transaction.UpdateItem();
+                var result = transaction.CreateOrUpdateTransaction();
                 if (!result.IsSuccessful) throw new Exception(result.Message);
             }
             CurrentFilter = TransactionFilter.NoFilter;
@@ -207,7 +204,7 @@ public class TransactionPageViewModel : TransactionListingViewModel
     {
         CurrentFilter = TransactionFilter.InModification;
         var unassignedTransactions = _transactions
-            .Where(i => i.Buckets.First().SelectedBucket.Id == Guid.Empty)
+            .Where(i => i.Buckets.First().SelectedBucketId == Guid.Empty)
             .ToList();
         ProposeBucketsCount = unassignedTransactions.Count;
         ProposeBucketsProgress = 0;

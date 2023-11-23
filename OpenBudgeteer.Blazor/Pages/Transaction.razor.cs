@@ -69,8 +69,7 @@ public partial class Transaction : ComponentBase
     private void NewTransactionAccount_SelectionChanged(string? value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        _dataContext.NewTransaction!.Transaction.Account = 
-            _dataContext.NewTransaction.AvailableAccounts.First(i => i.Id == Guid.Parse(value));
+        _dataContext.NewTransaction!.UpdateSelectedAccount(Guid.Parse(value));
     }
 
     private async Task ProposeBucketsAsync()
@@ -85,12 +84,11 @@ public partial class Transaction : ComponentBase
     private void TransactionAccount_SelectionChanged(string? value, TransactionViewModel transactionViewModel)
     {
         if (string.IsNullOrEmpty(value)) return;
-        transactionViewModel.Transaction.Account = 
-            transactionViewModel.AvailableAccounts.First(i => i.Id == Guid.Parse(value));
+        transactionViewModel.UpdateSelectedAccount(Guid.Parse(value));
     }
 
     private void SplitTransaction(TransactionViewModel transaction) =>
-        transaction.AddBucketItem(transaction.Transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
+        transaction.AddBucketItem(transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
 
     private async void SaveAllTransaction()
     {
@@ -107,7 +105,7 @@ public partial class Transaction : ComponentBase
 
     private async void SaveTransaction(TransactionViewModel transaction)
     {
-        await HandleResult(transaction.UpdateItem());
+        await HandleResult(transaction.CreateOrUpdateTransaction());
     }
 
     private void Filter_SelectionChanged(string? value)
@@ -134,7 +132,7 @@ public partial class Transaction : ComponentBase
     private async void DeleteTransaction()
     {
         _isDeleteTransactionDialogVisible = false;
-        await HandleResult(_transactionToBeDeleted!.DeleteItem());
+        await HandleResult(_transactionToBeDeleted!.DeleteTransaction());
     }
 
     private async void AddRecurringTransactions()
@@ -162,9 +160,9 @@ public partial class Transaction : ComponentBase
         StateHasChanged();
     }
 
-    private void UpdateSelectedBucket(Core.Data.Entities.Models.Bucket selectedBucket)
+    private void UpdateSelectedBucket(BucketViewModel selectedBucket)
     {
-        _partialBucketViewModelToBeUpdated!.SelectedBucket = selectedBucket;
+        _partialBucketViewModelToBeUpdated!.UpdateSelectedBucket(selectedBucket);
         _isBucketSelectDialogVisible = false;
     }
 

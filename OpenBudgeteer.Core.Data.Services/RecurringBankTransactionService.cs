@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,7 +9,7 @@ namespace OpenBudgeteer.Core.Data.Services;
 internal class RecurringBankTransactionService : BaseService<RecurringBankTransaction>, IRecurringBankTransactionService
 {
     internal RecurringBankTransactionService(DbContextOptions<DatabaseContext> dbContextOptions) 
-        : base(dbContextOptions)
+        : base(dbContextOptions, new RecurringBankTransactionRepository(new DatabaseContext(dbContextOptions)))
     {
     }
 
@@ -22,7 +21,7 @@ internal class RecurringBankTransactionService : BaseService<RecurringBankTransa
             var repository = new RecurringBankTransactionRepository(dbContext);
             
             var recurringBankTransactionTasks = new List<Task<List<BankTransaction>>>();
-            var recurringBankTransactions = repository.All().ToList();
+            var recurringBankTransactions = repository.AllWithIncludedEntities().ToList();
             foreach (var recurringBankTransaction in recurringBankTransactions)
             {
                 recurringBankTransactionTasks.Add(Task.Run(() =>
@@ -82,7 +81,7 @@ internal class RecurringBankTransactionService : BaseService<RecurringBankTransa
             // Ensure Account is not assigned to prevent double creation of Accounts
             foreach (var transaction in transactions)
             {
-                transaction.Account = null;
+                transaction.Account = new Account();
             }
             
             repository.CreateRange(transactions);

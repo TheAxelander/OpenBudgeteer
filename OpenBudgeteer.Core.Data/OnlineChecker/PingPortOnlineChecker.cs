@@ -19,7 +19,7 @@ public class PingPortOnlineChecker : IDatabaseOnlineChecker
         {
             try
             {
-                var tcpClient = new TcpClient(serverIp, serverPort);
+                var tcpClient = new TcpClient(serverIp!, serverPort);
                 tcpClient.Close();
                 return true;
             }

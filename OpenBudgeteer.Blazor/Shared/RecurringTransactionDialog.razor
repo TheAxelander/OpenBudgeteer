@@ -48,12 +48,12 @@
                                 {
                                     <tr>
                                         <td>
-                                            <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.FirstOccurrenceDate" />
+                                            <input class="form-control form-control-sm number-input" type="date" @bind="transaction.FirstOccurrenceDate" />
                                         </td>
-                                        <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.RecurrenceAmount" /></td>
+                                        <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.RecurrenceAmount" /></td>
                                         <td style="width:130px">
                                             <select class="form-select form-select-sm" 
-                                                    @bind:get="transaction.SelectedRecurrenceType.Key.ToString()"
+                                                    @bind:get="transaction.RecurrenceType.ToString()"
                                                     @bind:set="(value) => { TransactionRecurrenceType_SelectionChanged(value, transaction); }">
                                                 @foreach (var recurrenceType in transaction.AvailableRecurrenceTypes)
                                                 {
@@ -63,17 +63,17 @@
                                         </td>
                                         <td>
                                             <select class="form-select form-select-sm"
-                                                    @bind:get="transaction.SelectedAccount.Id.ToString()"
+                                                    @bind:get="transaction.SelectedAccount.AccountId.ToString()"
                                                     @bind:set="(value) => { TransactionAccount_SelectionChanged(value, transaction); }">
                                                 @foreach (var account in transaction.AvailableAccounts)
                                                 {
-                                                    <option value="@account.Id">@account.Name</option>
+                                                    <option value="@account.AccountId">@account.Name</option>
                                                 }
                                             </select>
                                         </td>
-                                        <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
-                                        <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
-                                        <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.Amount" /></td>
+                                        <td><input class="form-control form-control-sm" type="text" @bind="transaction.Payee" /></td>
+                                        <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Memo"></textarea></td>
+                                        <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
                                         <td class="col-buttons">
                                             <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
                                             <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
@@ -83,13 +83,13 @@
                                 else
                                 {
                                     <tr>
-                                        <td class="col-numbers">@transaction.Transaction.FirstOccurrenceDate.ToShortDateString()</td>
-                                        <td style="width:70px">Every @transaction.Transaction.RecurrenceAmount</td>
-                                        <td style="width:130px">@transaction.SelectedRecurrenceType.Value</td>
+                                        <td class="col-numbers">@transaction.FirstOccurrenceDate.ToShortDateString()</td>
+                                        <td style="width:70px">Every @transaction.RecurrenceAmount</td>
+                                        <td style="width:130px">@transaction.RecurrenceTypeOutput</td>
                                         <td>@transaction.SelectedAccount.Name</td>
-                                        <td>@transaction.Transaction.Payee</td>
-                                        <td>@transaction.Transaction.Memo</td>
-                                        <td class="col-numbers">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
+                                        <td>@transaction.Payee</td>
+                                        <td>@transaction.Memo</td>
+                                        <td class="col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                         <td class="col-buttons">
                                             <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
                                             <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
@@ -162,21 +162,19 @@
 
     async void SaveTransaction(RecurringTransactionViewModel transaction)
     {
-        await HandleResult(
-            transaction.Transaction.Id == Guid.Empty ? 
-            transaction.CreateItem() : transaction.UpdateItem());
+        await HandleResult(transaction.CreateOrUpdateTransaction());
     }
 
     void TransactionRecurrenceType_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
     {
         if (string.IsNullOrEmpty(value)) return;
-        transaction.SelectedRecurrenceType = transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(value));
+        transaction.RecurrenceType = (RecurringTransactionViewModel.RecurringTransactionRecurrenceType)Convert.ToInt32(value);
     }
 
     void TransactionAccount_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
     {
         if (string.IsNullOrEmpty(value)) return;
-        transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.Id == Guid.Parse(value));
+        transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value));
     }
 
     void HandleTransactionDeletionRequest(RecurringTransactionViewModel transaction)

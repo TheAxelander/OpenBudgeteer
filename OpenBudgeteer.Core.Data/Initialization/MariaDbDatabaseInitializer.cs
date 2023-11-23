@@ -22,13 +22,13 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
         }
         
         var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "openbudgeteer");
-        if (!DatabaseNameRegex().IsMatch(databaseName))
+        if (!DatabaseNameRegex().IsMatch(databaseName!))
         {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
         }
 
         var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
-        if (!DatabaseNameRegex().IsMatch(userName))
+        if (!DatabaseNameRegex().IsMatch(userName!))
         {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
         }
@@ -69,7 +69,7 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
         {
             command.Connection = connection;
             // SQLi - CREATE DATABASE with params is NOT supported in MySQL/MariaDB!
-            command.CommandText = $@"CREATE DATABASE IF NOT EXISTS `{databaseName}`;";
+            command.CommandText = $"CREATE DATABASE IF NOT EXISTS `{databaseName}`;";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
@@ -79,7 +79,7 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
         {
             command.Connection = connection;
             // SQLi - GRANT with params is NOT supported in MySQL/MariaDB!
-            command.CommandText = @$"GRANT ALL PRIVILEGES ON {databaseName}.* TO '{userName}';";
+            command.CommandText = $"GRANT ALL PRIVILEGES ON {databaseName}.* TO '{userName}';";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
@@ -88,7 +88,7 @@ public partial class MariaDbDatabaseInitializer : IDatabaseInitializer
         using (var command = new MySqlCommand())
         {
             command.Connection = connection;
-            command.CommandText = @$"FLUSH PRIVILEGES;";
+            command.CommandText = "FLUSH PRIVILEGES;";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();

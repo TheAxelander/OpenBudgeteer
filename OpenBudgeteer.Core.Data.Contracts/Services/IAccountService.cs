@@ -5,5 +5,5 @@ namespace OpenBudgeteer.Core.Data.Contracts.Services;
 public interface IAccountService : IBaseService<Account>
 {
     public IEnumerable<Account> GetActiveAccounts();
-    public Account CloseAccount(Account account);
+    public Account CloseAccount(Guid id);
 }

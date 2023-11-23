@@ -39,12 +39,15 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
         {
             _transactions.Clear();
 
-            var availableAccount = ServiceManager.AccountService.GetActiveAccounts().ToList();
+            var availableAccounts = ServiceManager.AccountService
+                .GetActiveAccounts()
+                .Select(i => AccountViewModel.CreateFromAccount(ServiceManager, i))
+                .ToList();
 
             var transactionTasks = ServiceManager.RecurringBankTransactionService
                 .GetAll()
                 .Select(transaction => RecurringTransactionViewModel
-                    .CreateFromRecurringTransactionAsync(ServiceManager, availableAccount, transaction))
+                    .CreateFromRecurringTransactionAsync(ServiceManager, availableAccounts, transaction))
                 .ToList();
 
             foreach (var transaction in await Task.WhenAll(transactionTasks))
@@ -91,7 +94,7 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
         {
             foreach (var transaction in _transactions.Where(i => i.InModification))
             {
-                var result = transaction.UpdateItem();
+                var result = transaction.CreateOrUpdateTransaction();
                 if (!result.IsSuccessful) throw new Exception(result.Message);
             }
             return new ViewModelOperationResult(true);

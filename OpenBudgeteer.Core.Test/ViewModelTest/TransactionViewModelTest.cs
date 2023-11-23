@@ -339,7 +339,7 @@ public class TransactionPageViewModelTest : BaseTest
                 Assert.Equal(monthData.Dates.Count(), viewModel.Transactions.Count);
                 foreach (var item in monthData.Dates)
                 {
-                    Assert.Contains(item, viewModel.Transactions.Select(i => i.Transaction.TransactionDate));
+                    Assert.Contains(item, viewModel.Transactions.Select(i => i.TransactionDate));
                 }
             }
         }

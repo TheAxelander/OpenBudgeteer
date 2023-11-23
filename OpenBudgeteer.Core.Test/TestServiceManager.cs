@@ -94,23 +94,31 @@ public class TestServiceManager : IServiceManager
     public void CleanupDatabase()
     {
         using var dbContext = new DatabaseContext(_dbContextOptions);
-        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(new AccountRepository(dbContext));
+        
+        // Independent objects
+        DeleteAllExtension<IImportProfileRepository, ImportProfile>.DeleteAll(new ImportProfileRepository(dbContext));
         dbContext.SaveChanges();
-        DeleteAllExtension<IBankTransactionRepository, BankTransaction>.DeleteAll(new BankTransactionRepository(dbContext));
-        dbContext.SaveChanges();
-        DeleteAllExtension<IBucketRepository, Bucket>.DeleteAll(new BucketRepository(dbContext));
-        dbContext.SaveChanges();
-        DeleteAllExtension<IBucketGroupRepository, BucketGroup>.DeleteAll(new BucketGroupRepository(dbContext));
-        dbContext.SaveChanges();
-        DeleteAllExtension<IBucketMovementRepository, BucketMovement>.DeleteAll(new BucketMovementRepository(dbContext));
+        DeleteAllExtension<IRecurringBankTransactionRepository, RecurringBankTransaction>.DeleteAll(new RecurringBankTransactionRepository(dbContext));
         dbContext.SaveChanges();
         DeleteAllExtension<IBucketRuleSetRepository, BucketRuleSet>.DeleteAll(new BucketRuleSetRepository(dbContext));
         dbContext.SaveChanges();
         DeleteAllExtension<IBudgetedTransactionRepository, BudgetedTransaction>.DeleteAll(new BudgetedTransactionRepository(dbContext));
         dbContext.SaveChanges();
-        DeleteAllExtension<IImportProfileRepository, ImportProfile>.DeleteAll(new ImportProfileRepository(dbContext));
+        DeleteAllExtension<IBucketMovementRepository, BucketMovement>.DeleteAll(new BucketMovementRepository(dbContext));
         dbContext.SaveChanges();
-        DeleteAllExtension<IRecurringBankTransactionRepository, RecurringBankTransaction>.DeleteAll(new RecurringBankTransactionRepository(dbContext));
+        DeleteAllExtension<IBankTransactionRepository, BankTransaction>.DeleteAll(new BankTransactionRepository(dbContext));
+        dbContext.SaveChanges();
+        
+        // Depends on BudgetedTransaction & BucketMovement
+        DeleteAllExtension<IBucketRepository, Bucket>.DeleteAll(new BucketRepository(dbContext));
+        dbContext.SaveChanges();
+        
+        // Depends on Bucket
+        DeleteAllExtension<IBucketGroupRepository, BucketGroup>.DeleteAll(new BucketGroupRepository(dbContext));
+        dbContext.SaveChanges();
+        
+        // Depends on BankTransaction
+        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(new AccountRepository(dbContext));
         dbContext.SaveChanges();
     }
 }

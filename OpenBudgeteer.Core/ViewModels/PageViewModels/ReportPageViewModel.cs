@@ -180,7 +180,6 @@ public abstract class ReportPageViewModel : ViewModelBase
             for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
             {
                 var month = currentMonth.AddMonths(monthIndex * -1);
-                //TODO Test if still works and consider rewrite for optimized query
                 var lastDayOfMonth = month.AddMonths(1).AddDays(-1);
                 var bankTransactions = ServiceManager.BankTransactionService
                     .GetAll(DateTime.MinValue, lastDayOfMonth)
@@ -214,8 +213,10 @@ public abstract class ReportPageViewModel : ViewModelBase
                              i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
                              i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002")))
             {
-                // Get latest BucketVersion based on passed parameter
-                var latestVersion = ServiceManager.BucketService.GetLatestVersion(bucket.Id);
+                // Check on right Bucket Type
+                var latestVersion = bucket.BucketVersions
+                    .OrderByDescending(i => i.Version)
+                    .First();
                 if (latestVersion.BucketType != 2) continue;
                 
                 // Get Transactions for the current Bucket and the last x months
@@ -254,7 +255,7 @@ public abstract class ReportPageViewModel : ViewModelBase
                         queryResult.Balance));
                     reportInsertMonth = reportInsertMonth.AddMonths(1);
                 }
-                result.Add(new MonthlyBucketExpensesReportResult(bucket.Name, monthlyResults));
+                result.Add(new MonthlyBucketExpensesReportResult(bucket.Name ?? string.Empty, monthlyResults));
             }
 
             return result;

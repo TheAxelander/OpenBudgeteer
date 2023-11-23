@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,7 +9,7 @@ namespace OpenBudgeteer.Core.Data.Services;
 internal class BucketMovementService : BaseService<BucketMovement>, IBucketMovementService
 {
     internal BucketMovementService(DbContextOptions<DatabaseContext> dbContextOptions) 
-        : base(dbContextOptions)
+        : base(dbContextOptions, new BucketMovementRepository(new DatabaseContext(dbContextOptions)))
     {
     }
     
@@ -21,6 +20,7 @@ internal class BucketMovementService : BaseService<BucketMovement>, IBucketMovem
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketMovementRepository(dbContext);
             return repository
+                .All()
                 .Where(i =>
                     i.MovementDate >= periodStart &&
                     i.MovementDate <= periodEnd)
@@ -45,6 +45,7 @@ internal class BucketMovementService : BaseService<BucketMovement>, IBucketMovem
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketMovementRepository(dbContext);
             return repository
+                .All()
                 .Where(i =>
                     i.MovementDate >= periodStart &&
                     i.MovementDate <= periodEnd &&

@@ -56,21 +56,21 @@
         <tbody>
             <tr>
                 <td>
-                    <input class="form-control form-control-sm number-input" type="date" @bind="_dataContext.NewTransaction!.Transaction.TransactionDate" />
+                    <input class="form-control form-control-sm number-input" type="date" @bind="_dataContext.NewTransaction!.TransactionDate" />
                 </td>
                 <td>
                     <select class="form-select form-select-sm"
-                            @bind:get="_dataContext.NewTransaction.Transaction.Account!.Id.ToString()"
+                            @bind:get="_dataContext.NewTransaction.AccountId.ToString()"
                             @bind:set="NewTransactionAccount_SelectionChanged">
                         @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
                         {
-                            <option value="@account.Id">@account.Name</option>
+                            <option value="@account.AccountId">@account.Name</option>
                         }
                     </select>
                 </td>
-                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Transaction.Payee" /></td>
-                <td><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Transaction.Memo"></textarea></td>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewTransaction.Transaction.Amount" /></td>
+                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Payee" /></td>
+                <td><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Memo"></textarea></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewTransaction.Amount" /></td>
                 <td>
                     <table class="table" style="margin-bottom: auto">
                         <tbody>
@@ -78,8 +78,8 @@
                             {
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
-                                            @bucket.SelectedBucket.Name
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
+                                            @bucket.SelectedBucketName
                                         </button>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
@@ -126,21 +126,21 @@
         {
             <tr>
                 <td>
-                    <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.TransactionDate" />
+                    <input class="form-control form-control-sm number-input" type="date" @bind="transaction.TransactionDate" />
                 </td>
                 <td>
                     <select class="form-select form-select-sm"
-                            @bind:get="transaction.Transaction.Account!.Id.ToString()"
+                            @bind:get="transaction.AccountId.ToString()"
                             @bind:set="(value) => { TransactionAccount_SelectionChanged(value, transaction); }">
                         @foreach (var account in transaction.AvailableAccounts)
                         {
-                            <option value="@account.Id">@account.Name</option>
+                            <option value="@account.AccountId">@account.Name</option>
                         }
                     </select>
                 </td>
-                <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
-                <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.Amount" /></td>
+                <td><input class="form-control form-control-sm" type="text" @bind="transaction.Payee" /></td>
+                <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Memo"></textarea></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
                 <td>
                     <table class="table table-borderless" style="margin-bottom: auto;">
                         <tbody>
@@ -148,8 +148,8 @@
                             {
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
-                                            @bucket.SelectedBucket.Name
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
+                                            @bucket.SelectedBucketName
                                         </button>
                                     </td>
                                     <td style="width: 90px"><input class="form-control form-control-sm number-input" type="number" @bind="bucket.Amount" /></td>
@@ -177,16 +177,16 @@
         else
         {
             <tr>
-                <td class="col-numbers">@transaction.Transaction.TransactionDate.ToShortDateString()</td>
-                <td>@transaction.Transaction.Account!.Name</td>
-                <td>@transaction.Transaction.Payee</td>
-                <td>@transaction.Transaction.Memo</td>
-                <td class="col-numbers">@transaction.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
+                <td class="col-numbers">@transaction.TransactionDate.ToShortDateString()</td>
+                <td>@transaction.AccountName</td>
+                <td>@transaction.Payee</td>
+                <td>@transaction.Memo</td>
+                <td class="col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                 <td style="vertical-align: middle">
                     @foreach (var bucket in transaction.Buckets)
                     {
-                        <div class="row bucket-indicator" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucket.Color)">
-                            <div class="col">@bucket.SelectedBucket.Name</div>
+                        <div class="row bucket-indicator" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)">
+                            <div class="col">@bucket.SelectedBucketName</div>
                             <div class="col-md-auto col-numbers">@bucket.Amount.ToString("C", CultureInfo.CurrentCulture)</div>
                         </div>
                     }

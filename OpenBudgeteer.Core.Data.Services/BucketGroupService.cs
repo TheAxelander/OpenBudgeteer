@@ -10,10 +10,28 @@ namespace OpenBudgeteer.Core.Data.Services;
 internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupService
 {
     internal BucketGroupService(DbContextOptions<DatabaseContext> dbContextOptions) 
-        : base(dbContextOptions)
+        : base(dbContextOptions, new BucketGroupRepository(new DatabaseContext(dbContextOptions)))
     {
     }
-    
+
+    public BucketGroup GetWithBuckets(Guid id)
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(DbContextOptions);
+            var repository = new BucketGroupRepository(dbContext);
+        
+            var result = repository.ByIdWithIncludedEntities(id);
+            if (result == null) throw new Exception($"{typeof(BucketGroup)} not found in database");
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
+
     public override IEnumerable<BucketGroup> GetAll()
     {
         try
@@ -21,6 +39,7 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketGroupRepository(dbContext);
             return repository
+                .AllWithIncludedEntities()
                 .Where(i => i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001"))
                 .OrderBy(i => i.Position)
                 .ToList();
@@ -38,7 +57,8 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketGroupRepository(dbContext);
-            return repository.All()
+            return repository
+                .AllWithIncludedEntities()
                 .OrderBy(i => i.Position)
                 .ToList();
         }
@@ -55,27 +75,9 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketGroupRepository(dbContext);
-            return repository
+            return repository.AllWithIncludedEntities()
                 .Where(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001"))
                 .OrderBy(i => i.Position) //In case in future there are multiple groups
-                .ToList();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
-        }
-    }
-
-    public IEnumerable<Bucket> GetBuckets(Guid bucketGroupId)
-    {
-        try
-        {
-            using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BucketRepository(dbContext);
-            return repository
-                .Where(i => i.BucketGroupId == bucketGroupId)
-                .OrderBy(i => i.Name)
                 .ToList();
         }
         catch (Exception e)
@@ -134,29 +136,29 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
         return base.Update(entity);
     }
 
-    public override BucketGroup Delete(BucketGroup entity)
+    public override void Delete(Guid id)
     {
         using var dbContext = new DatabaseContext(DbContextOptions);
         using var transaction = dbContext.Database.BeginTransaction();
         try
         {
-            var bucketRepository = new BucketRepository(dbContext);
             var bucketGroupRepository = new BucketGroupRepository(dbContext);
-            
-            if (bucketRepository.All().Any(i => i.BucketGroupId == entity.Id))
-                throw new Exception("Groups with Buckets cannot be deleted");
 
-            bucketGroupRepository.Delete(entity);
+            var entity = bucketGroupRepository.ByIdWithIncludedEntities(id);
+            if (entity == null) throw new Exception("BucketGroup not found");
+            if (entity.Buckets.Any()) throw new Exception("BucketGroup with Buckets cannot be deleted");
+
+            var oldPosition = entity.Position;
+            bucketGroupRepository.Delete(id);
             
             // Update Positions of other Bucket Groups
-            foreach (var bucketGroup in GetAll().Where(i => i.Position > entity.Position)) 
+            foreach (var bucketGroup in GetAll().Where(i => i.Position > oldPosition))
             {
                 bucketGroup.Position--;
                 bucketGroupRepository.Update(bucketGroup);
             }
             
             transaction.Commit();
-            return entity;
         }
         catch (Exception e)
         {

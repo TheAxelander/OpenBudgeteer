@@ -57,11 +57,10 @@ public class BucketListingViewModel : ViewModelBase
             {
                 var newBucketGroup = BucketGroupViewModel.CreateFromBucketGroup(ServiceManager, bucketGroup, YearMonthViewModel.CurrentMonth);
                 newBucketGroup.IsCollapsed = DefaultCollapseState;
-                var buckets = ServiceManager.BucketGroupService.GetBuckets(bucketGroup.Id);
 
                 var bucketItemTasks = new List<Task<BucketViewModel>>();
                 
-                foreach (var bucket in buckets)
+                foreach (var bucket in bucketGroup.Buckets.OrderBy(i => i.Name))
                 {
                     if (excludeInactive && bucket.IsInactive) continue; // Skip as inactive Buckets should be excluded
                     if (bucket.ValidFrom > YearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month

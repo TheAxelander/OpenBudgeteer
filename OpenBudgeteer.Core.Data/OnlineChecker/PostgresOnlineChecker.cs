@@ -13,22 +13,22 @@ public partial class PostgresOnlineChecker : IDatabaseOnlineChecker
     public bool IsDbOnline(IConfiguration configuration)
     {
         var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "postgres");
-        if (!DatabaseNameRegex().IsMatch(databaseName))
+        if (!DatabaseNameRegex().IsMatch(databaseName!))
         {
-            throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
+            throw new InvalidOperationException("Provided database name is not valid");
         }
 
         var userName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_USER, databaseName);
-        if (!DatabaseNameRegex().IsMatch(userName))
+        if (!DatabaseNameRegex().IsMatch(userName!))
         {
-            throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
+            throw new InvalidOperationException("Provided user name is not valid");
         }
         
-        var password = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, null);
+        var password = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, string.Empty);
         if (string.IsNullOrWhiteSpace(password))
         {
             // Database should be there...
-            password = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PASSWORD, null);
+            password = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_PASSWORD, string.Empty);
         }
         else
         {

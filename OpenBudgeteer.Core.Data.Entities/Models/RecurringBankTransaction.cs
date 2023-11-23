@@ -12,7 +12,7 @@ public class RecurringBankTransaction: IEntity
     [Required]
     public Guid AccountId { get; set; }
 
-    public Account? Account { get; set; }
+    public Account Account { get; set; } = null!;
 
     [Required]
     public int RecurrenceType { get; set; }
@@ -68,7 +68,7 @@ public class RecurringBankTransaction: IEntity
             AccountId = AccountId,
             Account = new Account()
             {
-                Id = Account.Id,
+                Id = Account!.Id,
                 Name = Account.Name,
                 IsActive = Account.IsActive
             },

@@ -13,6 +13,7 @@ using System.Drawing;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.Helper;
 
 namespace OpenBudgeteer.Blazor.ViewModels
@@ -107,7 +108,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
         };
 
         public BlazorBucketStatisticsViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel,
-            Bucket bucket) : base(serviceManager, yearMonthViewModel, bucket)
+            Guid bucketId) : base(serviceManager, yearMonthViewModel, bucketId)
         {
             _monthBalancesConfig = DefaultBarConfig;
             _bucketProgressionConfig = DefaultTimeLineConfig;

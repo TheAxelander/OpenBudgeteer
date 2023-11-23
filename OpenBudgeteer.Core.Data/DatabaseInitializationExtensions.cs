@@ -13,8 +13,11 @@ public static class DatabaseInitializationExtensions
 {
     public static void AddDatabase(this IServiceCollection services, IConfiguration configuration)
     {
-        var provider = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PROVIDER).Trim().ToUpper();
-        var rootPasswordEmpty = string.IsNullOrWhiteSpace(configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, null));
+        var provider = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_PROVIDER);
+        if (string.IsNullOrEmpty(provider)) throw new Exception("Database provider not defined.");
+        
+        provider = provider.Trim().ToUpper();
+        var rootPasswordEmpty = string.IsNullOrWhiteSpace(configuration.GetValue(ConfigurationKeyConstants.CONNECTION_ROOT_PASSWORD, string.Empty));
         IDatabaseInitializer initializer = provider switch
         {
             _ when rootPasswordEmpty => new NoOpDatabaseInitializer(), // Short circuit when user did not provide root password.

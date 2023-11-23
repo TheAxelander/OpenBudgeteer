@@ -66,7 +66,7 @@ public partial class Bucket : ComponentBase
     private async void SaveAndCloseNewBucketGroupDialog()
     {
         _isNewBucketGroupModalDialogVisible = false;
-        await HandleResult(_dataContext.CreateGroup());
+        await HandleResult(_dataContext.NewBucketGroup!.CreateGroup());
     }
 
     private void CancelNewBucketGroupDialog()
@@ -153,7 +153,7 @@ public partial class Bucket : ComponentBase
         _isBucketDetailsModalDialogVisible = true;
         _isBucketDetailsModalDialogDataContextLoading = true;
 
-        _bucketDetailsModalDialogDataContext = new BlazorBucketStatisticsViewModel(ServiceManager, YearMonthDataContext, bucket.Bucket);
+        _bucketDetailsModalDialogDataContext = new BlazorBucketStatisticsViewModel(ServiceManager, YearMonthDataContext, bucket.BucketId);
         await _bucketDetailsModalDialogDataContext.LoadDataAsync(true);
 
         _isBucketDetailsModalDialogDataContextLoading = false;

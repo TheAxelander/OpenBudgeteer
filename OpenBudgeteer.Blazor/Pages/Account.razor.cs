@@ -48,7 +48,7 @@ public partial class Account : ComponentBase
     private void SaveChanges(AccountViewModel account)
     {
         _isEditAccountModalDialogVisible = false;
-        HandleResult(account.CreateUpdateAccount());
+        HandleResult(account.CreateOrUpdateAccount());
     }
 
     private void CancelChanges()
@@ -82,7 +82,7 @@ public partial class Account : ComponentBase
         _isTransactionModalDialogDataContextLoading = true;
 
         _transactionModalDialogDataContext = new TransactionListingViewModel(ServiceManager);
-        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(account.Account));
+        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(account.AccountId));
 
         _isTransactionModalDialogDataContextLoading = false;
         StateHasChanged();

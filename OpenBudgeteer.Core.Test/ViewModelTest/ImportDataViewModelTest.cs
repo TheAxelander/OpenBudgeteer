@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.PageViewModels;
 using Xunit;
 
@@ -12,6 +13,7 @@ namespace OpenBudgeteer.Core.Test.ViewModelTest;
 public class ImportPageViewModelTest : BaseTest
 {
     private readonly Account _testAccount;
+    private AccountViewModel TestAccountViewModel => AccountViewModel.CreateFromAccount(ServiceManager, _testAccount);
 
     public ImportPageViewModelTest() : base(nameof(ImportPageViewModelTest))
     {
@@ -60,21 +62,24 @@ public class ImportPageViewModelTest : BaseTest
             var inactiveTestAccount = new Account() { Name = "Inactive Test Account", IsActive = 0 };
             ServiceManager.AccountService.Create(inactiveTestAccount);
 
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
             viewModel.LoadData();
             var loadedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
+                i => i.ImportProfileId == importProfile.Id);
 
-            Assert.Single(viewModel.AvailableAccounts);
-            Assert.Equal(_testAccount.Name, viewModel.AvailableAccounts.First().Name);
-            Assert.Equal(_testAccount.IsActive, viewModel.AvailableAccounts.First().IsActive);
+            var activeAccountViewModel =
+                viewModel.AvailableAccounts.Single(i => i.AccountId == TestAccountViewModel.AccountId);
+            Assert.Equal(2, viewModel.AvailableAccounts.Count); // Dummy + 1 Single active account
+            Assert.Contains(activeAccountViewModel, viewModel.AvailableAccounts);
+            Assert.Equal(TestAccountViewModel.Name, activeAccountViewModel.Name);
+            Assert.Equal(TestAccountViewModel.IsActive, activeAccountViewModel.IsActive);
 
-            Assert.Single(viewModel.AvailableImportProfiles);
+            Assert.Equal(2, viewModel.AvailableImportProfiles.Count); // Dummy + 1 Single Import Profile
             Assert.Equal(importProfile.ProfileName, loadedImportProfile.ProfileName);
-            Assert.Equal(importProfile.AccountId, loadedImportProfile.AccountId);
+            Assert.Equal(importProfile.AccountId, loadedImportProfile.Account.AccountId);
             Assert.Equal(importProfile.TransactionDateColumnName, loadedImportProfile.TransactionDateColumnName);
             Assert.Equal(importProfile.PayeeColumnName, loadedImportProfile.PayeeColumnName);
             Assert.Equal(importProfile.MemoColumnName, loadedImportProfile.MemoColumnName);
@@ -117,7 +122,7 @@ public class ImportPageViewModelTest : BaseTest
                         HeaderRow = 11
                     },
                     "./Resources/TestImportFile1.txt",
-                    new List<string> {"Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
+                    new List<string> {"Dummy Column", "Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
                 }
             };
         }
@@ -132,7 +137,7 @@ public class ImportPageViewModelTest : BaseTest
     {
         try
         {
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
@@ -140,13 +145,13 @@ public class ImportPageViewModelTest : BaseTest
             
             await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
             viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
-            viewModel.InitializeDataFromImportProfile();
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
 
-            Assert.Equal(_testAccount.Id, viewModel.SelectedAccount.Id);
+            Assert.Equal(TestAccountViewModel.AccountId, viewModel.SelectedImportProfile.Account.AccountId);
 
-            Assert.Equal(7, viewModel.IdentifiedColumns.Count);
-            for (int i = 0; i < viewModel.IdentifiedColumns.Count; i++)
+            Assert.Equal(8, viewModel.IdentifiedColumns.Count); // Dummy + 7 Identified columns
+            for (int i = 1; i < viewModel.IdentifiedColumns.Count; i++)
             {
                 Assert.Equal(fileHeaders[i], viewModel.IdentifiedColumns[i]);
             }
@@ -195,7 +200,7 @@ public class ImportPageViewModelTest : BaseTest
     {
         try
         {
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
@@ -203,8 +208,8 @@ public class ImportPageViewModelTest : BaseTest
 
             await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
             viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
-            viewModel.InitializeDataFromImportProfile();
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
             await viewModel.ValidateDataAsync();
 
             Assert.Equal(4, viewModel.TotalRecords);
@@ -288,7 +293,7 @@ public class ImportPageViewModelTest : BaseTest
     {
         try
         {
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
@@ -296,8 +301,8 @@ public class ImportPageViewModelTest : BaseTest
 
             await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
             viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
-            viewModel.InitializeDataFromImportProfile();
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
             await viewModel.ValidateDataAsync();
 
             Assert.Equal(4, viewModel.TotalRecords);
@@ -381,7 +386,7 @@ public class ImportPageViewModelTest : BaseTest
     {
         try
         {
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
@@ -389,8 +394,8 @@ public class ImportPageViewModelTest : BaseTest
 
             await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
             viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
-            viewModel.InitializeDataFromImportProfile();
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
             await viewModel.ValidateDataAsync();
 
             Assert.Equal(4, viewModel.TotalRecords);
@@ -460,7 +465,7 @@ public class ImportPageViewModelTest : BaseTest
     {
         try
         {
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
@@ -468,8 +473,8 @@ public class ImportPageViewModelTest : BaseTest
 
             await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath1));
             viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
-            viewModel.InitializeDataFromImportProfile();
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
             await viewModel.ValidateDataAsync();
             
             Assert.Equal(4, viewModel.TotalRecords);
@@ -552,7 +557,7 @@ public class ImportPageViewModelTest : BaseTest
     {
         try
         {
-            importProfile.AccountId = _testAccount.Id;
+            importProfile.AccountId = TestAccountViewModel.AccountId;
             ServiceManager.ImportProfileService.Create(importProfile);
 
             var viewModel = new ImportPageViewModel(ServiceManager);
@@ -560,8 +565,8 @@ public class ImportPageViewModelTest : BaseTest
 
             await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
             viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                i => i.Id == importProfile.Id);
-            viewModel.InitializeDataFromImportProfile();
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
             await viewModel.ValidateDataAsync();
 
             Assert.Equal(4, viewModel.TotalRecords);

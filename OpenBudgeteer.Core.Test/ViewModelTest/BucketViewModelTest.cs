@@ -33,20 +33,20 @@ public class BucketPageViewModelTest : BaseTest
     [MemberData(nameof(TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets))]
     public async Task LoadDataAsync_CheckBucketGroupAssignedBuckets(List<string> bucketNames)
     {
-        var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
+        var testBucketGroup = new BucketGroup { Name = "Bucket Group", Position = 1 };
         ServiceManager.BucketGroupService.Create(testBucketGroup);
 
         foreach (var bucketName in bucketNames)
         {
-            var newBucket = new Bucket()
+            var newBucket = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id,
                 Name = bucketName,
                 ColorCode = "Red",
-                ValidFrom = new DateTime(2010, 1, 1)
+                ValidFrom = new DateTime(2010, 1, 1),
+                BucketVersions = new List<BucketVersion> { new() { BucketType = 1, Version = 1 } }
             };
-            var newBucketVersion = new BucketVersion() { BucketType = 1, Version = 1 };
-            ServiceManager.BucketService.Create(newBucket, newBucketVersion, newBucket.ValidFrom);
+            ServiceManager.BucketService.Create(newBucket);
         }
             
         var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager);
@@ -54,13 +54,13 @@ public class BucketPageViewModelTest : BaseTest
         await viewModel.LoadDataAsync();
             
         var testObject = viewModel.BucketGroups
-            .FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+            .FirstOrDefault(i => i.BucketGroupId == testBucketGroup.Id);
             
         Assert.NotNull(testObject);
         Assert.Equal(bucketNames.Count, testObject.Buckets.Count);
         foreach (var bucketName in bucketNames)
         {
-            Assert.Contains(testObject.Buckets, i => i.Bucket.Name == bucketName);
+            Assert.Contains(testObject.Buckets, i => i.Name == bucketName);
         }
     }
 
@@ -79,27 +79,27 @@ public class BucketPageViewModelTest : BaseTest
     [MemberData(nameof(TestData_LoadDataAsync_CheckBucketSorting))]
     public async Task LoadDataAsync_CheckBucketSorting(List<string> bucketNamesUnsorted, List<string> expectedBucketNamesSorted)
     {
-        var testBucketGroup = new BucketGroup() { Name = "Bucket Group", Position = 1 };
+        var testBucketGroup = new BucketGroup { Name = "Bucket Group", Position = 1 };
         ServiceManager.BucketGroupService.Create(testBucketGroup);
 
         foreach (var bucketName in bucketNamesUnsorted)
         {
-            var newBucket = new Bucket()
+            var newBucket = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id,
                 Name = bucketName,
                 ColorCode = "Red",
-                ValidFrom = new DateTime(2010, 1, 1)
+                ValidFrom = new DateTime(2010, 1, 1),
+                BucketVersions = new List<BucketVersion> { new() { BucketType = 1, Version = 1 } }
             };
-            var newBucketVersion = new BucketVersion() { BucketType = 1, Version = 1 };
-            ServiceManager.BucketService.Create(newBucket, newBucketVersion, newBucket.ValidFrom);
+            ServiceManager.BucketService.Create(newBucket);
         }
         
         var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager);
         var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
         await viewModel.LoadDataAsync();
 
-        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroupId == testBucketGroup.Id);
         Assert.NotNull(bucketGroup);
         Assert.Equal(bucketNamesUnsorted.Count, bucketGroup.Buckets.Count);
 
@@ -107,7 +107,7 @@ public class BucketPageViewModelTest : BaseTest
         {
             Assert.Equal(
                 expectedBucketNamesSorted.ElementAt(i),
-                bucketGroup.Buckets.ElementAt(i).Bucket.Name);
+                bucketGroup.Buckets.ElementAt(i).Name);
         }
     }
 
@@ -147,29 +147,31 @@ public class BucketPageViewModelTest : BaseTest
         bool expectedBucketAvailable
         )
     {
-        var testAccount = new Account() {IsActive = 1, Name = "Account"};
-        var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+        var testAccount = new Account {IsActive = 1, Name = "Account"};
+        var testBucketGroup = new BucketGroup {Name = "Bucket Group", Position = 1};
 
         ServiceManager.AccountService.Create(testAccount);
         ServiceManager.BucketGroupService.Create(testBucketGroup);
 
-        var testBucket = new Bucket()
+        var testBucket = new Bucket
         {
             BucketGroupId = testBucketGroup.Id,
             Name = "Bucket",
             ValidFrom = bucketActiveSince,
             IsInactive = bucketIsInactive,
             IsInactiveFrom = bucketIsInActiveFrom,
-        };
-        var testBucketVersion = new BucketVersion()
-        {
-            BucketId = testBucket.Id,
-            Version = 1,
-            BucketType = 1,
-            ValidFrom = bucketActiveSince
+            BucketVersions = new List<BucketVersion>
+            {
+                new()
+                {
+                    Version = 1,
+                    BucketType = 1,
+                    ValidFrom = bucketActiveSince
+                }
+            }
         };
 
-        ServiceManager.BucketService.Create(testBucket, testBucketVersion, bucketActiveSince);
+        ServiceManager.BucketService.Create(testBucket);
             
         var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager)
         {
@@ -179,7 +181,7 @@ public class BucketPageViewModelTest : BaseTest
         var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
         await viewModel.LoadDataAsync();
         
-        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroupId == testBucketGroup.Id);
         Assert.NotNull(bucketGroup);
         
         Assert.Equal(expectedBucketAvailable, bucketGroup.Buckets.Any());
@@ -190,40 +192,37 @@ public class BucketPageViewModelTest : BaseTest
     {
         try
         {
-            var testAccount = new Account() {IsActive = 1, Name = "Account"};
-            var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+            var testAccount = new Account {IsActive = 1, Name = "Account"};
+            var testBucketGroup = new BucketGroup {Name = "Bucket Group", Position = 1};
 
             ServiceManager.AccountService.Create(testAccount);
             ServiceManager.BucketGroupService.Create(testBucketGroup);
             
-            var testBucket1 = new Bucket()
+            var testBucket1 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket Active Current Month",
-                ValidFrom = new DateTime(2010, 1, 1)
+                ValidFrom = new DateTime(2010, 1, 1),
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
-            var testBucket2 = new Bucket()
+            var testBucket2 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket Active Past",
-                ValidFrom = new DateTime(2009, 1, 1)
+                ValidFrom = new DateTime(2009, 1, 1),
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
-            var testBucket3 = new Bucket()
+            var testBucket3 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket Active Future",
-                ValidFrom = new DateTime(2010, 2, 1)
+                ValidFrom = new DateTime(2010, 2, 1),
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
-            var testBucketVersion1 = new BucketVersion()
-                { Version = 1, BucketType = 1 };
-            var testBucketVersion2 = new BucketVersion()
-                { Version = 1, BucketType = 1 };
-            var testBucketVersion3 = new BucketVersion()
-                { Version = 1, BucketType = 1 };
 
-            ServiceManager.BucketService.Create(testBucket1, testBucketVersion1, testBucket1.ValidFrom);
-            ServiceManager.BucketService.Create(testBucket2, testBucketVersion2, testBucket2.ValidFrom);
-            ServiceManager.BucketService.Create(testBucket3, testBucketVersion3, testBucket3.ValidFrom);
+            ServiceManager.BucketService.Create(testBucket1);
+            ServiceManager.BucketService.Create(testBucket2);
+            ServiceManager.BucketService.Create(testBucket3);
 
             var monthSelectorViewModel = new YearMonthSelectorViewModel(ServiceManager)
             {
@@ -233,13 +232,13 @@ public class BucketPageViewModelTest : BaseTest
             var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
             await viewModel.LoadDataAsync();
         
-            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroupId == testBucketGroup.Id);
             Assert.NotNull(bucketGroup);
             
             Assert.Equal(2, bucketGroup.Buckets.Count);
-            Assert.Contains(bucketGroup.Buckets, i => i.Bucket.Id == testBucket1.Id);
-            Assert.Contains(bucketGroup.Buckets, i => i.Bucket.Id == testBucket2.Id);
-            Assert.DoesNotContain(bucketGroup.Buckets, i => i.Bucket.Id == testBucket3.Id);
+            Assert.Contains(bucketGroup.Buckets, i => i.BucketId == testBucket1.Id);
+            Assert.Contains(bucketGroup.Buckets, i => i.BucketId == testBucket2.Id);
+            Assert.DoesNotContain(bucketGroup.Buckets, i => i.BucketId == testBucket3.Id);
         }
         finally
         {
@@ -252,29 +251,29 @@ public class BucketPageViewModelTest : BaseTest
     {
         try
         {
-            var testAccount = new Account() {IsActive = 1, Name = "Account"};
-            var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+            var testAccount = new Account {IsActive = 1, Name = "Account"};
+            var testBucketGroup = new BucketGroup {Name = "Bucket Group", Position = 1};
 
             ServiceManager.AccountService.Create(testAccount);
             ServiceManager.BucketGroupService.Create(testBucketGroup);
 
-            var testBucket1 = new Bucket()
+            var testBucket1 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket 1", 
-                ValidFrom = new DateTime(2010, 1, 1)
+                ValidFrom = new DateTime(2010, 1, 1),
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
-            var testBucket2 = new Bucket()
+            var testBucket2 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket 2", 
-                ValidFrom = new DateTime(2010, 1, 1)
+                ValidFrom = new DateTime(2010, 1, 1),
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
-            var testBucketVersion1 = new BucketVersion() { Version = 1, BucketType = 1 };
-            var testBucketVersion2 = new BucketVersion() { Version = 1, BucketType = 1 };
             
-            ServiceManager.BucketService.Create(testBucket1, testBucketVersion1, testBucket1.ValidFrom);
-            ServiceManager.BucketService.Create(testBucket2, testBucketVersion2, testBucket2.ValidFrom);
+            ServiceManager.BucketService.Create(testBucket1);
+            ServiceManager.BucketService.Create(testBucket2);
 
             var testTransactions = new List<BankTransaction>
             {
@@ -315,12 +314,12 @@ public class BucketPageViewModelTest : BaseTest
             var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
             await viewModel.LoadDataAsync();
 
-            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+            var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroupId == testBucketGroup.Id);
             Assert.NotNull(bucketGroup);
 
             // This test includes:
             // - Bucket Split
-            var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.Id == testBucket1.Id);
+            var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.BucketId == testBucket1.Id);
             Assert.NotNull(testObject);
             Assert.Equal(-5, testObject.Activity);
             Assert.Equal(96, testObject.Balance);
@@ -330,7 +329,7 @@ public class BucketPageViewModelTest : BaseTest
             // - Bucket Split
             // - Include Transactions in previous months for Balance
             // - Exclude Transactions in the future
-            testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.Id == testBucket2.Id);
+            testObject = bucketGroup.Buckets.FirstOrDefault(i => i.BucketId == testBucket2.Id);
             Assert.NotNull(testObject);
             Assert.Equal(-1005, testObject.Activity);
             Assert.Equal(108995, testObject.Balance);
@@ -350,18 +349,30 @@ public class BucketPageViewModelTest : BaseTest
             {
                 new object[]
                 {
-                    new Bucket { Name = "Bucket with pending Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                    new Bucket
+                    {
+                        Name = "Bucket with pending Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
                     10, 0, 0
                 },
                 new object[]
                 {
-                    new Bucket { Name = "Bucket with fulfilled Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                    new Bucket
+                    {
+                        Name = "Bucket with fulfilled Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
+                    },
                     new List<BankTransaction>(),
-                    new List<BucketMovement>()
+                    new List<BucketMovement>
                     {
                         new() { MovementDate = new DateTime(2010, 1, 1), Amount = 10 }
                     },
@@ -369,8 +380,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "Bucket pending Want including expense", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                    new Bucket
+                    {
+                        Name = "Bucket pending Want including expense", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2010,1,1), Amount = -10 }
@@ -380,8 +397,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "Bucket fulfilled Want including expense", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                    new Bucket
+                    {
+                        Name = "Bucket fulfilled Want including expense", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2010,1,1),  Amount = -10 }
@@ -394,8 +417,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "Bucket with partial fulfilled Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                    new Bucket
+                    {
+                        Name = "Bucket with partial fulfilled Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -405,8 +434,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "Bucket with over fulfilled Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                    new Bucket
+                    {
+                        Name = "Bucket with over fulfilled Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -422,7 +457,6 @@ public class BucketPageViewModelTest : BaseTest
     [MemberData(nameof(TestData_CheckWantAndDetailCalculation_MonthlyExpenses))]
     public async Task LoadDataAsync_CheckWantAndDetailCalculation_MonthlyExpenses(
         Bucket testBucket,
-        BucketVersion testBucketVersion,
         List<BankTransaction> testTransactions,
         List<BucketMovement> testBucketMovements,
         decimal expectedWant,
@@ -433,7 +467,7 @@ public class BucketPageViewModelTest : BaseTest
         try
         {
             var testObject = await ExecuteBucketCreationAndTransactionMovementsAsync(
-                testBucket, testBucketVersion, testTransactions, testBucketMovements, new DateTime(2010,1,1));
+                testBucket, testTransactions, testBucketMovements, new DateTime(2010,1,1));
 
             Assert.Equal(expectedWant, testObject.Want);
             Assert.Equal(expectedIn, testObject.In);
@@ -454,16 +488,28 @@ public class BucketPageViewModelTest : BaseTest
             {
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, with Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, with Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
                     10, 0, 0, 0, "120 until 2010-12", 0
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, without Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, without Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -473,8 +519,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, with Want", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, with Want", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -489,8 +541,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, without Want", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, without Want", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -506,8 +564,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, fulfilled target", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, fulfilled target", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -522,8 +586,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, over-fulfilled target", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, over-fulfilled target", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -538,16 +608,28 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, no input", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, no input", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
                     20, 0, 0, 0, "120 until 2010-06", 0
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, input not in sync", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, input not in sync", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -559,16 +641,28 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "100 every 3 months, with Want", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,3,1) },
+                    new Bucket
+                    {
+                        Name = "100 every 3 months, with Want", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,3,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
                     33.33m, 0, 0, 0, "100 until 2010-03", 0
                 },
                 new object[]
                 {
-                    new Bucket { Name = "100 every 3 months, last month, with Want", ValidFrom = new DateTime(2009,11,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) },
+                    new Bucket
+                    {
+                        Name = "100 every 3 months, last month, with Want", ValidFrom = new DateTime(2009,11,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -579,8 +673,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "100 every 3 months, last month, input not in sync", ValidFrom = new DateTime(2009,11,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) },
+                    new Bucket
+                    {
+                        Name = "100 every 3 months, last month, input not in sync", ValidFrom = new DateTime(2009,11,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -591,8 +691,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, last 6 months, with expenses", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, last 6 months, with expenses", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2009,9,2), Amount = -30 },
@@ -611,8 +717,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 every 12 months, 2nd year, last 6 months, with Want", ValidFrom = new DateTime(2008,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 every 12 months, 2nd year, last 6 months, with Want", ValidFrom = new DateTime(2008,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,6,1) },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2009,6,1), Amount = -120 }
@@ -652,16 +764,28 @@ public class BucketPageViewModelTest : BaseTest
             {
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2010-12, no input", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2010-12, no input", ValidFrom = new DateTime(2010,1,1), 
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
                     10, 0, 0, 0, "120 until 2010-12", 0
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2010-12, input in current Month", ValidFrom = new DateTime(2010,1,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2010-12, input in current Month", ValidFrom = new DateTime(2010,1,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -671,8 +795,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2010-06, input in sync", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2010-06, input in sync", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -687,8 +817,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2010-06, fulfilled target", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2010-06, fulfilled target", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -703,8 +839,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2010-06, over-fulfilled target", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2010-06, over-fulfilled target", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -719,8 +861,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2010-06, input not in sync", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2010-06, input not in sync", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -732,8 +880,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "120 until 2009-12, target not reached", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,12,1) },
+                    new Bucket
+                    {
+                        Name = "120 until 2009-12, target not reached", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,12,1) },
+                        }
+                    },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
                     {
@@ -745,8 +899,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "30 until 2010-01, target reached, with expense in target month", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                    new Bucket
+                    {
+                        Name = "30 until 2010-01, target reached, with expense in target month", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2010,1,5), Amount = -30 }
@@ -761,8 +921,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "30 until 2010-01, target reached, with lower expense in target month", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                    new Bucket
+                    {
+                        Name = "30 until 2010-01, target reached, with lower expense in target month", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2010,1,5),  Amount = -20 }
@@ -777,8 +943,14 @@ public class BucketPageViewModelTest : BaseTest
                 },
                 new object[]
                 {
-                    new Bucket { Name = "30 until 2010-01, target reached, with higher expense in target month", ValidFrom = new DateTime(2009,7,1) },
-                    new BucketVersion { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                    new Bucket
+                    {
+                        Name = "30 until 2010-01, target reached, with higher expense in target month", ValidFrom = new DateTime(2009,7,1),
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
+                    },
                     new List<BankTransaction>
                     {
                         new() { TransactionDate = new DateTime(2010,1,5), Amount = -40 }
@@ -800,7 +972,6 @@ public class BucketPageViewModelTest : BaseTest
     [MemberData(nameof(TestData_CheckWantAndDetailCalculation_SaveXUntilY))]
     public async Task LoadDataAsync_CheckWantAndDetailCalculation_ExpenseEveryXMonths_SaveXUntilY(
         Bucket testBucket,
-        BucketVersion testBucketVersion,
         List<BankTransaction> testTransactions,
         List<BucketMovement> testBucketMovements,
         decimal expectedWant,
@@ -814,7 +985,7 @@ public class BucketPageViewModelTest : BaseTest
         try
         {
             var testObject = await ExecuteBucketCreationAndTransactionMovementsAsync(
-                testBucket, testBucketVersion, testTransactions, testBucketMovements, new DateTime(2010,1,1));
+                testBucket, testTransactions, testBucketMovements, new DateTime(2010,1,1));
 
             Assert.Equal(expectedWant, testObject.Want);
             Assert.Equal(expectedIn, testObject.In);
@@ -831,27 +1002,25 @@ public class BucketPageViewModelTest : BaseTest
 
     private async Task<BucketViewModel> ExecuteBucketCreationAndTransactionMovementsAsync(
         Bucket testBucket,
-        BucketVersion testBucketVersion,
         IEnumerable<BankTransaction> testTransactions,
         IEnumerable<BucketMovement> testBucketMovements,
         DateTime testMonth)
     {
-        var testAccount = new Account() {IsActive = 1, Name = "Account"};
-        var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+        var testAccount = new Account {IsActive = 1, Name = "Account"};
+        var testBucketGroup = new BucketGroup {Name = "Bucket Group", Position = 1};
 
         ServiceManager.AccountService.Create(testAccount);
         ServiceManager.BucketGroupService.Create(testBucketGroup);
 
         testBucket.BucketGroupId = testBucketGroup.Id;
-        testBucketVersion.BucketId = testBucket.Id;
         
-        ServiceManager.BucketService.Create(testBucket, testBucketVersion, testBucket.ValidFrom);
+        ServiceManager.BucketService.Create(testBucket);
 
         foreach (var testTransaction in testTransactions)
         {
             testTransaction.AccountId = testAccount.Id;
             ServiceManager.BankTransactionService.Create(testTransaction);
-            ServiceManager.BudgetedTransactionService.Create(new BudgetedTransaction()
+            ServiceManager.BudgetedTransactionService.Create(new BudgetedTransaction
             {
                 TransactionId = testTransaction.Id,
                 BucketId = testBucket.Id,
@@ -873,10 +1042,10 @@ public class BucketPageViewModelTest : BaseTest
         var viewModel = new BucketPageViewModel(ServiceManager, monthSelectorViewModel);
         await viewModel.LoadDataAsync();
 
-        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroup.Id == testBucketGroup.Id);
+        var bucketGroup = viewModel.BucketGroups.FirstOrDefault(i => i.BucketGroupId == testBucketGroup.Id);
         Assert.NotNull(bucketGroup);
 
-        var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.Bucket.Id == testBucket.Id);
+        var testObject = bucketGroup.Buckets.FirstOrDefault(i => i.BucketId == testBucket.Id);
         Assert.NotNull(testObject);
 
         return testObject;
@@ -902,8 +1071,8 @@ public class BucketPageViewModelTest : BaseTest
     public void DistributeBudget_CheckDistributedMoney(
         IEnumerable<Tuple<Bucket, BucketVersion>> testBuckets)
     {
-        var testAccount = new Account() {IsActive = 1, Name = "Account"};
-        var testBucketGroup = new BucketGroup() {Name = "Bucket Group", Position = 1};
+        var testAccount = new Account {IsActive = 1, Name = "Account"};
+        var testBucketGroup = new BucketGroup {Name = "Bucket Group", Position = 1};
 
         ServiceManager.AccountService.Create(testAccount);
         ServiceManager.BucketGroupService.Create(testBucketGroup);
@@ -911,7 +1080,7 @@ public class BucketPageViewModelTest : BaseTest
         foreach (var (bucket, bucketVersion) in testBuckets)
         {
             bucket.BucketGroupId = testBucketGroup.Id;
-            ServiceManager.BucketService.Create(bucket, bucketVersion, bucket.ValidFrom);
+            ServiceManager.BucketService.Create(bucket);
         }
     }
 }

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+      <Content Include="..\OpenBudgeteer.Blazor\appsettings.json">
+        <Link>appsettings.json</Link>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\OpenBudgeteer.Core.Data.Services\OpenBudgeteer.Core.Data.Services.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Asp.Versioning.Http" Version="7.1.0" />
+      <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="7.1.0" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.14" />
+      <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    </ItemGroup>
+
+</Project>

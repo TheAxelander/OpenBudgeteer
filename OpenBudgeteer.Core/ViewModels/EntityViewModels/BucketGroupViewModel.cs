@@ -1,25 +1,40 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class BucketGroupViewModel : ViewModelBase
+public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
 {
-    private BucketGroup _bucketGroup;
+    #region Properties & Fields
+    
     /// <summary>
-    /// Reference to model object in the database
+    /// Database Id of the BucketGroup
     /// </summary>
-    public BucketGroup BucketGroup
+    public readonly Guid BucketGroupId;
+
+    private string _name;
+    /// <summary>
+    /// Name of the BucketGroup
+    /// </summary>
+    public string Name
     {
-        get => _bucketGroup;
-        private set => Set(ref _bucketGroup, value);
+        get => _name;
+        set => Set(ref _name, value);
     }
 
+    private int _position;
+    /// <summary>
+    /// Order position from all existing BucketGroups
+    /// </summary>
+    public int Position
+    {
+        get => _position;
+        set => Set(ref _position, value);
+    }
+    
     private decimal _totalBalance;
     /// <summary>
     /// Balance of all Buckets assigned to the BucketGroup
@@ -80,15 +95,10 @@ public class BucketGroupViewModel : ViewModelBase
         set => Set(ref _isCollapsed, value);
     }
 
-    private ObservableCollection<BucketViewModel> _buckets;
     /// <summary>
     /// Collection of Buckets assigned to this BucketGroup
     /// </summary>
-    public ObservableCollection<BucketViewModel> Buckets
-    {
-        get => _buckets;
-        private set => Set(ref _buckets, value);
-    }
+    public readonly ObservableCollection<BucketViewModel> Buckets;
 
     private bool _inModification;
     /// <summary>
@@ -97,25 +107,58 @@ public class BucketGroupViewModel : ViewModelBase
     public bool InModification
     {
         get => _inModification;
-        set => Set(ref _inModification, value);
+        private set => Set(ref _inModification, value);
     }
     
     private readonly DateTime _currentMonth;
-    private BucketGroup? _oldBucketGroup;
+    private BucketGroupViewModel? _oldBucketGroup;
 
+    #endregion
+    
+    #region Constructors
+    
     /// <summary>
     /// Initialize ViewModel based on an existing <see cref="BucketGroup"/> object and a specific YearMonth
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucketGroup">BucketGroup instance</param>
     /// <param name="currentMonth">YearMonth that should be used</param>
-    protected BucketGroupViewModel(IServiceManager serviceManager, BucketGroup bucketGroup, DateTime currentMonth) 
+    protected BucketGroupViewModel(IServiceManager serviceManager, BucketGroup? bucketGroup, DateTime currentMonth) 
         : base(serviceManager)
     {
-        _bucketGroup = bucketGroup;
-        _buckets = new ObservableCollection<BucketViewModel>();
+        Buckets = new ObservableCollection<BucketViewModel>();
         _inModification = false;
         _currentMonth = currentMonth;
+
+        if (bucketGroup == null)
+        {
+            BucketGroupId = Guid.Empty;
+            _name = "New Bucket Group";
+            Position = 1;
+        }
+        else
+        {
+            BucketGroupId = bucketGroup.Id;
+            _name = bucketGroup.Name ?? string.Empty;
+            _position = bucketGroup.Position;
+        }
+    }
+    
+    /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="viewModel">Current ViewModel instance</param>
+    protected BucketGroupViewModel(BucketGroupViewModel viewModel) : base(viewModel.ServiceManager)
+    {
+        BucketGroupId = viewModel.BucketGroupId;
+        _name = viewModel.Name;
+        _position = viewModel.Position;
+        _currentMonth = viewModel._currentMonth;
+        Buckets = new ObservableCollection<BucketViewModel>();
+        foreach (var bucket in viewModel.Buckets)
+        {
+            Buckets.Add(bucket);
+        }
     }
 
     /// <summary>
@@ -128,33 +171,79 @@ public class BucketGroupViewModel : ViewModelBase
     {
         return new BucketGroupViewModel(serviceManager, bucketGroup, currentMonth);
     }
-
+    
     /// <summary>
-    /// Helper method to start modification process and creating a backup of current values
+    /// Initialize ViewModel for creating a new <see cref="BucketGroup"/>
+    /// </summary>
+    /// <param name="serviceManager">Reference to API based services</param>
+    public static BucketGroupViewModel CreateEmpty(IServiceManager serviceManager)
+    {
+        return new BucketGroupViewModel(serviceManager, null, DateTime.Now);
+    }
+
+    #endregion
+    
+    #region Modification Handler
+    
+    /// <summary>
+    /// Start modification process and create a backup of current ViewModel data
     /// </summary>
     public void StartModification()
     {
-        _oldBucketGroup = new BucketGroup()
-        {
-            Id = BucketGroup.Id,
-            Name = BucketGroup.Name,
-            Position = BucketGroup.Position
-        };
+        _oldBucketGroup = new BucketGroupViewModel(this);
         InModification = true;
     }
 
     /// <summary>
-    /// Stops modification and restores previous values
+    /// Stops modification and restores previous ViewModel data
     /// </summary>
     public void CancelModification()
     {
-        BucketGroup = _oldBucketGroup ?? throw new Exception("Unexpected situation, no backup of Bucket Group available");
+        if (_oldBucketGroup == null) return;
+        Name = _oldBucketGroup.Name;
+        Position = _oldBucketGroup.Position;
         InModification = false;
         _oldBucketGroup = null;
     }
+    
+    /// <summary>
+    /// Convert current ViewModel into a corresponding <see cref="IEntity"/> object
+    /// </summary>
+    /// <returns>Converted ViewModel</returns>
+    internal override BucketGroup ConvertToDto()
+    {
+        return new BucketGroup()
+        {
+            Id = BucketGroupId,
+            Name = Name,
+            Position = Position
+        };
+    }
+    
+    /// <summary>
+    /// Creates a new <see cref="BucketGroup"/> and adds it to ViewModel and Database.
+    /// Will be added on the requested position.
+    /// </summary>
+    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult CreateGroup()
+    {
+        try
+        {
+            if (Name == string.Empty) throw new Exception( "Bucket Group Name cannot be empty");
+        
+            ServiceManager.BucketGroupService.Create(ConvertToDto());
+        
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
+    }
 
     /// <summary>
-    /// Updates a record in the database based on <see cref="BucketGroup"/> object
+    /// Updates a record in the database based on ViewModel data
     /// </summary>
     /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
     /// <returns>Object which contains information and results of this method</returns>
@@ -162,7 +251,7 @@ public class BucketGroupViewModel : ViewModelBase
     {
         try
         {
-            ServiceManager.BucketGroupService.Update(BucketGroup);
+            ServiceManager.BucketGroupService.Update(ConvertToDto());
             InModification = false;
             _oldBucketGroup = null;
             return new ViewModelOperationResult(true, true);
@@ -172,6 +261,29 @@ public class BucketGroupViewModel : ViewModelBase
             return new ViewModelOperationResult(false, $"Unable to write changes to database: {e.Message}");
         }
     }
+
+    /// <summary>
+    /// Starts deletion process based on ViewModel data and updates positions of
+    /// all other <see cref="BucketGroup"/> accordingly
+    /// </summary>
+    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult DeleteGroup()
+    {
+        try
+        {
+            ServiceManager.BucketGroupService.Delete(BucketGroupId);
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
+    }
+    
+    #endregion
+
+    #region Misc 
 
     /// <summary>
     /// Moves the position of the BucketGroup according to the passed value. Updates positions for all other
@@ -184,7 +296,7 @@ public class BucketGroupViewModel : ViewModelBase
     {
         try
         {
-            ServiceManager.BucketGroupService.Move(BucketGroup.Id, positions);
+            ServiceManager.BucketGroupService.Move(ConvertToDto().Id, positions);
             return new ViewModelOperationResult(true, true);
         }
         catch (Exception e)
@@ -192,11 +304,14 @@ public class BucketGroupViewModel : ViewModelBase
             return new ViewModelOperationResult(false, $"Unable to move Bucket Group: {e.Message}");
         }
     }
-
+    
+    // TODO Move to BucketViewModel
     public BucketViewModel CreateBucket()
     {
-        var newBucket = BucketViewModel.CreateEmpty(ServiceManager, BucketGroup.Id, _currentMonth);
+        var newBucket = BucketViewModel.CreateEmpty(ServiceManager, ConvertToDto().Id, _currentMonth);
         Buckets.Add(newBucket);
         return newBucket;
     }
+    
+    #endregion
 }

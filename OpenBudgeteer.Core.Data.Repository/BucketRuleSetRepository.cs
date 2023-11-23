@@ -6,26 +6,74 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository;
 
-public class BucketRuleSetRepository : BaseRepository<BucketRuleSet>, IBucketRuleSetRepository
+public class BucketRuleSetRepository : IBucketRuleSetRepository
 {
-    public BucketRuleSetRepository(DatabaseContext databaseContext) : base(databaseContext)
+    private DatabaseContext DatabaseContext { get; }
+    
+    public BucketRuleSetRepository(DatabaseContext databaseContext)
     {
+        DatabaseContext = databaseContext;
     }
-
-    public override IQueryable<BucketRuleSet> All() => DatabaseContext
-        .Set<BucketRuleSet>()
+    
+    public IQueryable<BucketRuleSet> All() => DatabaseContext.BucketRuleSet
+        .AsNoTracking();
+    
+    public IQueryable<BucketRuleSet> AllWithIncludedEntities() => DatabaseContext.BucketRuleSet
         .Include(i => i.TargetBucket)
+        .Include(i => i.MappingRules)
         .AsNoTracking();
 
-    public override IQueryable<BucketRuleSet> Where(Expression<Func<BucketRuleSet, bool>> expression) 
-        => DatabaseContext
-            .Set<BucketRuleSet>()
-            .Include(i => i.TargetBucket)
-            .Where(expression)
-            .AsNoTracking();
-    
-    public override BucketRuleSet? ById(Guid id) => DatabaseContext
-        .Set<BucketRuleSet>()
-        .Include(i => i.TargetBucket)
+    public BucketRuleSet? ById(Guid id) => DatabaseContext.BucketRuleSet
         .FirstOrDefault(i => i.Id == id);
+    
+    public BucketRuleSet? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BucketRuleSet
+        .Include(i => i.TargetBucket)
+        .Include(i => i.MappingRules)
+        .FirstOrDefault(i => i.Id == id);
+
+    public int Create(BucketRuleSet entity)
+    {
+        DatabaseContext.BucketRuleSet.Add(entity);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int CreateRange(IEnumerable<BucketRuleSet> entities)
+    {
+        DatabaseContext.BucketRuleSet.AddRange(entities);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int Update(BucketRuleSet entity)
+    {
+        DatabaseContext.BucketRuleSet.Update(entity);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int UpdateRange(IEnumerable<BucketRuleSet> entities)
+    {
+        DatabaseContext.BucketRuleSet.UpdateRange(entities);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int Delete(Guid id)
+    {
+        var entity = DatabaseContext.BucketRuleSet
+            .Include(i => i.MappingRules)
+            .FirstOrDefault(i => i.Id == id);
+        if (entity == null) throw new Exception($"BucketRuleSet with id {id} not found.");
+
+        DatabaseContext.BucketRuleSet.Remove(entity);
+        return DatabaseContext.SaveChanges();
+    }
+
+    public int DeleteRange(IEnumerable<Guid> ids)
+    {
+        var entities = DatabaseContext.BucketRuleSet
+            .Include(i => i.MappingRules)
+            .Where(i => ids.Contains(i.Id));
+        if (!entities.Any()) throw new Exception($"No BucketRuleSets found with passed IDs.");
+
+        DatabaseContext.BucketRuleSet.RemoveRange(entities);
+        return DatabaseContext.SaveChanges();
+    }
 }

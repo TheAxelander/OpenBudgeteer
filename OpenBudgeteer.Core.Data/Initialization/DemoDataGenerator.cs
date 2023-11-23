@@ -354,9 +354,6 @@ public class DemoDataGenerator
         dbContext.SaveChanges();
         
         // Create BudgetedTransactions
-        var incomeBucket = dbContext.Bucket.First(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001"));
-        var transferBucket = dbContext.Bucket.First(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000002"));
-        
         var budgetedTransactionOpeningCheckingAccount = new BudgetedTransaction()
         {
             Id = Guid.Empty,

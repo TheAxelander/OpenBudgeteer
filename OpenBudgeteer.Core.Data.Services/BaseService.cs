@@ -1,11 +1,8 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
 
 namespace OpenBudgeteer.Core.Data.Services;
 
@@ -13,10 +10,12 @@ internal abstract class BaseService<TEntity> : IBaseService<TEntity>
     where TEntity : class, IEntity
 {
     protected readonly DbContextOptions<DatabaseContext> DbContextOptions;
+    private readonly IBaseRepository<TEntity> _baseRepository;
     
-    protected BaseService(DbContextOptions<DatabaseContext> dbContextOptions)
+    protected BaseService(DbContextOptions<DatabaseContext> dbContextOptions, IBaseRepository<TEntity> baseRepository)
     {
         DbContextOptions = dbContextOptions;
+        _baseRepository = baseRepository;
     }
    
     public virtual TEntity Get(Guid id)
@@ -24,9 +23,8 @@ internal abstract class BaseService<TEntity> : IBaseService<TEntity>
         try
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BaseRepository<TEntity>(dbContext);
             
-            var result = repository.ById(id);
+            var result = _baseRepository.ById(id);
             if (result == null) throw new Exception($"{typeof(TEntity)} not found in database");
             return result;
         }
@@ -42,25 +40,8 @@ internal abstract class BaseService<TEntity> : IBaseService<TEntity>
         try
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BaseRepository<TEntity>(dbContext);
             
-            return repository.All().ToList();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
-        }
-    }
-
-    public virtual IEnumerable<TEntity> GetWith(Expression<Func<TEntity, bool>> expression)
-    {
-        try
-        {
-            using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BaseRepository<TEntity>(dbContext);
-            
-            return repository.Where(expression).ToList();
+            return _baseRepository.All().ToList();
         }
         catch (Exception e)
         {
@@ -74,9 +55,8 @@ internal abstract class BaseService<TEntity> : IBaseService<TEntity>
         try
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BaseRepository<TEntity>(dbContext);
             
-            var result = repository.Create(entity);
+            var result = _baseRepository.Create(entity);
             if (result == 0) throw new Exception($"Unable to create {typeof(TEntity)} in database");
             return entity;
         }
@@ -92,9 +72,8 @@ internal abstract class BaseService<TEntity> : IBaseService<TEntity>
         try
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BaseRepository<TEntity>(dbContext);
             
-            var result = repository.Update(entity);
+            var result = _baseRepository.Update(entity);
             if (result == 0) throw new Exception($"Unable to update {typeof(TEntity)} in database");
             return entity;
         }
@@ -105,16 +84,14 @@ internal abstract class BaseService<TEntity> : IBaseService<TEntity>
         }
     }
 
-    public virtual TEntity Delete(TEntity entity)
+    public virtual void Delete(Guid id)
     {
         try
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
-            var repository = new BaseRepository<TEntity>(dbContext);
-            
-            var result = repository.Delete(entity);
+
+            var result = _baseRepository.Delete(id);
             if (result == 0) throw new Exception($"Unable to delete {typeof(TEntity)} in database");
-            return entity;
         }
         catch (Exception e)
         {

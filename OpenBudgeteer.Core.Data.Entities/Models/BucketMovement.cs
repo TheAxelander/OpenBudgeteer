@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -12,7 +13,8 @@ public class BucketMovement : IEntity
     [Required]
     public Guid BucketId { get; set; }
 
-    public Bucket? Bucket { get; set; }
+    [JsonIgnore]
+    public Bucket Bucket { get; set; } = null!;
 
     [Column(TypeName = "decimal(65, 2)")]
     public decimal Amount { get; set; }

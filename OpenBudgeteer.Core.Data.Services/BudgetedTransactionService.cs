@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,7 +9,7 @@ namespace OpenBudgeteer.Core.Data.Services;
 internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IBudgetedTransactionService
 {
     internal BudgetedTransactionService(DbContextOptions<DatabaseContext> dbContextOptions) 
-        : base(dbContextOptions)
+        : base(dbContextOptions, new BudgetedTransactionRepository(new DatabaseContext(dbContextOptions)))
     {
     }
 
@@ -22,6 +21,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
             var repository = new BudgetedTransactionRepository(dbContext);
             
             return repository
+                .AllWithTransactions()
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd)
@@ -47,6 +47,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
             var repository = new BudgetedTransactionRepository(dbContext);
             
             return repository
+                .AllWithTransactions()
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd &&
@@ -73,6 +74,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
             var repository = new BudgetedTransactionRepository(dbContext);
             
             return repository
+                .AllWithTransactions()
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd && 
@@ -100,6 +102,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
             var repository = new BudgetedTransactionRepository(dbContext);
             
             return repository
+                .AllWithTransactions()
                 .Where(i =>
                         i.Transaction.TransactionDate >= periodStart &&
                         i.Transaction.TransactionDate <= periodEnd &&
@@ -126,6 +129,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
             var repository = new BudgetedTransactionRepository(dbContext);
             
             return repository
+                .AllWithTransactions()
                 .Where(i =>
                         i.Transaction.TransactionDate >= periodStart &&
                         i.Transaction.TransactionDate <= periodEnd &&
@@ -152,6 +156,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
             var repository = new BudgetedTransactionRepository(dbContext);
             
             return repository
+                .AllWithTransactions()
                 .Where(i =>
                         i.Transaction.TransactionDate >= periodStart &&
                         i.Transaction.TransactionDate <= periodEnd &&

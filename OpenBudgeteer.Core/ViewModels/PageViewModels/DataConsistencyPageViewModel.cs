@@ -89,7 +89,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
                     results.Add(bucketBalance < 0
                         ? new(DataConsistencyCheckResult.StatusCode.Warning, new[]
                         {
-                            bucket.Name, 
+                            bucket.Name ?? string.Empty, 
                             bucketBalance.ToString("C", CultureInfo.CurrentCulture)
                         })
                         : new(DataConsistencyCheckResult.StatusCode.Ok, Array.Empty<string>()));
@@ -163,7 +163,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
                     new List<string[]>());
             }
 
-            var detailsBuilder = new List<string[]>()
+            var detailsBuilder = new List<string[]>
             {
                 new[] { "Transaction Date", "Memo", "Amount" }
             };
@@ -203,11 +203,11 @@ public class DataConsistencyPageViewModel : ViewModelBase
                     results.Add(invalidTransactions.Any()
                         ? new(
                             DataConsistencyCheckResult.StatusCode.Alert, 
-                            bucket.Name, 
+                            bucket.Name ?? string.Empty, 
                             invalidTransactions.Select(i => i.Transaction).ToList())
                         : new(
                             DataConsistencyCheckResult.StatusCode.Ok, 
-                            bucket.Name, 
+                            bucket.Name ?? string.Empty, 
                             new List<BankTransaction>()));
                 }))
                 .ToList();

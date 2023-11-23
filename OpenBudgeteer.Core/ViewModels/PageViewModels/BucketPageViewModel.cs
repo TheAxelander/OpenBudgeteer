@@ -12,11 +12,11 @@ namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
 
 public class BucketPageViewModel : BucketListingViewModel
 {
-    private BucketGroup? _newBucketGroup;
+    private BucketGroupViewModel? _newBucketGroup;
     /// <summary>
     /// Helper property to handle creation of a new <see cref="BucketGroup"/>
     /// </summary>
-    public BucketGroup? NewBucketGroup
+    public BucketGroupViewModel? NewBucketGroup
     {
         get => _newBucketGroup;
         private set => Set(ref _newBucketGroup, value);
@@ -141,72 +141,8 @@ public class BucketPageViewModel : BucketListingViewModel
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult CreateEmptyGroup()
     {
-        NewBucketGroup = new BucketGroup
-        {
-            Id = Guid.Empty,
-            Name = "New Bucket Group",
-            Position = 1
-        };
-        /*foreach (var bucketGroup in BucketGroups)
-        {
-            bucketGroup.BucketGroup.Position++;
-            dbContext.UpdateBucketGroup(bucketGroup.BucketGroup);
-        }
-        if (dbContext.CreateBucketGroup(newBucketGroup) == 0) 
-            return new ViewModelOperationResult(false, "Unable to write changes to database");
-
-        var newBucketGroupViewModelItem =
-            new BucketGroupViewModel(_dbOptions, newBucketGroup, _yearMonthViewModel.CurrentMonth)
-            {
-                InModification = true
-            };
-        BucketGroups.Insert(0, newBucketGroupViewModelItem);*/
+        NewBucketGroup = BucketGroupViewModel.CreateEmpty(ServiceManager);
         return new ViewModelOperationResult(true);
-    }
-
-    /// <summary>
-    /// Creates a new <see cref="BucketGroup"/> and adds it to ViewModel and Database.
-    /// Will be added on the requested position.
-    /// </summary>
-    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
-    /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult CreateGroup()
-    {
-        try
-        {
-            if (NewBucketGroup is null) throw new Exception("Unable to create Bucket Group");
-            if (NewBucketGroup.Name == string.Empty) throw new Exception( "Bucket Group Name cannot be empty");
-        
-            // Set Id to 0 to enable creation
-            NewBucketGroup.Id = Guid.Empty;
-            ServiceManager.BucketGroupService.Create(NewBucketGroup);
-        
-            return new ViewModelOperationResult(true, true);
-        }
-        catch (Exception e)
-        {
-            return new ViewModelOperationResult(false, e.Message);
-        }
-    }
-
-    /// <summary>
-    /// Starts deletion process in the passed <see cref="BucketGroupViewModel"/> and updates positions of
-    /// all other <see cref="BucketGroup"/> accordingly
-    /// </summary>
-    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
-    /// <param name="bucketGroup">Instance that needs to be deleted</param>
-    /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult DeleteGroup(BucketGroupViewModel bucketGroup)
-    {
-        try
-        {
-            ServiceManager.BucketGroupService.Delete(bucketGroup.BucketGroup);
-            return new ViewModelOperationResult(true, true);
-        }
-        catch (Exception e)
-        {
-            return new ViewModelOperationResult(false, e.Message);
-        }
     }
 
     /// <summary>
@@ -220,6 +156,9 @@ public class BucketPageViewModel : BucketListingViewModel
         try
         {
             var buckets = new List<BucketViewModel>();
+            var successful = true;
+            var message = string.Empty;
+            
             foreach (var bucketGroup in BucketGroups)
             {
                 buckets.AddRange(bucketGroup.Buckets);
@@ -227,13 +166,16 @@ public class BucketPageViewModel : BucketListingViewModel
             foreach (var bucket in buckets.Where(i => i.Want > 0))
             {
                 bucket.InOut = bucket.Want;
-                //TODO Test if Database Transaction works here
                 var result = bucket.HandleInOutInput();
-                if (!result.IsSuccessful) throw new Exception(result.Message);
+                if (result.IsSuccessful) continue;
+                successful = false;
+                message = result.Message;
             }
 
             //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
-            return new ViewModelOperationResult(true, true);
+            return successful
+                ? new ViewModelOperationResult(true, true)
+                : new ViewModelOperationResult(false, $"For one or more Buckets the budget could not be distributed: {message}");
         }
         catch (Exception e)
         {
@@ -251,7 +193,7 @@ public class BucketPageViewModel : BucketListingViewModel
         {
             var buckets = new List<BucketViewModel>();
             foreach (var bucketGroup in BucketGroups.Where(i => 
-                         i.BucketGroup.Id != Guid.Parse("00000000-0000-0000-0000-000000000001")))
+                         i.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001")))
             {
                 bucketGroup.TotalBalance = bucketGroup.Buckets.Sum(i => i.Balance);
                 bucketGroup.TotalWant = bucketGroup.Buckets.Where(i => i.Want > 0).Sum(i => i.Want);

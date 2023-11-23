@@ -80,7 +80,6 @@ public class RulesPageViewModel : ViewModelBase
             if (NewRuleSet == null) throw new Exception("New RuleSet has not been initialized");
             var validationResult = ValidateRuleSet(NewRuleSet);
             if (!validationResult.IsSuccessful) return validationResult; 
-            NewRuleSet.RuleSet.Id = Guid.Empty;
             var result = NewRuleSet.CreateUpdateRuleSetItem();
             if (!result.IsSuccessful) return result;
             ResetNewRuleSet();
@@ -121,15 +120,15 @@ public class RulesPageViewModel : ViewModelBase
         
         var result = ruleSet.CreateUpdateRuleSetItem();
         if (!result.IsSuccessful) return result;
-        RuleSets = new ObservableCollection<RuleSetViewModel>(RuleSets.OrderBy(i => i.RuleSet.Priority));
+        RuleSets = new ObservableCollection<RuleSetViewModel>(RuleSets.OrderBy(i => i.Priority));
 
         return result;
     }
 
     private ViewModelOperationResult ValidateRuleSet(RuleSetViewModel ruleSetViewModel)
     {
-        if (ruleSetViewModel.TargetBucket.Id == Guid.Empty) return new(false, "No Target Bucket selected.");
-        if (ruleSetViewModel.RuleSet.Priority <= 0) return new(false, "Priority should be a positive number.");
+        if (ruleSetViewModel.TargetBucketId == Guid.Empty) return new(false, "No Target Bucket selected.");
+        if (ruleSetViewModel.Priority <= 0) return new(false, "Priority should be a positive number.");
         return new(true);
     }
 
@@ -143,14 +142,15 @@ public class RulesPageViewModel : ViewModelBase
     {
         try
         {
-            ServiceManager.BucketRuleSetService.Delete(ruleSet.RuleSet);
+            var result = ruleSet.DeleteRuleSet();
+            if (!result.IsSuccessful) throw new Exception(result.Message);
             RuleSets.Remove(ruleSet);
 
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+            return new ViewModelOperationResult(false, e.Message);
         }
     }
 
@@ -179,7 +179,7 @@ public class RulesPageViewModel : ViewModelBase
                 var result = ruleSet.CreateUpdateRuleSetItem();
                 if (!result.IsSuccessful) throw new Exception(result.Message);
             }
-            RuleSets = new ObservableCollection<RuleSetViewModel>(RuleSets.OrderBy(i => i.RuleSet.Priority));
+            RuleSets = new ObservableCollection<RuleSetViewModel>(RuleSets.OrderBy(i => i.Priority));
 
             return new ViewModelOperationResult(true);
         }

@@ -1,7 +1,9 @@
 ﻿@page "/rules"
 
+@using System
 @using System.Drawing
-@using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
 
 <div class="row">
     <div class="col">
@@ -31,11 +33,11 @@
         </thead>
         <tbody>
             <tr>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet!.RuleSet.Priority" /></td>
-                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.RuleSet.Name" /></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet!.Priority" /></td>
+                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.Name" /></td>
                 <td>
-                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucket.Color)" @onclick="() => HandleShowSelectBucketDialog(_dataContext.NewRuleSet)">
-                        @_dataContext.NewRuleSet.TargetBucket.Name
+                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucketColor)" @onclick="() => HandleShowSelectBucketDialog(_dataContext.NewRuleSet)">
+                        @_dataContext.NewRuleSet.TargetBucketName
                     </button>
                 </td>
                 <td>
@@ -46,26 +48,26 @@
                                 <tr>
                                     <td style="width: 120px">
                                         <select class="form-select form-select-sm"
-                                                @bind:get="mappingRule.MappingRule.ComparisionField.ToString()"
-                                                @bind:set="(value) => { mappingRule.MappingRule.ComparisionField = Convert.ToInt32(value); }">
+                                                @bind:get="mappingRule.ComparisionField.ToString()"
+                                                @bind:set="(value) => { mappingRule.ComparisionField = (MappingRuleViewModel.MappingComparisionField)Convert.ToInt32(value); }">
                                             @for (int i = 1; i <= 4; i++)
                                             {
-                                                <option value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
+                                                <option value="@i">@(((MappingRuleViewModel.MappingComparisionField)i).GetStringValue())</option>
                                             }
                                         </select>
                                     </td>
                                     <td style="width: 160px">
                                         <select class="form-select form-select-sm"
-                                                @bind:get="mappingRule.MappingRule.ComparisionType.ToString()"
-                                                @bind:set="(value) => { mappingRule.MappingRule.ComparisionType = Convert.ToInt32(value); }">
+                                                @bind:get="mappingRule.ComparisionType.ToString()"
+                                                @bind:set="(value) => { mappingRule.ComparisionType = (MappingRuleViewModel.MappingComparisionType)Convert.ToInt32(value); }">
                                             @for (int i = 1; i <= 4; i++)
                                             {
-                                                <option value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
+                                                <option value="@i">@(((MappingRuleViewModel.MappingComparisionType)i).GetStringValue())</option>
                                             }
                                         </select>
                                     </td>
                                     <td>
-                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
+                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisionValue" />
                                     </td>
                                     <td class="col-buttons" style="width: 1px">
                                         <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
@@ -100,11 +102,11 @@
         @if (ruleSet.InModification)
         {
             <tr>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.RuleSet.Priority" /></td>
-                <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.RuleSet.Name" /></td>
+                <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.Priority" /></td>
+                <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.Name" /></td>
                 <td>
-                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color)" @onclick="() => HandleShowSelectBucketDialog(ruleSet)">
-                        @ruleSet.TargetBucket.Name
+                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor)" @onclick="() => HandleShowSelectBucketDialog(ruleSet)">
+                        @ruleSet.TargetBucketName
                     </button>
                 </td>
                 <td>
@@ -115,26 +117,26 @@
                             <tr>
                                 <td style="width: 120px">
                                     <select class="form-select form-select-sm"
-                                            @bind:get="mappingRule.MappingRule.ComparisionField.ToString()"
-                                            @bind:set="(value) => { mappingRule.MappingRule.ComparisionField = Convert.ToInt32(value); }">
+                                            @bind:get="((int)mappingRule.ComparisionField).ToString()"
+                                            @bind:set="(value) => { mappingRule.ComparisionField = (MappingRuleViewModel.MappingComparisionField)Convert.ToInt32(value); }">
                                         @for (int i = 1; i <= 4; i++)
                                         {
-                                            <option value="@i">@(new MappingRule(){ ComparisionField = i}.ComparisonFieldOutput)</option>
+                                            <option value="@i">@(((MappingRuleViewModel.MappingComparisionField)i).GetStringValue())</option>
                                         }
                                     </select>
                                 </td>
                                 <td style="width: 160px">
                                     <select class="form-select form-select-sm"
-                                            @bind:get="mappingRule.MappingRule.ComparisionType.ToString()"
-                                            @bind:set="(value) => { mappingRule.MappingRule.ComparisionType = Convert.ToInt32(value); }">
+                                            @bind:get="((int)mappingRule.ComparisionType).ToString()"
+                                            @bind:set="(value) => { mappingRule.ComparisionType = (MappingRuleViewModel.MappingComparisionType)Convert.ToInt32(value); }">
                                         @for (int i = 1; i <= 4; i++)
                                         {
-                                            <option value="@i">@(new MappingRule(){ ComparisionType = i}.ComparisionTypeOutput)</option>
+                                            <option value="@i">@(((MappingRuleViewModel.MappingComparisionType)i).GetStringValue())</option>
                                         }
                                     </select>
                                 </td>
                                 <td>
-                                    <input class="form-control form-control-sm" type="text" @bind="mappingRule.MappingRule.ComparisionValue" />
+                                    <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisionValue" />
                                 </td>
                                 <td class="col-buttons" style="width: 1px">
                                     <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
@@ -154,9 +156,9 @@
         else
         {
             <tr>
-                <td class="col-numbers">@ruleSet.RuleSet.Priority</td>
-                <td>@ruleSet.RuleSet.Name</td>
-                <td><div style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucket.Color); border-radius: 25px; padding: 5px 10px">@ruleSet.TargetBucket.Name</div></td>
+                <td class="col-numbers">@ruleSet.Priority</td>
+                <td>@ruleSet.Name</td>
+                <td><div style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor); border-radius: 25px; padding: 5px 10px">@ruleSet.TargetBucketName</div></td>
                 <td>
                     <ul>
                         @foreach (var mappingRule in ruleSet.MappingRules)
@@ -166,7 +168,7 @@
                     </ul>
                 </td>
                 <td class="col-buttons">
-                    <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ruleSet.StartModification())"></button>
+                    <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@ruleSet.StartModification"></button>
                     <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleShowDeleteRuleSetDialog(ruleSet))"></button>
                 </td>
             </tr>

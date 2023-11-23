@@ -154,7 +154,7 @@
                 <th colspan="8">
                     <div class="row" style="max-width: 500px">
                         <div class="col">
-					        <input class="form-control form-control-sm" type="text" @bind="bucketGroup.BucketGroup.Name"/>
+					        <input class="form-control form-control-sm" type="text" @bind="bucketGroup.Name"/>
                         </div>
                         <div class="col-3 col-buttons col-bucket-buttons">
 					        <button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
@@ -169,7 +169,7 @@
                     <div>
 				        <button class="btn btn-sm header-action-button collapse-button" 
                                 @onclick="@(() => bucketGroup.IsCollapsed = !bucketGroup.IsCollapsed)"><span>@(bucketGroup.IsCollapsed ? "▶" : "▼")</span></button>
-                        <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
+                        <span class="bucketgroup-header-text">@bucketGroup.Name</span>
                     </div>
                 </th>
                 <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
@@ -181,7 +181,7 @@
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
-                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleResult(_dataContext.DeleteGroup(bucketGroup)))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleResult(bucketGroup.DeleteGroup()))"></button>
                     <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => CreateBucket(bucketGroup))"></button>
                 </th>
             }
@@ -196,20 +196,20 @@
             {
                 <tr>
                     <td>
-                        @if (bucket.Bucket.IsInactive)
+                        @if (bucket.IsInactive)
                         {
-                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">
-                                @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
+                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">
+                                @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")
                             </div>
                         }
                         else
                         {
-                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Bucket.Name</div>
+                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Name</div>
                         }
                     </td>
                     <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
                     <td class="col-numbers col-bucket-numbers">
-                        @if (bucket.Bucket.IsInactive)
+                        @if (bucket.IsInactive)
                         {
                             <input class="form-control form-control-sm" type="number" disabled/>
                         }
@@ -243,7 +243,7 @@
                         }
                     </td>
                     <td class="col-buttons col-bucket-buttons">
-                        @if (bucket.Bucket.IsInactive)
+                        @if (bucket.IsInactive)
                         {
                             <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
                         }

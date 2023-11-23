@@ -14,7 +14,7 @@
         <div class="col-3">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">@account.Account.Name</h5>
+                    <h5 class="card-title">@account.Name</h5>
                     <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
                     <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
                     <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => EditAccount(account))">Edit</button>

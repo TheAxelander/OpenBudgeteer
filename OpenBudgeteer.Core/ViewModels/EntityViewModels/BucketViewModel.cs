@@ -11,26 +11,88 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class BucketViewModel : ViewModelBase
+public class BucketViewModel : BaseEntityViewModel<Bucket>
 {
-    private Bucket _bucket;
+    #region Properties & Fields
+    
     /// <summary>
-    /// Reference to model object in the database
+    /// Database Id of the Bucket
     /// </summary>
-    public Bucket Bucket
+    public readonly Guid BucketId;
+    
+    private string _name;
+    /// <summary>
+    /// Name of the Bucket
+    /// </summary>
+    public string Name
     {
-        get => _bucket;
-        private set => Set(ref _bucket, value);
+        get => _name;
+        set => Set(ref _name, value);
     }
-
-    private BucketVersion? _bucketVersion;
+    
+    private BucketVersionViewModel _bucketVersion;
     /// <summary>
-    /// Reference to model object in the database
+    /// Current Version of the Bucket
     /// </summary>
-    public BucketVersion? BucketVersion
-    {
+    public BucketVersionViewModel BucketVersion 
+    { 
         get => _bucketVersion;
-        private set => Set(ref _bucketVersion, value);
+        set => Set(ref _bucketVersion, value);
+    }
+    
+    private Guid _bucketGroupId;
+    /// <summary>
+    /// Database Id of which <see cref="BucketGroup"/> this Bucket is assigned to
+    /// </summary>
+    public Guid BucketGroupId 
+    { 
+        get => _bucketGroupId;
+        set => Set(ref _bucketGroupId, value);
+    }
+    
+    private string _colorCode;
+    /// <summary>
+    /// Name of the color based from <see cref="Color"/>
+    /// </summary>
+    public string ColorCode 
+    { 
+        get => _colorCode;
+        set => Set(ref _colorCode, value);
+    }
+    
+    /// <summary>
+    /// <see cref="Color"/> of the Bucket 
+    /// </summary>
+    public Color Color => string.IsNullOrEmpty(ColorCode) ? Color.LightGray : Color.FromName(ColorCode);
+    
+    private DateTime _validFrom;
+    /// <summary>
+    /// Date from which this Bucket is valid
+    /// </summary>
+    public DateTime ValidFrom 
+    { 
+        get => _validFrom;
+        set => Set(ref _validFrom, value);
+    }
+    
+    private bool _isInactive;
+    /// <summary>
+    /// Identifier if this Bucket is still active or not
+    /// </summary>
+    public bool IsInactive 
+    { 
+        get => _isInactive;
+        set => Set(ref _isInactive, value);
+    }
+    
+    private DateTime _isInactiveFrom;
+    /// <summary>
+    /// Date from which this Bucket started to be in status inactive
+    /// </summary>
+    public DateTime IsInactiveFrom 
+    { 
+        get => _isInactiveFrom;
+        set => Set(ref _isInactiveFrom, value);
     }
 
     private decimal _balance;
@@ -124,11 +186,6 @@ public class BucketViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Helper collection to list BucketTypes explanations
-    /// </summary>
-    public readonly ObservableCollection<string>? AvailableBucketTypes;
-
-    /// <summary>
     /// Helper collection to list available System colors
     /// </summary>
     public readonly ObservableCollection<Color>? AvailableColors;
@@ -139,6 +196,10 @@ public class BucketViewModel : ViewModelBase
     public readonly ObservableCollection<BucketGroup>? AvailableBucketGroups;
 
     private readonly DateTime _currentYearMonth;
+    
+    #endregion
+    
+    #region Constructors
 
     /// <summary>
     /// Minimalistic constructor, only to be used for displaying a <see cref="Bucket"/>
@@ -154,28 +215,27 @@ public class BucketViewModel : ViewModelBase
         
         if (bucket == null)
         {
-            _bucket = new Bucket()
-            {
-                Id = Guid.Empty,
-                /*BucketGroupId = bucketGroupId,*/ // Will be set in CreateEmpty()
-                Name = "New Bucket",
-                ColorCode = Color.Transparent.Name,
-                ValidFrom = yearMonth,
-                IsInactive = false,
-                IsInactiveFrom = DateTime.MaxValue
-            };
-            _bucketVersion = new BucketVersion()
-            {
-                Id = Guid.Empty,
-                BucketType = 1,
-                BucketTypeZParam = yearMonth,
-                ValidFrom = yearMonth
-            };
+            BucketId = Guid.Empty;
+            //BucketGroupId = bucketGroupId;    Will be set in CreateEmpty()
+            _name = "New Bucket";
+            _colorCode = Color.Transparent.Name;
+            _validFrom = yearMonth;
+            _isInactive = false;
+            _isInactiveFrom = DateTime.MaxValue;
+
+            _bucketVersion = BucketVersionViewModel.CreateEmpty(serviceManager);
         }
         else
         {
-            _bucket = bucket;
-            _bucketVersion = ServiceManager.BucketService.GetLatestVersion(bucket.Id, _currentYearMonth);
+            BucketId = bucket.Id;
+            _name = bucket.Name ?? string.Empty;
+            _bucketGroupId = bucket.BucketGroupId;
+            _colorCode = bucket.ColorCode ?? string.Empty;
+            _validFrom = bucket.ValidFrom;
+            _isInactive = bucket.IsInactive;
+            _isInactiveFrom = bucket.IsInactiveFrom;
+            
+            _bucketVersion = BucketVersionViewModel.CreateFromBucket(serviceManager, bucket, _currentYearMonth);
             // Run calculations, excluding system default Buckets
             if (bucket.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001"))
             {
@@ -205,15 +265,6 @@ public class BucketViewModel : ViewModelBase
         {
             AvailableBucketGroups.Add(item);
         }
-        
-        // Default set of Bucket Types
-        AvailableBucketTypes = new ObservableCollection<string>()
-        {
-            "Standard Bucket",
-            "Monthly expense",
-            "Expense every X Months",
-            "Save X until Y date"
-        };
         
         // Get known Colors
         AvailableColors = new ObservableCollection<Color>();
@@ -257,10 +308,7 @@ public class BucketViewModel : ViewModelBase
         var availableBucketGroups = serviceManager.BucketGroupService.GetAll().ToList();
         return new BucketViewModel(serviceManager, availableBucketGroups, null, yearMonth)
         {
-            Bucket =
-            {
-                BucketGroupId = bucketGroupId
-            }
+            _bucketGroupId = bucketGroupId
         };
     }
 
@@ -278,7 +326,11 @@ public class BucketViewModel : ViewModelBase
     {
         return await Task.Run(() => new BucketViewModel(serviceManager, bucket, yearMonth));
     }
-
+    
+    #endregion
+    
+    #region Modification Handler
+    
     /// <summary>
     /// Identifies latest <see cref="BucketVersion"/> based on <see cref="_currentYearMonth"/> and calculates all figures
     /// </summary>
@@ -290,45 +342,55 @@ public class BucketViewModel : ViewModelBase
         Want = 0;
         InOut = 0;
         
-        // Get latest BucketVersion based on passed parameter
-        BucketVersion = ServiceManager.BucketService.GetLatestVersion(Bucket.Id, _currentYearMonth);
-
-        #region Balance
+        /*#region Balance
 
         // Get all Transactions for this Bucket until passed yearMonth
-        Balance = ServiceManager.BucketService.GetBalance(Bucket.Id, _currentYearMonth);
+        Balance = ServiceManager.BucketService.GetBalance(BucketId, _currentYearMonth);
 
         #endregion
 
         #region In & Activity
 
-        var inOut = ServiceManager.BucketService.GetInAndOut(Bucket.Id, _currentYearMonth);
+        var inOut = ServiceManager.BucketService.GetInAndOut(BucketId, _currentYearMonth);
         In = inOut.Item1;
         Activity = inOut.Item2;
 
+        #endregion*/
+        
+        #region Balance, In & Out
+        
+        var figures = ServiceManager.BucketService.GetFigures(BucketId, _currentYearMonth);
+        Balance = figures.Balance ?? 0;
+        In = figures.Input;
+        Activity = figures.Output;
+        
         #endregion
 
         #region Want
 
-        if (!Bucket.IsInactive)
+        if (!IsInactive)
         {
-            switch (BucketVersion.BucketType)
+            switch (BucketVersion.BucketTypeParameter)
             {
-                case 2:
-                    var newWant = BucketVersion.BucketTypeYParam - In;
+                case BucketVersionViewModel.BucketType.StandardBucket:
+                    break;
+                case BucketVersionViewModel.BucketType.MonthlyExpense:
+                    var newWant = BucketVersion.BucketTypeDecimalParameter - In;
                     Want = newWant < 0 ? 0 : newWant;
                     break;
-                case 3:
-                    var nextTargetDate = BucketVersion.BucketTypeZParam;
+                case BucketVersionViewModel.BucketType.ExpenseEveryXMonths:
+                    var nextTargetDate = BucketVersion.BucketTypeDateParameter;
                     while (nextTargetDate < _currentYearMonth)
                     {
-                        nextTargetDate = nextTargetDate.AddMonths(BucketVersion.BucketTypeXParam);
+                        nextTargetDate = nextTargetDate.AddMonths(BucketVersion.BucketTypeIntParameter);
                     }
                     Want = CalculateWant(nextTargetDate);
                     break;
-                case 4:
-                    Want = CalculateWant(BucketVersion.BucketTypeZParam);
+                case BucketVersionViewModel.BucketType.SaveXUntilYDate:
+                    Want = CalculateWant(BucketVersion.BucketTypeDateParameter);
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -337,7 +399,7 @@ public class BucketViewModel : ViewModelBase
             var remainingMonths = ((targetDate.Year - _currentYearMonth.Year) * 12) + targetDate.Month - _currentYearMonth.Month;
             if (remainingMonths < 0) return Balance < 0 ? Balance : 0;
             if (remainingMonths == 0 && Balance < 0) return Balance * -1;
-            var wantForThisMonth = Math.Round((BucketVersion.BucketTypeYParam - Balance + In) / (remainingMonths + 1), 2) - In;
+            var wantForThisMonth = Math.Round((BucketVersion.BucketTypeDecimalParameter - Balance + In) / (remainingMonths + 1), 2) - In;
             if (remainingMonths == 0) wantForThisMonth += Activity; // check if target amount has been consumed. Not further Want required
             return wantForThisMonth < 0 ? 0 : wantForThisMonth;
         }
@@ -346,16 +408,19 @@ public class BucketViewModel : ViewModelBase
 
         #region Details
 
-        if (BucketVersion.BucketType is 3 or 4)
+        if (BucketVersion.BucketTypeParameter is 
+            BucketVersionViewModel.BucketType.ExpenseEveryXMonths or 
+            BucketVersionViewModel.BucketType.SaveXUntilYDate)
         {
-            var targetDate = BucketVersion.BucketTypeZParam;
+            var targetDate = BucketVersion.BucketTypeDateParameter;
             // Calculate new target date for BucketType 3 (Expense every X Months) 
             // if the selected yearMonth is already in the future
-            if (BucketVersion.BucketType == 3 && BucketVersion.BucketTypeZParam < _currentYearMonth)
+            if (BucketVersion.BucketTypeParameter == BucketVersionViewModel.BucketType.ExpenseEveryXMonths && 
+                BucketVersion.BucketTypeDateParameter < _currentYearMonth)
             {
                 do
                 {
-                    targetDate = targetDate.AddMonths(BucketVersion.BucketTypeXParam);
+                    targetDate = targetDate.AddMonths(BucketVersion.BucketTypeIntParameter);
                 } while (targetDate < _currentYearMonth);
             }
             
@@ -374,14 +439,14 @@ public class BucketViewModel : ViewModelBase
             }
             else
             {
-                Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeYParam) * 100);
+                Progress = Convert.ToInt32((Balance / BucketVersion.BucketTypeDecimalParameter) * 100);
             }
             
             // Some additional consistency checks and fixes
             if (Progress > 100) Progress = 100;
             if (Progress < 0) Progress = 0;
             
-            Details = $"{BucketVersion.BucketTypeYParam} until {targetDate:yyyy-MM}";
+            Details = $"{BucketVersion.BucketTypeDecimalParameter} until {targetDate:yyyy-MM}";
             IsProgressbarVisible = true;
         }
         else
@@ -393,38 +458,50 @@ public class BucketViewModel : ViewModelBase
 
         #endregion
     }
-
+    
     /// <summary>
-    /// Activates modification mode
+    /// Converts the ViewModel back to the database object and returns it
     /// </summary>
-    public void EditBucket()
+    /// <returns>Converted ViewModel as Dto</returns>
+    internal override Bucket ConvertToDto()
     {
+        return new Bucket()
+        {
+            Id = BucketId,
+            Name = Name,
+            BucketGroupId = BucketGroupId,
+            ColorCode = ColorCode,
+            ValidFrom = ValidFrom,
+            IsInactive = IsInactive,
+            IsInactiveFrom = IsInactiveFrom,
+        };
     }
 
     /// <summary>
-    /// Updates a record in the database based on <see cref="Bucket"/> object to set it as inactive. In case there
-    /// are no <see cref="BankTransaction"/> nor <see cref="BucketMovement"/> assigned to it, it will be deleted
-    /// completely from the database (including <see cref="BucketVersion"/>)
-    /// In case of a full deletion all <see cref="BucketRuleSet"/> will be also deleted.
+    /// Converts the ViewModel back to the database object and returns it
     /// </summary>
-    /// <remarks>Bucket will be set to inactive for the next month</remarks>
-    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
-    /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult CloseBucket()
+    /// <remarks>Includes a new <see cref="BucketVersion"/> for current month</remarks>
+    /// <returns>Converted ViewModel as Dto</returns>
+    private Bucket ConvertToDtoWithNewVersion()
     {
-        try
+        var result = ConvertToDto();
+        result.CurrentVersion = new BucketVersion()
         {
-            ServiceManager.BucketService.Close(Bucket, _currentYearMonth);
-            return new ViewModelOperationResult(true, true);
-        }
-        catch (Exception e)
-        {
-            return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
-        }
+            Id = BucketVersion.BucketVersionId,
+            Version = BucketVersion.Version, // API takes care for Version number increment
+            BucketId = BucketId,
+            ValidFrom = _currentYearMonth,
+            BucketType = (int)BucketVersion.BucketTypeParameter,
+            BucketTypeXParam = BucketVersion.BucketTypeIntParameter,
+            BucketTypeYParam = BucketVersion.BucketTypeDecimalParameter,
+            BucketTypeZParam = BucketVersion.BucketTypeDateParameter,
+            Notes = BucketVersion.Notes
+        };
+        return result;
     }
-
+    
     /// <summary>
-    /// Creates or updates a record in the database based on <see cref="Bucket"/> object
+    /// Creates or updates a record in the database based on ViewModel data
     /// </summary>
     /// <remarks>Creates also a new <see cref="BucketVersion"/> record in the database</remarks>
     /// <remarks>
@@ -438,10 +515,16 @@ public class BucketViewModel : ViewModelBase
         if (!validationResult.IsSuccessful) return validationResult;
         try
         {
-            if (Bucket.Id == Guid.Empty)
-                ServiceManager.BucketService.Create(Bucket, BucketVersion!, _currentYearMonth);
+            if (BucketId == Guid.Empty)
+            {
+                ServiceManager.BucketService.Create(ConvertToDtoWithNewVersion());
+            }
             else
-                ServiceManager.BucketService.Update(Bucket, BucketVersion!, _currentYearMonth);
+            {
+                ServiceManager.BucketService.Update(BucketVersion.HasModification
+                    ? ConvertToDtoWithNewVersion()
+                    : ConvertToDto());
+            }
             CalculateValues();
             return new ViewModelOperationResult(true);
         }
@@ -449,9 +532,8 @@ public class BucketViewModel : ViewModelBase
         {
             return new ViewModelOperationResult(false, $"Error during database update: {e.Message}", true);
         }
-        
     }
-
+    
     /// <summary>
     /// Runs several validation rules to prevent unintended behavior 
     /// </summary>
@@ -461,19 +543,24 @@ public class BucketViewModel : ViewModelBase
         try
         {
             // Check if target amount is positive
-            if (BucketVersion!.BucketTypeYParam < 0)
+            if (BucketVersion.BucketTypeDecimalParameter < 0)
             {
                 throw new Exception("Target amount must be positive");
             }
 
             // Check if target amount is 0 to prevent DivideByZeroException 
-            if ((BucketVersion.BucketType is 2 or 3 or 4) && BucketVersion.BucketTypeYParam <= 0)
+            if ((BucketVersion.BucketTypeParameter is 
+                    BucketVersionViewModel.BucketType.MonthlyExpense or 
+                    BucketVersionViewModel.BucketType.ExpenseEveryXMonths or 
+                    BucketVersionViewModel.BucketType.SaveXUntilYDate) && 
+                BucketVersion.BucketTypeDecimalParameter <= 0)
             {
                 throw new Exception("Target amount must not be 0 for this Bucket Type.");
             }
             
             // Check if number of months is not 0
-            if ((BucketVersion.BucketType == 3) && BucketVersion.BucketTypeXParam <= 0)
+            if ((BucketVersion.BucketTypeParameter == BucketVersionViewModel.BucketType.ExpenseEveryXMonths) && 
+                BucketVersion.BucketTypeIntParameter <= 0)
             {
                 throw new Exception("Number of months must be positive for this Bucket Type.");
             }
@@ -485,6 +572,32 @@ public class BucketViewModel : ViewModelBase
             return new ViewModelOperationResult(false, e.Message);
         }
     }
+    
+    /// <summary>
+    /// Updates a record in the database based on ViewModel data to set it as inactive. In case there
+    /// are no <see cref="BankTransaction"/> nor <see cref="BucketMovement"/> assigned to it, it will be deleted
+    /// completely from the database (including <see cref="BucketVersion"/>)
+    /// In case of a full deletion all <see cref="BucketRuleSet"/> will be also deleted.
+    /// </summary>
+    /// <remarks>Bucket will be set to inactive for the next month</remarks>
+    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult CloseBucket()
+    {
+        try
+        {
+            ServiceManager.BucketService.Close(BucketId, _currentYearMonth);
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
+        }
+    }
+    
+    #endregion
+
+    #region Misc
 
     /// <summary>
     /// Helper method to create a new <see cref="BucketMovement"/> record in the database based on User input
@@ -495,7 +608,7 @@ public class BucketViewModel : ViewModelBase
     {
         try
         {
-            ServiceManager.BucketService.CreateMovement(Bucket.Id, InOut, _currentYearMonth);
+            ServiceManager.BucketService.CreateMovement(BucketId, InOut, _currentYearMonth);
             CalculateValues();
             return new ViewModelOperationResult(true);
         }
@@ -504,4 +617,6 @@ public class BucketViewModel : ViewModelBase
             return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
         }
     }
+    
+    #endregion
 }

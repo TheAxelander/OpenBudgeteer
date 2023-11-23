@@ -1,6 +1,7 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.ViewModels.Helper
+@using System.Globalization
 
 <style>
     .element-margin {
@@ -15,7 +16,7 @@
             @bind:set="(value) => { DataContext.SelectedMonth = Convert.ToInt32(value); }">
         @foreach (var month in DataContext.Months)
         {
-            <option value="@month">@_monthConverter.ConvertMonth(month)</option>
+            <option value="@month">@_monthConverter.ConvertMonth(month, CultureInfo.CurrentCulture)</option>
         }
     </select>
     <input class="form-control form-control-sm element-margin" style="text-align: right; width: 50px" type="text" @bind="DataContext.SelectedYear" />

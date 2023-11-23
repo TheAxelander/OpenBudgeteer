@@ -9,6 +9,7 @@
 *.db-wal
 *.DS_Store
 OpenBudgeteer.Blazor/appsettings.Development.json
+OpenBudgeteer.API/appsettings.Development.json
 
 # User-specific files
 *.rsuser

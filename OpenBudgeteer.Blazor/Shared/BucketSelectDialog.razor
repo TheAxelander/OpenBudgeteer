@@ -3,6 +3,7 @@
 @using System.Globalization
 @using OpenBudgeteer.Core.Data
 @using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using OpenBudgeteer.Core.ViewModels.Helper
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
@@ -44,7 +45,7 @@
                                             <div>
                                                 <button class="btn btn-sm header-action-button collapse-button"
                                                         @onclick="@(() => bucketGroup.IsCollapsed = !bucketGroup.IsCollapsed)"><span>@(bucketGroup.IsCollapsed ? "▶" : "▼")</span></button>
-                                                <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
+                                                <span class="bucketgroup-header-text">@bucketGroup.Name</span>
                                             </div>
                                         </th>
                                         <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
@@ -62,14 +63,14 @@
                                     {
                                         <tr @onmouseover="@(() => bucket.IsHovered = true)" @onmouseout="@(() => bucket.IsHovered = false)">
                                             <td>
-                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket.Bucket)">
-                                                    @if (bucket.Bucket.IsInactive)
+                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Color); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket)">
+                                                    @if (bucket.IsInactive)
                                                     {
-                                                        @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
+                                                        @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")
                                                     }
                                                     else
                                                     {
-                                                        @bucket.Bucket.Name
+                                                        @bucket.Name
                                                     }
                                                 </button>
                                             </td>
@@ -122,7 +123,7 @@
     public bool IsDialogLoading { get; set; }
     
     [Parameter]
-    public EventCallback<Bucket> OnBucketSelectedCallback { get; set; }
+    public EventCallback<BucketViewModel> OnBucketSelectedCallback { get; set; }
     
     [Parameter]
     public EventCallback<MouseEventArgs> OnCancelCallback { get; set; }

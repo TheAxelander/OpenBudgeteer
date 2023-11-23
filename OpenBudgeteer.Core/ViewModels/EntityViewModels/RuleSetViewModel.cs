@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
@@ -8,28 +9,70 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class RuleSetViewModel : ViewModelBase
+public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
 {
-    private BucketRuleSet _ruleSet;
+    #region Properties & Fields
+    
     /// <summary>
-    /// Reference to model object in the database
+    /// Database Id of the BucketRuleSetId
     /// </summary>
-    public BucketRuleSet RuleSet
-    {
-        get => _ruleSet;
-        set => Set(ref _ruleSet, value);
-    }
-
-    private Bucket _targetBucket;
+    public readonly Guid BucketRuleSetId;
+    
+    private int _priority;
     /// <summary>
-    /// Bucket to which this RuleSet applies
+    /// Priority in which order this BucketRuleSet should apply
     /// </summary>
-    public Bucket TargetBucket
-    {
-        get => _targetBucket;
-        set => Set(ref _targetBucket, value);
+    public int Priority 
+    { 
+        get => _priority;
+        set => Set(ref _priority, value);
     }
-
+    
+    private string _name;
+    /// <summary>
+    /// Name of the BucketRuleSet
+    /// </summary>
+    public string Name 
+    { 
+        get => _name;
+        set => Set(ref _name, value);
+    }
+    
+    private Guid _targetBucketId;
+    /// <summary>
+    /// Database Id of the Bucket which will be used once the BucketRuleSet applies
+    /// </summary>
+    public Guid TargetBucketId 
+    { 
+        get => _targetBucketId;
+        set => Set(ref _targetBucketId, value);
+    }
+    
+    private string _targetBucketName;
+    /// <summary>
+    /// Name of the Bucket
+    /// </summary>
+    public string TargetBucketName
+    {
+        get => _targetBucketName;
+        set => Set(ref _targetBucketName, value);
+    }
+    
+    private string _targetBucketColorCode;
+    /// <summary>
+    /// Name of the color based from <see cref="Color"/>
+    /// </summary>
+    public string TargetBucketColorCode 
+    { 
+        get => _targetBucketColorCode;
+        set => Set(ref _targetBucketColorCode, value);
+    }
+    
+    /// <summary>
+    /// <see cref="Color"/> of the Bucket 
+    /// </summary>
+    public Color TargetBucketColor => string.IsNullOrEmpty(TargetBucketColorCode) ? Color.LightGray : Color.FromName(TargetBucketColorCode);
+    
     private bool _inModification;
     /// <summary>
     /// Helper property to check if the RuleSet is currently modified
@@ -63,12 +106,16 @@ public class RuleSetViewModel : ViewModelBase
     /// <summary>
     /// Helper collection to list all existing Buckets
     /// </summary>
-    public readonly ObservableCollection<Bucket> AvailableBuckets;
+    private readonly ObservableCollection<Bucket> _availableBuckets;
 
     private RuleSetViewModel? _oldRuleSetViewModelItem;
+    
+    #endregion
+    
+    #region Constructors
 
     /// <summary>
-    /// Initialize ViewModel based on an existing <see cref="BucketRuleSet"/>
+    /// Initialize ViewModel based on an existing <see cref="BucketRuleSet"/> object
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
@@ -79,10 +126,10 @@ public class RuleSetViewModel : ViewModelBase
         _mappingRules = new ObservableCollection<MappingRuleViewModel>();
         
         // Handle Buckets
-        AvailableBuckets = new ObservableCollection<Bucket>();
+        _availableBuckets = new ObservableCollection<Bucket>();
         foreach (var availableBucket in availableBuckets)
         {
-            AvailableBuckets.Add(availableBucket);
+            _availableBuckets.Add(availableBucket);
         }
         
         // Handle RuleSet
@@ -93,29 +140,61 @@ public class RuleSetViewModel : ViewModelBase
             {
                 Id = Guid.Empty,
                 BucketGroupId = Guid.Empty,
+                BucketGroup = new BucketGroup(),
                 Name = "No Selection"
             };
-            AvailableBuckets.Add(noSelectBucket);
-            _ruleSet = new();
-            _targetBucket = noSelectBucket;
+            _availableBuckets.Add(noSelectBucket);
+            
+            BucketRuleSetId = Guid.Empty;
+            _name = string.Empty;
+            _priority = 0;
+            _targetBucketId = noSelectBucket.Id;
+            _targetBucketName = noSelectBucket.Name;
+            _targetBucketColorCode = string.Empty;
         }
         else
         {
-            // Make a copy of the object to prevent any double Bindings
-            _ruleSet = new ()
-            {
-                Id = bucketRuleSet.Id,
-                Name = bucketRuleSet.Name,
-                Priority = bucketRuleSet.Priority,
-                TargetBucketId = bucketRuleSet.TargetBucketId,
-            };
-            _targetBucket = bucketRuleSet.TargetBucket;
+            BucketRuleSetId = bucketRuleSet.Id;
+            _name = bucketRuleSet.Name ?? string.Empty;
+            _priority = bucketRuleSet.Priority;
+            _targetBucketId = bucketRuleSet.TargetBucketId;
+            _targetBucketName = bucketRuleSet.TargetBucket.Name ?? string.Empty;
+            _targetBucketColorCode = bucketRuleSet.TargetBucket.ColorCode ?? string.Empty;
             
-            foreach (var mappingRule in ServiceManager.BucketRuleSetService.GetMappingRules(bucketRuleSet.Id))
+            foreach (var mappingRule in bucketRuleSet.MappingRules)
             {
                 MappingRules.Add(new MappingRuleViewModel(serviceManager, mappingRule));
             }
         }
+    }
+
+    /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="viewModel">Current ViewModel instance</param>
+    protected RuleSetViewModel(RuleSetViewModel viewModel) : base(viewModel.ServiceManager)
+    {
+        // Handle Mapping Rules
+        _mappingRules = new ObservableCollection<MappingRuleViewModel>();
+        foreach (var mappingRule in MappingRules)
+        {
+            _mappingRules.Add(mappingRule);
+        }
+        
+        // Handle Buckets
+        _availableBuckets = new ObservableCollection<Bucket>();
+        foreach (var availableBucket in viewModel._availableBuckets)
+        {
+            _availableBuckets.Add(availableBucket);
+        }
+        
+        // Handle RuleSet
+        BucketRuleSetId = viewModel.BucketRuleSetId;
+        _name = viewModel.Name;
+        _priority = viewModel.Priority;
+        _targetBucketId = viewModel.TargetBucketId;
+        _targetBucketName = viewModel.TargetBucketName;
+        _targetBucketColorCode = viewModel.TargetBucketColorCode;
     }
 
     /// <summary>
@@ -140,13 +219,68 @@ public class RuleSetViewModel : ViewModelBase
     {
         return new RuleSetViewModel(serviceManager, availableBuckets, bucketRuleSet);
     }
+    
+    #endregion
+    
+    #region Modification Handler
+    
+    internal override BucketRuleSet ConvertToDto()
+    {
+        return new BucketRuleSet()
+        {
+            Id = BucketRuleSetId,
+            Name = Name,
+            Priority = Priority,
+            TargetBucketId = TargetBucketId
+        };
+    }
+    
+    private BucketRuleSet ConvertToDtoFull()
+    {
+        var result = ConvertToDto();
+        result.TargetBucket = new Bucket()
+        {
+            Id = TargetBucketId,
+            Name = TargetBucketName,
+            ColorCode = TargetBucketColorCode,
+        };
+        result.MappingRules = new List<MappingRule>();
+        foreach (var mappingRuleViewModel in MappingRules)
+        {
+            result.MappingRules.Add(mappingRuleViewModel.ConvertToDto());
+        }
+        return result;
+    }
+    
+    private BucketRuleSet ConvertToDtoWithMappingRules()
+    {
+        var result = ConvertToDto();
+        result.MappingRules = new List<MappingRule>();
+        foreach (var mappingRuleViewModel in MappingRules)
+        {
+            result.MappingRules.Add(mappingRuleViewModel.ConvertToDto());
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Updates ViewModel data based on ViewModel data
+    /// </summary>
+    /// <param name="bucketViewModel">Newly selected Bucket</param>
+    public void UpdateSelectedBucket(BucketViewModel bucketViewModel)
+    {
+        TargetBucketId = bucketViewModel.BucketId;
+        TargetBucketName = bucketViewModel.Name;
+        TargetBucketColorCode = bucketViewModel.ColorCode;
+    }
 
     /// <summary>
     /// Helper method to start modification process
     /// </summary>
     public void StartModification()
     {
-        _oldRuleSetViewModelItem = CreateFromRuleSet(ServiceManager, AvailableBuckets, RuleSet);
+        _oldRuleSetViewModelItem = new RuleSetViewModel(this);
         InModification = true;
     }
 
@@ -155,7 +289,9 @@ public class RuleSetViewModel : ViewModelBase
     /// </summary>
     public void CancelModification()
     {
-        RuleSet = _oldRuleSetViewModelItem!.RuleSet;
+        Name = _oldRuleSetViewModelItem!.Name;
+        Priority = _oldRuleSetViewModelItem!.Priority;
+        TargetBucketId = _oldRuleSetViewModelItem!.TargetBucketId;
         MappingRules = _oldRuleSetViewModelItem.MappingRules;
         InModification = false;
         _oldRuleSetViewModelItem = null;
@@ -174,25 +310,17 @@ public class RuleSetViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Creates or updates records in the database based on <see cref="RuleSet"/> and <see cref="MappingRules"/> objects
+    /// Creates or updates records in the database based on ViewModel data
     /// </summary>
     /// <returns>Object which contains information and results of this method</returns>
     public ViewModelOperationResult CreateUpdateRuleSetItem()
     {
         try
         {
-            var mappingRules = MappingRules.Select(mappingRule => mappingRule.MappingRule).ToList();
-            
-            if (RuleSet.Id == Guid.Empty)
-            {
-                // CREATE
-                ServiceManager.BucketRuleSetService.Create(RuleSet, mappingRules);
-            }
+            if (BucketRuleSetId == Guid.Empty)
+                ServiceManager.BucketRuleSetService.Create(ConvertToDtoWithMappingRules());
             else
-            {
-                // UPDATE
-                ServiceManager.BucketRuleSetService.Update(RuleSet, mappingRules);
-            }
+                ServiceManager.BucketRuleSetService.Update(ConvertToDtoWithMappingRules());
                     
             _oldRuleSetViewModelItem = null;
             InModification = false;
@@ -215,4 +343,24 @@ public class RuleSetViewModel : ViewModelBase
         MappingRules.Remove(mappingRule);
         if (MappingRules.Count == 0) AddEmptyMappingRule();
     }
+    
+    /// <summary>
+    /// Deletes records in the database based on ViewModel data
+    /// </summary>
+    /// <remarks>Deletes also all <see cref="MappingRule"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult DeleteRuleSet()
+    {
+        try
+        {
+            ServiceManager.BucketRuleSetService.Delete(BucketRuleSetId);
+            return new ViewModelOperationResult(true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+        }
+    }
+    
+    #endregion
 }

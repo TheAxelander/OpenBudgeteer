@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 

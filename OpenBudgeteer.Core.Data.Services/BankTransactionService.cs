@@ -1,6 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Contracts;
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -11,23 +9,45 @@ namespace OpenBudgeteer.Core.Data.Services;
 internal class BankTransactionService : BaseService<BankTransaction>, IBankTransactionService
 {
     internal BankTransactionService(DbContextOptions<DatabaseContext> dbContextOptions) 
-        : base(dbContextOptions)
+        : base(dbContextOptions, new BankTransactionRepository(new DatabaseContext(dbContextOptions)))
     {
     }
     
-    public IEnumerable<BankTransaction> GetAll(DateTime periodStart, DateTime periodEnd)
+    public BankTransaction GetWithEntities(Guid id)
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(DbContextOptions);
+            var repository = new BankTransactionRepository(dbContext);
+
+            var result = repository.ByIdWithIncludedEntities(id);
+            if (result == null) throw new Exception($"{typeof(BankTransaction)} not found in database");
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
+    
+    public IEnumerable<BankTransaction> GetAll(DateTime? periodStart, DateTime? periodEnd, int limit = 0)
     {
         try
         {
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BankTransactionRepository(dbContext);
             
-            return repository
+            var result = repository
+                .AllWithIncludedEntities()
                 .Where(i =>
-                    i.TransactionDate >= periodStart &&
-                    i.TransactionDate <= periodEnd)
+                    i.TransactionDate >= (periodStart ?? DateTime.MinValue) &&
+                    i.TransactionDate <= (periodEnd ?? DateTime.MaxValue))
                 .OrderByDescending(i => i.TransactionDate)
                 .ToList();
+            return limit > 0
+                ? result.Take(limit)
+                : result;
         }
         catch (Exception e)
         {
@@ -38,10 +58,10 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
     
     public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, int limit = 0)
     {
-        return GetFromAccount(accountId, DateTime.MinValue, DateTime.MaxValue, limit);
+        return GetFromAccount(accountId, null, null, limit);
     }
     
-    public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, DateTime periodStart, DateTime periodEnd, int limit = 0)
+    public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, DateTime? periodStart, DateTime? periodEnd, int limit = 0)
     {
         try
         {
@@ -49,9 +69,10 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
             var repository = new BankTransactionRepository(dbContext);
             
             var result = repository
+                .AllWithIncludedEntities()
                 .Where(i =>
-                    i.TransactionDate >= periodStart &&
-                    i.TransactionDate <= periodEnd &&
+                    i.TransactionDate >= (periodStart ?? DateTime.MinValue) &&
+                    i.TransactionDate <= (periodEnd ?? DateTime.MaxValue) &&
                     i.AccountId == accountId)
                 .OrderByDescending(i => i.TransactionDate)
                 .ToList();
@@ -85,36 +106,8 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
             throw new Exception($"Errors during database update: {e.Message}");
         }
     }
-    
-    public BankTransaction Create(BankTransaction entity, IEnumerable<BudgetedTransaction> budgetedTransactions)
-    {
-        using var dbContext = new DatabaseContext(DbContextOptions);
-        using var transaction = dbContext.Database.BeginTransaction();
-        try
-        {
-            var budgetedTransactionRepository = new BudgetedTransactionRepository(dbContext);
-            var bankTransactionRepository = new BankTransactionRepository(dbContext);
-            
-            // Create BankTransaction in DB
-            bankTransactionRepository.Create(entity);
-            
-            // Create new bucket assignments
-            var newBudgetedTransactions = budgetedTransactions.ToList();
-            var result = budgetedTransactionRepository.CreateRange(newBudgetedTransactions);
-            if (result != newBudgetedTransactions.Count) 
-                throw new Exception("Unable to create new Bucket Assignments for that Transaction");
-            
-            transaction.Commit();
-            return entity;
-        }
-        catch (Exception e)
-        {
-            transaction.Rollback();
-            throw new Exception($"Errors during database update: {e.Message}");
-        }
-    }
 
-    public BankTransaction Update(BankTransaction entity, IEnumerable<BudgetedTransaction> budgetedTransactions)
+    public override BankTransaction Update(BankTransaction entity)
     {
         using var dbContext = new DatabaseContext(DbContextOptions);
         using var transaction = dbContext.Database.BeginTransaction();
@@ -122,24 +115,33 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
         {
             var budgetedTransactionRepository = new BudgetedTransactionRepository(dbContext);
             var bankTransactionRepository = new BankTransactionRepository(dbContext);
+
+            if (entity.BudgetedTransactions != null && entity.BudgetedTransactions.Any())
+            {
+                // Delete all existing bucket assignments, as they will be replaced by passed assignments
+                var deletedIds =
+                    budgetedTransactionRepository.All()
+                        .Where(i => i.TransactionId == entity.Id)
+                        .Select(i => i.Id)
+                        .ToList();
+                        
+                if (deletedIds.Any())
+                {
+                    var result = budgetedTransactionRepository.DeleteRange(deletedIds);
+                    if (result != deletedIds.Count) 
+                        throw new Exception("Unable to delete old Bucket Assignments of that Transaction");
+                }
+                
+                // Reset all Guid for re-creation
+                foreach (var budgetedTransaction in entity.BudgetedTransactions)
+                {
+                    budgetedTransaction.Id = Guid.Empty;
+                }
+            }
             
-            // Update BankTransaction in DB
+            // Update BankTransaction including bucket assignments (if available) in DB
             bankTransactionRepository.Update(entity);
             
-            // Delete all previous bucket assignments for transaction
-            var oldBudgetedTransactions = budgetedTransactionRepository
-                .Where(i => i.TransactionId == entity.Id)
-                .ToList();
-            var result = budgetedTransactionRepository.DeleteRange(oldBudgetedTransactions);
-            if (result != oldBudgetedTransactions.Count) 
-                throw new Exception("Unable to delete old Bucket Assignments of that Transaction");
-            
-            // Create new bucket assignments
-            var newBudgetedTransactions = budgetedTransactions.ToList();
-            result = budgetedTransactionRepository.CreateRange(newBudgetedTransactions);
-            if (result != newBudgetedTransactions.Count) 
-                throw new Exception("Unable to create new Bucket Assignments for that Transaction");
-            
             transaction.Commit();
             return entity;
         }
@@ -150,33 +152,17 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
         }
     }
 
-    public override BankTransaction Delete(BankTransaction entity)
+    public override void Delete(Guid id)
     {
         using var dbContext = new DatabaseContext(DbContextOptions);
-        using var transaction = dbContext.Database.BeginTransaction();
         try
         {
-            var budgetedTransactionRepository = new BudgetedTransactionRepository(dbContext);
             var bankTransactionRepository = new BankTransactionRepository(dbContext);
-            
-            // Delete all previous bucket assignments for transaction
-            var budgetedTransactions = budgetedTransactionRepository
-                .Where(i => i.TransactionId == entity.Id)
-                .ToList();
-            var result = budgetedTransactionRepository.DeleteRange(budgetedTransactions);
-            if (result != budgetedTransactions.Count) 
-                throw new Exception("Unable to delete all Bucket Assignments of that Transaction");
-            
-            // Delete BankTransaction in DB
-            result = bankTransactionRepository.Delete(entity);
+            var result = bankTransactionRepository.Delete(id);
             if (result == 0) throw new Exception("Unable to delete Bank Transaction");
-            
-            transaction.Commit();
-            return entity;
         }
         catch (Exception e)
         {
-            transaction.Rollback();
             throw new Exception($"Errors during database update: {e.Message}");
         }
     }
