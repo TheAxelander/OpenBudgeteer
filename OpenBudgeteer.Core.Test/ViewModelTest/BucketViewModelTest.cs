@@ -44,7 +44,7 @@ public class BucketPageViewModelTest : BaseTest
                 Name = bucketName,
                 ColorCode = "Red",
                 ValidFrom = new DateTime(2010, 1, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { BucketType = 1, Version = 1 } }
             };
             ServiceManager.BucketService.Create(newBucket);
         }
@@ -90,7 +90,7 @@ public class BucketPageViewModelTest : BaseTest
                 Name = bucketName,
                 ColorCode = "Red",
                 ValidFrom = new DateTime(2010, 1, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { BucketType = 1, Version = 1 } }
             };
             ServiceManager.BucketService.Create(newBucket);
         }
@@ -160,11 +160,14 @@ public class BucketPageViewModelTest : BaseTest
             ValidFrom = bucketActiveSince,
             IsInactive = bucketIsInactive,
             IsInactiveFrom = bucketIsInActiveFrom,
-            CurrentVersion = new BucketVersion()
+            BucketVersions = new List<BucketVersion>
             {
-                Version = 1,
-                BucketType = 1,
-                ValidFrom = bucketActiveSince
+                new()
+                {
+                    Version = 1,
+                    BucketType = 1,
+                    ValidFrom = bucketActiveSince
+                }
             }
         };
 
@@ -200,21 +203,21 @@ public class BucketPageViewModelTest : BaseTest
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket Active Current Month",
                 ValidFrom = new DateTime(2010, 1, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
             var testBucket2 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket Active Past",
                 ValidFrom = new DateTime(2009, 1, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
             var testBucket3 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket Active Future",
                 ValidFrom = new DateTime(2010, 2, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
 
             ServiceManager.BucketService.Create(testBucket1);
@@ -259,14 +262,14 @@ public class BucketPageViewModelTest : BaseTest
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket 1", 
                 ValidFrom = new DateTime(2010, 1, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
             var testBucket2 = new Bucket
             {
                 BucketGroupId = testBucketGroup.Id, 
                 Name = "Bucket 2", 
                 ValidFrom = new DateTime(2010, 1, 1),
-                CurrentVersion = new BucketVersion { Version = 1, BucketType = 1 }
+                BucketVersions = new List<BucketVersion> { new() { Version = 1, BucketType = 1 } }
             };
             
             ServiceManager.BucketService.Create(testBucket1);
@@ -349,7 +352,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "Bucket with pending Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
@@ -360,7 +366,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "Bucket with fulfilled Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -374,7 +383,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "Bucket pending Want including expense", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
                     },
                     new List<BankTransaction>
                     {
@@ -388,7 +400,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "Bucket fulfilled Want including expense", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
                     },
                     new List<BankTransaction>
                     {
@@ -405,7 +420,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "Bucket with partial fulfilled Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -419,7 +437,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "Bucket with over fulfilled Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 2, BucketTypeYParam = 10 },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -470,7 +491,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, with Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
@@ -481,7 +505,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, without Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -495,7 +522,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, with Want", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -514,7 +544,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, without Want", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -534,7 +567,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, fulfilled target", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -553,7 +589,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, over-fulfilled target", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -572,7 +611,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, no input", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
@@ -583,7 +625,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, input not in sync", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -599,7 +644,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "100 every 3 months, with Want", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,3,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,3,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
@@ -610,7 +658,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "100 every 3 months, last month, with Want", ValidFrom = new DateTime(2009,11,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -625,7 +676,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "100 every 3 months, last month, input not in sync", ValidFrom = new DateTime(2009,11,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -640,7 +694,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, last 6 months, with expenses", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>
                     {
@@ -663,7 +720,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 every 12 months, 2nd year, last 6 months, with Want", ValidFrom = new DateTime(2008,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,6,1) },
+                        }
                     },
                     new List<BankTransaction>
                     {
@@ -707,7 +767,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2010-12, no input", ValidFrom = new DateTime(2010,1,1), 
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>(),
@@ -718,7 +781,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2010-12, input in current Month", ValidFrom = new DateTime(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,12,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -732,7 +798,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2010-06, input in sync", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -751,7 +820,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2010-06, fulfilled target", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -770,7 +842,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2010-06, over-fulfilled target", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -789,7 +864,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2010-06, input not in sync", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2010,6,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -805,7 +883,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "120 until 2009-12, target not reached", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,12,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateTime(2009,12,1) },
+                        }
                     },
                     new List<BankTransaction>(),
                     new List<BucketMovement>
@@ -821,7 +902,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "30 until 2010-01, target reached, with expense in target month", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
                     },
                     new List<BankTransaction>
                     {
@@ -840,7 +924,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "30 until 2010-01, target reached, with lower expense in target month", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
                     },
                     new List<BankTransaction>
                     {
@@ -859,7 +946,10 @@ public class BucketPageViewModelTest : BaseTest
                     new Bucket
                     {
                         Name = "30 until 2010-01, target reached, with higher expense in target month", ValidFrom = new DateTime(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) }
+                        BucketVersions = new List<BucketVersion>
+                        {
+                            new() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateTime(2010,1,1) },
+                        }
                     },
                     new List<BankTransaction>
                     {

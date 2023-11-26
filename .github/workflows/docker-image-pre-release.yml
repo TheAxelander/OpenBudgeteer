@@ -5,7 +5,7 @@ on:
     branches: [ pre-release ]
     
 env:
-  DOTNET_VERSION: '7.0.103' # The .NET SDK version to use
+  DOTNET_VERSION: '8.0.100' # The .NET SDK version to use
 
 jobs:
   test:
@@ -56,4 +56,5 @@ jobs:
           push: true
           tags: axelander/openbudgeteer:pre-release
 #          file: OpenBudgeteer.Blazor/Dockerfile
-          platforms:  linux/amd64
+          platforms: linux/arm64,linux/amd64
+#          platforms: linux/amd64
