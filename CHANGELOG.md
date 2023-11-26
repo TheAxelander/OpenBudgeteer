@@ -3,6 +3,7 @@
 * [Add] Create Transaction keeps last input date [#187](https://github.com/TheAxelander/OpenBudgeteer/issues/187)
 * [Add] An empty database can be loaded now with some demo data using `APPSETTINGS_DEMO_DATA: true` [#192](https://github.com/TheAxelander/OpenBudgeteer/issues/192)
 * [Add] First version of Web API in a separate Docker Image [#127](https://github.com/TheAxelander/OpenBudgeteer/issues/127)
+* [Changed] Migrated to .Net 8 [#198](https://github.com/TheAxelander/OpenBudgeteer/issues/198)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
 * [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
 * [Changed] More responsive navigation bar [#175](https://github.com/TheAxelander/OpenBudgeteer/issues/175)
@@ -10,6 +11,7 @@
 * [Fixed] UI alignment for large numbers [#189](https://github.com/TheAxelander/OpenBudgeteer/issues/189)
 * [Fixed] Mapping Rules using the Account Name instead of Account Id [#199](https://github.com/TheAxelander/OpenBudgeteer/pull/199) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Adding a Mapping Rule to an existing Rule Set failed [#200](https://github.com/TheAxelander/OpenBudgeteer/pull/200) Thanks [Lucaber](https://github.com/Lucaber)
+* [Fixed] Builds for ARM64 are available again [#131](https://github.com/TheAxelander/OpenBudgeteer/issues/131)
 
 ### 1.7.1 (2023-10-16)
 
