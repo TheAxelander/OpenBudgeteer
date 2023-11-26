@@ -3,6 +3,7 @@
 * [Add] Create Transaction keeps last input date [#187](https://github.com/TheAxelander/OpenBudgeteer/issues/187)
 * [Add] An empty database can be loaded now with some demo data using `APPSETTINGS_DEMO_DATA: true` [#192](https://github.com/TheAxelander/OpenBudgeteer/issues/192)
 * [Add] First version of Web API in a separate Docker Image [#127](https://github.com/TheAxelander/OpenBudgeteer/issues/127)
+* [Breaking Change] Docker Image now listens on port 8080 (new .Net 8 default)
 * [Changed] Migrated to .Net 8 [#198](https://github.com/TheAxelander/OpenBudgeteer/issues/198)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)
 * [Changed] Buttons that appeared in the past only via hovering are now always displayed (was not working well, maybe additional rework in future) [#155](https://github.com/TheAxelander/OpenBudgeteer/issues/155)
