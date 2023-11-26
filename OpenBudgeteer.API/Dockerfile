@@ -3,17 +3,17 @@ WORKDIR /api
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-EXPOSE 80
-EXPOSE 443
 RUN apk add --no-cache icu-libs icu-data-full
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG TARGETARCH
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 
 WORKDIR /src
 COPY ["OpenBudgeteer.API/OpenBudgeteer.API.csproj", "OpenBudgeteer.API/"]
-RUN dotnet restore "OpenBudgeteer.API/OpenBudgeteer.API.csproj"
+RUN dotnet restore "OpenBudgeteer.API/OpenBudgeteer.API.csproj" -a $TARGETARCH
 COPY . .
 WORKDIR "/src/OpenBudgeteer.API"
-RUN dotnet publish "OpenBudgeteer.API.csproj" -r linux-musl-x64 --no-self-contained -c Release -o /api/publish
+RUN dotnet publish "OpenBudgeteer.API.csproj" --no-self-contained -c Release -a $TARGETARCH -o /api/publish
 
 FROM base AS final
 WORKDIR /api
