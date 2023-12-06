@@ -402,14 +402,17 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     /// </summary>
     public void CancelModification()
     {
-        AccountId = _oldRecurringTransactionViewModelItem!.AccountId;
-        RecurrenceType = _oldRecurringTransactionViewModelItem!.RecurrenceType;
-        RecurrenceAmount = _oldRecurringTransactionViewModelItem!.RecurrenceAmount;
-        Payee = _oldRecurringTransactionViewModelItem!.Payee;
-        Memo = _oldRecurringTransactionViewModelItem!.Memo;
-        Amount = _oldRecurringTransactionViewModelItem!.Amount;
-        FirstOccurrenceDate = _oldRecurringTransactionViewModelItem!.FirstOccurrenceDate;
-        SelectedAccount = _oldRecurringTransactionViewModelItem.SelectedAccount;
+        if (_oldRecurringTransactionViewModelItem != null)
+        {
+            AccountId = _oldRecurringTransactionViewModelItem.AccountId;
+            RecurrenceType = _oldRecurringTransactionViewModelItem.RecurrenceType;
+            RecurrenceAmount = _oldRecurringTransactionViewModelItem.RecurrenceAmount;
+            Payee = _oldRecurringTransactionViewModelItem.Payee;
+            Memo = _oldRecurringTransactionViewModelItem.Memo;
+            Amount = _oldRecurringTransactionViewModelItem.Amount;
+            FirstOccurrenceDate = _oldRecurringTransactionViewModelItem.FirstOccurrenceDate;
+            SelectedAccount = _oldRecurringTransactionViewModelItem.SelectedAccount;
+        }
         InModification = false;
         _oldRecurringTransactionViewModelItem = null;
     }

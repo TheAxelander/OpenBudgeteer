@@ -76,7 +76,7 @@
                                         <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
                                         <td class="col-buttons">
                                             <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
-                                            <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
+                                            <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => CancelTransaction(transaction))"></button>
                                         </td>
                                     </tr>
                                 }
@@ -163,6 +163,12 @@
     async void SaveTransaction(RecurringTransactionViewModel transaction)
     {
         await HandleResult(transaction.CreateOrUpdateTransaction());
+    }
+
+    void CancelTransaction(RecurringTransactionViewModel transaction)
+    {
+        transaction.CancelModification();
+        if (transaction.RecurringTransactionId == Guid.Empty) DataContext.Transactions.Remove(transaction);
     }
 
     void TransactionRecurrenceType_SelectionChanged(string? value, RecurringTransactionViewModel transaction)

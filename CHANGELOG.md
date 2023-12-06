@@ -15,6 +15,7 @@
 * [Fixed] Mapping Rules using the Account Name instead of Account Id [#199](https://github.com/TheAxelander/OpenBudgeteer/pull/199) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Adding a Mapping Rule to an existing Rule Set failed [#200](https://github.com/TheAxelander/OpenBudgeteer/pull/200) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Builds for ARM64 are available again [#131](https://github.com/TheAxelander/OpenBudgeteer/issues/131)
+* [Fixed] Exception after canceling creation of a new Recurring Transactions [#210](https://github.com/TheAxelander/OpenBudgeteer/issues/210)
 
 ### 1.7.1 (2023-10-16)
 
