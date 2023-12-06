@@ -576,7 +576,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         try
         {
             ServiceManager.BankTransactionService.Delete(TransactionId);
-            return new ViewModelOperationResult(true);
+            return new ViewModelOperationResult(true, true);
         }
         catch (Exception e)
         {
