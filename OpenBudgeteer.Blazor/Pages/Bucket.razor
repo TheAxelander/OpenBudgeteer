@@ -181,7 +181,7 @@
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
-                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleResult(bucketGroup.DeleteGroup()))"></button>
+                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketGroupDeleteRequest(bucketGroup))"></button>
                     <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => CreateBucket(bucketGroup))"></button>
                 </th>
             }
@@ -280,6 +280,13 @@
     IsDialogVisible="@_isBucketDetailsModalDialogVisible" 
     IsDialogLoading="@_isBucketDetailsModalDialogDataContextLoading"
     OnClickCallback="@(() => _isBucketDetailsModalDialogVisible = false)"/>
+
+<DeleteConfirmationDialog 
+    Title="Delete Bucket Group" 
+    Message="Do you really want to delete this Bucket Group?" 
+    IsDialogVisible="@_isDeleteBucketGroupDialogVisible"
+    OnDeleteClickCallback="@DeleteBucketGroup"
+    OnCancelClickCallback="@CancelDeleteBucketGroup"/>
 
 <DeleteConfirmationDialog 
     Title="Close Bucket" 

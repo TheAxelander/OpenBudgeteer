@@ -26,6 +26,9 @@ public partial class Bucket : ComponentBase
     private bool _isBucketDetailsModalDialogVisible;
     private bool _isBucketDetailsModalDialogDataContextLoading;
 
+    private bool _isDeleteBucketGroupDialogVisible;
+    private BucketGroupViewModel? _bucketGroupToBeDeleted;
+    
     private bool _isCloseBucketDialogVisible;
     private BucketViewModel? _bucketToBeClosed;
 
@@ -72,6 +75,26 @@ public partial class Bucket : ComponentBase
     private void CancelNewBucketGroupDialog()
     {
         _isNewBucketGroupModalDialogVisible = false;
+    }
+    
+    private void HandleBucketGroupDeleteRequest(BucketGroupViewModel bucketGroup)
+    {
+        _bucketGroupToBeDeleted = bucketGroup;
+        _isDeleteBucketGroupDialogVisible = true;
+    }
+    
+    private void CancelDeleteBucketGroup()
+    {
+        _isDeleteBucketGroupDialogVisible = false;
+        _bucketGroupToBeDeleted = null;
+    }
+    
+    private async void DeleteBucketGroup()
+    {
+        _isDeleteBucketGroupDialogVisible = false;
+        if(_bucketGroupToBeDeleted != null) await HandleResult(_bucketGroupToBeDeleted.DeleteGroup());
+        _bucketGroupToBeDeleted = null;
+        StateHasChanged();
     }
 
     private void ShowEditBucketDialog(BucketViewModel bucket)
