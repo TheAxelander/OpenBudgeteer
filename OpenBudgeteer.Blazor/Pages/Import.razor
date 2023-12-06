@@ -439,16 +439,15 @@
     Title="Import"
     Message="@_infoDialogMessage"
     IsDialogVisible="@_isInfoDialogVisible"
-    OnCloseClickCallback="@(() => _isInfoDialogVisible = false)"
-    />
+    IsInteractionEnabled="@_isInfoDialogInteractionEnabled"
+    OnCloseClickCallback="@(() => _isInfoDialogVisible = false)"/>
 
 <DeleteConfirmationDialog
     Title="Delete Import Profile"
     Message="Do you really want to delete the selected Import Profile?"
     IsDialogVisible="@_isDeleteConfirmationDialogVisible"
     OnDeleteClickCallback="@DeleteProfile"
-    OnCancelClickCallback="@(() => _isDeleteConfirmationDialogVisible = false)"
-    />
+    OnCancelClickCallback="@(() => _isDeleteConfirmationDialogVisible = false)"/>
 
 <ErrorMessageDialog 
     Title="Import" 

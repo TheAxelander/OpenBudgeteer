@@ -47,6 +47,7 @@ public partial class Import : ComponentBase
     private string _importConfirmationMessage = string.Empty;
 
     private bool _isInfoDialogVisible;
+    private bool _isInfoDialogInteractionEnabled;
     private string _infoDialogMessage = string.Empty;
 
     private bool _isDeleteConfirmationDialogVisible;
@@ -138,9 +139,15 @@ public partial class Import : ComponentBase
     {
         LoadData();
 
+        _infoDialogMessage = "Uploading and processing file...";
+        _isInfoDialogInteractionEnabled = false;
+        _isInfoDialogVisible = true;
+        
         var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
         if (file == null) return;
         HandleResult(await _dataContext.HandleOpenFileAsync(await file.OpenReadAsync()));
+        
+        _isInfoDialogVisible = false;
         _step2Enabled = true;
     }
     
@@ -284,6 +291,7 @@ public partial class Import : ComponentBase
         if (string.IsNullOrEmpty(successMessage)) return;
 
         _infoDialogMessage = successMessage;
+        _isInfoDialogInteractionEnabled = true;
         _isInfoDialogVisible = true;
     }
 }

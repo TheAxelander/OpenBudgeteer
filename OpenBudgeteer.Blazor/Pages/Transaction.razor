@@ -201,22 +201,6 @@
     </tbody>
 </table>
 
-@if (_isProposeBucketsInfoDialogVisible)
-{
-    <div class="modal fade show" style=" display: block;">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Propose Buckets</h4>
-                </div>
-                <div class="modal-body">Searching Buckets based on defined rules...</div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
-
 <RecurringTransactionDialog
     DataContext="@_recurringTransactionHandlerViewModel"
     IsDialogVisible="@_isRecurringTransactionModalDialogVisible"
@@ -235,6 +219,12 @@
     IsDialogVisible="@_isDeleteTransactionDialogVisible"
     OnDeleteClickCallback="DeleteTransaction"
     OnCancelClickCallback="CancelDeleteTransaction"/>
+
+<InfoDialog
+    Title="Propose Buckets"
+    Message="Searching Buckets based on defined rules..."
+    IsDialogVisible="@_isProposeBucketsInfoDialogVisible"
+    IsInteractionEnabled="@false"/>
 
 <ErrorMessageDialog 
     Title="Transaction" 
