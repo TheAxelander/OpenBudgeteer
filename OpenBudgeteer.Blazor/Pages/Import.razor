@@ -1,12 +1,11 @@
 ﻿@page "/import"
 @using Tewr.Blazor.FileReader
-@using Microsoft.AspNetCore.Components
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @inject IFileReaderService FileReaderService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavManager
 
-<div class="accordion" id="accordionSteps">
+<div class="accordion mb-3" id="accordionSteps">
     <div class="accordion-item">
         <h2 class="accordion-header" id="headingStepOne">
             <button @ref="_step1AccordionButtonElement" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStepOne" aria-expanded="true" aria-controls="collapseStepOne">

@@ -3,43 +3,44 @@
 @using OpenBudgeteer.Core.Data.Entities
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 
-<header>
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top bg-dark">
-        <div class="container-fluid d-flex flex-column flex-lg-row align-items-start">
-            <div class="d-flex flex-row">
-                <button class="navbar-toggler d-block d-lg-none me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <a class="navbar-brand" href="#">OpenBudgeteer</a>
-            </div>
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">OpenBudgeteer</h5>
-                    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body justify-content-between">
-                    <NavMenu/>
-                    <div class="d-flex flex-column flex-xl-row justify-content-between navbar-text d-lg-none d-xl-block">
-                        <span class="mx-xl-2 my-2 my-xl-0">
-                            Database: @CurrentDatabase
-                        </span>
-                        <span class="mx-xl-2 my-2 my-xl-0">
-                            Version: 1.8 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-</header>
-<div class="main">
-    <div class="content px-4" style="max-width: 1500px; margin: auto; margin-bottom: 100px">
-        @Body
+<header class="sticky-top">
+    <div class="d-flex flex-row app-header navbar align-items-center px-3 py-1 bg-primary" data-bs-theme="dark">
+        <button class="btn btn-sm fs-5" 
+                type="button"
+                data-bs-toggle="collapse" 
+                data-bs-target="#largeNavMenu" 
+                aria-expanded="false" 
+                aria-controls="largeNavMenu"
+                @onclick="OnCollapseClick">
+            <div class="bi bi-list"></div>
+        </button>
+        <span class="navbar-brand flex-fill ms-2 fs-5">OpenBudgeteer</span>
+        <span class="navbar-text ms-3">Database: @CurrentDatabase</span>
+        <span class="navbar-text ms-3">Version: 1.8 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</span>
     </div>
+</header>
+<div class="container-fluid">
+    <div class="h-100 collapse collapse-horizontal show navbar navbar-left bg-dark" data-bs-theme="dark" id="largeNavMenu">
+        <NavMenu/>
+        <div class="align-self-end d-flex flex-column flex-fill navbar-footer px-3">
+            <span class="text-muted py-1"><i class="bi bi-github me-1"></i><a class="text-muted" href="https://github.com/TheAxelander/OpenBudgeteer" target="_blank"> GitHub</a></span>
+            <span class="text-muted py-1"><i class="bi bi-book me-1"></i><a class="text-muted" href="https://theaxelander.github.io/" target="_blank"> Documentation</a></span>
+            <span class="text-muted py-1"><a class="text-muted" href="https://icons8.com" target="_blank">App Icons by Icons8</a></span>
+        </div>
+    </div>
+    <div class="content pt-4" style="margin-left: @_marginLeft;">@Body</div>
 </div>
 
 @code {
 
-    public string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
+    private string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
+    private bool _isCollapsed;
+    private string _marginLeft = "250px";
+    
+    private void OnCollapseClick()
+    {
+        _isCollapsed = !_isCollapsed;
+        _marginLeft = _isCollapsed ? "0px" : "250px";
+    }
 
 }

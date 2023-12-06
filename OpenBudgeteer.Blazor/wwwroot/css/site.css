@@ -1,37 +1,14 @@
+/* Blazor default styles
+-------------------------------------------------- */
 a, .btn-link {
     text-decoration: none;
-}
-
-app {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.content {
-    padding-top: 40px;
-}
-
-.navbar-toggler {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-
-.valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
-}
-
-.invalid {
-    outline: 1px solid red;
-}
-
-.validation-message {
-    color: red;
 }
 
 #blazor-error-ui {
     background: lightyellow;
     bottom: 0;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    color: black;
     display: none;
     left: 0;
     padding: 0.6rem 1.25rem 0.7rem 1.25rem;
@@ -45,4 +22,141 @@ app {
     position: absolute;
     right: 0.75rem;
     top: 0.5rem;
+}
+
+/* App specific styles
+-------------------------------------------------- */
+.app-header {
+    height: 60px;
+}
+
+.content {
+    transition: margin-left .5s;
+}
+
+.navbar-left {
+    align-items: flex-start;
+    padding-top: 60px;
+    width: 250px;
+    position: fixed;
+    left: 0;
+    top: 0;
+}
+
+.navbar-footer {
+    font-size: 0.875rem;
+}
+
+button.header-action-button {
+    margin-top: 5px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+button.collapse-button {
+    font-family: "Segoe UI Symbol";
+    padding: 0;
+    height: 25px;
+    width: 25px;
+}
+
+button.collapse-button:focus, button.collapse-button:active {
+    outline: none;
+    box-shadow: none;
+}
+
+input.number-input {
+    text-align: right;
+}
+
+table .header-row td, table .header-row th {
+    border-top: none;
+    font-size: 1rem;
+}
+
+.bucket-table td {
+    border-top: none;
+    border-bottom: 1px solid;
+    border-bottom-color: inherit;
+}
+
+.col-numbers {
+    text-align: right;
+}
+
+.col-bucket-numbers {
+    width: 120px;
+}
+
+.col-buttons {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.col-bucket-buttons {
+    width: 120px;
+}
+
+.col-bucket-details {
+    width: 250px;
+}
+
+.bucketgroup-header-text {
+    font-size: 1rem;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.report-chart-box {
+    width: 900px;
+    border-width: thick;
+    margin: 5px;
+    border-style: solid;
+}
+
+.report-chart-header {
+    font-weight: bold;
+    margin: 10px;
+    text-align: center;
+}
+
+.report-chart-subheader {
+    font-weight: bold
+}
+
+.bucket-indicator {
+    border-radius: 25px;
+    margin: 0.3rem 0
+}
+
+button.btn-bucket {
+    border-radius: 25px;
+    width: 100%
+}
+
+/* Overwrite bootstrap styles */
+.table td, .table tbody td, .table th, .table thead th {
+    vertical-align: middle;
+}
+
+.table-sm td, .table-sm th {
+    padding: .2rem;
+    font-size: .9rem;
+}
+
+.navbar-brand {
+    display: inline-block; /* restore setting from bootstrap 4 */
+}
+
+.nav-link {
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
+.navbar-toggler {
+    font-size: var(--bs-body-font-size);
+}
+
+.dropdown-item-sm {
+    font-size: .875rem; /* Additional class to match font size of DropDownItem with SplitButton (btn-sm)*/
 }
