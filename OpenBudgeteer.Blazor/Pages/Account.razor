@@ -8,18 +8,16 @@
     </div>
 </div>
 
-<div class="row">
+<div class="d-flex flex-wrap">
     @foreach (var account in _dataContext.Accounts)
     {
-        <div class="col-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">@account.Name</h5>
-                    <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
-                    <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
-                    <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => EditAccount(account))">Edit</button>
-                    <button class="btn btn-sm btn-danger header-action-button" @onclick="@(() => CloseAccount(account))">Close</button>
-                </div>
+        <div class="card card-account me-2 mb-2">
+            <div class="card-body">
+                <h5 class="card-title">@account.Name</h5>
+                <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
+                <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
+                <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => EditAccount(account))">Edit</button>
+                <button class="btn btn-sm btn-danger header-action-button" @onclick="@(() => CloseAccount(account))">Close</button>
             </div>
         </div>
     }

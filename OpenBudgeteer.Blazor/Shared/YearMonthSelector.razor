@@ -9,7 +9,7 @@
     }
 </style>
 
-<div class="col-md-auto d-flex justify-content-end align-items-center">
+<div class="d-flex justify-content-end align-items-center @Class">
     <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
     <select class="form-select form-select-sm element-margin" style="width: auto"
             @bind:get="DataContext.SelectedMonth.ToString()"
@@ -26,6 +26,9 @@
 @code {
     [Parameter]
     public YearMonthSelectorViewModel DataContext { get; set; } = null!;
+    
+    [Parameter]
+    public string? Class { get; set; }
 
     readonly MonthOutputConverter _monthConverter = new();
 

@@ -47,10 +47,12 @@ a, .btn-link {
     font-size: 0.875rem;
 }
 
-button.header-action-button {
-    margin-top: 5px;
-    margin-right: 5px;
-    margin-bottom: 5px;
+.card-home {
+    max-width: 450px;
+}
+
+.card-account {
+    max-width: 450px;
 }
 
 button.collapse-button {
@@ -67,17 +69,6 @@ button.collapse-button:focus, button.collapse-button:active {
 
 input.number-input {
     text-align: right;
-}
-
-table .header-row td, table .header-row th {
-    border-top: none;
-    font-size: 1rem;
-}
-
-.bucket-table td {
-    border-top: none;
-    border-bottom: 1px solid;
-    border-bottom-color: inherit;
 }
 
 .col-numbers {
@@ -108,9 +99,8 @@ table .header-row td, table .header-row th {
 }
 
 .report-chart-box {
-    width: 900px;
     border-width: thick;
-    margin: 5px;
+    padding: 1rem;
     border-style: solid;
 }
 

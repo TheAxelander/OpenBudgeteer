@@ -2,130 +2,75 @@
 @using System.Drawing
 @using System.Globalization
 
-<style>
+<style xmlns="http://www.w3.org/1999/html">
     /* Page specific styles */
-    hr.tile-divider {
-        margin-top: 0.3rem;
-        margin-bottom: 0.3rem;
-    }
     span.tile-header {
         font-weight: bold;
-    }
-    div.header-stats-tile {
-        margin-bottom: 0.4rem;
-    }   
+    } 
 </style>
 
-<div class="row" style="margin:0 0 1rem 0">
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/refund.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Income</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.Income.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+<div class="row mb-2">
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/refund.png"
+            Title="Income"
+            Amount="@_dataContext.Income.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/cash-in-hand.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Expenses</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.Expenses.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/cash-in-hand.png"
+            Title="Expenses"
+            Amount="@_dataContext.Expenses.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/exchange.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Month Balance</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.MonthBalance.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/exchange.png"
+            Title="Month Balance"
+            Amount="@_dataContext.MonthBalance.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/merchant-account.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Bank Balance</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.BankBalance.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/merchant-account.png"
+            Title="Bank Balance"
+            Amount="@_dataContext.BankBalance.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="w-100 header-stats-tile">
-        <hr/>
+</div>
+<div class="w-100 d-none d-lg-block">
+    <hr/>
+</div>
+<div class="row mb-3">
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/banknotes.png"
+            Title="Budget"
+            Amount="@_dataContext.Budget.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/banknotes.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Budget</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.Budget.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/receive-cash.png"
+            Title="Pending Want"
+            Amount="@_dataContext.PendingWant.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/receive-cash.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Pending Want</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.PendingWant.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/money-bag-euro.png"
+            Title="Remaining Budget"
+            Amount="@_dataContext.RemainingBudget.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/money-bag-euro.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Remaining Budget</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.RemainingBudget.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
-    </div>
-    <div class="col header-stats-tile">
-        <div class="row">
-            <div class="col-md-auto no-gutters">
-                <img src="css/icons8/high-priority.png" alt=""/>
-            </div>
-            <div class="col" style="text-align: center">
-                <span class="tile-header">Negative Bucket Balance</span>
-                <hr class="tile-divider"/>
-                <span>@_dataContext.NegativeBucketBalance.ToString("C", CultureInfo.CurrentCulture)</span>
-            </div>
-        </div>
+    <div class="col-3 d-none d-lg-block">
+        <BucketStatsElement
+            ImageUrl="css/icons8/high-priority.png"
+            Title="Negative Bucket Balance"
+            Amount="@_dataContext.NegativeBucketBalance.ToString("C", CultureInfo.CurrentCulture)"/>
     </div>
 </div>
 
-<div class="row">
-    <div class="col">
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@ShowNewBucketGroupDialog">Create Bucket Group</button>
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@DistributeBudget">Distribute Budget</button>
-        <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse())">Collapse All</button>
-		<button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse(false))">Expend All</button>
-    </div>
-    <YearMonthSelector DataContext="YearMonthDataContext"/>
+<div class="d-flex flex-row flex-wrap">
+    <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@ShowNewBucketGroupDialog">Create Bucket Group</button>
+    <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@DistributeBudget">Distribute Budget</button>
+    <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse())">Collapse All</button>
+    <button class="btn btn-sm btn-primary me-auto mb-2" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse(false))">Expend All</button>
+    <YearMonthSelector Class="mb-2" DataContext="YearMonthDataContext" />
 </div>
 
 <table class="table table-sm bucket-table">
@@ -134,131 +79,130 @@
         <th>Bucket</th>
         <th class="col-numbers col-bucket-numbers">Balance</th>
         <th class="col-numbers col-bucket-numbers">InOut</th>
-        <th class="col-numbers col-bucket-numbers">Want</th>
-        <th class="col-numbers col-bucket-numbers">In</th>
-        <th class="col-numbers col-bucket-numbers">Activity</th>
-        <th class="col-bucket-details">Details</th>
-		<th class="col-buttons col-bucket-buttons"></th>
+        <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers">Want</th>
+        <th class="d-none d-md-table-cell col-numbers col-bucket-numbers">In</th>
+        <th class="d-none d-md-table-cell col-numbers col-bucket-numbers">Activity</th>
+        <th class="d-none d-xxl-table-cell col-bucket-details">Details</th>
+		<th class="d-none d-xxl-table-cell col-buttons col-bucket-buttons"></th>
     </tr>
     </thead>
-    <tbody><tr></tr></tbody>
-</table>
-
-@foreach (var bucketGroup in _dataContext.BucketGroups)
-{
-    <table class="table table-sm bucket-table">
-        <thead>
-        <tr class="header-row">
+    <tbody>
+    @foreach (var bucketGroup in _dataContext.BucketGroups)
+    {
+        <tr>
             @if (bucketGroup.InModification)
             {
-                <th colspan="8">
+                <td colspan="8">
                     <div class="row" style="max-width: 500px">
                         <div class="col">
-					        <input class="form-control form-control-sm" type="text" @bind="bucketGroup.Name"/>
+                            <input class="form-control form-control-sm" type="text" @bind="bucketGroup.Name"/>
                         </div>
                         <div class="col-3 col-buttons col-bucket-buttons">
-					        <button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
+                            <button class="btn btn-sm btn-primary" @onclick="@(() => HandleResult(bucketGroup.SaveModification()))">Ok</button>
                             <button class="btn btn-sm btn-danger" @onclick="@(() => bucketGroup.CancelModification())">Cancel</button>
                         </div>
                     </div>
-                </th>
+                </td>
             }
             else
             {
-                <th>
+                <td>
                     <div>
-				        <button class="btn btn-sm header-action-button collapse-button" 
+                        <button class="btn btn-sm header-action-button collapse-button" 
                                 @onclick="@(() => bucketGroup.IsCollapsed = !bucketGroup.IsCollapsed)"><span>@(bucketGroup.IsCollapsed ? "▶" : "▼")</span></button>
                         <span class="bucketgroup-header-text">@bucketGroup.Name</span>
                     </div>
-                </th>
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
-                <th class="col-numbers col-bucket-numbers"></th>                                                                                            
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalWant == 0 ? string.Empty : bucketGroup.TotalWant.ToString("C", CultureInfo.CurrentCulture))</span></th>
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
-                <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
-                <th class="col-buttons col-bucket-buttons" style="width: 370px">
+                </td>
+                <td class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></td>
+                <td class="col-numbers col-bucket-numbers"></td>                                                                                            
+                <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalWant == 0 ? string.Empty : bucketGroup.TotalWant.ToString("C", CultureInfo.CurrentCulture))</span></td>
+                <td class="d-none d-md-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></td>
+                <td class="d-none d-md-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></td>
+                <td class="d-none d-xxl-table-cell"></td>
+                <td class="d-none d-xxl-table-cell col-buttons col-bucket-buttons">
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
                     <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketGroupDeleteRequest(bucketGroup))"></button>
                     <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => CreateBucket(bucketGroup))"></button>
-                </th>
+                </td>
             }
         </tr>
-        </thead>
-        <tbody><tr></tr></tbody>
-    </table>
-    
-    <table class="table table-sm bucket-table">
-        <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
-            @foreach (var bucket in bucketGroup.Buckets)
-            {
-                <tr>
-                    <td>
-                        @if (bucket.IsInactive)
+        <tr>
+            <td colspan="8" style="border: none;">
+                <table class="table table-sm table-hover bucket-table mb-0">
+                    <tbody class="@(bucketGroup.IsCollapsed ? "collapse" : "")">
+                        @foreach (var bucket in bucketGroup.Buckets)
                         {
-                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">
-                                @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Name</div>
-                        }
-                    </td>
-                    <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
-                    <td class="col-numbers col-bucket-numbers">
-                        @if (bucket.IsInactive)
-                        {
-                            <input class="form-control form-control-sm" type="number" disabled/>
-                        }
-                        else
-                        {
-                            <input class="form-control form-control-sm" style="text-align: right;" type="number"
-                                   @bind="bucket.InOut"
-                                   @onkeyup="@(args => InOut_Changed(bucket, args))"/>    
-                        }
-                    </td>
-                    <td class="col-numbers col-bucket-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("C", CultureInfo.CurrentCulture))</td>
-                    <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
-                    <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
-                    <td class="col-bucket-details">
-                        @if (bucket.IsProgressbarVisible)
-                        {
-                            <div class="row">
-                                <div class="col">
-                                    <div class="progress">
-                                        <div class="progress-bar" role="progressbar" style="width: @bucket.Progress%;" aria-valuenow="@bucket.Progress" aria-valuemin="0" aria-valuemax="100">
-                                            @bucket.Progress%
+                            <tr>
+                                <td>
+                                    @if (bucket.IsInactive)
+                                    {
+                                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">
+                                            @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col" style="font-size: .75rem; text-align: center">
-                                    @bucket.Details
-                                </div>
-                            </div>
+                                    }
+                                    else
+                                    {
+                                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Name</div>
+                                    }
+                                </td>
+                                <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
+                                <td class="col-numbers col-bucket-numbers">
+                                    @if (bucket.IsInactive)
+                                    {
+                                        <input class="form-control form-control-sm" type="number" disabled/>
+                                    }
+                                    else
+                                    {
+                                        <input class="form-control form-control-sm" style="text-align: right;" type="number"
+                                               @bind="bucket.InOut"
+                                               @onkeyup="@(args => InOut_Changed(bucket, args))"/>    
+                                    }
+                                </td>
+                                <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("C", CultureInfo.CurrentCulture))</td>
+                                <td class="d-none d-md-table-cell col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
+                                <td class="d-none d-md-table-cell col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
+                                <td class="d-none d-xxl-table-cell col-bucket-details">
+                                    @if (bucket.IsProgressbarVisible)
+                                    {
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" style="width: @bucket.Progress%;" aria-valuenow="@bucket.Progress" aria-valuemin="0" aria-valuemax="100">
+                                                        @bucket.Progress%
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col" style="font-size: .75rem; text-align: center">
+                                                @bucket.Details
+                                            </div>
+                                        </div>
+                                    }
+                                </td>
+                                <td class="d-none d-xxl-table-cell col-buttons col-bucket-buttons">
+                                    @if (bucket.IsInactive)
+                                    {
+                                        <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
+                                        <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
+                                        <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketCloseRequest(bucket))"></button>
+                                    }
+                                </td>
+                            </tr>
                         }
-                    </td>
-                    <td class="col-buttons col-bucket-buttons">
-                        @if (bucket.IsInactive)
-                        {
-                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
-                            <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => ShowEditBucketDialog(bucket))"></button>
-                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleBucketCloseRequest(bucket))"></button>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
 
 <NewBucketGroupDialog
     DataContext="@_dataContext.NewBucketGroup"

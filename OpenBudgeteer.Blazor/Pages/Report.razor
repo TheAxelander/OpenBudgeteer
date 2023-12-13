@@ -2,44 +2,56 @@
 @using ChartJs.Blazor.Charts
 
 <div class="row">
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Month Balances</h4>
-        <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Month Balances</h4>
+            <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
+        </div>
     </div>
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Bank Balances</h4>
-        <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
-    </div>
-</div>
-<div class="row">
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Income & Expenses per Month</h4>
-        <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
-    </div>
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Income & Expenses per Year</h4>
-        <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Bank Balances</h4>
+            <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
+        </div>
     </div>
 </div>
 <div class="row">
-    <div class="col report-chart-box">
-        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
-        @foreach (var config in _monthBucketExpensesConfigsLeft)
-        {
-            <h5 class="report-chart-subheader">@config.Item1</h5>
-            <div >
-                <ChartJsBarChart Config="@config.Item2" Height="50"/>
-            </div>
-        }
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Income & Expenses per Month</h4>
+            <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
+        </div>
     </div>
-    <div class="col report-chart-box">
-        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
-        @foreach (var config in _monthBucketExpensesConfigsRight)
-        {
-            <h5 class="report-chart-subheader">@config.Item1</h5>
-            <div >
-                <ChartJsBarChart Config="@config.Item2" Height="50"/>
-            </div>
-        }
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Income & Expenses per Year</h4>
+            <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
+            @foreach (var config in _monthBucketExpensesConfigsLeft)
+            {
+                <h5 class="report-chart-subheader">@config.Item1</h5>
+                <div>
+                    <ChartJsBarChart Config="@config.Item2" Height="50"/>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
+            @foreach (var config in _monthBucketExpensesConfigsRight)
+            {
+                <h5 class="report-chart-subheader">@config.Item1</h5>
+                <div>
+                    <ChartJsBarChart Config="@config.Item2" Height="50"/>
+                </div>
+            }
+        </div>
     </div>
 </div>

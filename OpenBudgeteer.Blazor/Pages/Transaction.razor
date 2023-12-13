@@ -3,40 +3,36 @@
 @using System.Globalization
 @using OpenBudgeteer.Core.Common.Extensions
 
-<div class="row align-items-center">
-    <div class="col">
-        @if (_massEditEnabled)
-        {
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllTransaction">Save all</button>
-            <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllTransaction">Cancel all</button>
-        }
-        else
-        {
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@StartCreateNewTransaction">Create Transaction</button>
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@(async () => await ProposeBucketsAsync())">Propose Buckets</button>
-            <div class="btn-group">
-                <button type="button" class="btn btn-sm btn-primary" @onclick="@AddRecurringTransactions">Add Recurring Transactions</button>
-                <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+<div class="d-flex flex-row flex-wrap">
+    @if (_massEditEnabled)
+    {
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@SaveAllTransaction">Save all</button>
+        <button class="btn btn-sm btn-danger me-auto mb-2" @onclick="@CancelAllTransaction">Cancel all</button>
+    }
+    else
+    {
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@StartCreateNewTransaction">Create Transaction</button>
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@EditAllTransaction">Edit all</button>
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@(async () => await ProposeBucketsAsync())">Propose Buckets</button>
+        <div class="btn-group btn-group-sm me-auto mb-2" role="group">
+            <button type="button" class="btn btn-sm btn-primary" @onclick="@AddRecurringTransactions">Add Recurring Transactions</button>
+            <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                 <span class="visually-hidden">Toggle Dropdown</span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item dropdown-item-sm" role="button" @onclick="@(async () => await DisplayRecurringTransactions())">Manage</a></li>
-                </ul>
-            </div>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item dropdown-item-sm" role="button" @onclick="@(async () => await DisplayRecurringTransactions())">Manage</a></li>
+            </ul>
+        </div>
+    }
+    <select class="form-select form-select-sm me-2 mb-2" style="width: auto"
+            @bind:get="_dataContext.CurrentFilter.ToString()"
+            @bind:set="Filter_SelectionChanged">
+        @foreach (var filter in Enum.GetValues<TransactionFilter>())
+        {
+            <option value="@filter">@filter.GetStringValue()</option>
         }
-    </div>
-    <div class="col-md-auto">
-        <select class="form-select form-select-sm" style="width: auto"
-                @bind:get="_dataContext.CurrentFilter.ToString()"
-                @bind:set="Filter_SelectionChanged">
-            @foreach (var filter in Enum.GetValues<TransactionFilter>())
-            {
-                <option value="@filter">@filter.GetStringValue()</option>
-            }
-        </select>
-    </div>
-    <YearMonthSelector DataContext="YearMonthDataContext" />
+    </select>
+    <YearMonthSelector Class="mb-2" DataContext="YearMonthDataContext" />
 </div>
 
 @if (_newTransactionEnabled)
@@ -44,21 +40,21 @@
     <table class="table table-sm">
         <thead>
             <tr>
-                <th style="text-align: right; width:100px">Date</th>
-                <th style="width:150px">Account</th>
-                <th style="width:250px">Payee</th>
-                <th>Memo</th>
-                <th style="text-align: right; width: 120px">Amount</th>
-                <th style="width:300px">Buckets</th>
-                <th style="width:1px" />
+                <th class="d-none d-sm-table-cell" style="text-align: right; width:100px">Date</th>
+                <th class="d-none d-md-table-cell" style="width:150px">Account</th>
+                <th class="d-none d-xl-table-cell" style="width:250px">Payee</th>
+                <th class="d-none d-sm-table-cell">Memo</th>
+                <th class="d-none d-sm-table-cell" style="text-align: right; width: 120px">Amount</th>
+                <th class="d-none d-lg-table-cell" style="width:300px">Buckets</th>
+                <th class="d-none d-xl-table-cell" style="width:1px" />
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>
+                <td class="d-none d-sm-table-cell">
                     <input class="form-control form-control-sm number-input" type="date" @bind="_dataContext.NewTransaction!.TransactionDate" />
                 </td>
-                <td>
+                <td class="d-none d-md-table-cell">
                     <select class="form-select form-select-sm"
                             @bind:get="_dataContext.NewTransaction.AccountId.ToString()"
                             @bind:set="NewTransactionAccount_SelectionChanged">
@@ -68,10 +64,10 @@
                         }
                     </select>
                 </td>
-                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Payee" /></td>
-                <td><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Memo"></textarea></td>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewTransaction.Amount" /></td>
-                <td>
+                <td class="d-none d-xl-table-cell"><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewTransaction.Payee" /></td>
+                <td class="d-none d-sm-table-cell"><textarea class="form-control form-control-sm" rows="1" @bind="_dataContext.NewTransaction.Memo"></textarea></td>
+                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewTransaction.Amount" /></td>
+                <td class="d-none d-lg-table-cell">
                     <table class="table" style="margin-bottom: auto">
                         <tbody>
                             @foreach (var bucket in _dataContext.NewTransaction.Buckets)
@@ -97,7 +93,7 @@
                         </div>
                     }
                 </td>
-                <td class="col-buttons">
+                <td class="d-none d-xl-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary" @onclick="@(() => SplitTransaction(_dataContext.NewTransaction))"><i class="bi bi-diagram-2"></i></button>
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateItem()))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@CancelNewTransaction"></button>
@@ -109,14 +105,14 @@
 
 <table class="table table-sm table-hover">
     <thead>
-    <tr class="header-row">
-        <th style="text-align: right; width:100px">Date</th>
-        <th style="width:150px">Account</th>
-        <th style="width:250px">Payee</th>
-        <th>Memo</th>
-        <th style="text-align: right; width: 120px">Amount</th>
-        <th style="width:300px">Buckets</th>
-        <th style="width:120px" />
+    <tr>
+        <th class="d-none d-sm-table-cell" style="text-align: right; width:100px">Date</th>
+        <th class="d-none d-md-table-cell" style="width:150px">Account</th>
+        <th class="d-none d-xl-table-cell" style="width:250px">Payee</th>
+        <th class="d-none d-sm-table-cell">Memo</th>
+        <th class="d-none d-sm-table-cell" style="text-align: right; width: 120px">Amount</th>
+        <th class="d-none d-lg-table-cell" style="width:300px">Buckets</th>
+        <th class="d-none d-xl-table-cell" style="width:120px" />
     </tr>
     </thead>
     <tbody>
@@ -125,10 +121,10 @@
         @if (transaction.InModification)
         {
             <tr>
-                <td>
+                <td class="d-none d-sm-table-cell">
                     <input class="form-control form-control-sm number-input" type="date" @bind="transaction.TransactionDate" />
                 </td>
-                <td>
+                <td class="d-none d-md-table-cell">
                     <select class="form-select form-select-sm"
                             @bind:get="transaction.AccountId.ToString()"
                             @bind:set="(value) => { TransactionAccount_SelectionChanged(value, transaction); }">
@@ -138,10 +134,10 @@
                         }
                     </select>
                 </td>
-                <td><input class="form-control form-control-sm" type="text" @bind="transaction.Payee" /></td>
-                <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Memo"></textarea></td>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
-                <td>
+                <td class="d-none d-xl-table-cell"><input class="form-control form-control-sm" type="text" @bind="transaction.Payee" /></td>
+                <td class="d-none d-sm-table-cell"><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Memo"></textarea></td>
+                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
+                <td class="d-none d-lg-table-cell">
                     <table class="table table-borderless" style="margin-bottom: auto;">
                         <tbody>
                             @foreach (var bucket in transaction.Buckets)
@@ -167,7 +163,7 @@
                         </div>
                     }
                 </td>
-                <td class="col-buttons">
+                <td class="d-none d-xl-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary" @onclick="@(() => SplitTransaction(transaction))"><i class="bi bi-diagram-2"></i></button>
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
@@ -177,12 +173,12 @@
         else
         {
             <tr>
-                <td class="col-numbers">@transaction.TransactionDate.ToShortDateString()</td>
-                <td>@transaction.AccountName</td>
-                <td>@transaction.Payee</td>
-                <td>@transaction.Memo</td>
-                <td class="col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
-                <td style="vertical-align: middle">
+                <td class="d-none d-sm-table-cell col-numbers">@transaction.TransactionDate.ToShortDateString()</td>
+                <td class="d-none d-md-table-cell">@transaction.AccountName</td>
+                <td class="d-none d-xl-table-cell">@transaction.Payee</td>
+                <td class="d-none d-sm-table-cell">@transaction.Memo</td>
+                <td class="d-none d-sm-table-cell col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
+                <td class="d-none d-lg-table-cell" style="vertical-align: middle">
                     @foreach (var bucket in transaction.Buckets)
                     {
                         <div class="row bucket-indicator" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)">
@@ -191,7 +187,7 @@
                         </div>
                     }
                 </td>
-                <td class="col-buttons">
+                <td class="d-none d-xl-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
                     <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleShowDeletionTransactionDialog(transaction))"></button>
                 </td>

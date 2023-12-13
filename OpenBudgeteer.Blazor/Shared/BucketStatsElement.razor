@@ -1,0 +1,21 @@
+<div class="row">
+    <div class="col-md-auto no-gutters">
+        <img src="@ImageUrl" alt=""/>
+    </div>
+    <div class="col" style="text-align: center">
+        <span class="tile-header">@Title</span>
+        <hr class="my-1"/>
+        <span>@Amount</span>
+    </div>
+</div>
+
+@code {
+    [Parameter] 
+    public string? ImageUrl { get; set; }
+    
+    [Parameter] 
+    public string? Title { get; set; }
+    
+    [Parameter] 
+    public string? Amount { get; set; }
+}

@@ -40,19 +40,19 @@
         </h2>
         <div id="collapseStepTwo" class="accordion-collapse collapse" aria-labelledby="headingStepTwo" data-bs-parent="#accordionSteps">
             <div class="accordion-body">
-                <div class="mb-3">
+                <div class="d-flex flex-row mb-3">
                     @if (_step4Enabled)
                     {
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.CreateProfile(), "Profile has been created."))>Create Profile</button>
+                        <button class="btn btn-sm btn-primary me-2" @onclick=@(() => HandleResult(_dataContext.CreateProfile(), "Profile has been created."))>Create Profile</button>
                     }
                     @if (_dataContext.SelectedImportProfile.ImportProfileId != Guid.Empty)
                     {
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick=@(() => HandleResult(_dataContext.SaveProfile(), "Changes for Profile have been saved."))>Save Profile</button>
-                        <button class="btn btn-sm btn-danger header-action-button" @onclick=@(() => _isDeleteConfirmationDialogVisible = true)>Delete Profile</button>
+                        <button class="btn btn-sm btn-primary me-2" @onclick=@(() => HandleResult(_dataContext.SaveProfile(), "Changes for Profile have been saved."))>Save Profile</button>
+                        <button class="btn btn-sm btn-danger me-2" @onclick=@(() => _isDeleteConfirmationDialogVisible = true)>Delete Profile</button>
                     }
                 </div>
-                <div class="row mb-3">
-                    <div class="col">
+                <div class="row">
+                    <div class="col-sm-12 col-md-4 mb-2">
                         <label class="form-label">Import Profile:</label>
                         <select class="form-select form-select-sm"
                                 @bind:get="_dataContext.SelectedImportProfile.ImportProfileId.ToString()"
@@ -63,11 +63,11 @@
                             }
                         </select>
                     </div>
-			        <div class="col">
+			        <div class="col-sm-12 col-md-4 mb-2">
                         <label class="form-label">Profile Name:</label>
                         <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.ProfileName"/>
                     </div>
-                    <div class="col">
+                    <div class="col-sm-12 col-md-4 mb-2">
                         <label class="form-label">Target Account:</label>
                         <select class="form-select form-select-sm"
                                 @bind:get="_dataContext.SelectedImportProfile.Account.AccountId.ToString()"
@@ -79,26 +79,28 @@
                         </select>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col">
+                <div class="row">
+                    <div class="col-sm-6 col-md-4 mb-2">
                         <label class="form-label">Delimiter:</label>
                         <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.Delimiter"/>
                     </div>
-                    <div class="col">
-                        <label class="form-label">Text qualifier:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.TextQualifier"/>
-                    </div>
-                    <div class="col">
+                    <div class="col-sm-6 col-md-4 mb-2">
                         <label class="form-label">Date format:</label>
                         <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.DateFormat"/>
                         <p><small>e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy</small></p>
                     </div>
-                    <div class="col">
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-md-4 mb-2">
+                        <label class="form-label">Text qualifier:</label>
+                        <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.TextQualifier"/>
+                    </div>
+                    <div class="col-sm-6 col-md-4 mb-2">
                         <label class="form-label">Number format:</label>
                         <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.NumberFormat"/>
                         <p><small>Use BCP 47 language tag like en-US or de-DE</small></p>
                     </div>
-                    <div class="col">
+                    <div class="col-sm-12 col-md-4 mb-2">
                         <div class="row">
                             <div class="col">
                                 <label class="form-label">Header Row:</label>
@@ -128,8 +130,8 @@
         </h2>
         <div id="collapseStepThree" class="accordion-collapse collapse" aria-labelledby="headingStepThree" data-bs-parent="#accordionSteps">
             <div class="accordion-body">
-                <div class="row mb-3">
-                    <div class="col">
+                <div class="row">
+                    <div class="col-sm-6 col-md-3 mb-2">
                         <label class="form-label">Transaction Date:</label>
                         <select class="form-select form-select-sm"
                                 @bind:get="_dataContext.SelectedImportProfile.TransactionDateColumnName"
@@ -140,7 +142,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-sm-6 col-md-3 mb-2">
                         <label class="form-label">Payee (optional):</label>
                         <select class="form-select form-select-sm"
                                 @bind:get="_dataContext.SelectedImportProfile.PayeeColumnName"
@@ -151,7 +153,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-sm-6 col-md-3 mb-2">
                         <label class="form-label">Memo:</label>
                         <select class="form-select form-select-sm"
                                 @bind:get="_dataContext.SelectedImportProfile.MemoColumnName"
@@ -162,7 +164,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col">
+                    <div class="col-sm-6 col-md-3 mb-2">
                         <label class="form-label">Amount / Debit:</label>
                         <select class="form-select form-select-sm"
                                 @bind:get="_dataContext.SelectedImportProfile.AmountColumnName"
@@ -174,32 +176,30 @@
                         </select>
                     </div>
                 </div>
-                <h5>Additional Mapping Settings:</h5>
-                <div class="row">
-                    <div class="col-6">
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="inlineRadioOptions" value="0" 
-                                checked="@_dataContext.SelectedImportProfile.AdditionalSettingCreditValue.Equals(ImportProfileViewModel.AdditionalSettingsForCreditValues.NoSettings)"
-                                @onchange=@AdditionalSettingCreditValue_SelectionChanged>
-                            <label class="form-check-label">No special settings for Debit and Credit</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="inlineRadioOptions" value="1"
-                                checked="@_dataContext.SelectedImportProfile.AdditionalSettingCreditValue.Equals(ImportProfileViewModel.AdditionalSettingsForCreditValues.CreditInSeparateColumns)"
-                                @onchange=@AdditionalSettingCreditValue_SelectionChanged>
-                            <label class="form-check-label">Credit values are in separate columns</label>
-                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="inlineRadioOptions" value="2"
-                                checked="@_dataContext.SelectedImportProfile.AdditionalSettingCreditValue.Equals(ImportProfileViewModel.AdditionalSettingsForCreditValues.DebitCreditAlwaysPositive)"
-                                @onchange=@AdditionalSettingCreditValue_SelectionChanged>
-                            <label class="form-check-label">Debit and Credit values are in the same column but always positive</label>
-                        </div>
-                    </div>
+                <h5 class="mt-2">Additional Mapping Settings:</h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" value="0" 
+                        checked="@_dataContext.SelectedImportProfile.AdditionalSettingCreditValue.Equals(ImportProfileViewModel.AdditionalSettingsForCreditValues.NoSettings)"
+                        @onchange=@AdditionalSettingCreditValue_SelectionChanged>
+                    <label class="form-check-label">No special settings for Debit and Credit</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" value="1"
+                        checked="@_dataContext.SelectedImportProfile.AdditionalSettingCreditValue.Equals(ImportProfileViewModel.AdditionalSettingsForCreditValues.CreditInSeparateColumns)"
+                        @onchange=@AdditionalSettingCreditValue_SelectionChanged>
+                    <label class="form-check-label">Credit values are in separate columns</label>
+                 </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="inlineRadioOptions" value="2"
+                        checked="@_dataContext.SelectedImportProfile.AdditionalSettingCreditValue.Equals(ImportProfileViewModel.AdditionalSettingsForCreditValues.DebitCreditAlwaysPositive)"
+                        @onchange=@AdditionalSettingCreditValue_SelectionChanged>
+                    <label class="form-check-label">Debit and Credit values are in the same column but always positive</label>
+                </div>
+                <div class="row mt-2">
                     @switch (_dataContext.SelectedImportProfile.AdditionalSettingCreditValue)
                     {
                         case ImportProfileViewModel.AdditionalSettingsForCreditValues.CreditInSeparateColumns:
-                            <div class="col-3">
+                            <div class="col-sm-12 col-md-6 col-xl-3 mb-2">
                                 <label class="form-label">Credit:</label>
                                 <select class="form-select form-select-sm"
                                         @bind:get="_dataContext.SelectedImportProfile.CreditColumnName"
@@ -212,7 +212,7 @@
                             </div>
                             break;
                         case ImportProfileViewModel.AdditionalSettingsForCreditValues.DebitCreditAlwaysPositive:
-                            <div class="col-3">
+                            <div class="col-sm-12 col-md-6 col-xl-3 mb-2">
                                 <label class="form-label">Column to identify Credit records:</label>
                                 <select class="form-select form-select-sm"
                                         @bind:get="_dataContext.SelectedImportProfile.CreditColumnIdentifierColumnName"
@@ -223,7 +223,7 @@
                                     }
                                 </select>
                             </div>
-                            <div class="col-3">
+                            <div class="col-sm-12 col-md-6 col-xl-3 mb-2">
                                 <label class="form-label">Column value to identify Credit records:</label>
                                 <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.CreditColumnIdentifierValue"/>
                             </div>
@@ -237,7 +237,7 @@
                     <hr>
                 </div>
                 <div class="row">
-                    <div class="col-6">
+                    <div class="col-sm-12 col-md-6 col-xl-3 mb-2">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" @bind="@_dataContext.SelectedImportProfile.AdditionalSettingAmountCleanup">
                             <label class="form-check-label">Amount contains additional characters (e.g. currency symbols)</label>
@@ -245,7 +245,7 @@
                     </div>
                     @if (_dataContext.SelectedImportProfile.AdditionalSettingAmountCleanup)
                     {
-                        <div class="col-3">
+                        <div class="col-sm-12 col-md-6 col-xl-3 mb-2">
                             <label class="form-label">Characters / Substring to be removed:</label>
                             <input class="form-control form-control-sm" type="text" @bind="_dataContext.SelectedImportProfile.AdditionalSettingAmountCleanupValue"/>
                         </div>
@@ -269,34 +269,36 @@
         </h2>
         <div id="collapseStepFour" class="accordion-collapse collapse" aria-labelledby="headingStepFour" data-bs-parent="#accordionSteps">
             <div class="accordion-body">
-                @if (!_isValidationRunning)
-                {
-                    <button class="btn btn-sm btn-primary header-action-button" disabled="@_isImportRunning" @onclick=ValidateDataAsync>Validate Data</button>
-                }
-                else
-                {
-                     <button class="btn btn-sm btn-primary header-action-button" type="button" disabled>
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Validating...
-                    </button>     
-                }
-
-                @if (_dataContext.ValidRecords > 0 && !_isValidationRunning)
-                {
-                    @if (!_isImportRunning)
+                <div class="d-flex flex-row">
+                    @if (!_isValidationRunning)
                     {
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick="() => ImportDataAsync(false)">Import Data</button>
-                        <button class="btn btn-sm btn-primary header-action-button" @onclick="() => ImportDataAsync(true)">Import Data (without Duplicates)</button>
+                        <button class="btn btn-sm btn-primary mb-2 me-2" disabled="@_isImportRunning" @onclick=ValidateDataAsync>Validate Data</button>
                     }
                     else
                     {
-                         <button class="btn btn-sm btn-primary header-action-button" type="button" disabled>
+                        <button class="btn btn-sm btn-primary mb-2 me-2" type="button" disabled>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            Importing...
-                        </button> 
+                            Validating...
+                        </button>
                     }
-                }
-                <div mb-3>
+
+                    @if (_dataContext.ValidRecords > 0 && !_isValidationRunning)
+                    {
+                        @if (!_isImportRunning)
+                        {
+                            <button class="btn btn-sm btn-primary mb-2 me-2" @onclick="() => ImportDataAsync(false)">Import Data</button>
+                            <button class="btn btn-sm btn-primary mb-2" @onclick="() => ImportDataAsync(true)">Import Data (without Duplicates)</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-primary mb-2 me-2" type="button" disabled>
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                Importing...
+                            </button>
+                        }
+                    }
+                </div>
+                <div class="mb-3">
                     <span>Total Records: @_dataContext.TotalRecords</span><br/>
                     <span>Valid Records: @_dataContext.ValidRecords</span><br/>
                     <span>Records with errors: @_dataContext.RecordsWithErrors</span><br/>
@@ -309,14 +311,14 @@
 
                 @if (_dataContext.ParsedRecords.Any(i => i.IsValid))
                 {
-		            <div class="mb-3">
+                    <div class="mb-3">
                         <h5>Preview (Valid Records)</h5>
                         <table class="table table-sm table-hover">
                             <thead>
                             <tr class="header-row">
                                 <th style="text-align: right; width:100px">Date</th>
-                                <th style="width:150px">Account</th>
-                                <th style="width:250px">Payee</th>
+                                <th class="d-none d-xl-table-cell" style="width:150px">Account</th>
+                                <th class="d-none d-xl-table-cell" style="width:250px">Payee</th>
                                 <th>Memo</th>
                                 <th style="text-align: right; width: 90px">Amount</th>
                             </tr>
@@ -326,20 +328,20 @@
                             {
                                 <tr>
                                     <td class="col-numbers">@transaction.Result.TransactionDate.ToShortDateString()</td>
-                                    <td>@_dataContext.SelectedImportProfile.Account.Name</td>
-                                    <td>@transaction.Result.Payee</td>
+                                    <td class="d-none d-xl-table-cell">@_dataContext.SelectedImportProfile.Account.Name</td>
+                                    <td class="d-none d-xl-table-cell">@transaction.Result.Payee</td>
                                     <td>@transaction.Result.Memo</td>
                                     <td class="col-numbers">@transaction.Result.Amount</td>
                                 </tr>
                             }
                             </tbody>
                         </table>
-		            </div>
+                    </div>
                 }
-    
+
                 @if (_dataContext.ParsedRecords.Any(i => !i.IsValid))
                 {
-		            <div class="mb-3">
+                    <div class="mb-3">
                         <h5>Records with error:</h5>
                         <table class="table table-sm table-hover">
                             <thead>
@@ -359,46 +361,46 @@
                                 </tr>
                             }
                         </table>
-		            </div>
+                    </div>
                 }
-    
+
                 @if (_dataContext.Duplicates.Any())
                 {
                     <div class="mb-3">
                         <h5>Potential Duplicates:</h5>
                         <table class="table table-sm table-hover">
                             <thead>
-                                <tr class="header-row">
-                                    <th style="text-align: right; width:100px">Date</th>
-                                    <th style="width:150px">Account</th>
-                                    <th style="width:250px">Payee</th>
-                                    <th>Memo</th>
-                                    <th style="text-align: right; width: 90px">Amount</th>
-                                    <th style="width: 90px"></th>
-                                </tr>
+                            <tr class="header-row">
+                                <th style="text-align: right; width:100px">Date</th>
+                                <th class="d-none d-xl-table-cell" style="width:150px">Account</th>
+                                <th class="d-none d-xl-table-cell" style="width:250px">Payee</th>
+                                <th>Memo</th>
+                                <th style="text-align: right; width: 90px">Amount</th>
+                                <th style="width: 90px"></th>
+                            </tr>
                             </thead>
                             <tbody>
-                                @foreach (var duplicate in _dataContext.Duplicates)
+                            @foreach (var duplicate in _dataContext.Duplicates)
+                            {
+                                <tr>
+                                    <td class="col-numbers">@duplicate.Item1.Result.TransactionDate.ToShortDateString()</td>
+                                    <td class="d-none d-xl-table-cell">@_dataContext.SelectedImportProfile.Account.Name</td>
+                                    <td class="d-none d-xl-table-cell">@duplicate.Item1.Result.Payee</td>
+                                    <td>@duplicate.Item1.Result.Memo</td>
+                                    <td class="col-numbers">@duplicate.Item1.Result.Amount</td>
+                                    <td class="col-buttons"><button class="btn btn-sm btn-danger" @onclick="() => _dataContext.ExcludeDuplicateRecord(duplicate)">Exclude</button></td>
+                                </tr>
+                                foreach (var bankTransaction in duplicate.Item2)
                                 {
-                                    <tr>
-                                        <td class="col-numbers">@duplicate.Item1.Result.TransactionDate.ToShortDateString()</td>
-                                        <td>@_dataContext.SelectedImportProfile.Account.Name</td>
-                                        <td>@duplicate.Item1.Result.Payee</td>
-                                        <td>@duplicate.Item1.Result.Memo</td>
-                                        <td class="col-numbers">@duplicate.Item1.Result.Amount</td>
-                                        <td class="col-buttons"><button class="btn btn-sm btn-danger" @onclick="() => _dataContext.ExcludeDuplicateRecord(duplicate)">Exclude</button></td>
+                                    <tr class="table-warning">
+                                        <td class="col-numbers">@bankTransaction.TransactionDate.ToShortDateString()</td>
+                                        <td class="d-none d-xl-table-cell">@_dataContext.SelectedImportProfile.Account.Name</td>
+                                        <td class="d-none d-xl-table-cell">@bankTransaction.Payee</td>
+                                        <td>@bankTransaction.Memo</td>
+                                        <td class="col-numbers">@bankTransaction.Amount</td>
                                     </tr>
-                                    foreach (var bankTransaction in duplicate.Item2)
-                                    {
-                                        <tr class="table-warning">
-                                            <td class="col-numbers">@bankTransaction.TransactionDate.ToShortDateString()</td>
-                                            <td>@_dataContext.SelectedImportProfile.Account.Name</td>
-                                            <td>@bankTransaction.Payee</td>
-                                            <td>@bankTransaction.Memo</td>
-                                            <td class="col-numbers">@bankTransaction.Amount</td>
-                                        </tr>
-                                    }
                                 }
+                            }
                             </tbody>
                         </table>
                     </div>
