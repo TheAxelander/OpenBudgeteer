@@ -7,26 +7,24 @@
 @if (IsDialogVisible)
  {
     <div class="modal fade show" style=" display: block;">
-        <div class="modal-dialog modal-dialog-scrollable" style="min-width: 1300px">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1300px">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Recurring Transactions</h4>
                     <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnClickCallback"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            @if (_massEditEnabled)
-                            {
-                                <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllTransaction">Save all</button>
-                                <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllTransaction">Cancel all</button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-sm btn-primary header-action-button" @onclick="@DataContext.AddEmptyTransaction">Create Transaction</button>
-                                <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
-                            }
-                        </div>
+                    <div class="d-flex flex-row flex-wrap d-none d-md-block">
+                        @if (_massEditEnabled)
+                        {
+                            <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@SaveAllTransaction">Save all</button>
+                            <button class="btn btn-sm btn-danger me-2 mb-2" @onclick="@CancelAllTransaction">Cancel all</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@DataContext.AddEmptyTransaction">Create Transaction</button>
+                            <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@EditAllTransaction">Edit all</button>
+                        }
                     </div>
 
                     <table class="table table-sm table-hover">
@@ -38,7 +36,7 @@
                             <th style="width:250px">Payee</th>
                             <th>Memo</th>
                             <th style="text-align: right; width: 120px">Amount</th>
-                            <th style="width:120px" />
+                            <th class="d-none d-md-table-cell" style="width:120px" />
                         </tr>
                         </thead>
                         <tbody>
@@ -74,7 +72,7 @@
                                         <td><input class="form-control form-control-sm" type="text" @bind="transaction.Payee" /></td>
                                         <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Memo"></textarea></td>
                                         <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
-                                        <td class="col-buttons">
+                                        <td class="d-none d-md-table-cell col-buttons">
                                             <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
                                             <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => CancelTransaction(transaction))"></button>
                                         </td>
@@ -90,7 +88,7 @@
                                         <td>@transaction.Payee</td>
                                         <td>@transaction.Memo</td>
                                         <td class="col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
-                                        <td class="col-buttons">
+                                        <td class="d-none d-md-table-cell col-buttons">
                                             <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
                                             <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
                                         </td>

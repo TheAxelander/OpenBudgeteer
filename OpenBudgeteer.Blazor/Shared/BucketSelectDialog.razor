@@ -28,9 +28,9 @@
                                 <tr class="header-row">
                                     <th>Bucket</th>
                                     <th class="col-numbers col-bucket-numbers">Balance</th>
-                                    <th class="col-numbers col-bucket-numbers">In</th>
-                                    <th class="col-numbers col-bucket-numbers">Activity</th>
-                                    <th class="col-bucket-details">Details</th>
+                                    <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers">In</th>
+                                    <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers">Activity</th>
+                                    <th class="d-none d-md-table-cell col-bucket-details">Details</th>
                                 </tr>
                             </thead>
                             <tbody><tr></tr></tbody>
@@ -49,9 +49,9 @@
                                             </div>
                                         </th>
                                         <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
-                                        <th class="col-bucket-details"></th>
+                                        <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                                        <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                                        <th class="d-none d-md-table-cell col-bucket-details"></th>
                                     </tr>
                                 </thead>
                                 <tbody><tr></tr></tbody>
@@ -75,9 +75,9 @@
                                                 </button>
                                             </td>
                                             <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
-                                            <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
-                                            <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
-                                            <td class="col-bucket-details">
+                                            <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
+                                            <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
+                                            <td class="d-none d-md-table-cell col-bucket-details">
                                             @if (bucket.IsProgressbarVisible)
                                             {
                                                 <div class="row">

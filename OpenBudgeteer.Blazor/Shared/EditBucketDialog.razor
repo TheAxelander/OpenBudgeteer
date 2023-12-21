@@ -11,12 +11,12 @@
                     <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCancelClickCallback"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <label class="form-label">Name:</label>
                         <input class="form-control form-control-sm" type="text" @bind="DataContext.Name"/>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col">
+                    <div class="row">
+                        <div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Bucket Type:</label>
                             <select class="form-select form-select-sm"
                                     @bind:get="((int)DataContext.BucketVersion.BucketTypeParameter).ToString()"
@@ -27,7 +27,7 @@
                                 }
                             </select>
                         </div>
-						<div class="col">
+						<div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Bucket Group:</label>
                             <select class="form-select form-select-sm" 
                                     @bind:get="DataContext.BucketGroupId.ToString()"
@@ -38,9 +38,7 @@
                                 }
                             </select>
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
+                        <div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Number of months:</label>
                             @if (_isNumberOfMonthsEnabled)
                             {
@@ -51,7 +49,7 @@
                                 <input class="form-control form-control-sm" disabled style="text-align: right;" type="number"/>
                             }
                         </div>
-                        <div class="col">
+                        <div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Amount:</label>
                             @if (_isAmountEnabled)
                             {
@@ -62,9 +60,7 @@
                                 <input class="form-control form-control-sm" disabled style="text-align: right;" type="number"/>
                             }
                         </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col">
+                        <div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">(First) Target Date:</label>
                             @if (_isTargetDataEnabled)
                             {
@@ -75,7 +71,7 @@
                                 <input class="form-control form-control-sm" disabled style="text-align: right;" type="date"/>
                             }
                         </div>
-                        <div class="col">
+                        <div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color)"
                                     @bind:get="DataContext.ColorCode"

@@ -6,7 +6,7 @@
 @if (IsDialogVisible)
  {
      <div class="modal fade show" style=" display: block;">
-         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1000px">
+         <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1300px">
              <div class="modal-content">
                  <div class="modal-header">
                      <h4 class="modal-title">@Title</h4>
@@ -23,8 +23,8 @@
                              <thead>
                                  <tr class="header-row">
                                      <th style="text-align: right; width:110px">Date</th>
-                                     <th style="width:150px">Account</th>
-                                     <th style="width:250px">Payee</th>
+                                     <th class="d-none d-lg-table-cell" style="width:150px">Account</th>
+                                     <th class="d-none d-lg-table-cell" style="width:250px">Payee</th>
                                      <th>Memo</th>
                                      <th style="text-align: right; width: 120px">Amount</th>
                                  </tr>
@@ -34,8 +34,8 @@
                                  {
                                      <tr>
                                          <td style="text-align: right">@transaction.TransactionDate.ToShortDateString()</td>
-                                         <td>@transaction.AccountName</td>
-                                         <td>@transaction.Payee</td>
+                                         <td class="d-none d-lg-table-cell">@transaction.AccountName</td>
+                                         <td class="d-none d-lg-table-cell">@transaction.Payee</td>
                                          <td>@transaction.Memo</td>
                                          <td style="text-align: right">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                      </tr>

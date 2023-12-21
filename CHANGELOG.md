@@ -13,6 +13,7 @@
 * [Changed] Enable editing of imported file [#196](https://github.com/TheAxelander/OpenBudgeteer/issues/196)
 * [Changed] Redesign of Navigation Menu and Footer
 * [Changed] Banner message on unwanted exceptions
+* [Changed] Rework UI to make it more responsive for various small screen sizes [#211](https://github.com/TheAxelander/OpenBudgeteer/issues/211)
 * [Fixed] UI alignment for large numbers [#189](https://github.com/TheAxelander/OpenBudgeteer/issues/189)
 * [Fixed] Mapping Rules using the Account Name instead of Account Id [#199](https://github.com/TheAxelander/OpenBudgeteer/pull/199) Thanks [Lucaber](https://github.com/Lucaber)
 * [Fixed] Adding a Mapping Rule to an existing Rule Set failed [#200](https://github.com/TheAxelander/OpenBudgeteer/pull/200) Thanks [Lucaber](https://github.com/Lucaber)

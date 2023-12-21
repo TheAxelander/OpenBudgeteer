@@ -46,7 +46,7 @@
                 <th class="d-none d-sm-table-cell">Memo</th>
                 <th class="d-none d-sm-table-cell" style="text-align: right; width: 120px">Amount</th>
                 <th class="d-none d-lg-table-cell" style="width:300px">Buckets</th>
-                <th class="d-none d-xl-table-cell" style="width:1px" />
+                <th class="d-none d-md-table-cell" style="width:1px" />
             </tr>
         </thead>
         <tbody>
@@ -93,7 +93,7 @@
                         </div>
                     }
                 </td>
-                <td class="d-none d-xl-table-cell col-buttons">
+                <td class="d-none d-md-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary" @onclick="@(() => SplitTransaction(_dataContext.NewTransaction))"><i class="bi bi-diagram-2"></i></button>
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateItem()))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@CancelNewTransaction"></button>
@@ -112,7 +112,7 @@
         <th class="d-none d-sm-table-cell">Memo</th>
         <th class="d-none d-sm-table-cell" style="text-align: right; width: 120px">Amount</th>
         <th class="d-none d-lg-table-cell" style="width:300px">Buckets</th>
-        <th class="d-none d-xl-table-cell" style="width:120px" />
+        <th class="d-none d-md-table-cell" style="width:120px" />
     </tr>
     </thead>
     <tbody>
@@ -163,7 +163,7 @@
                         </div>
                     }
                 </td>
-                <td class="d-none d-xl-table-cell col-buttons">
+                <td class="d-none d-md-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary" @onclick="@(() => SplitTransaction(transaction))"><i class="bi bi-diagram-2"></i></button>
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
@@ -187,7 +187,7 @@
                         </div>
                     }
                 </td>
-                <td class="d-none d-xl-table-cell col-buttons">
+                <td class="d-none d-md-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
                     <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleShowDeletionTransactionDialog(transaction))"></button>
                 </td>

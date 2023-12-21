@@ -36,9 +36,9 @@
                                     <thead>
                                         <tr class="header-row">
                                             <th style="text-align: right; width:110px">Date</th>
-                                            <th style="width:150px">Account</th>
-                                            <th style="width:250px">Payee</th>
-                                            <th>Memo</th>
+                                            <th class="d-none d-md-table-cell" style="width:150px">Account</th>
+                                            <th class="d-none d-md-table-cell" style="width:250px">Payee</th>
+                                            <th >Memo</th>
                                             <th style="text-align: right; width: 120px">Amount</th>
                                         </tr>
                                     </thead>
@@ -47,8 +47,8 @@
                                         {
                                             <tr>
                                                 <td style="text-align: right">@transaction.TransactionDate.ToShortDateString()</td>
-                                                <td>@transaction.AccountName</td>
-                                                <td>@transaction.Payee</td>
+                                                <td class="d-none d-md-table-cell">@transaction.AccountName</td>
+                                                <td class="d-none d-md-table-cell">@transaction.Payee</td>
                                                 <td>@transaction.Memo</td>
                                                 <td style="text-align: right">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                             </tr>
@@ -58,19 +58,25 @@
                             </div>
                             <div class="tab-pane fade" id="bucket-statistics" role="tabpanel" aria-labelledby="statistics-tab">
                                 <div class="row">
-                                    <div class="col report-chart-box">
-		                                <h4 class="report-chart-header">Month Balances</h4>
-                                        <ChartJsBarChart Config="@DataContext.MonthBalancesConfig"/>
+                                    <div class="col-md-6 col-sm-12 p-1">
+                                        <div class="report-chart-box">
+                                            <h4 class="report-chart-header">Month Balances</h4>
+                                            <ChartJsBarChart Config="@DataContext.MonthBalancesConfig"/>
+                                        </div>
                                     </div>
-                                     <div class="col report-chart-box">
-		                                <h4 class="report-chart-header">Input & Output</h4>
-                                        <ChartJsBarChart Config="@DataContext.MonthInputOutputConfig"/>
+                                     <div class="col-md-6 col-sm-12 p-1">
+                                         <div class="report-chart-box">
+                                             <h4 class="report-chart-header">Input & Output</h4>
+                                             <ChartJsBarChart Config="@DataContext.MonthInputOutputConfig"/>
+                                         </div>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col report-chart-box">
-		                                <h4 class="report-chart-header">Balance Progression</h4>
-                                        <ChartJsLineChart Config="@DataContext.BucketProgressionConfig"/>
+                                    <div class="col p-1">
+                                        <div class="report-chart-box">
+                                            <h4 class="report-chart-header">Balance Progression</h4>
+                                            <ChartJsLineChart Config="@DataContext.BucketProgressionConfig"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -69,18 +69,8 @@
     </div>
 }
 
-@if (_isLoadingDialogVisible)
-{
-    <div class="modal fade show" style=" display: block;">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Check Data Consistency</h4>
-                </div>
-                <div class="modal-body">Execute several checks on your data...</div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
+<InfoDialog
+    Title="Check Data Consistency"
+    Message="Execute several checks on your data..."
+    IsDialogVisible="@_isLoadingDialogVisible"
+    IsInteractionEnabled="@false"/>

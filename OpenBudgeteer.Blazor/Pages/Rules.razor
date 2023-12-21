@@ -5,42 +5,41 @@
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 
-<div class="row">
-    <div class="col">
-        @if (_massEditEnabled)
-        {
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllRules">Save all</button>
-            <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllRules">Cancel all</button>
-        }
-        else
-        {
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@StartCreateMappingRuleSet">Create Rule</button>
-            <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllRules">Edit all</button>
-        }
-    </div>
+<div class="d-flex flex-row flex-wrap">
+    @if (_massEditEnabled)
+    {
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@SaveAllRules">Save all</button>
+        <button class="btn btn-sm btn-danger me-2 mb-2" @onclick="@CancelAllRules">Cancel all</button>
+    }
+    else
+    {
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@StartCreateMappingRuleSet">Create Rule</button>
+        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@EditAllRules">Edit all</button>
+    }
 </div>
 
 @if (_newMappingRuleSetIsEnabled)
 {
-	<table class="table table-sm table-hover">
+	<table class="table table-sm">
         <thead>
         <tr>
-            <th style="text-align: right; width:110px">Priority</th>
-            <th style="width:250px">Rule Name</th>
-            <th style="width:300px">Target Bucket</th>
-            <th>Mapping Rules</th>
+            <th class="d-none d-sm-table-cell" style="text-align: right; width:80px">Priority</th>
+            <th class="d-none d-sm-table-cell" style="width:150px">Rule Name</th>
+            <th class="d-none d-lg-table-cell" style="width:200px">Target Bucket</th>
+            <th class="d-none d-sm-table-cell">Mapping Rules</th>
+            <th class="d-none d-sm-table-cell" style="width:1px" />
         </tr>
         </thead>
         <tbody>
             <tr>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet!.Priority" /></td>
-                <td><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.Name" /></td>
-                <td>
+                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet!.Priority" /></td>
+                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.Name" /></td>
+                <td class="d-none d-lg-table-cell">
                     <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucketColor)" @onclick="() => HandleShowSelectBucketDialog(_dataContext.NewRuleSet)">
                         @_dataContext.NewRuleSet.TargetBucketName
                     </button>
                 </td>
-                <td>
+                <td class="d-none d-sm-table-cell">
                     <table class="table table-borderless" style="margin-bottom: auto;">
                         <tbody>
                             @foreach (var mappingRule in _dataContext.NewRuleSet.MappingRules)
@@ -78,7 +77,7 @@
                         </tbody>
                     </table>
                 </td>
-                <td class="col-buttons">
+                <td class="d-none d-sm-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateNewRuleSet()))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@CancelNewBucketRule"></button>
                 </td>
@@ -90,10 +89,11 @@
 <table class="table table-sm table-hover">
     <thead>
     <tr>
-        <th style="text-align: right; width:110px">Priority</th>
-        <th style="width:250px">Rule Name</th>
-        <th style="width:300px">Target Bucket</th>
-        <th>Mapping Rules</th>
+        <th class="d-none d-sm-table-cell" style="text-align: right; width:80px">Priority</th>
+        <th class="d-none d-sm-table-cell" style="width:150px">Rule Name</th>
+        <th class="d-none d-lg-table-cell" style="width:200px">Target Bucket</th>
+        <th class="d-none d-sm-table-cell">Mapping Rules</th>
+        <th class="d-none d-sm-table-cell" style="width:1px" />
     </tr>
     </thead>
     <tbody>
@@ -102,14 +102,14 @@
         @if (ruleSet.InModification)
         {
             <tr>
-                <td><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.Priority" /></td>
-                <td><input class="form-control form-control-sm" type="text" @bind="ruleSet.Name" /></td>
-                <td>
+                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.Priority" /></td>
+                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm" type="text" @bind="ruleSet.Name" /></td>
+                <td class="d-none d-lg-table-cell">
                     <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor)" @onclick="() => HandleShowSelectBucketDialog(ruleSet)">
                         @ruleSet.TargetBucketName
                     </button>
                 </td>
-                <td>
+                <td class="d-none d-sm-table-cell">
                     <table class="table table-borderless" style="margin-bottom: auto;">
                         <tbody>
                         @foreach (var mappingRule in ruleSet.MappingRules)
@@ -147,7 +147,7 @@
                         </tbody>
                     </table>
                 </td>
-                <td class="col-buttons">
+                <td class="d-none d-sm-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
                     <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.CancelModification())"></button>
                 </td>
@@ -156,10 +156,10 @@
         else
         {
             <tr>
-                <td class="col-numbers">@ruleSet.Priority</td>
-                <td>@ruleSet.Name</td>
-                <td><div style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor); border-radius: 25px; padding: 5px 10px">@ruleSet.TargetBucketName</div></td>
-                <td>
+                <td class="d-none d-sm-table-cell col-numbers">@ruleSet.Priority</td>
+                <td class="d-none d-sm-table-cell">@ruleSet.Name</td>
+                <td class="d-none d-lg-table-cell"><div style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor); border-radius: 25px; padding: 5px 10px">@ruleSet.TargetBucketName</div></td>
+                <td class="d-none d-sm-table-cell">
                     <ul>
                         @foreach (var mappingRule in ruleSet.MappingRules)
                         {
@@ -167,7 +167,7 @@
                         }
                     </ul>
                 </td>
-                <td class="col-buttons">
+                <td class="d-none d-sm-table-cell col-buttons">
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@ruleSet.StartModification"></button>
                     <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleShowDeleteRuleSetDialog(ruleSet))"></button>
                 </td>

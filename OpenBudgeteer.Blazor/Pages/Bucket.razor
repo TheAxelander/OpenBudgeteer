@@ -82,8 +82,8 @@
         <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers">Want</th>
         <th class="d-none d-md-table-cell col-numbers col-bucket-numbers">In</th>
         <th class="d-none d-md-table-cell col-numbers col-bucket-numbers">Activity</th>
-        <th class="d-none d-xxl-table-cell col-bucket-details">Details</th>
-		<th class="d-none d-xxl-table-cell col-buttons col-bucket-buttons"></th>
+        <th class="d-none d-lg-table-cell col-bucket-details">Details</th>
+		<th class="d-none d-lg-table-cell col-buttons col-bucket-buttons"></th>
     </tr>
     </thead>
     <tbody>
@@ -118,8 +118,8 @@
                 <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalWant == 0 ? string.Empty : bucketGroup.TotalWant.ToString("C", CultureInfo.CurrentCulture))</span></td>
                 <td class="d-none d-md-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></td>
                 <td class="d-none d-md-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></td>
-                <td class="d-none d-xxl-table-cell"></td>
-                <td class="d-none d-xxl-table-cell col-buttons col-bucket-buttons">
+                <td class="d-none d-lg-table-cell"></td>
+                <td class="d-none d-lg-table-cell col-buttons col-bucket-buttons">
                     <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => bucketGroup.StartModification())"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-up" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(-1)))"></button>
                     <button class="btn btn-sm btn-primary bi bi-arrow-down" @onclick="@(() => HandleResult(bucketGroup.MoveGroup(1)))"></button>
@@ -163,7 +163,7 @@
                                 <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers">@(bucket.Want == 0 ? string.Empty : bucket.Want.ToString("C", CultureInfo.CurrentCulture))</td>
                                 <td class="d-none d-md-table-cell col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
                                 <td class="d-none d-md-table-cell col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
-                                <td class="d-none d-xxl-table-cell col-bucket-details">
+                                <td class="d-none d-lg-table-cell col-bucket-details">
                                     @if (bucket.IsProgressbarVisible)
                                     {
                                         <div class="row">
@@ -182,7 +182,7 @@
                                         </div>
                                     }
                                 </td>
-                                <td class="d-none d-xxl-table-cell col-buttons col-bucket-buttons">
+                                <td class="d-none d-lg-table-cell col-buttons col-bucket-buttons">
                                     @if (bucket.IsInactive)
                                     {
                                         <button class="btn btn-sm btn-primary bi bi-list-ul" @onclick="@(() => DisplayBucketDetails(bucket))"></button>
