@@ -75,7 +75,7 @@
                             <label class="form-label">Background Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(DataContext.TextColor)"
                                     @bind:get="DataContext.ColorCode"
-                                    @bind:set="(value) => { DataContext.ColorCode = Convert.ToString(value); }">
+                                    @bind:set="(value) => { DataContext.ColorCode = value; }">
                                 @foreach (var color in DataContext.AvailableColors!)
                                 {
                                     <option style="background-color: @ColorTranslator.ToHtml(color); color: @ColorTranslator.ToHtml(DataContext.TextColor)" value="@color.Name">@color.Name</option>
@@ -86,7 +86,7 @@
                             <label class="form-label">Text Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(DataContext.TextColor)"
                                     @bind:get="DataContext.TextColorCode"
-                                    @bind:set="(value) => { DataContext.TextColorCode = Convert.ToString(value); }">
+                                    @bind:set="(value) => { DataContext.TextColorCode = value; }">
                                 @foreach (var color in DataContext.AvailableColors!)
                                 {
                                     <option style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
