@@ -1,6 +1,7 @@
 ﻿@page "/import"
 @using Tewr.Blazor.FileReader
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using System.Globalization
 @inject IFileReaderService FileReaderService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavManager
@@ -331,7 +332,7 @@
                                     <td class="d-none d-xl-table-cell">@_dataContext.SelectedImportProfile.Account.Name</td>
                                     <td class="d-none d-xl-table-cell">@transaction.Result.Payee</td>
                                     <td>@transaction.Result.Memo</td>
-                                    <td class="col-numbers">@transaction.Result.Amount</td>
+                                    <td class="col-numbers">@transaction.Result.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                 </tr>
                             }
                             </tbody>
@@ -387,7 +388,7 @@
                                     <td class="d-none d-xl-table-cell">@_dataContext.SelectedImportProfile.Account.Name</td>
                                     <td class="d-none d-xl-table-cell">@duplicate.Item1.Result.Payee</td>
                                     <td>@duplicate.Item1.Result.Memo</td>
-                                    <td class="col-numbers">@duplicate.Item1.Result.Amount</td>
+                                    <td class="col-numbers">@duplicate.Item1.Result.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                     <td class="col-buttons"><button class="btn btn-sm btn-danger" @onclick="() => _dataContext.ExcludeDuplicateRecord(duplicate)">Exclude</button></td>
                                 </tr>
                                 foreach (var bankTransaction in duplicate.Item2)
@@ -397,7 +398,7 @@
                                         <td class="d-none d-xl-table-cell">@_dataContext.SelectedImportProfile.Account.Name</td>
                                         <td class="d-none d-xl-table-cell">@bankTransaction.Payee</td>
                                         <td>@bankTransaction.Memo</td>
-                                        <td class="col-numbers">@bankTransaction.Amount</td>
+                                        <td class="col-numbers">@bankTransaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                     </tr>
                                 }
                             }
