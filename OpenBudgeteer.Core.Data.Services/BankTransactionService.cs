@@ -125,7 +125,7 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
                         .Select(i => i.Id)
                         .ToList();
                         
-                if (deletedIds.Any())
+                if (deletedIds.Count != 0)
                 {
                     var result = budgetedTransactionRepository.DeleteRange(deletedIds);
                     if (result != deletedIds.Count) 

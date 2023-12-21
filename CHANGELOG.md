@@ -5,6 +5,7 @@
 * [Add] First version of Web API in a separate Docker Image [#127](https://github.com/TheAxelander/OpenBudgeteer/issues/127)
 * [Add] Loading screen while opening/uploading a file [#209](https://github.com/TheAxelander/OpenBudgeteer/issues/209)
 * [Add] Confirmation Dialog for deleting a Bucket Group [#208](https://github.com/TheAxelander/OpenBudgeteer/issues/208)
+* [Add] Text Color option for Bucket [#207](https://github.com/TheAxelander/OpenBudgeteer/issues/207)
 * [Breaking Change] Docker Image now listens on port 8080 (new .Net 8 default)
 * [Changed] Migrated to .Net 8 [#198](https://github.com/TheAxelander/OpenBudgeteer/issues/198)
 * [Changed] Amounts displayed in consistent currency and number format [#188](https://github.com/TheAxelander/OpenBudgeteer/issues/188)

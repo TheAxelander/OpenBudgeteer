@@ -63,7 +63,7 @@
                                     {
                                         <tr @onmouseover="@(() => bucket.IsHovered = true)" @onmouseout="@(() => bucket.IsHovered = false)">
                                             <td>
-                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Color); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket)">
+                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Color); color: @ColorTranslator.ToHtml(bucket.TextColor); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket)">
                                                     @if (bucket.IsInactive)
                                                     {
                                                         @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")

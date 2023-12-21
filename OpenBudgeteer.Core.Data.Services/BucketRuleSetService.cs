@@ -87,7 +87,7 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
                     .All(j => j.Id != i.Id))
                 .Select(i => i.Id)
                 .ToList();
-            if (deletedIds.Any())
+            if (deletedIds.Count != 0)
             {
                 var result = mappingRuleRepository.DeleteRange(deletedIds);
                 if (result != deletedIds.Count) 

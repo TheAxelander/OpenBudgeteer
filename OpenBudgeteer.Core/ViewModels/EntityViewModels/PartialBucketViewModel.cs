@@ -34,7 +34,7 @@ public class PartialBucketViewModel : ViewModelBase
     
     private string _selectedBucketColorCode;
     /// <summary>
-    /// Name of the color based from <see cref="Color"/>
+    /// Name of the background color based from <see cref="Color"/>
     /// </summary>
     public string SelectedBucketColorCode 
     { 
@@ -43,9 +43,24 @@ public class PartialBucketViewModel : ViewModelBase
     }
     
     /// <summary>
-    /// <see cref="Color"/> of the selected Bucket 
+    /// Background <see cref="Color"/> of the selected Bucket 
     /// </summary>
     public Color SelectedBucketColor => string.IsNullOrEmpty(SelectedBucketColorCode) ? Color.LightGray : Color.FromName(SelectedBucketColorCode);
+    
+    private string _selectedBucketTextColorCode;
+    /// <summary>
+    /// Name of the text color based from <see cref="Color"/>
+    /// </summary>
+    public string SelectedBucketTextColorCode 
+    { 
+        get => _selectedBucketTextColorCode;
+        set => Set(ref _selectedBucketTextColorCode, value);
+    }
+    
+    /// <summary>
+    /// Text <see cref="Color"/> of the selected Bucket 
+    /// </summary>
+    public Color SelectedBucketTextColor => string.IsNullOrEmpty(SelectedBucketTextColorCode) ? Color.Black : Color.FromName(SelectedBucketTextColorCode);
 
     private string _selectedBucketOutput;
     /// <summary>
@@ -111,15 +126,15 @@ public class PartialBucketViewModel : ViewModelBase
             _selectedBucketId = noSelectionBucket.Id;
             _selectedBucketName = noSelectionBucket.Name ?? string.Empty;
             _selectedBucketColorCode = noSelectionBucket.ColorCode ?? string.Empty;
+            _selectedBucketTextColorCode = noSelectionBucket.TextColorCode ?? string.Empty;
         }
         else
         {
             _selectedBucketId = bucket.Id;
             _selectedBucketName = bucket.Name ?? string.Empty;
             _selectedBucketColorCode = bucket.ColorCode ?? string.Empty;
+            _selectedBucketTextColorCode = bucket.TextColorCode ?? string.Empty;
         }
-        
-        
     }
 
     /// <summary>
@@ -164,6 +179,7 @@ public class PartialBucketViewModel : ViewModelBase
         SelectedBucketId = bucketViewModel.BucketId;
         SelectedBucketName = bucketViewModel.Name;
         SelectedBucketColorCode = bucketViewModel.ColorCode;
+        SelectedBucketTextColorCode = bucketViewModel.TextColorCode;
     }
     
     #endregion

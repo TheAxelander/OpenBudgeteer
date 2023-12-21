@@ -52,7 +52,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
     
     private string _colorCode;
     /// <summary>
-    /// Name of the color based from <see cref="Color"/>
+    /// Name of the color based from <see cref="Color"/> for the Bucket Background
     /// </summary>
     public string ColorCode 
     { 
@@ -61,9 +61,24 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
     }
     
     /// <summary>
-    /// <see cref="Color"/> of the Bucket 
+    /// Background <see cref="Color"/> of the Bucket
     /// </summary>
     public Color Color => string.IsNullOrEmpty(ColorCode) ? Color.LightGray : Color.FromName(ColorCode);
+    
+    private string _textColorCode;
+    /// <summary>
+    /// Name of the text color based from <see cref="Color"/>
+    /// </summary>
+    public string TextColorCode 
+    { 
+        get => _textColorCode;
+        set => Set(ref _textColorCode, value);
+    }
+    
+    /// <summary>
+    /// Text <see cref="Color"/> of the Bucket
+    /// </summary>
+    public Color TextColor => string.IsNullOrEmpty(TextColorCode) ? Color.Black : Color.FromName(TextColorCode);
     
     private DateTime _validFrom;
     /// <summary>
@@ -219,6 +234,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
             //BucketGroupId = bucketGroupId;    Will be set in CreateEmpty()
             _name = "New Bucket";
             _colorCode = Color.Transparent.Name;
+            _textColorCode = Color.Black.Name;
             _validFrom = yearMonth;
             _isInactive = false;
             _isInactiveFrom = DateTime.MaxValue;
@@ -231,6 +247,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
             _name = bucket.Name ?? string.Empty;
             _bucketGroupId = bucket.BucketGroupId;
             _colorCode = bucket.ColorCode ?? string.Empty;
+            _textColorCode = bucket.TextColorCode ?? string.Empty;
             _validFrom = bucket.ValidFrom;
             _isInactive = bucket.IsInactive;
             _isInactiveFrom = bucket.IsInactiveFrom;
@@ -471,6 +488,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
             Name = Name,
             BucketGroupId = BucketGroupId,
             ColorCode = ColorCode,
+            TextColorCode = TextColorCode,
             ValidFrom = ValidFrom,
             IsInactive = IsInactive,
             IsInactiveFrom = IsInactiveFrom,

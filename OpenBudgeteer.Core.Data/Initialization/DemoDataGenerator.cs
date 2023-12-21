@@ -62,7 +62,8 @@ public class DemoDataGenerator
             BucketGroupId = bucketGroupRegularExpenses.Id,
             Name = "Rent",
             ValidFrom = firstOfPreviousMonth,
-            ColorCode = "IndianRed"
+            ColorCode = "IndianRed",
+            TextColorCode = "White"
         };
         var bucketHealthInsurance = new Bucket()
         {
@@ -70,7 +71,8 @@ public class DemoDataGenerator
             BucketGroupId = bucketGroupRegularExpenses.Id,
             Name = "Health Insurance",
             ValidFrom = firstOfPreviousMonth,
-            ColorCode = "IndianRed"
+            ColorCode = "IndianRed",
+            TextColorCode = "White"
         };
         var bucketGroceries = new Bucket()
         {
@@ -78,7 +80,8 @@ public class DemoDataGenerator
             BucketGroupId = bucketGroupRegularExpenses.Id,
             Name = "Groceries",
             ValidFrom = firstOfPreviousMonth,
-            ColorCode = "DarkOliveGreen"
+            ColorCode = "DarkOliveGreen",
+            TextColorCode = "White"
         };
         var bucketCarFuel = new Bucket()
         {
@@ -86,7 +89,8 @@ public class DemoDataGenerator
             BucketGroupId = bucketGroupRegularExpenses.Id,
             Name = "Car Fuel",
             ValidFrom = firstOfPreviousMonth,
-            ColorCode = "DarkOliveGreen"
+            ColorCode = "DarkOliveGreen",
+            TextColorCode = "White"
         };
         var bucketVacationTrip = new Bucket()
         {
@@ -94,7 +98,8 @@ public class DemoDataGenerator
             BucketGroupId = bucketGroupSavings.Id,
             Name = "Vacation Trip",
             ValidFrom = firstOfThisMonth,
-            ColorCode = "Goldenrod"
+            ColorCode = "Goldenrod",
+            TextColorCode = "Black"
         };
         var bucketReserves = new Bucket()
         {
@@ -102,7 +107,8 @@ public class DemoDataGenerator
             BucketGroupId = bucketGroupSavings.Id,
             Name = "Reserves",
             ValidFrom = firstOfPreviousMonth,
-            ColorCode = "Orange"
+            ColorCode = "Orange",
+            TextColorCode = "Black"
         };
         dbContext.Bucket.AddRange(new []
         {

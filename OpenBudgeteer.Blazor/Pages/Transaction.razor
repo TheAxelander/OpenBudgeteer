@@ -74,7 +74,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
                                             @bucket.SelectedBucketName
                                         </button>
                                     </td>
@@ -144,7 +144,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
                                             @bucket.SelectedBucketName
                                         </button>
                                     </td>
@@ -181,7 +181,7 @@
                 <td class="d-none d-lg-table-cell" style="vertical-align: middle">
                     @foreach (var bucket in transaction.Buckets)
                     {
-                        <div class="row bucket-indicator" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor)">
+                        <div class="row bucket-indicator" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)">
                             <div class="col">@bucket.SelectedBucketName</div>
                             <div class="col-md-auto col-numbers">@bucket.Amount.ToString("C", CultureInfo.CurrentCulture)</div>
                         </div>

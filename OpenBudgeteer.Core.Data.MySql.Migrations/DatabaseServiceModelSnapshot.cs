@@ -16,7 +16,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.5")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Account", b =>
@@ -86,6 +86,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("TextColorCode")
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("ValidFrom")
@@ -368,7 +371,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Bucket", b =>
                 {
                     b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.BucketGroup", "BucketGroup")
-                        .WithMany()
+                        .WithMany("Buckets")
                         .HasForeignKey("BucketGroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -379,7 +382,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketMovement", b =>
                 {
                     b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "Bucket")
-                        .WithMany()
+                        .WithMany("BucketMovements")
                         .HasForeignKey("BucketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -401,7 +404,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketVersion", b =>
                 {
                     b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "Bucket")
-                        .WithMany()
+                        .WithMany("BucketVersions")
                         .HasForeignKey("BucketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -412,13 +415,13 @@ namespace OpenBudgeteer.Core.Migrations.MySql
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BudgetedTransaction", b =>
                 {
                     b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.Bucket", "Bucket")
-                        .WithMany()
+                        .WithMany("BudgetedTransactions")
                         .HasForeignKey("BucketId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.BankTransaction", "Transaction")
-                        .WithMany()
+                        .WithMany("BudgetedTransactions")
                         .HasForeignKey("TransactionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -442,7 +445,7 @@ namespace OpenBudgeteer.Core.Migrations.MySql
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.MappingRule", b =>
                 {
                     b.HasOne("OpenBudgeteer.Core.Data.Entities.Models.BucketRuleSet", "BucketRuleSet")
-                        .WithMany()
+                        .WithMany("MappingRules")
                         .HasForeignKey("BucketRuleSetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -459,6 +462,30 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                         .IsRequired();
 
                     b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BankTransaction", b =>
+                {
+                    b.Navigation("BudgetedTransactions");
+                });
+
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Bucket", b =>
+                {
+                    b.Navigation("BucketMovements");
+
+                    b.Navigation("BucketVersions");
+
+                    b.Navigation("BudgetedTransactions");
+                });
+
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketGroup", b =>
+                {
+                    b.Navigation("Buckets");
+                });
+
+            modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.BucketRuleSet", b =>
+                {
+                    b.Navigation("MappingRules");
                 });
 #pragma warning restore 612, 618
         }

@@ -60,7 +60,7 @@ public class BucketGroupRepository : IBucketGroupRepository
             .Include(i => i.Buckets)
             .FirstOrDefault(i => i.Id == id);
         if (entity == null) throw new Exception($"BucketGroup with id {id} not found.");
-        if (entity.Buckets.Any()) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
+        if (entity.Buckets.Count != 0) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 
         DatabaseContext.BucketGroup.Remove(entity);
         return DatabaseContext.SaveChanges();
@@ -75,7 +75,7 @@ public class BucketGroupRepository : IBucketGroupRepository
             .Include(i => i.Buckets)
             .Where(i => cleansedEntities.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No BucketGroup found with passed IDs.");
-        if (entities.Any(i => i.Buckets.Any())) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
+        if (entities.Any(i => i.Buckets.Count != 0)) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 
         DatabaseContext.BucketGroup.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

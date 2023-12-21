@@ -52,7 +52,7 @@ internal class RecurringBankTransactionService : BaseService<RecurringBankTransa
                 }));
             }
 
-            List<BankTransaction> result = new();
+            List<BankTransaction> result = [];
             foreach (var taskResult in await Task.WhenAll(recurringBankTransactionTasks))
             {
                 result.AddRange(taskResult);

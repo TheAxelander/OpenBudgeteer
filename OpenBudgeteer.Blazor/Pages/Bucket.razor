@@ -138,13 +138,13 @@
                                 <td>
                                     @if (bucket.IsInactive)
                                     {
-                                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">
+                                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); color: @ColorTranslator.ToHtml(bucket.TextColor); border-radius: 25px; padding: 5px 10px">
                                             @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")
                                         </div>
                                     }
                                     else
                                     {
-                                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); border-radius: 25px; padding: 5px 10px">@bucket.Name</div>
+                                        <div style="background-color: @ColorTranslator.ToHtml(bucket.Color); color: @ColorTranslator.ToHtml(bucket.TextColor); border-radius: 25px; padding: 5px 10px">@bucket.Name</div>
                                     }
                                 </td>
                                 <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>

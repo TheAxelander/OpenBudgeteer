@@ -2,17 +2,20 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Data.Entities;
 
 #nullable disable
 
-namespace OpenBudgeteer.Core.Migrations.Sqlite
+namespace OpenBudgeteer.Core.Data.Sqlite.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class SqliteDatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20231221153309_AddBucketTextColor")]
+    partial class AddBucketTextColor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");

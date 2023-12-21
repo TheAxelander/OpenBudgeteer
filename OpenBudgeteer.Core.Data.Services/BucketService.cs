@@ -416,7 +416,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
                 .Where(i => i.TargetBucketId == id)
                 .Select(i => i.Id)
                 .ToList();
-            if (bucketRuleSetIds.Any()) bucketRuleSetRepository.DeleteRange(bucketRuleSetIds);
+            if (bucketRuleSetIds.Count != 0) bucketRuleSetRepository.DeleteRange(bucketRuleSetIds);
             
             transaction.Commit();
         }

@@ -11,21 +11,10 @@
                     <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCancelClickCallback"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-2">
-                        <label class="form-label">Name:</label>
-                        <input class="form-control form-control-sm" type="text" @bind="DataContext.Name"/>
-                    </div>
                     <div class="row">
                         <div class="col-12 col-sm-6 mb-2">
-                            <label class="form-label">Bucket Type:</label>
-                            <select class="form-select form-select-sm"
-                                    @bind:get="((int)DataContext.BucketVersion.BucketTypeParameter).ToString()"
-                                    @bind:set="BucketType_SelectionChanged">
-                                @for (int i = 1; i <= 4; i++)
-                                {
-                                    <option value="@i">@(((BucketVersionViewModel.BucketType)i).GetStringValue())</option>
-                                }
-                            </select>
+                            <label class="form-label">Name:</label>
+                            <input class="form-control form-control-sm" type="text" @bind="DataContext.Name"/>
                         </div>
 						<div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Bucket Group:</label>
@@ -35,6 +24,17 @@
                                 @foreach (var bucketGroup in DataContext.AvailableBucketGroups!)
                                 {
                                     <option value="@bucketGroup.Id">@bucketGroup.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6 mb-2">
+                            <label class="form-label">Bucket Type:</label>
+                            <select class="form-select form-select-sm"
+                                    @bind:get="((int)DataContext.BucketVersion.BucketTypeParameter).ToString()"
+                                    @bind:set="BucketType_SelectionChanged">
+                                @for (int i = 1; i <= 4; i++)
+                                {
+                                    <option value="@i">@(((BucketVersionViewModel.BucketType)i).GetStringValue())</option>
                                 }
                             </select>
                         </div>
@@ -72,13 +72,24 @@
                             }
                         </div>
                         <div class="col-12 col-sm-6 mb-2">
-                            <label class="form-label">Color:</label>
-                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color)"
+                            <label class="form-label">Background Color:</label>
+                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(DataContext.TextColor)"
                                     @bind:get="DataContext.ColorCode"
-                                    @bind:set="(value) => { DataContext.ColorCode = Convert.ToString(value) ?? Color.LightGray.Name; }">
+                                    @bind:set="(value) => { DataContext.ColorCode = Convert.ToString(value); }">
                                 @foreach (var color in DataContext.AvailableColors!)
                                 {
-                                    <option style="background-color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
+                                    <option style="background-color: @ColorTranslator.ToHtml(color); color: @ColorTranslator.ToHtml(DataContext.TextColor)" value="@color.Name">@color.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-6 mb-2">
+                            <label class="form-label">Text Color:</label>
+                            <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(DataContext.TextColor)"
+                                    @bind:get="DataContext.TextColorCode"
+                                    @bind:set="(value) => { DataContext.TextColorCode = Convert.ToString(value); }">
+                                @foreach (var color in DataContext.AvailableColors!)
+                                {
+                                    <option style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
                                 }
                             </select>
                         </div>

@@ -20,6 +20,8 @@ public class Bucket : IEntity
 
     public string? ColorCode { get; set; }
     
+    public string? TextColorCode { get; set; }
+    
     [Required]
     public DateTime ValidFrom { get; set; }
 

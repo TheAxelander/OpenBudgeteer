@@ -60,7 +60,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     
     private string _targetBucketColorCode;
     /// <summary>
-    /// Name of the color based from <see cref="Color"/>
+    /// Name of the background color based from <see cref="Color"/>
     /// </summary>
     public string TargetBucketColorCode 
     { 
@@ -69,9 +69,24 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     }
     
     /// <summary>
-    /// <see cref="Color"/> of the Bucket 
+    /// Background <see cref="Color"/> of the Bucket 
     /// </summary>
     public Color TargetBucketColor => string.IsNullOrEmpty(TargetBucketColorCode) ? Color.LightGray : Color.FromName(TargetBucketColorCode);
+    
+    private string _targetBucketTextColorCode;
+    /// <summary>
+    /// Name of the text color based from <see cref="Color"/>
+    /// </summary>
+    public string TargetBucketTextColorCode 
+    { 
+        get => _targetBucketTextColorCode;
+        set => Set(ref _targetBucketTextColorCode, value);
+    }
+    
+    /// <summary>
+    /// Text <see cref="Color"/> of the Bucket 
+    /// </summary>
+    public Color TargetBucketTextColor => string.IsNullOrEmpty(TargetBucketTextColorCode) ? Color.Black : Color.FromName(TargetBucketTextColorCode);
     
     private bool _inModification;
     /// <summary>
@@ -151,6 +166,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
             _targetBucketId = noSelectBucket.Id;
             _targetBucketName = noSelectBucket.Name;
             _targetBucketColorCode = string.Empty;
+            _targetBucketTextColorCode = string.Empty;
         }
         else
         {
@@ -160,6 +176,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
             _targetBucketId = bucketRuleSet.TargetBucketId;
             _targetBucketName = bucketRuleSet.TargetBucket.Name ?? string.Empty;
             _targetBucketColorCode = bucketRuleSet.TargetBucket.ColorCode ?? string.Empty;
+            _targetBucketTextColorCode = bucketRuleSet.TargetBucket.TextColorCode ?? string.Empty;
             
             foreach (var mappingRule in bucketRuleSet.MappingRules)
             {
@@ -195,6 +212,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         _targetBucketId = viewModel.TargetBucketId;
         _targetBucketName = viewModel.TargetBucketName;
         _targetBucketColorCode = viewModel.TargetBucketColorCode;
+        _targetBucketTextColorCode = viewModel.TargetBucketTextColorCode;
     }
 
     /// <summary>
@@ -243,6 +261,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
             Id = TargetBucketId,
             Name = TargetBucketName,
             ColorCode = TargetBucketColorCode,
+            TextColorCode = TargetBucketTextColorCode
         };
         result.MappingRules = new List<MappingRule>();
         foreach (var mappingRuleViewModel in MappingRules)
@@ -273,6 +292,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         TargetBucketId = bucketViewModel.BucketId;
         TargetBucketName = bucketViewModel.Name;
         TargetBucketColorCode = bucketViewModel.ColorCode;
+        TargetBucketTextColorCode = bucketViewModel.TextColorCode;
     }
 
     /// <summary>
