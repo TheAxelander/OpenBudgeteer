@@ -22,11 +22,11 @@ public class BucketGroupRepository : IBucketGroupRepository
         .AsNoTracking();
 
     public BucketGroup? ById(Guid id) => DatabaseContext.BucketGroup
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BucketGroup? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BucketGroup
         .Include(i => i.Buckets)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(BucketGroup entity)
     {
@@ -58,7 +58,7 @@ public class BucketGroupRepository : IBucketGroupRepository
         
         var entity = DatabaseContext.BucketGroup
             .Include(i => i.Buckets)
-            .FirstOrDefault(i => i.Id == id);
+            .FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"BucketGroup with id {id} not found.");
         if (entity.Buckets.Count != 0) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 
@@ -73,7 +73,7 @@ public class BucketGroupRepository : IBucketGroupRepository
             .ToList();
         var entities = DatabaseContext.BucketGroup
             .Include(i => i.Buckets)
-            .Where(i => cleansedEntities.Contains(i.Id));
+            .Where(i => cleansedEntities.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No BucketGroup found with passed IDs.");
         if (entities.Any(i => i.Buckets.Count != 0)) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 

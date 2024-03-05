@@ -22,11 +22,11 @@ public class BucketMovementRepository : IBucketMovementRepository
         .AsNoTracking();
 
     public BucketMovement? ById(Guid id) => DatabaseContext.BucketMovement
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BucketMovement? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BucketMovement
         .Include(i => i.Bucket)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(BucketMovement entity)
     {
@@ -54,7 +54,7 @@ public class BucketMovementRepository : IBucketMovementRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.BucketMovement.FirstOrDefault(i => i.Id == id);
+        var entity = DatabaseContext.BucketMovement.FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"BucketMovement with id {id} not found.");
 
         DatabaseContext.BucketMovement.Remove(entity);
@@ -63,7 +63,7 @@ public class BucketMovementRepository : IBucketMovementRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.BucketMovement.Where(i => ids.Contains(i.Id));
+        var entities = DatabaseContext.BucketMovement.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No BucketMovement found with passed IDs.");
 
         DatabaseContext.BucketMovement.RemoveRange(entities);

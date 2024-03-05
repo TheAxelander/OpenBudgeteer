@@ -29,17 +29,17 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
         .AsNoTracking();
 
     public BudgetedTransaction? ById(Guid id) => DatabaseContext.BudgetedTransaction
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BudgetedTransaction? ByIdWithTransaction(Guid id) => DatabaseContext.BudgetedTransaction
         .Include(i => i.Transaction)
         .Include(i => i.Transaction.Account)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BudgetedTransaction? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BudgetedTransaction
         .Include(i => i.Bucket)
         .Include(i => i.Transaction)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(BudgetedTransaction entity)
     {
@@ -67,7 +67,7 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.BudgetedTransaction.FirstOrDefault(i => i.Id == id);
+        var entity = DatabaseContext.BudgetedTransaction.FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"BudgetedTransaction with id {id} not found.");
 
         DatabaseContext.BudgetedTransaction.Remove(entity);
@@ -76,7 +76,7 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.BudgetedTransaction.Where(i => ids.Contains(i.Id));
+        var entities = DatabaseContext.BudgetedTransaction.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No BudgetedTransactions found with passed IDs.");
 
         DatabaseContext.BudgetedTransaction.RemoveRange(entities);

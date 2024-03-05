@@ -57,7 +57,7 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
             var repository = new MappingRuleRepository(dbContext);
             return repository
                 .AllWithIncludedEntities()
-                .Where(i => i.BucketRuleSetId == bucketRuleSetId)
+                .Where(i => i.BucketRuleSetId.ToString() == bucketRuleSetId.ToString())
                 .ToList();
         }
         catch (Exception e)
@@ -80,11 +80,11 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
             var deletedIds = 
                 // Collect database entities
                 mappingRuleRepository.All()
-                .Where(i => i.BucketRuleSetId == entity.Id)
+                .Where(i => i.BucketRuleSetId.ToString() == entity.Id.ToString())
                 .ToList()
                 // Select which of the database IDs are no longer available in entity
                 .Where(i => entity.MappingRules
-                    .All(j => j.Id != i.Id))
+                    .All(j => j.Id.ToString() != i.Id.ToString()))
                 .Select(i => i.Id)
                 .ToList();
             if (deletedIds.Count != 0)
@@ -120,7 +120,7 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
             // Delete all existing Mapping Rules
             mappingRuleRepository.DeleteRange(mappingRuleRepository
                 .All()
-                .Where(i => i.BucketRuleSetId == id)
+                .Where(i => i.BucketRuleSetId.ToString() == id.ToString())
                 .Select(i => i.Id)
                 .ToList());
             

@@ -23,11 +23,11 @@ public class RecurringBankTransactionRepository : IRecurringBankTransactionRepos
         .AsNoTracking();
 
     public RecurringBankTransaction? ById(Guid id) => DatabaseContext.RecurringBankTransaction
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public RecurringBankTransaction? ByIdWithIncludedEntities(Guid id) => DatabaseContext.RecurringBankTransaction
         .Include(i => i.Account)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(RecurringBankTransaction entity)
     {
@@ -55,7 +55,7 @@ public class RecurringBankTransactionRepository : IRecurringBankTransactionRepos
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.RecurringBankTransaction.FirstOrDefault(i => i.Id == id);
+        var entity = DatabaseContext.RecurringBankTransaction.FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
 
         DatabaseContext.RecurringBankTransaction.Remove(entity);
@@ -64,7 +64,7 @@ public class RecurringBankTransactionRepository : IRecurringBankTransactionRepos
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.RecurringBankTransaction.Where(i => ids.Contains(i.Id));
+        var entities = DatabaseContext.RecurringBankTransaction.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No RecurringBankTransactions found with passed IDs.");
 
         DatabaseContext.RecurringBankTransaction.RemoveRange(entities);

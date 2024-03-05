@@ -22,11 +22,11 @@ public class BucketVersionRepository : IBucketVersionRepository
         .AsNoTracking();
 
     public BucketVersion? ById(Guid id) => DatabaseContext.BucketVersion
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BucketVersion? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BucketVersion
         .Include(i => i.Bucket)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(BucketVersion entity)
     {
@@ -54,7 +54,7 @@ public class BucketVersionRepository : IBucketVersionRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.BucketVersion.FirstOrDefault(i => i.Id == id);
+        var entity = DatabaseContext.BucketVersion.FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"BucketVersion with id {id} not found.");
 
         DatabaseContext.BucketVersion.Remove(entity);
@@ -63,7 +63,7 @@ public class BucketVersionRepository : IBucketVersionRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.BucketVersion.Where(i => ids.Contains(i.Id));
+        var entities = DatabaseContext.BucketVersion.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No BucketVersions found with passed IDs.");
 
         DatabaseContext.BucketVersion.RemoveRange(entities);

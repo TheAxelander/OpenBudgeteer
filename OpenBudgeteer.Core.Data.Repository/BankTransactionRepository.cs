@@ -23,12 +23,12 @@ public class BankTransactionRepository : IBankTransactionRepository
         .AsNoTracking();
 
     public BankTransaction? ById(Guid id) => DatabaseContext.BankTransaction
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BankTransaction? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BankTransaction
         .Include(i => i.Account)
         .Include(i => i.BudgetedTransactions)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(BankTransaction entity)
     {
@@ -58,7 +58,7 @@ public class BankTransactionRepository : IBankTransactionRepository
     {
         var entity = DatabaseContext.BankTransaction
             .Include(i => i.BudgetedTransactions)
-            .FirstOrDefault(i => i.Id == id);
+            .FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"BankTransaction with id {id} not found.");
 
         DatabaseContext.BankTransaction.Remove(entity);
@@ -69,7 +69,7 @@ public class BankTransactionRepository : IBankTransactionRepository
     {
         var entities = DatabaseContext.BankTransaction
             .Include(i => i.BudgetedTransactions)
-            .Where(i => ids.Contains(i.Id));
+            .Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No BankTransactions found with passed IDs.");
 
         DatabaseContext.BankTransaction.RemoveRange(entities);

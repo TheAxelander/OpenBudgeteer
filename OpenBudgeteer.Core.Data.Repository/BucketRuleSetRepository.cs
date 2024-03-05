@@ -24,12 +24,12 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
         .AsNoTracking();
 
     public BucketRuleSet? ById(Guid id) => DatabaseContext.BucketRuleSet
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
     
     public BucketRuleSet? ByIdWithIncludedEntities(Guid id) => DatabaseContext.BucketRuleSet
         .Include(i => i.TargetBucket)
         .Include(i => i.MappingRules)
-        .FirstOrDefault(i => i.Id == id);
+        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
 
     public int Create(BucketRuleSet entity)
     {
@@ -59,7 +59,7 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
     {
         var entity = DatabaseContext.BucketRuleSet
             .Include(i => i.MappingRules)
-            .FirstOrDefault(i => i.Id == id);
+            .FirstOrDefault(i => i.Id.ToString() == id.ToString());
         if (entity == null) throw new Exception($"BucketRuleSet with id {id} not found.");
 
         DatabaseContext.BucketRuleSet.Remove(entity);
@@ -70,7 +70,7 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
     {
         var entities = DatabaseContext.BucketRuleSet
             .Include(i => i.MappingRules)
-            .Where(i => ids.Contains(i.Id));
+            .Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
         if (!entities.Any()) throw new Exception($"No BucketRuleSets found with passed IDs.");
 
         DatabaseContext.BucketRuleSet.RemoveRange(entities);

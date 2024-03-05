@@ -51,7 +51,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd &&
-                    i.TransactionId == transactionId)
+                    i.TransactionId.ToString() == transactionId.ToString())
                 .ToList();
         }
         catch (Exception e)
@@ -78,7 +78,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd && 
-                    i.BucketId == bucketId)
+                    i.BucketId.ToString() == bucketId.ToString())
                 .OrderByDescending(i => i.Transaction.TransactionDate)
                 .ToList();
         }
@@ -106,7 +106,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
                 .Where(i =>
                         i.Transaction.TransactionDate >= periodStart &&
                         i.Transaction.TransactionDate <= periodEnd &&
-                        i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                        i.BucketId.ToString() != "00000000-0000-0000-0000-000000000002")
                 .ToList();
         }
         catch (Exception e)
@@ -133,7 +133,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
                 .Where(i =>
                         i.Transaction.TransactionDate >= periodStart &&
                         i.Transaction.TransactionDate <= periodEnd &&
-                        i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                        i.BucketId.ToString() == "00000000-0000-0000-0000-000000000002")
                 .ToList();
         }
         catch (Exception e)
@@ -160,7 +160,7 @@ internal class BudgetedTransactionService : BaseService<BudgetedTransaction>, IB
                 .Where(i =>
                         i.Transaction.TransactionDate >= periodStart &&
                         i.Transaction.TransactionDate <= periodEnd &&
-                        i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                        i.BucketId.ToString() == "00000000-0000-0000-0000-000000000001")
                 .ToList();
         }
         catch (Exception e)

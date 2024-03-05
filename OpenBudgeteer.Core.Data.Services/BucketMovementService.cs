@@ -49,7 +49,7 @@ internal class BucketMovementService : BaseService<BucketMovement>, IBucketMovem
                 .Where(i =>
                     i.MovementDate >= periodStart &&
                     i.MovementDate <= periodEnd &&
-                    i.BucketId == bucketId)
+                    i.BucketId.ToString() == bucketId.ToString())
                 .ToList();
         }
         catch (Exception e)
