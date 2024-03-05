@@ -69,7 +69,7 @@ public partial class Transaction : ComponentBase
     private void NewTransactionAccount_SelectionChanged(string? value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        _dataContext.NewTransaction!.UpdateSelectedAccount(Guid.Parse(value));
+        _dataContext.NewTransaction!.SelectedAccount = _dataContext.NewTransaction!.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value));
     }
 
     private async Task ProposeBucketsAsync()
@@ -84,7 +84,7 @@ public partial class Transaction : ComponentBase
     private void TransactionAccount_SelectionChanged(string? value, TransactionViewModel transactionViewModel)
     {
         if (string.IsNullOrEmpty(value)) return;
-        transactionViewModel.UpdateSelectedAccount(Guid.Parse(value));
+        transactionViewModel.SelectedAccount = transactionViewModel.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value));
     }
 
     private void SplitTransaction(TransactionViewModel transaction) =>

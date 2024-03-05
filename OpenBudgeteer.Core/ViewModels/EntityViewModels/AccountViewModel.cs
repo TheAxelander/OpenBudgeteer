@@ -86,6 +86,7 @@ public class AccountViewModel : BaseEntityViewModel<Account>
             AccountId = account.Id;
             _name = account.Name ?? string.Empty;
             _isActive = account.IsActive != 0;
+            if (!IsActive) _name += " (Inactive)";
         }
     }
 
@@ -117,6 +118,15 @@ public class AccountViewModel : BaseEntityViewModel<Account>
     public static AccountViewModel CreateFromAccount(IServiceManager serviceManager, Account account)
     {
         return new AccountViewModel(serviceManager, account);
+    }
+
+    /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="accountViewModel">Current ViewModel instance</param>
+    public static AccountViewModel CreateAsCopy(AccountViewModel accountViewModel)
+    {
+        return new AccountViewModel(accountViewModel);
     }
     
     #endregion

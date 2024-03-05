@@ -69,7 +69,7 @@
     <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@ShowNewBucketGroupDialog">Create Bucket Group</button>
     <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@DistributeBudget">Distribute Budget</button>
     <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse())">Collapse All</button>
-    <button class="btn btn-sm btn-primary me-auto mb-2" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse(false))">Expend All</button>
+    <button class="btn btn-sm btn-primary me-auto mb-2" @onclick="@(() => _dataContext.ChangeBucketGroupCollapse(false))">Expand All</button>
     <YearMonthSelector Class="mb-2" DataContext="YearMonthDataContext" />
 </div>
 

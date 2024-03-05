@@ -2,6 +2,7 @@
 @using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
 @using System.Globalization
+@using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using OpenBudgeteer.Core.ViewModels.Helper
 @if (IsDialogVisible)
@@ -53,9 +54,9 @@
                                             <select class="form-select form-select-sm" 
                                                     @bind:get="transaction.RecurrenceType.ToString()"
                                                     @bind:set="(value) => { TransactionRecurrenceType_SelectionChanged(value, transaction); }">
-                                                @foreach (var recurrenceType in transaction.AvailableRecurrenceTypes)
+                                                @foreach (var recurrenceType in Enum.GetValues<RecurringTransactionRecurrenceType>())
                                                 {
-                                                    <option value="@recurrenceType.Key">@recurrenceType.Value</option>
+                                                    <option value="@recurrenceType">@recurrenceType.GetStringValue()</option>
                                                 }
                                             </select>
                                         </td>
@@ -83,7 +84,7 @@
                                     <tr>
                                         <td class="col-numbers">@transaction.FirstOccurrenceDate.ToShortDateString()</td>
                                         <td style="width:70px">Every @transaction.RecurrenceAmount</td>
-                                        <td style="width:130px">@transaction.RecurrenceTypeOutput</td>
+                                        <td style="width:130px">@transaction.RecurrenceType.GetStringValue()</td>
                                         <td>@transaction.SelectedAccount.Name</td>
                                         <td>@transaction.Payee</td>
                                         <td>@transaction.Memo</td>
@@ -172,7 +173,9 @@
     void TransactionRecurrenceType_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
     {
         if (string.IsNullOrEmpty(value)) return;
-        transaction.RecurrenceType = (RecurringTransactionViewModel.RecurringTransactionRecurrenceType)Convert.ToInt32(value);
+        transaction.RecurrenceType = Enum.TryParse(typeof(RecurringTransactionRecurrenceType), value, out var result) 
+            ? (RecurringTransactionRecurrenceType)result 
+            : RecurringTransactionRecurrenceType.Weeks; 
     }
 
     void TransactionAccount_SelectionChanged(string? value, RecurringTransactionViewModel transaction)

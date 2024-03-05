@@ -56,7 +56,7 @@
                 </td>
                 <td class="d-none d-md-table-cell">
                     <select class="form-select form-select-sm"
-                            @bind:get="_dataContext.NewTransaction.AccountId.ToString()"
+                            @bind:get="_dataContext.NewTransaction.SelectedAccount.AccountId.ToString()"
                             @bind:set="NewTransactionAccount_SelectionChanged">
                         @foreach (var account in _dataContext.NewTransaction.AvailableAccounts)
                         {
@@ -126,7 +126,7 @@
                 </td>
                 <td class="d-none d-md-table-cell">
                     <select class="form-select form-select-sm"
-                            @bind:get="transaction.AccountId.ToString()"
+                            @bind:get="transaction.SelectedAccount.AccountId.ToString()"
                             @bind:set="(value) => { TransactionAccount_SelectionChanged(value, transaction); }">
                         @foreach (var account in transaction.AvailableAccounts)
                         {
@@ -174,7 +174,7 @@
         {
             <tr>
                 <td class="d-none d-sm-table-cell col-numbers">@transaction.TransactionDate.ToShortDateString()</td>
-                <td class="d-none d-md-table-cell">@transaction.AccountName</td>
+                <td class="d-none d-md-table-cell">@transaction.SelectedAccount.Name</td>
                 <td class="d-none d-xl-table-cell">@transaction.Payee</td>
                 <td class="d-none d-sm-table-cell">@transaction.Memo</td>
                 <td class="d-none d-sm-table-cell col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>

@@ -37,7 +37,6 @@ var app = builder.Build();
 
 var versionSet = app.NewApiVersionSet()
     .HasApiVersion(1, 0)
-    .HasApiVersion(2, 0)
     // reporting api versions will return the headers
     // "api-supported-versions" and "api-deprecated-versions"
     .ReportApiVersions()
@@ -91,7 +90,7 @@ transaction.MapGet("/", (DateTime? start, DateTime? end, int? limit) =>
 transaction.MapGet("/fromAccount/{id:guid}", (Guid id, DateTime? start, DateTime? end, int? limit) => 
         bankTransactionService.GetFromAccount(id, start, end, limit ?? 0))
     .MapToApiVersion(1,0);
-transaction.MapGet( "/withBucket/{id:guid}", (Guid id) => 
+transaction.MapGet( "/withEntities/{id:guid}", (Guid id) => 
         bankTransactionService.GetWithEntities(id))
     .MapToApiVersion(1,0);
 
@@ -128,7 +127,10 @@ var recurringTransactionService = serviceManager.RecurringBankTransactionService
 // GET
 recurring.MapGet("{id:guid}", (Guid id) => recurringTransactionService.Get(id))
     .MapToApiVersion(1,0);
-recurring.MapGet("/", () => recurringTransactionService.GetAll())
+recurring.MapGet("/", () => recurringTransactionService.GetAllWithEntities())
+    .MapToApiVersion(1,0);
+recurring.MapGet( "/withEntities/{id:guid}", (Guid id) => 
+        recurringTransactionService.GetWithEntities(id))
     .MapToApiVersion(1,0);
 recurring.MapGet("/pendingTransactions", async (DateTime yearMonth) => 
         await recurringTransactionService.GetPendingBankTransactionAsync(yearMonth))

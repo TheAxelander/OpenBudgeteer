@@ -45,7 +45,7 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
                 .ToList();
 
             var transactionTasks = ServiceManager.RecurringBankTransactionService
-                .GetAll()
+                .GetAllWithEntities()
                 .Select(transaction => RecurringTransactionViewModel
                     .CreateFromRecurringTransactionAsync(ServiceManager, availableAccounts, transaction))
                 .ToList();

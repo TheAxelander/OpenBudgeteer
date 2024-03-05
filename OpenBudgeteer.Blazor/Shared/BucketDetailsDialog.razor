@@ -47,7 +47,7 @@
                                         {
                                             <tr>
                                                 <td style="text-align: right">@transaction.TransactionDate.ToShortDateString()</td>
-                                                <td class="d-none d-md-table-cell">@transaction.AccountName</td>
+                                                <td class="d-none d-md-table-cell">@transaction.SelectedAccount.Name</td>
                                                 <td class="d-none d-md-table-cell">@transaction.Payee</td>
                                                 <td>@transaction.Memo</td>
                                                 <td style="text-align: right">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>

@@ -12,6 +12,42 @@ internal class RecurringBankTransactionService : BaseService<RecurringBankTransa
         : base(dbContextOptions, new RecurringBankTransactionRepository(new DatabaseContext(dbContextOptions)))
     {
     }
+    
+    public RecurringBankTransaction GetWithEntities(Guid id)
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(DbContextOptions);
+            var repository = new RecurringBankTransactionRepository(dbContext);
+
+            var result = repository.ByIdWithIncludedEntities(id);
+            if (result == null) throw new Exception($"{typeof(RecurringBankTransaction)} not found in database");
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
+    
+    public IEnumerable<RecurringBankTransaction> GetAllWithEntities()
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(DbContextOptions);
+            var repository = new RecurringBankTransactionRepository(dbContext);
+            
+            return repository
+                .AllWithIncludedEntities()
+                .ToList();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
 
     public async Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateTime yearMonth)
     {

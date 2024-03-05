@@ -20,24 +20,14 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     /// </summary>
     public readonly Guid TransactionId;
     
-    private Guid _accountId;
+    private AccountViewModel _selectedAccount;
     /// <summary>
-    /// Database Id of the selected Account
+    /// ViewModel instance of the selected Account
     /// </summary>
-    public Guid AccountId 
-    { 
-        get => _accountId;
-        set => Set(ref _accountId, value);
-    }
-    
-    private string _accountName;
-    /// <summary>
-    /// Name of the selected Account
-    /// </summary>
-    public string AccountName 
-    { 
-        get => _accountName;
-        set => Set(ref _accountName, value);
+    public AccountViewModel SelectedAccount
+    {
+        get => _selectedAccount; 
+        set => Set(ref _selectedAccount, value);
     }
     
     private DateTime _transactionDate;
@@ -165,8 +155,10 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
             }
         }
 
+        // Handle Transaction
         if (transaction == null)
         {
+            // Add the "No Account" for pre-selection
             var noAccount = new Account
             {
                 Id = Guid.Empty,
@@ -174,12 +166,14 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
                 Name = "No Account"
             };
             TransactionId = Guid.Empty;
-            _accountId = noAccount.Id;
-            _accountName = noAccount.Name;
             _transactionDate = DateTime.Now;
             _payee = string.Empty;
             _memo = string.Empty;
             _amount = 0;
+            
+            // Add the "No Account" for pre-selection
+            _selectedAccount = AccountViewModel.CreateFromAccount(serviceManager, noAccount);
+            AvailableAccounts.Add(_selectedAccount);
             
             // Create an empty Bucket Assignment if requested (required for "Create new Transaction")
             if (availableBuckets != null)
@@ -190,19 +184,22 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
                 Buckets.Add(emptyBucket);
             }
             
-            // Add the "No Account" for pre-selection
-            AvailableAccounts.Add(AccountViewModel.CreateFromAccount(serviceManager, noAccount));
         }
         else
         {
             TransactionId = transaction.Id;
-            _accountId = transaction.AccountId;
-            _accountName = transaction.Account.Name ?? string.Empty;
             _transactionDate = transaction.TransactionDate;
             _payee = transaction.Payee ?? string.Empty;
             _memo = transaction.Memo ?? string.Empty;
             _amount = transaction.Amount;
             
+            // Handle Accounts
+            _selectedAccount = AccountViewModel.CreateFromAccount(serviceManager, transaction.Account);
+            if (!SelectedAccount.IsActive)
+            {
+                // Add inactive Account for selection
+                AvailableAccounts.Add(SelectedAccount);
+            }
             
             // Handle Buckets
             if (availableBuckets == null) return;
@@ -272,8 +269,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         }
 
         TransactionId = viewModel.TransactionId;
-        _accountId = viewModel.AccountId;
-        _accountName = viewModel.AccountName;
+        _selectedAccount = AccountViewModel.CreateAsCopy(viewModel.SelectedAccount);
         _transactionDate = viewModel.TransactionDate;
         _payee = viewModel.Payee;
         _memo = viewModel.Memo;
@@ -384,7 +380,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         return new BankTransaction()
         {
             Id = TransactionId,
-            AccountId = AccountId,
+            AccountId = SelectedAccount.AccountId,
             TransactionDate = TransactionDate,
             Payee = Payee,
             Memo = Memo,
@@ -538,7 +534,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         skipBucketAssignment = false;
 
         // Consistency and Validity Checks
-        if (AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
+        if (SelectedAccount.AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
+        if (!SelectedAccount.IsActive) return new ViewModelOperationResult(false, "The selected Bank account is inactive.");
         if (Buckets.Count == 0) return new ViewModelOperationResult(false, "No Bucket assigned to this Transaction.");
         
         foreach (var assignedBucket in Buckets)
@@ -592,8 +589,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
 
     public void CancelModification()
     {
-        AccountId = _oldTransactionViewModelItem!.AccountId;
-        AccountName = _oldTransactionViewModelItem.AccountName;
+        SelectedAccount = _oldTransactionViewModelItem.SelectedAccount;
         TransactionDate = _oldTransactionViewModelItem.TransactionDate;
         Payee = _oldTransactionViewModelItem.Payee;
         Memo = _oldTransactionViewModelItem.Memo;
@@ -603,12 +599,6 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         _oldTransactionViewModelItem = null;
     }
 
-    public void UpdateSelectedAccount(Guid accountId)
-    {
-        AccountId = accountId;
-        AccountName = AvailableAccounts.First(i => i.AccountId == accountId).Name;
-    }
-    
     #endregion
     
     #region Misc
@@ -653,7 +643,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         {
             var fieldValue = comparisionField switch
             {
-                1 => AccountName,
+                1 => SelectedAccount.Name,
                 2 => Payee ?? "",
                 3 => Memo ?? "",
                 4 => Amount.ToString(CultureInfo.CurrentCulture),

@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -13,29 +14,21 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
 {
     #region Properties & Fields
     
-    public enum RecurringTransactionRecurrenceType
-    {
-        Days = 1,
-        Months = 2,
-        Quarter = 3,
-        Years = 4
-    }
-    
     /// <summary>
     /// Database Id of the RecurringBankTransaction
     /// </summary>
     public readonly Guid RecurringTransactionId;
     
-    private Guid _accountId;
+    private AccountViewModel _selectedAccount;
     /// <summary>
-    /// Database Id of the Account assigned to this RecurringBankTransaction
+    /// ViewModel instance of the selected Account
     /// </summary>
-    public Guid AccountId 
-    { 
-        get => _accountId;
-        set => Set(ref _accountId, value);
+    public AccountViewModel SelectedAccount
+    {
+        get => _selectedAccount; 
+        set => Set(ref _selectedAccount, value);
     }
-
+    
     private RecurringTransactionRecurrenceType _recurrenceType;
     /// <summary>
     /// Recurrence Type that is selected for the Transaction
@@ -46,24 +39,6 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
         set => Set(ref _recurrenceType, value);
     }
 
-    /// <summary>
-    /// Output of <see cref="RecurrenceType"/> used for display purposes
-    /// </summary>
-    public string RecurrenceTypeOutput
-    {
-        get
-        {
-            return RecurrenceType switch
-            {
-                RecurringTransactionRecurrenceType.Days => nameof(RecurringTransactionRecurrenceType.Days),
-                RecurringTransactionRecurrenceType.Months => nameof(RecurringTransactionRecurrenceType.Months),
-                RecurringTransactionRecurrenceType.Quarter => nameof(RecurringTransactionRecurrenceType.Quarter),
-                RecurringTransactionRecurrenceType.Years => nameof(RecurringTransactionRecurrenceType.Years),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-    }
-    
     private int _recurrenceAmount;
     /// <summary>
     /// How often the Transaction repeats in combination with <see cref="RecurrenceType"/>
@@ -114,16 +89,6 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
         set => Set(ref _amount, value);
     }
     
-    private AccountViewModel _selectedAccount;
-    /// <summary>
-    /// Account where the Transaction is assigned to
-    /// </summary>
-    public AccountViewModel SelectedAccount
-    {
-        get => _selectedAccount;
-        set => Set(ref _selectedAccount, value);
-    }
-    
     private bool _inModification;
     /// <summary>
     /// Helper property to check if the Transaction is currently modified
@@ -149,17 +114,6 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     /// </summary>
     public readonly ObservableCollection<AccountViewModel> AvailableAccounts;
 
-    /// <summary>
-    /// Helper collection to list all existing Recurrence Types
-    /// </summary>
-    public List<KeyValuePair<int, string>> AvailableRecurrenceTypes => new()
-    {
-        new KeyValuePair<int, string>(1, "Weeks"),
-        new KeyValuePair<int, string>(2, "Months"),
-        new KeyValuePair<int, string>(3, "Quarters"),
-        new KeyValuePair<int, string>(4, "Years")
-    };
-    
     private RecurringTransactionViewModel? _oldRecurringTransactionViewModelItem;
     
     #endregion
@@ -192,18 +146,21 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
                 IsActive = 1,
                 Name = "No Account"
             };
-            _selectedAccount = AccountViewModel.CreateFromAccount(serviceManager, noAccount);
-            AvailableAccounts.Add(_selectedAccount);
-            
-            _firstOccurrenceDate = DateTime.Today;
-            _recurrenceType = RecurringTransactionRecurrenceType.Days;
+            RecurringTransactionId = Guid.Empty;
+            _amount = 0;
             _payee = string.Empty;
             _memo = string.Empty;
+            _firstOccurrenceDate = DateTime.Today;
+            _recurrenceType = RecurringTransactionRecurrenceType.Weeks;
+            _recurrenceAmount = 0;
+            
+            // Add the "No Account" for pre-selection
+            _selectedAccount = AccountViewModel.CreateFromAccount(serviceManager, noAccount);
+            AvailableAccounts.Add(_selectedAccount);
         }
         else
         {
             RecurringTransactionId = transaction.Id;
-            _accountId = transaction.AccountId;
             _amount = transaction.Amount;
             _memo = transaction.Memo ?? string.Empty;
             _payee = transaction.Payee ?? string.Empty;
@@ -211,9 +168,13 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
             _recurrenceType = (RecurringTransactionRecurrenceType)transaction.RecurrenceType;
             _recurrenceAmount = transaction.RecurrenceAmount;
             
-            // Make inactive Account available in Selection, will later fail during saving
+            // Handle Accounts
             _selectedAccount = AccountViewModel.CreateFromAccount(serviceManager, transaction.Account);
-            if (SelectedAccount.IsActive) AvailableAccounts.Add(_selectedAccount);
+            if (!SelectedAccount.IsActive)
+            {
+                // Make inactive Account available in selection, will later fail during saving
+                AvailableAccounts.Add(SelectedAccount);
+            }
         }
     }
 
@@ -232,14 +193,13 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
         
         // Handle Transaction
         RecurringTransactionId = viewModel.RecurringTransactionId;
-        _accountId = viewModel.AccountId;
+        _selectedAccount = AccountViewModel.CreateAsCopy(viewModel.SelectedAccount);
         _recurrenceType = viewModel.RecurrenceType;
         _recurrenceAmount = viewModel.RecurrenceAmount;
         _firstOccurrenceDate = viewModel.FirstOccurrenceDate;
         _payee = viewModel.Payee;
         _memo = viewModel.Memo;
         _amount = viewModel.Amount;
-        _selectedAccount = viewModel.SelectedAccount;
     }
     
     /// <summary>
@@ -318,7 +278,7 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
         return new RecurringBankTransaction()
         {
             Id = RecurringTransactionId,
-            AccountId = AccountId,
+            AccountId = SelectedAccount.AccountId,
             RecurrenceType = (int)RecurrenceType,
             RecurrenceAmount = RecurrenceAmount,
             Payee = Payee,
@@ -404,14 +364,13 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     {
         if (_oldRecurringTransactionViewModelItem != null)
         {
-            AccountId = _oldRecurringTransactionViewModelItem.AccountId;
+            SelectedAccount = _oldRecurringTransactionViewModelItem.SelectedAccount;
             RecurrenceType = _oldRecurringTransactionViewModelItem.RecurrenceType;
             RecurrenceAmount = _oldRecurringTransactionViewModelItem.RecurrenceAmount;
             Payee = _oldRecurringTransactionViewModelItem.Payee;
             Memo = _oldRecurringTransactionViewModelItem.Memo;
             Amount = _oldRecurringTransactionViewModelItem.Amount;
             FirstOccurrenceDate = _oldRecurringTransactionViewModelItem.FirstOccurrenceDate;
-            SelectedAccount = _oldRecurringTransactionViewModelItem.SelectedAccount;
         }
         InModification = false;
         _oldRecurringTransactionViewModelItem = null;
