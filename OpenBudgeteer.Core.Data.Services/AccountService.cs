@@ -58,7 +58,7 @@ internal class AccountService : BaseService<Account>, IAccountService
         using var dbContext = new DatabaseContext(DbContextOptions);
         var repository = new BankTransactionRepository(dbContext);
         var balance = repository.All()
-            .Where(i => i.AccountId.ToString() == id.ToString())
+            .Where(i => i.Id == id)
             .ToList()
             .Sum(i => i.Amount);
         if (balance != 0) throw new Exception("Balance must be 0 to close an Account");

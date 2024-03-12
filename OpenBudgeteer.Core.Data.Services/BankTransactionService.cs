@@ -73,7 +73,7 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
                 .Where(i =>
                     i.TransactionDate >= (periodStart ?? DateTime.MinValue) &&
                     i.TransactionDate <= (periodEnd ?? DateTime.MaxValue) &&
-                    i.AccountId.ToString() == accountId.ToString())
+                    i.AccountId == accountId)
                 .OrderByDescending(i => i.TransactionDate)
                 .ToList();
             return limit > 0
@@ -121,7 +121,7 @@ internal class BankTransactionService : BaseService<BankTransaction>, IBankTrans
                 // Delete all existing bucket assignments, as they will be replaced by passed assignments
                 var deletedIds =
                     budgetedTransactionRepository.All()
-                        .Where(i => i.TransactionId.ToString() == entity.Id.ToString())
+                        .Where(i => i.TransactionId == entity.Id)
                         .Select(i => i.Id)
                         .ToList();
                         

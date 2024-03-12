@@ -27,7 +27,7 @@
 * Mapping Rules using the Account Name instead of Account Id [#199](https://github.com/TheAxelander/OpenBudgeteer/pull/199) Thanks [Lucaber](https://github.com/Lucaber)
 * Adding a Mapping Rule to an existing Rule Set no longer fails [#200](https://github.com/TheAxelander/OpenBudgeteer/pull/200) Thanks [Lucaber](https://github.com/Lucaber)
 * Exception after canceling creation of a new Recurring Transactions [#210](https://github.com/TheAxelander/OpenBudgeteer/issues/210)
-* Guid issues using Sqlite database [#221](https://github.com/TheAxelander/OpenBudgeteer/issues/221)
+* Sqlite database migration issue (Guid generation) since `1.7` [#221](https://github.com/TheAxelander/OpenBudgeteer/issues/221)
 * Fix `Expand All` button typo on Bucket Page [#224](https://github.com/TheAxelander/OpenBudgeteer/issues/224)
 
 ### :hammer: Maintenance

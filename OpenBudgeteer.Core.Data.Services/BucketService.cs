@@ -44,8 +44,8 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             return repository
                 .All()
                 .Where(i => 
-                    i.Id.ToString() != "00000000-0000-0000-0000-000000000001" &&
-                    i.Id.ToString() != "00000000-0000-0000-0000-000000000002")
+                    i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
+                    i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002"))
                 .OrderBy(i => i.Name)
                 .ToList();
         }
@@ -66,8 +66,8 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             return repository
                 .All()
                 .Where(i => 
-                    i.Id.ToString() == "00000000-0000-0000-0000-000000000001" ||
-                    i.Id.ToString() == "00000000-0000-0000-0000-000000000002")
+                    i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001") ||
+                    i.Id == Guid.Parse("00000000-0000-0000-0000-000000000002"))
                 .ToList();
         }
         catch (Exception e)
@@ -121,7 +121,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             
             var result = repository
                 .All()
-                .Where(i => i.BucketId.ToString() == bucketId.ToString())
+                .Where(i => i.BucketId == bucketId)
                 .OrderByDescending(i => i.ValidFrom)
                 .ToList()
                 .FirstOrDefault(i => i!.ValidFrom <= yearMonth, null);
@@ -413,7 +413,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             // Delete all BucketRuleSet which refer to this Bucket
             var bucketRuleSetIds = bucketRuleSetRepository
                 .All()
-                .Where(i => i.TargetBucketId.ToString() == id.ToString())
+                .Where(i => i.TargetBucketId == id)
                 .Select(i => i.Id)
                 .ToList();
             if (bucketRuleSetIds.Count != 0) bucketRuleSetRepository.DeleteRange(bucketRuleSetIds);

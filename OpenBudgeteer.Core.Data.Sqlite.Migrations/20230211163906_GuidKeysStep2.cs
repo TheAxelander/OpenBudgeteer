@@ -9,29 +9,29 @@ public partial class GuidKeysStep2 : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        var generateGuid = @"lower(hex(randomblob(4)) || '-' || hex(randomblob(2)) || '-' || hex(randomblob(2)) || '-' || hex(randomblob(2)) || '-' || hex(randomblob(6)))";
+        var generateGuid = "'11111111-0000-0000-0000-' || printf('%012d', ";
 
-        migrationBuilder.Sql($@"UPDATE Account SET AccountGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE Account SET AccountGuidId = {generateGuid}AccountId)");
 
-        migrationBuilder.Sql($@"UPDATE BankTransaction SET TransactionGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE BankTransaction SET TransactionGuidId = {generateGuid}TransactionId)");
 
-        migrationBuilder.Sql($@"UPDATE Bucket SET BucketGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE Bucket SET BucketGuidId = {generateGuid}BucketId)");
 
-        migrationBuilder.Sql($@"UPDATE BucketGroup SET BucketGroupGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE BucketGroup SET BucketGroupGuidId = {generateGuid}BucketGroupId)");
 
-        migrationBuilder.Sql($@"UPDATE BucketMovement SET BucketMovementGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE BucketMovement SET BucketMovementGuidId = {generateGuid}BucketMovementId)");
 
-        migrationBuilder.Sql($@"UPDATE BucketRuleSet SET BucketRuleSetGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE BucketRuleSet SET BucketRuleSetGuidId = {generateGuid}BucketRuleSetId)");
 
-        migrationBuilder.Sql($@"UPDATE BucketVersion SET BucketVersionGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE BucketVersion SET BucketVersionGuidId = {generateGuid}BucketVersionId)");
 
-        migrationBuilder.Sql($@"UPDATE BudgetedTransaction SET BudgetedTransactionGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE BudgetedTransaction SET BudgetedTransactionGuidId = {generateGuid}BudgetedTransactionId)");
 
-        migrationBuilder.Sql($@"UPDATE ImportProfile SET ImportProfileGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE ImportProfile SET ImportProfileGuidId = {generateGuid}ImportProfileId)");
 
-        migrationBuilder.Sql($@"UPDATE MappingRule SET MappingRuleGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE MappingRule SET MappingRuleGuidId = {generateGuid}MappingRuleId)");
 
-        migrationBuilder.Sql($@"UPDATE RecurringBankTransaction SET TransactionGuidId = {generateGuid}");
+        migrationBuilder.Sql($@"UPDATE RecurringBankTransaction SET TransactionGuidId = {generateGuid}TransactionId)");
 
         migrationBuilder.Sql(@"INSERT INTO BucketGroup (BucketGroupId, Name, Position, BucketGroupGuidId) VALUES (0, 'System', 0, '00000000-0000-0000-0000-000000000001')");
 

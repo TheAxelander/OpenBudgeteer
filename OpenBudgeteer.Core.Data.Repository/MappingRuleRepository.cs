@@ -22,11 +22,11 @@ public class MappingRuleRepository : IMappingRuleRepository
         .AsNoTracking();
 
     public MappingRule? ById(Guid id) => DatabaseContext.MappingRule
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     public MappingRule? ByIdWithIncludedEntities(Guid id) => DatabaseContext.MappingRule
         .Include(i => i.BucketRuleSet)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
 
     public int Create(MappingRule entity)
     {
@@ -54,7 +54,7 @@ public class MappingRuleRepository : IMappingRuleRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.MappingRule.FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        var entity = DatabaseContext.MappingRule.FirstOrDefault(i => i.Id == id);
         if (entity == null) throw new Exception($"MappingRule with id {id} not found.");
 
         DatabaseContext.MappingRule.Remove(entity);
@@ -63,7 +63,7 @@ public class MappingRuleRepository : IMappingRuleRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.MappingRule.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
+        var entities = DatabaseContext.MappingRule.Where(i => ids.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No MappingRules found with passed IDs.");
 
         DatabaseContext.MappingRule.RemoveRange(entities);

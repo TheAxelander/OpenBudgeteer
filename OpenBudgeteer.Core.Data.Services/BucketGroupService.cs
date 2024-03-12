@@ -40,7 +40,7 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
             var repository = new BucketGroupRepository(dbContext);
             return repository
                 .AllWithIncludedEntities()
-                .Where(i => i.Id.ToString() != "00000000-0000-0000-0000-000000000001")
+                .Where(i => i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001"))
                 .OrderBy(i => i.Position)
                 .ToList();
         }
@@ -76,7 +76,7 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
             using var dbContext = new DatabaseContext(DbContextOptions);
             var repository = new BucketGroupRepository(dbContext);
             return repository.AllWithIncludedEntities()
-                .Where(i => i.Id.ToString() == "00000000-0000-0000-0000-000000000001")
+                .Where(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001"))
                 .OrderBy(i => i.Position) //In case in future there are multiple groups
                 .ToList();
         }

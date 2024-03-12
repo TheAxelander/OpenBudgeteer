@@ -34,31 +34,31 @@ public class BucketRepository : IBucketRepository
         .AsNoTracking();
     
     public Bucket? ById(Guid id) => DatabaseContext.Bucket
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     public Bucket? ByIdWithVersions(Guid id) => DatabaseContext.Bucket
         .Include(i => i.BucketVersions)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     public Bucket? ByIdWithMovements(Guid id) => DatabaseContext.Bucket
         .Include(i => i.BucketMovements)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     public Bucket? ByIdWithTransactions(Guid id) => DatabaseContext.Bucket
         .Include(i => i.BudgetedTransactions).ThenInclude(i => i.Transaction)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     /*public Bucket? ByIdWithActivities(Guid id) => DatabaseContext.Bucket
         .Include(i => i.BucketMovements)
         .Include(i => i.BudgetedTransactions).ThenInclude(i => i.Transaction)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());*/
+        .FirstOrDefault(i => i.Id == id);*/
     
     public Bucket? ByIdWithIncludedEntities(Guid id) => DatabaseContext.Bucket
         .Include(i => i.BucketGroup)
         .Include(i => i.BucketMovements)
         .Include(i => i.BucketVersions)
         .Include(i => i.BudgetedTransactions)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
 
     public int Create(Bucket entity)
     {
@@ -93,7 +93,7 @@ public class BucketRepository : IBucketRepository
             .Include(i => i.BucketMovements)
             .Include(i => i.BucketVersions)
             .Include(i => i.BudgetedTransactions)
-            .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+            .FirstOrDefault(i => i.Id == id);
         if (entity == null) throw new Exception($"Bucket with id {id} not found.");
         if (entity.BucketMovements.Count != 0) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
         if (entity.BudgetedTransactions.Count != 0) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
@@ -114,7 +114,7 @@ public class BucketRepository : IBucketRepository
             .Include(i => i.BucketMovements)
             .Include(i => i.BucketVersions)
             .Include(i => i.BudgetedTransactions)
-            .Where(i => cleansedEntities.Select(j => j.ToString()).Contains(i.Id.ToString()));
+            .Where(i => cleansedEntities.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No Buckets found with passed IDs.");
         if (entities.Any(i => i.BucketMovements.Count != 0)) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
         if (entities.Any(i => i.BudgetedTransactions.Count != 0)) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");

@@ -21,10 +21,10 @@ public class AccountRepository : IAccountRepository
         .AsNoTracking();
 
     public Account? ById(Guid id) => DatabaseContext.Account
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     public Account? ByIdWithIncludedEntities(Guid id) => DatabaseContext.Account
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
 
     public int Create(Account entity)
     {
@@ -52,7 +52,7 @@ public class AccountRepository : IAccountRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.Account.FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        var entity = DatabaseContext.Account.FirstOrDefault(i => i.Id == id);
         if (entity == null) throw new Exception($"Account with id {id} not found.");
 
         DatabaseContext.Account.Remove(entity);
@@ -61,7 +61,7 @@ public class AccountRepository : IAccountRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.Account.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
+        var entities = DatabaseContext.Account.Where(i => ids.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No Account found with passed IDs.");
 
         DatabaseContext.Account.RemoveRange(entities);

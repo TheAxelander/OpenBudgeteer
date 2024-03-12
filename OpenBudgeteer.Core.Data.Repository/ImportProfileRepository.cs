@@ -23,11 +23,11 @@ public class ImportProfileRepository : IImportProfileRepository
         .AsNoTracking();
 
     public ImportProfile? ById(Guid id) => DatabaseContext.ImportProfile
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
     
     public ImportProfile? ByIdWithIncludedEntities(Guid id) => DatabaseContext.ImportProfile
         .Include(i => i.Account)
-        .FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        .FirstOrDefault(i => i.Id == id);
 
     public int Create(ImportProfile entity)
     {
@@ -55,7 +55,7 @@ public class ImportProfileRepository : IImportProfileRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.ImportProfile.FirstOrDefault(i => i.Id.ToString() == id.ToString());
+        var entity = DatabaseContext.ImportProfile.FirstOrDefault(i => i.Id == id);
         if (entity == null) throw new Exception($"ImportProfile with id {id} not found.");
 
         DatabaseContext.ImportProfile.Remove(entity);
@@ -64,7 +64,7 @@ public class ImportProfileRepository : IImportProfileRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.ImportProfile.Where(i => ids.Select(j => j.ToString()).Contains(i.Id.ToString()));
+        var entities = DatabaseContext.ImportProfile.Where(i => ids.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No ImportProfiles found with passed IDs.");
 
         DatabaseContext.ImportProfile.RemoveRange(entities);
