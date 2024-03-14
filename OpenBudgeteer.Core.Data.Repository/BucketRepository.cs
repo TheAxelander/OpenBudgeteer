@@ -23,7 +23,7 @@ public class BucketRepository : IBucketRepository
     
     public IQueryable<Bucket> AllWithActivities() => DatabaseContext.Bucket
         .Include(i => i.BucketMovements)
-        .Include(i => i.BudgetedTransactions).ThenInclude(i => i.Transaction)
+        .Include(i => i.BudgetedTransactions)!.ThenInclude(i => i.Transaction)
         .AsNoTracking();
     
     public IQueryable<Bucket> AllWithIncludedEntities() => DatabaseContext.Bucket
@@ -45,7 +45,7 @@ public class BucketRepository : IBucketRepository
         .FirstOrDefault(i => i.Id == id);
     
     public Bucket? ByIdWithTransactions(Guid id) => DatabaseContext.Bucket
-        .Include(i => i.BudgetedTransactions).ThenInclude(i => i.Transaction)
+        .Include(i => i.BudgetedTransactions)!.ThenInclude(i => i.Transaction)
         .FirstOrDefault(i => i.Id == id);
     
     /*public Bucket? ByIdWithActivities(Guid id) => DatabaseContext.Bucket
@@ -95,8 +95,8 @@ public class BucketRepository : IBucketRepository
             .Include(i => i.BudgetedTransactions)
             .FirstOrDefault(i => i.Id == id);
         if (entity == null) throw new Exception($"Bucket with id {id} not found.");
-        if (entity.BucketMovements.Count != 0) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
-        if (entity.BudgetedTransactions.Count != 0) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
+        if (entity.BucketMovements != null && entity.BucketMovements.Count != 0) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
+        if (entity.BudgetedTransactions != null && entity.BudgetedTransactions.Count != 0) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
 
         DatabaseContext.Bucket.Remove(entity);
         return DatabaseContext.SaveChanges();
@@ -116,8 +116,8 @@ public class BucketRepository : IBucketRepository
             .Include(i => i.BudgetedTransactions)
             .Where(i => cleansedEntities.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No Buckets found with passed IDs.");
-        if (entities.Any(i => i.BucketMovements.Count != 0)) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
-        if (entities.Any(i => i.BudgetedTransactions.Count != 0)) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
+        if (entities.Any(i => i.BucketMovements != null && i.BucketMovements.Count != 0)) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
+        if (entities.Any(i => i.BudgetedTransactions != null && i.BudgetedTransactions.Count != 0)) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
 
         DatabaseContext.Bucket.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

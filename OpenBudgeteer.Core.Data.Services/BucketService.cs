@@ -23,7 +23,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             var result = repository.ByIdWithVersions(id);
             if (result == null) throw new Exception($"{typeof(Bucket)} not found in database");
             result.CurrentVersion = GetLatestVersion(id, DateTime.Now);
-            result.BucketVersions = result.BucketVersions.OrderByDescending(i => i.Version).ToList();
+            result.BucketVersions = result.BucketVersions!.OrderByDescending(i => i.Version).ToList();
             
             return result;
         }
@@ -97,10 +97,10 @@ internal class BucketService : BaseService<Bucket>, IBucketService
                 .ToList();
             foreach (var bucket in result)
             {
-                bucket.CurrentVersion = bucket.BucketVersions
+                bucket.CurrentVersion = bucket.BucketVersions!
                     .OrderByDescending(i => i.ValidFrom)
                     .ToList()
-                    .First(i => i!.ValidFrom <= validFrom);
+                    .First(i => i.ValidFrom <= validFrom);
             }
 
             return result;
@@ -147,19 +147,19 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             decimal input = 0, output = 0;
 
             // Calculate Balance
-            var balance = bucketWithTransactions.BudgetedTransactions
+            var balance = bucketWithTransactions.BudgetedTransactions!
                 .Where(i => i.Transaction.TransactionDate < yearMonth.AddMonths(1))
                 .ToList()
                 .Sum(i => i.Amount);
 
-            balance += bucketWithMovements.BucketMovements
+            balance += bucketWithMovements.BucketMovements!
                 .Where(i => i.MovementDate < yearMonth.AddMonths(1))
                 .ToList()
                 .Sum(i => i.Amount);
 
         
             // Calculate In & Out
-            var bucketTransactionsCurrentMonth = bucketWithTransactions.BudgetedTransactions
+            var bucketTransactionsCurrentMonth = bucketWithTransactions.BudgetedTransactions!
                 .Where(i => 
                     i.Transaction.TransactionDate.Year == yearMonth.Year &&
                     i.Transaction.TransactionDate.Month == yearMonth.Month)
@@ -173,7 +173,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
                     input += bucketTransaction.Amount;
             }
 
-            var bucketMovementsCurrentMonth = bucketWithMovements.BucketMovements
+            var bucketMovementsCurrentMonth = bucketWithMovements.BucketMovements!
                 .Where(i => 
                     i.MovementDate.Year == yearMonth.Year &&
                     i.MovementDate.Month == yearMonth.Month)
@@ -205,12 +205,12 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             var bucketWithTransactions = repository.ByIdWithTransactions(bucketId) ?? throw new Exception("Bucket not found.");
             var bucketWithMovements = repository.ByIdWithMovements(bucketId) ?? throw new Exception("Bucket not found.");
             
-            var result = bucketWithTransactions.BudgetedTransactions
+            var result = bucketWithTransactions.BudgetedTransactions!
                 .Where(i => i.Transaction.TransactionDate < yearMonth.AddMonths(1))
                 .ToList()
                 .Sum(i => i.Amount);
 
-            result += bucketWithMovements.BucketMovements
+            result += bucketWithMovements.BucketMovements!
                 .Where(i => i.MovementDate < yearMonth.AddMonths(1))
                 .ToList()
                 .Sum(i => i.Amount);
@@ -235,7 +235,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
             
             decimal input = 0, output = 0;
         
-            var bucketTransactionsCurrentMonth = bucketWithTransactions.BudgetedTransactions
+            var bucketTransactionsCurrentMonth = bucketWithTransactions.BudgetedTransactions!
                 .Where(i => 
                     i.Transaction.TransactionDate.Year == yearMonth.Year &&
                     i.Transaction.TransactionDate.Month == yearMonth.Month)
@@ -249,7 +249,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
                     input += bucketTransaction.Amount;
             }
 
-            var bucketMovementsCurrentMonth = bucketWithMovements.BucketMovements
+            var bucketMovementsCurrentMonth = bucketWithMovements.BucketMovements!
                 .Where(i => 
                     i.MovementDate.Year == yearMonth.Year &&
                     i.MovementDate.Month == yearMonth.Month)

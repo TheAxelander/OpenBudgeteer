@@ -19,5 +19,5 @@ public class BucketRuleSet : IEntity
 
     public Bucket TargetBucket { get; set; } = null!;
     
-    public ICollection<MappingRule> MappingRules { get; set; }
+    public ICollection<MappingRule>? MappingRules { get; set; }
 }

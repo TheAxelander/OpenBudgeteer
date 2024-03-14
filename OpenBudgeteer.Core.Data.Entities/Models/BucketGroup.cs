@@ -14,5 +14,5 @@ public class BucketGroup : IEntity
     [Required]
     public int Position { get; set; }
     
-    public ICollection<Bucket> Buckets { get; set; }
+    public ICollection<Bucket>? Buckets { get; set; }
 }

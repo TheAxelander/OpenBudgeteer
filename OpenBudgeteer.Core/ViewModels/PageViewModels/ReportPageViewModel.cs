@@ -214,7 +214,7 @@ public abstract class ReportPageViewModel : ViewModelBase
                              i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002")))
             {
                 // Check on right Bucket Type
-                var latestVersion = bucket.BucketVersions
+                var latestVersion = bucket.BucketVersions!
                     .OrderByDescending(i => i.Version)
                     .First();
                 if (latestVersion.BucketType != 2) continue;

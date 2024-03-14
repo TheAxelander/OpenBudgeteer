@@ -146,7 +146,7 @@ internal class BucketGroupService : BaseService<BucketGroup>, IBucketGroupServic
 
             var entity = bucketGroupRepository.ByIdWithIncludedEntities(id);
             if (entity == null) throw new Exception("BucketGroup not found");
-            if (entity.Buckets.Any()) throw new Exception("BucketGroup with Buckets cannot be deleted");
+            if (entity.Buckets != null && entity.Buckets.Any()) throw new Exception("BucketGroup with Buckets cannot be deleted");
 
             var oldPosition = entity.Position;
             bucketGroupRepository.Delete(id);

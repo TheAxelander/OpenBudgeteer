@@ -177,10 +177,13 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
             _targetBucketName = bucketRuleSet.TargetBucket.Name ?? string.Empty;
             _targetBucketColorCode = bucketRuleSet.TargetBucket.ColorCode ?? string.Empty;
             _targetBucketTextColorCode = bucketRuleSet.TargetBucket.TextColorCode ?? string.Empty;
-            
-            foreach (var mappingRule in bucketRuleSet.MappingRules)
+
+            if (bucketRuleSet.MappingRules != null)
             {
-                MappingRules.Add(new MappingRuleViewModel(serviceManager, mappingRule));
+                foreach (var mappingRule in bucketRuleSet.MappingRules)
+                {
+                    MappingRules.Add(new MappingRuleViewModel(serviceManager, mappingRule));
+                }
             }
         }
     }

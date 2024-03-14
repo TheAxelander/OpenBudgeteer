@@ -32,9 +32,9 @@ public class Bucket : IEntity
     [NotMapped]
     public BucketVersion? CurrentVersion { get; set; }
     
-    public ICollection<BucketVersion> BucketVersions { get; set; }
+    public ICollection<BucketVersion>? BucketVersions { get; set; }
     
-    public ICollection<BudgetedTransaction> BudgetedTransactions { get; set; }
+    public ICollection<BudgetedTransaction>? BudgetedTransactions { get; set; }
     
-    public ICollection<BucketMovement> BucketMovements { get; set; }
+    public ICollection<BucketMovement>? BucketMovements { get; set; }
 }

@@ -83,7 +83,7 @@ internal class BucketRuleSetService : BaseService<BucketRuleSet>, IBucketRuleSet
                 .Where(i => i.BucketRuleSetId == entity.Id)
                 .ToList()
                 // Select which of the database IDs are no longer available in entity
-                .Where(i => entity.MappingRules
+                .Where(i => entity.MappingRules != null && entity.MappingRules
                     .All(j => j.Id != i.Id))
                 .Select(i => i.Id)
                 .ToList();

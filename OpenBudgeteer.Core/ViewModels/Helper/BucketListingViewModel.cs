@@ -60,7 +60,7 @@ public class BucketListingViewModel : ViewModelBase
 
                 var bucketItemTasks = new List<Task<BucketViewModel>>();
                 
-                foreach (var bucket in bucketGroup.Buckets.OrderBy(i => i.Name))
+                foreach (var bucket in bucketGroup.Buckets!.OrderBy(i => i.Name))
                 {
                     if (excludeInactive && bucket.IsInactive) continue; // Skip as inactive Buckets should be excluded
                     if (bucket.ValidFrom > YearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
