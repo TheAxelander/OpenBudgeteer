@@ -9,30 +9,6 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
 {
     #region Properties & Fields
     
-    public enum MappingComparisionField
-    {
-        [StringValue("Account")]
-        Account = 1,
-        [StringValue("Payee")]
-        Payee = 2,
-        [StringValue("Memo")]
-        Memo = 3,
-        [StringValue("Amount")]
-        Amount = 4
-    }
-
-    public enum MappingComparisionType
-    {
-        [StringValue("Equal")]
-        Equal = 1,
-        [StringValue("Not equal")]
-        NotEqual = 2,
-        [StringValue("Contains")]
-        Contains = 3,
-        [StringValue("Does not contain")]
-        DoesNotContain = 4
-    }
-    
     /// <summary>
     /// Database Id of the MappingRule
     /// </summary>
@@ -43,78 +19,42 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
     /// </summary>
     public readonly Guid BucketRuleSetId;
     
-    private MappingComparisionField _comparisionField;
+    private MappingRuleComparisonField _comparisonField;
     /// <summary>
     /// To which property of <see cref="BankTransaction"/> this MappingRule should apply
     /// </summary>
-    public MappingComparisionField ComparisionField 
+    public MappingRuleComparisonField ComparisonField 
     { 
-        get => _comparisionField;
-        set => Set(ref _comparisionField, value);
+        get => _comparisonField;
+        set => Set(ref _comparisonField, value);
     }
 
-    /// <summary>
-    /// Output of <see cref="ComparisionField"/> used for display purposes
-    /// </summary>
-    public string ComparisonFieldOutput
-    {
-        get
-        {
-            return ComparisionField switch
-            {
-                MappingComparisionField.Account => "Account",
-                MappingComparisionField.Payee => nameof(MappingComparisionField.Payee),
-                MappingComparisionField.Memo => nameof(MappingComparisionField.Memo),
-                MappingComparisionField.Amount => nameof(MappingComparisionField.Amount),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-    }
-    
-    private MappingComparisionType _comparisionType;
+    private MappingRuleComparisonType _comparisonType;
     /// <summary>
     /// Identifier how comparison should happen
     /// </summary>
-    public MappingComparisionType ComparisionType 
+    public MappingRuleComparisonType ComparisonType 
     { 
-        get => _comparisionType;
-        set => Set(ref _comparisionType, value);
+        get => _comparisonType;
+        set => Set(ref _comparisonType, value);
     }
 
-    /// <summary>
-    /// Output of <see cref="ComparisionType"/> used for display purposes
-    /// </summary>
-    public string ComparisionTypeOutput
-    {
-        get
-        {
-            return ComparisionType switch
-            {
-                MappingComparisionType.Equal => nameof(MappingComparisionType.Equal).ToLower(),
-                MappingComparisionType.NotEqual => CamelCaseConverter.ConvertToSpaces(nameof(MappingComparisionType.NotEqual)).ToLower(),
-                MappingComparisionType.Contains => nameof(MappingComparisionType.Contains).ToLower(),
-                MappingComparisionType.DoesNotContain => CamelCaseConverter.ConvertToSpaces(nameof(MappingComparisionType.DoesNotContain)).ToLower(),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-    }
-    
-    private string _comparisionValue;
+    private string _comparisonValue;
     /// <summary>
     /// Value which should be used for the comparision
     /// </summary>
-    public string ComparisionValue 
+    public string ComparisonValue 
     { 
-        get => _comparisionValue;
-        set => Set(ref _comparisionValue, value);
+        get => _comparisonValue;
+        set => Set(ref _comparisonValue, value);
     }
 
     /// <summary>
     /// Helper property to generate a readable output for <see cref="MappingRule"/>
     /// </summary>
-    public string RuleOutput => $"{ComparisonFieldOutput} " +
-                                $"{ComparisionTypeOutput} " +
-                                $"{ComparisionValue}";
+    public string RuleOutput => $"{ComparisonField.GetStringValue()} " +
+                                $"{ComparisonType.GetStringValue()} " +
+                                $"{ComparisonValue}";
     
     #endregion
     
@@ -129,11 +69,32 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
     {
         MappingRuleId = mappingRule.Id;
         BucketRuleSetId = mappingRule.BucketRuleSetId;
-        _comparisionField = (MappingComparisionField)mappingRule.ComparisionField;
-        _comparisionType = (MappingComparisionType)mappingRule.ComparisionType;
-        _comparisionValue = mappingRule.ComparisionValue;
+        _comparisonField = (MappingRuleComparisonField)mappingRule.ComparisionField;
+        _comparisonType = (MappingRuleComparisonType)mappingRule.ComparisionType;
+        _comparisonValue = mappingRule.ComparisionValue;
     }
-    
+
+    /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="viewModel">Current ViewModel instance</param>
+    protected MappingRuleViewModel(MappingRuleViewModel viewModel) : base(viewModel.ServiceManager)
+    {
+        MappingRuleId = viewModel.MappingRuleId;
+        BucketRuleSetId = viewModel.BucketRuleSetId;
+        _comparisonField = viewModel.ComparisonField;
+        _comparisonType = viewModel.ComparisonType;
+        _comparisonValue = viewModel.ComparisonValue;
+    }
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new MappingRuleViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler
@@ -144,9 +105,9 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
         {
             Id = MappingRuleId,
             BucketRuleSetId = BucketRuleSetId,
-            ComparisionField = (int)ComparisionField,
-            ComparisionType = (int)ComparisionType,
-            ComparisionValue = ComparisionValue
+            ComparisionField = (int)ComparisonField,
+            ComparisionType = (int)ComparisonType,
+            ComparisionValue = ComparisonValue
         };
     }
     

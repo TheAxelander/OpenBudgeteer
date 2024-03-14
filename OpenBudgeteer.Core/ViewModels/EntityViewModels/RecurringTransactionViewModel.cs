@@ -184,22 +184,24 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     /// <param name="viewModel">Current ViewModel instance</param>
     protected RecurringTransactionViewModel(RecurringTransactionViewModel viewModel) : base(viewModel.ServiceManager)
     {
-        // Handle Accounts
-        AvailableAccounts = new ObservableCollection<AccountViewModel>();
-        foreach (var availableAccount in viewModel.AvailableAccounts)
-        {
-            AvailableAccounts.Add(availableAccount);
-        }
-        
         // Handle Transaction
         RecurringTransactionId = viewModel.RecurringTransactionId;
-        _selectedAccount = AccountViewModel.CreateAsCopy(viewModel.SelectedAccount);
+        _selectedAccount = (AccountViewModel)viewModel.SelectedAccount.Clone();
         _recurrenceType = viewModel.RecurrenceType;
         _recurrenceAmount = viewModel.RecurrenceAmount;
         _firstOccurrenceDate = viewModel.FirstOccurrenceDate;
         _payee = viewModel.Payee;
         _memo = viewModel.Memo;
         _amount = viewModel.Amount;
+        _inModification = viewModel.InModification;
+        _isHovered = viewModel.IsHovered;
+        
+        // Handle Accounts
+        AvailableAccounts = new ObservableCollection<AccountViewModel>();
+        foreach (var availableAccount in viewModel.AvailableAccounts)
+        {
+            AvailableAccounts.Add((AccountViewModel)availableAccount.Clone());
+        }
     }
     
     /// <summary>
@@ -268,7 +270,15 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
         };
         return await CreateFromRecurringTransactionAsync(serviceManager, availableAccounts, newRecurringTransaction);
     }
-    
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new RecurringTransactionViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler

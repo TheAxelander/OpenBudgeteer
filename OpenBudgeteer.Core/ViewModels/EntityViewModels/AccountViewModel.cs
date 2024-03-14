@@ -99,6 +99,9 @@ public class AccountViewModel : BaseEntityViewModel<Account>
         AccountId = viewModel.AccountId;
         _name = viewModel.Name;
         _isActive = viewModel.IsActive;
+        _balance = viewModel.Balance;
+        _in = viewModel.In;
+        _out = viewModel.Out;
     }
 
     /// <summary>
@@ -121,14 +124,13 @@ public class AccountViewModel : BaseEntityViewModel<Account>
     }
 
     /// <summary>
-    /// Initialize a copy of the passed ViewModel
+    /// Return a deep copy of the ViewModel
     /// </summary>
-    /// <param name="accountViewModel">Current ViewModel instance</param>
-    public static AccountViewModel CreateAsCopy(AccountViewModel accountViewModel)
+    public override object Clone()
     {
-        return new AccountViewModel(accountViewModel);
+        return new AccountViewModel(this);
     }
-    
+
     #endregion
 
     #region Modification Handler

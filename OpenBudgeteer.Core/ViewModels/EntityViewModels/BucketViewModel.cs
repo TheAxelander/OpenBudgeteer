@@ -40,14 +40,14 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         set => Set(ref _bucketVersion, value);
     }
     
-    private Guid _bucketGroupId;
+    private BucketGroup _selectedBucketGroup;
     /// <summary>
-    /// Database Id of which <see cref="BucketGroup"/> this Bucket is assigned to
+    /// <see cref="BucketGroup"/> to which this Bucket is assigned to
     /// </summary>
-    public Guid BucketGroupId 
-    { 
-        get => _bucketGroupId;
-        set => Set(ref _bucketGroupId, value);
+    public BucketGroup SelectedBucketGroup
+    {
+        get => _selectedBucketGroup; 
+        set => Set(ref _selectedBucketGroup, value);
     }
     
     private string _colorCode;
@@ -245,7 +245,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         {
             BucketId = bucket.Id;
             _name = bucket.Name ?? string.Empty;
-            _bucketGroupId = bucket.BucketGroupId;
+            _selectedBucketGroup = new BucketGroup() { Id = bucket.BucketGroupId };
             _colorCode = bucket.ColorCode ?? string.Empty;
             _textColorCode = bucket.TextColorCode ?? string.Empty;
             _validFrom = bucket.ValidFrom;
@@ -294,6 +294,47 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
     }
 
     /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="viewModel">Current ViewModel instance</param>
+    protected BucketViewModel(BucketViewModel viewModel) : base(viewModel.ServiceManager)
+    {
+        BucketId = viewModel.BucketId;
+        _name = viewModel.Name;
+        _bucketVersion = (BucketVersionViewModel)viewModel.BucketVersion.Clone();
+        _selectedBucketGroup = viewModel.SelectedBucketGroup;
+        _colorCode = viewModel.ColorCode;
+        _textColorCode = viewModel.TextColorCode;
+        _validFrom = viewModel.ValidFrom;
+        _isInactive = viewModel.IsInactive;
+        _isInactiveFrom = viewModel.IsInactiveFrom;
+        
+        _balance = viewModel.Balance;
+        _inOut = viewModel.InOut;
+        _want = Want;
+        _in = viewModel.In;
+        _activity = viewModel.Activity;
+        _details = viewModel.Details;
+        _progress = viewModel.Progress;
+        _isProgressBarVisible = viewModel.IsProgressbarVisible;
+        _isHovered = viewModel.IsHovered;
+
+        AvailableColors = new ObservableCollection<Color>();
+        foreach (var availableColor in viewModel.AvailableColors)
+        {
+            AvailableColors.Add(availableColor);
+        }
+        
+        AvailableBucketGroups = new ObservableCollection<BucketGroup>();
+        foreach (var item in viewModel.AvailableBucketGroups)
+        {
+            AvailableBucketGroups.Add(item);
+        }
+        
+        _currentYearMonth = viewModel._currentYearMonth;
+    }
+
+    /// <summary>
     /// Initialize ViewModel based on an existing <see cref="Bucket"/> object and a specific YearMonth
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
@@ -325,8 +366,23 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         var availableBucketGroups = serviceManager.BucketGroupService.GetAll().ToList();
         return new BucketViewModel(serviceManager, availableBucketGroups, null, yearMonth)
         {
-            _bucketGroupId = bucketGroupId
+            SelectedBucketGroup = availableBucketGroups.First(i => i.Id == bucketGroupId)
         };
+    }
+    
+    /// <summary>
+    /// Initialize ViewModel for displaying the <see cref="Bucket"/>. Not to be used for any modification purposes
+    /// </summary>
+    /// <param name="serviceManager">Reference to API based services</param>
+    /// <param name="bucket">Bucket instance</param>
+    /// <param name="yearMonth">Current month, required for calculating various values</param>
+    /// <returns>New ViewModel instance</returns>
+    public static BucketViewModel CreateForListing(
+        IServiceManager serviceManager,
+        Bucket bucket, 
+        DateTime yearMonth)
+    {
+        return new BucketViewModel(serviceManager, bucket, yearMonth);
     }
 
     /// <summary>
@@ -341,9 +397,17 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         Bucket bucket, 
         DateTime yearMonth)
     {
-        return await Task.Run(() => new BucketViewModel(serviceManager, bucket, yearMonth));
+        return await Task.Run(() => CreateForListing(serviceManager, bucket, yearMonth));
     }
-    
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new BucketViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler
@@ -486,7 +550,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         {
             Id = BucketId,
             Name = Name,
-            BucketGroupId = BucketGroupId,
+            BucketGroupId = SelectedBucketGroup.Id,
             ColorCode = ColorCode,
             TextColorCode = TextColorCode,
             ValidFrom = ValidFrom,
@@ -544,7 +608,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
                     : ConvertToDto());
             }
             CalculateValues();
-            return new ViewModelOperationResult(true);
+            return new ViewModelOperationResult(true, true);
         }
         catch (Exception e)
         {

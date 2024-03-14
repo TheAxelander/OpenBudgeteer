@@ -8,7 +8,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class PartialBucketViewModel : ViewModelBase
+public class PartialBucketViewModel : ViewModelBase, ICloneable
 {
     #region Properties & Fields
     
@@ -91,6 +91,7 @@ public class PartialBucketViewModel : ViewModelBase
     /// to start further consistency checks and other calculations based on this change 
     /// </summary>
     public event EventHandler<AmountChangedArgs>? AmountChanged;
+    
     /// <summary>
     /// EventHandler which should be invoked in case this instance should start its deletion process. Can be used
     /// in case the way how this instance will be deleted is handled outside of this class
@@ -138,6 +139,19 @@ public class PartialBucketViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Initialize a copy of the passed ViewModel
+    /// </summary>
+    /// <param name="viewModel">Current ViewModel instance</param>
+    public PartialBucketViewModel(PartialBucketViewModel viewModel) : base(viewModel.ServiceManager)
+    {
+        SelectedBucketId = viewModel.SelectedBucketId;
+        _selectedBucketName = viewModel.SelectedBucketName;
+        _selectedBucketColorCode = viewModel.SelectedBucketColorCode;
+        _selectedBucketTextColorCode = viewModel.SelectedBucketTextColorCode;
+        _amount = viewModel.Amount;
+    }
+
+    /// <summary>
     /// Initialize ViewModel with a "No Selection" <see cref="Bucket"/>
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
@@ -157,7 +171,15 @@ public class PartialBucketViewModel : ViewModelBase
     {
         return new PartialBucketViewModel(serviceManager, bucket, amount);
     }
-    
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public object Clone()
+    {
+        return new PartialBucketViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler

@@ -346,6 +346,14 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
         };
     }
 
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new ImportProfileViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler

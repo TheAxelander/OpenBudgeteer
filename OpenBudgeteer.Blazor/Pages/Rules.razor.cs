@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.Helper;
@@ -81,6 +83,22 @@ public partial class Rules : ComponentBase
     {
         _ruleSetViewModelToBeUpdated!.UpdateSelectedBucket(selectedBucket);
         _isBucketSelectDialogVisible = false;
+    }
+
+    private void ComparisionField_SelectionChanged(string? value, MappingRuleViewModel mappingRule)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        mappingRule.ComparisonField = Enum.TryParse(typeof(MappingRuleComparisonField), value, out var result)
+                ? (MappingRuleComparisonField)result
+                : MappingRuleComparisonField.Account;
+    }
+    
+    private void ComparisionType_SelectionChanged(string? value, MappingRuleViewModel mappingRule)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        mappingRule.ComparisonType = Enum.TryParse(typeof(MappingRuleComparisonType), value, out var result)
+            ? (MappingRuleComparisonType)result
+            : MappingRuleComparisonType.Equal;
     }
     
     private void HandleShowDeleteRuleSetDialog(RuleSetViewModel ruleSet)

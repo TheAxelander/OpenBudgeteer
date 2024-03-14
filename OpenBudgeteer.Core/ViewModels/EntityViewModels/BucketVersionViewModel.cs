@@ -74,21 +74,6 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         }
     }
 
-    public string BucketTypeOutput
-    {
-        get
-        {
-            return BucketTypeParameter switch
-            {
-                BucketType.StandardBucket => CamelCaseConverter.ConvertToSpaces(nameof(BucketType.StandardBucket)),
-                BucketType.MonthlyExpense => CamelCaseConverter.ConvertToSpaces(nameof(BucketType.MonthlyExpense)),
-                BucketType.ExpenseEveryXMonths => CamelCaseConverter.ConvertToSpaces(nameof(BucketType.ExpenseEveryXMonths)),
-                BucketType.SaveXUntilYDate => CamelCaseConverter.ConvertToSpaces(nameof(BucketType.SaveXUntilYDate)),
-                _ => throw new ArgumentOutOfRangeException()
-            };
-        }
-    }
-    
     private int _bucketTypeIntParameter;
     /// <summary>
     /// Integer based parameter of the Bucket type
@@ -227,7 +212,15 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
     {
         return new BucketVersionViewModel(serviceManager, null);
     }
-    
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new BucketVersionViewModel(this);
+    }
+
     #endregion
 
     #region Modification Handler

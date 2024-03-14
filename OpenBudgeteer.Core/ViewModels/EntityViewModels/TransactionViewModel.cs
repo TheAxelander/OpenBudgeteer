@@ -116,8 +116,6 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     private readonly ObservableCollection<Bucket> _availableBuckets;
 
     private TransactionViewModel? _oldTransactionViewModelItem;
-    private DateTime CurrentMonth => new DateTime(
-        TransactionDate.Year, TransactionDate.Month, 1);
     
     #endregion
     
@@ -247,18 +245,27 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     /// <param name="viewModel">Current ViewModel instance</param>
     protected TransactionViewModel(TransactionViewModel viewModel) : base(viewModel.ServiceManager)
     {
+        TransactionId = viewModel.TransactionId;
+        _selectedAccount = (AccountViewModel)viewModel.SelectedAccount.Clone();
+        _transactionDate = viewModel.TransactionDate;
+        _payee = viewModel.Payee;
+        _memo = viewModel.Memo;
+        _amount = viewModel.Amount;
+        _inModification = viewModel.InModification;
+        _isHovered = viewModel.IsHovered;
+        
         // Handle Buckets
         _buckets = new();
         foreach (var bucket in viewModel.Buckets)
         {
-            _buckets.Add(bucket);
+            _buckets.Add((PartialBucketViewModel)bucket.Clone());
         }
         
         // Handle Available Accounts
         AvailableAccounts = new ObservableCollection<AccountViewModel>();
         foreach (var availableAccount in viewModel.AvailableAccounts)
         {
-            AvailableAccounts.Add(availableAccount);
+            AvailableAccounts.Add((AccountViewModel)availableAccount.Clone());
         }
         
         // Handle Available Buckets
@@ -267,13 +274,6 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         {
             _availableBuckets.Add(availableBucket);
         }
-
-        TransactionId = viewModel.TransactionId;
-        _selectedAccount = AccountViewModel.CreateAsCopy(viewModel.SelectedAccount);
-        _transactionDate = viewModel.TransactionDate;
-        _payee = viewModel.Payee;
-        _memo = viewModel.Memo;
-        _amount = viewModel.Amount;
         
         // Subscribe Event Handler for Amount Changes (must be always the last step) and assignment deletion requests
         foreach (var bucket in Buckets)
@@ -370,7 +370,15 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
             return new TransactionViewModel(serviceManager, null, null, transformedMovement);
         });
     }
-    
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new TransactionViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler
@@ -413,11 +421,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     /// <remarks>Will add an empty bucket item if a bucket item is not provided.</remarks>
     public void AddBucketItem(decimal amount, PartialBucketViewModel? newBucketItem = null)
     {
-        if (newBucketItem == null)
-        {
-            var availableBuckets = ServiceManager.BucketService.GetActiveBuckets(CurrentMonth).ToList();
-            newBucketItem = PartialBucketViewModel.CreateNoSelection(ServiceManager);
-        }
+        newBucketItem ??= PartialBucketViewModel.CreateNoSelection(ServiceManager);
             
         newBucketItem.AmountChanged += CheckBucketAssignments;
         newBucketItem.DeleteAssignmentRequest += DeleteRequestedBucketAssignment;
@@ -594,7 +598,11 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
         Payee = _oldTransactionViewModelItem.Payee;
         Memo = _oldTransactionViewModelItem.Memo;
         Amount = _oldTransactionViewModelItem.Amount;
-        Buckets = _oldTransactionViewModelItem.Buckets;
+        Buckets.Clear();
+        foreach (var bucket in _oldTransactionViewModelItem.Buckets)
+        {
+            Buckets.Add(bucket);
+        }
         InModification = false;
         _oldTransactionViewModelItem = null;
     }
@@ -644,8 +652,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
             var fieldValue = comparisionField switch
             {
                 1 => SelectedAccount.Name,
-                2 => Payee ?? "",
-                3 => Memo ?? "",
+                2 => Payee,
+                3 => Memo,
                 4 => Amount.ToString(CultureInfo.CurrentCulture),
                 _ => string.Empty
             };

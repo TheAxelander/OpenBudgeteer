@@ -181,6 +181,14 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
         return new BucketGroupViewModel(serviceManager, null, DateTime.Now);
     }
 
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new BucketGroupViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler

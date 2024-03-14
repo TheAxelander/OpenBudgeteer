@@ -1,6 +1,5 @@
 ﻿@page "/rules"
 
-@using System
 @using System.Drawing
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
@@ -47,26 +46,26 @@
                                 <tr>
                                     <td style="width: 120px">
                                         <select class="form-select form-select-sm"
-                                                @bind:get="mappingRule.ComparisionField.ToString()"
-                                                @bind:set="(value) => { mappingRule.ComparisionField = (MappingRuleViewModel.MappingComparisionField)Convert.ToInt32(value); }">
-                                            @for (int i = 1; i <= 4; i++)
+                                                @bind:get="mappingRule.ComparisonField.ToString()"
+                                                @bind:set="(value) => { ComparisionField_SelectionChanged(value, mappingRule); }">
+                                            @foreach (var comparisionField in Enum.GetValues<MappingRuleComparisonField>())
                                             {
-                                                <option value="@i">@(((MappingRuleViewModel.MappingComparisionField)i).GetStringValue())</option>
+                                                <option value="@comparisionField">@comparisionField.GetStringValue()</option>
                                             }
                                         </select>
                                     </td>
                                     <td style="width: 160px">
                                         <select class="form-select form-select-sm"
-                                                @bind:get="mappingRule.ComparisionType.ToString()"
-                                                @bind:set="(value) => { mappingRule.ComparisionType = (MappingRuleViewModel.MappingComparisionType)Convert.ToInt32(value); }">
-                                            @for (int i = 1; i <= 4; i++)
+                                                @bind:get="mappingRule.ComparisonType.ToString()"
+                                                @bind:set="(value) => { ComparisionType_SelectionChanged(value, mappingRule); }">
+                                            @foreach (var comparisionType in Enum.GetValues<MappingRuleComparisonType>())
                                             {
-                                                <option value="@i">@(((MappingRuleViewModel.MappingComparisionType)i).GetStringValue())</option>
+                                                <option value="@comparisionType">@comparisionType.GetStringValue()</option>
                                             }
                                         </select>
                                     </td>
                                     <td>
-                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisionValue" />
+                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisonValue" />
                                     </td>
                                     <td class="col-buttons" style="width: 1px">
                                         <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
@@ -117,26 +116,26 @@
                             <tr>
                                 <td style="width: 120px">
                                     <select class="form-select form-select-sm"
-                                            @bind:get="((int)mappingRule.ComparisionField).ToString()"
-                                            @bind:set="(value) => { mappingRule.ComparisionField = (MappingRuleViewModel.MappingComparisionField)Convert.ToInt32(value); }">
-                                        @for (int i = 1; i <= 4; i++)
+                                            @bind:get="mappingRule.ComparisonField.ToString()"
+                                            @bind:set="(value) => { ComparisionField_SelectionChanged(value, mappingRule); }">
+                                        @foreach (var comparisionField in Enum.GetValues<MappingRuleComparisonField>())
                                         {
-                                            <option value="@i">@(((MappingRuleViewModel.MappingComparisionField)i).GetStringValue())</option>
+                                            <option value="@comparisionField">@comparisionField.GetStringValue()</option>
                                         }
                                     </select>
                                 </td>
                                 <td style="width: 160px">
                                     <select class="form-select form-select-sm"
-                                            @bind:get="((int)mappingRule.ComparisionType).ToString()"
-                                            @bind:set="(value) => { mappingRule.ComparisionType = (MappingRuleViewModel.MappingComparisionType)Convert.ToInt32(value); }">
-                                        @for (int i = 1; i <= 4; i++)
+                                            @bind:get="mappingRule.ComparisonType.ToString()"
+                                            @bind:set="(value) => { ComparisionType_SelectionChanged(value, mappingRule); }">
+                                        @foreach (var comparisionType in Enum.GetValues<MappingRuleComparisonType>())
                                         {
-                                            <option value="@i">@(((MappingRuleViewModel.MappingComparisionType)i).GetStringValue())</option>
+                                            <option value="@comparisionType">@comparisionType.GetStringValue()</option>
                                         }
                                     </select>
                                 </td>
                                 <td>
-                                    <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisionValue" />
+                                    <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisonValue" />
                                 </td>
                                 <td class="col-buttons" style="width: 1px">
                                     <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>

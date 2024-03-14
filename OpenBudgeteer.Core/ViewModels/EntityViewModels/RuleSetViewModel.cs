@@ -191,20 +191,6 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     /// <param name="viewModel">Current ViewModel instance</param>
     protected RuleSetViewModel(RuleSetViewModel viewModel) : base(viewModel.ServiceManager)
     {
-        // Handle Mapping Rules
-        _mappingRules = new ObservableCollection<MappingRuleViewModel>();
-        foreach (var mappingRule in MappingRules)
-        {
-            _mappingRules.Add(mappingRule);
-        }
-        
-        // Handle Buckets
-        _availableBuckets = new ObservableCollection<Bucket>();
-        foreach (var availableBucket in viewModel._availableBuckets)
-        {
-            _availableBuckets.Add(availableBucket);
-        }
-        
         // Handle RuleSet
         BucketRuleSetId = viewModel.BucketRuleSetId;
         _name = viewModel.Name;
@@ -213,6 +199,22 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         _targetBucketName = viewModel.TargetBucketName;
         _targetBucketColorCode = viewModel.TargetBucketColorCode;
         _targetBucketTextColorCode = viewModel.TargetBucketTextColorCode;
+        _inModification = viewModel.InModification;
+        _isHovered = viewModel.IsHovered;
+        
+        // Handle Mapping Rules
+        _mappingRules = new ObservableCollection<MappingRuleViewModel>();
+        foreach (var mappingRule in viewModel.MappingRules)
+        {
+            _mappingRules.Add((MappingRuleViewModel)mappingRule.Clone());
+        }
+        
+        // Handle Buckets
+        _availableBuckets = new ObservableCollection<Bucket>();
+        foreach (var availableBucket in viewModel._availableBuckets)
+        {
+            _availableBuckets.Add(availableBucket);
+        }
     }
 
     /// <summary>
@@ -237,7 +239,15 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     {
         return new RuleSetViewModel(serviceManager, availableBuckets, bucketRuleSet);
     }
-    
+
+    /// <summary>
+    /// Return a deep copy of the ViewModel
+    /// </summary>
+    public override object Clone()
+    {
+        return new RuleSetViewModel(this);
+    }
+
     #endregion
     
     #region Modification Handler

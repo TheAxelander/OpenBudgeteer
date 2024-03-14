@@ -19,7 +19,7 @@
 						<div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Bucket Group:</label>
                             <select class="form-select form-select-sm" 
-                                    @bind:get="DataContext.BucketGroupId.ToString()"
+                                    @bind:get="DataContext.SelectedBucketGroup.Id.ToString()"
                                     @bind:set="BucketGroup_SelectionChanged">
                                 @foreach (var bucketGroup in DataContext.AvailableBucketGroups!)
                                 {
@@ -177,6 +177,6 @@
     void BucketGroup_SelectionChanged(string? value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        DataContext.BucketGroupId = Guid.Parse(value);
+        DataContext.SelectedBucketGroup = DataContext.AvailableBucketGroups.First(i => i.Id == Guid.Parse(value));
     }
 }
