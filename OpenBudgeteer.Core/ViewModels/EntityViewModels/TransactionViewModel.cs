@@ -636,13 +636,13 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
 
         bool DoesRuleApply(MappingRule mappingRule)
         {
-            var cleanedComparisionValue = mappingRule.ComparisionValue.ToLower();
-            return mappingRule.ComparisionType switch
+            var cleanedComparisionValue = mappingRule.ComparisonValue.ToLower();
+            return mappingRule.ComparisonType switch
             {
-                1 => cleanedComparisionValue == GetFieldValue(mappingRule.ComparisionField),
-                2 => cleanedComparisionValue != GetFieldValue(mappingRule.ComparisionField),
-                3 => GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue),
-                4 => !GetFieldValue(mappingRule.ComparisionField).Contains(cleanedComparisionValue),
+                1 => cleanedComparisionValue == GetFieldValue(mappingRule.ComparisonField),
+                2 => cleanedComparisionValue != GetFieldValue(mappingRule.ComparisonField),
+                3 => GetFieldValue(mappingRule.ComparisonField).Contains(cleanedComparisionValue),
+                4 => !GetFieldValue(mappingRule.ComparisonField).Contains(cleanedComparisionValue),
                 _ => false
             };
         }

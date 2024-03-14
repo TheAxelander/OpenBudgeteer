@@ -301,13 +301,13 @@ namespace OpenBudgeteer.Core.Migrations.Sqlite
                     b.Property<Guid>("BucketRuleSetId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ComparisionField")
+                    b.Property<int>("ComparisonField")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ComparisionType")
+                    b.Property<int>("ComparisonType")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ComparisionValue")
+                    b.Property<string>("ComparisonValue")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

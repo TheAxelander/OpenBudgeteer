@@ -334,8 +334,8 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     {
         MappingRules.Add(new MappingRuleViewModel(ServiceManager, new MappingRule()
         {
-            ComparisionField = 1,
-            ComparisionType = 1
+            ComparisonField = 1,
+            ComparisonType = 1
         }));
     }
 

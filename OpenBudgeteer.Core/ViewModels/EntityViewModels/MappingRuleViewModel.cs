@@ -69,9 +69,9 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
     {
         MappingRuleId = mappingRule.Id;
         BucketRuleSetId = mappingRule.BucketRuleSetId;
-        _comparisonField = (MappingRuleComparisonField)mappingRule.ComparisionField;
-        _comparisonType = (MappingRuleComparisonType)mappingRule.ComparisionType;
-        _comparisonValue = mappingRule.ComparisionValue;
+        _comparisonField = (MappingRuleComparisonField)mappingRule.ComparisonField;
+        _comparisonType = (MappingRuleComparisonType)mappingRule.ComparisonType;
+        _comparisonValue = mappingRule.ComparisonValue;
     }
 
     /// <summary>
@@ -105,9 +105,9 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
         {
             Id = MappingRuleId,
             BucketRuleSetId = BucketRuleSetId,
-            ComparisionField = (int)ComparisonField,
-            ComparisionType = (int)ComparisonType,
-            ComparisionValue = ComparisonValue
+            ComparisonField = (int)ComparisonField,
+            ComparisonType = (int)ComparisonType,
+            ComparisonValue = ComparisonValue
         };
     }
     

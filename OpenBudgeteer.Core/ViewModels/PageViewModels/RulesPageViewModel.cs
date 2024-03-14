@@ -102,8 +102,8 @@ public class RulesPageViewModel : ViewModelBase
         // then binding will not update these properties
         NewRuleSet.MappingRules.Add(new MappingRuleViewModel(ServiceManager, new MappingRule()
         {
-            ComparisionField = 1,
-            ComparisionType = 1
+            ComparisonField = 1,
+            ComparisonType = 1
         }));
     }
 

@@ -26,7 +26,7 @@ public class MappingRule : IEntity
     /// </para>
     /// </summary>
     [Required]
-    public int ComparisionField { get; set; }
+    public int ComparisonField { get; set; }
     
     /// <summary>
     /// Identifier how Comparison should happen
@@ -38,8 +38,8 @@ public class MappingRule : IEntity
     /// </para>
     /// </summary>
     [Required]
-    public int ComparisionType { get; set; }
+    public int ComparisonType { get; set; }
     
     [Required]
-    public string ComparisionValue { get; set; } = null!;
+    public string ComparisonValue { get; set; } = null!;
 }

@@ -305,13 +305,13 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<Guid>("BucketRuleSetId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("ComparisionField")
+                    b.Property<int>("ComparisonField")
                         .HasColumnType("int");
 
-                    b.Property<int>("ComparisionType")
+                    b.Property<int>("ComparisonType")
                         .HasColumnType("int");
 
-                    b.Property<string>("ComparisionValue")
+                    b.Property<string>("ComparisonValue")
                         .IsRequired()
                         .HasColumnType("longtext");
 
