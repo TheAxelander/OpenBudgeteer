@@ -55,5 +55,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: axelander/openbudgeteer:${{  github.ref_name }}"
+          tags: axelander/openbudgeteer:${{ github.ref_name }}
           platforms: linux/arm64,linux/amd64
