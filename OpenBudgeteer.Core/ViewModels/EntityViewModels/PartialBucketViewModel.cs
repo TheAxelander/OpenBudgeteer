@@ -148,6 +148,7 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
         _selectedBucketName = viewModel.SelectedBucketName;
         _selectedBucketColorCode = viewModel.SelectedBucketColorCode;
         _selectedBucketTextColorCode = viewModel.SelectedBucketTextColorCode;
+        _selectedBucketOutput = viewModel.SelectedBucketOutput;
         _amount = viewModel.Amount;
     }
 

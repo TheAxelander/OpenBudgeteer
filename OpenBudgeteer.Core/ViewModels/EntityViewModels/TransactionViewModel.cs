@@ -593,6 +593,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
 
     public void CancelModification()
     {
+        if (_oldTransactionViewModelItem == null) return;
+        
         SelectedAccount = _oldTransactionViewModelItem.SelectedAccount;
         TransactionDate = _oldTransactionViewModelItem.TransactionDate;
         Payee = _oldTransactionViewModelItem.Payee;

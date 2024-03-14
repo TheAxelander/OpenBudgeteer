@@ -19,7 +19,7 @@
 						<div class="col-12 col-sm-6 mb-2">
                             <label class="form-label">Bucket Group:</label>
                             <select class="form-select form-select-sm" 
-                                    @bind:get="DataContext.SelectedBucketGroup.Id.ToString()"
+                                    @bind:get="DataContext.SelectedBucketGroup!.Id.ToString()"
                                     @bind:set="BucketGroup_SelectionChanged">
                                 @foreach (var bucketGroup in DataContext.AvailableBucketGroups!)
                                 {
@@ -75,7 +75,7 @@
                             <label class="form-label">Background Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(DataContext.TextColor)"
                                     @bind:get="DataContext.ColorCode"
-                                    @bind:set="(value) => { DataContext.ColorCode = value; }">
+                                    @bind:set="(value) => { DataContext.ColorCode = value!; }">
                                 @foreach (var color in DataContext.AvailableColors!)
                                 {
                                     <option style="background-color: @ColorTranslator.ToHtml(color); color: @ColorTranslator.ToHtml(DataContext.TextColor)" value="@color.Name">@color.Name</option>
@@ -86,7 +86,7 @@
                             <label class="form-label">Text Color:</label>
                             <select class="form-select form-select-sm" style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(DataContext.TextColor)"
                                     @bind:get="DataContext.TextColorCode"
-                                    @bind:set="(value) => { DataContext.TextColorCode = value; }">
+                                    @bind:set="(value) => { DataContext.TextColorCode = value!; }">
                                 @foreach (var color in DataContext.AvailableColors!)
                                 {
                                     <option style="background-color: @ColorTranslator.ToHtml(DataContext.Color); color: @ColorTranslator.ToHtml(color)" value="@color.Name">@color.Name</option>
@@ -177,6 +177,6 @@
     void BucketGroup_SelectionChanged(string? value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        DataContext.SelectedBucketGroup = DataContext.AvailableBucketGroups.First(i => i.Id == Guid.Parse(value));
+        DataContext.SelectedBucketGroup = DataContext.AvailableBucketGroups!.First(i => i.Id == Guid.Parse(value));
     }
 }

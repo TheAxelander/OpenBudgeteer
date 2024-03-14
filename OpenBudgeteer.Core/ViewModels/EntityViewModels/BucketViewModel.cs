@@ -40,11 +40,11 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         set => Set(ref _bucketVersion, value);
     }
     
-    private BucketGroup _selectedBucketGroup;
+    private BucketGroup? _selectedBucketGroup;
     /// <summary>
     /// <see cref="BucketGroup"/> to which this Bucket is assigned to
     /// </summary>
-    public BucketGroup SelectedBucketGroup
+    public BucketGroup? SelectedBucketGroup
     {
         get => _selectedBucketGroup; 
         set => Set(ref _selectedBucketGroup, value);
@@ -319,18 +319,24 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         _isProgressBarVisible = viewModel.IsProgressbarVisible;
         _isHovered = viewModel.IsHovered;
 
-        AvailableColors = new ObservableCollection<Color>();
-        foreach (var availableColor in viewModel.AvailableColors)
+        if (viewModel.AvailableColors != null)
         {
-            AvailableColors.Add(availableColor);
+            AvailableColors = new ObservableCollection<Color>();
+            foreach (var availableColor in viewModel.AvailableColors)
+            {
+                AvailableColors.Add(availableColor);
+            }
         }
-        
-        AvailableBucketGroups = new ObservableCollection<BucketGroup>();
-        foreach (var item in viewModel.AvailableBucketGroups)
+
+        if (viewModel.AvailableBucketGroups != null)
         {
-            AvailableBucketGroups.Add(item);
+            AvailableBucketGroups = new ObservableCollection<BucketGroup>();
+            foreach (var item in viewModel.AvailableBucketGroups)
+            {
+                AvailableBucketGroups.Add(item);
+            }
         }
-        
+
         _currentYearMonth = viewModel._currentYearMonth;
     }
 
@@ -550,7 +556,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         {
             Id = BucketId,
             Name = Name,
-            BucketGroupId = SelectedBucketGroup.Id,
+            BucketGroupId = SelectedBucketGroup!.Id,
             ColorCode = ColorCode,
             TextColorCode = TextColorCode,
             ValidFrom = ValidFrom,
