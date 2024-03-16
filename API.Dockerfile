@@ -7,11 +7,10 @@ RUN apk add --no-cache icu-libs icu-data-full
 
 FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG TARGETARCH
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 WORKDIR /src
-COPY ["OpenBudgeteer.API/OpenBudgeteer.API.csproj", "OpenBudgeteer.API/"]
-RUN dotnet restore "OpenBudgeteer.API/OpenBudgeteer.API.csproj" -a $TARGETARCH
 COPY . .
+RUN dotnet restore -a $TARGETARCH
 WORKDIR "/src/OpenBudgeteer.API"
 RUN dotnet publish "OpenBudgeteer.API.csproj" --no-self-contained -c Release -a $TARGETARCH -o /api/publish
 

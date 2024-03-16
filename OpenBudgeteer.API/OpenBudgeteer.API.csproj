@@ -8,9 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
       <Content Include="..\OpenBudgeteer.Blazor\appsettings.json">
         <Link>appsettings.json</Link>
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
