@@ -1,4 +1,4 @@
-## 1.8 (2024-xx-xx)
+## 1.8 (2024-03-16)
 
 ### :warning: Breaking Changes
 
