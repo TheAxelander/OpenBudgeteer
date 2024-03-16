@@ -1,10 +1,46 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Core.Data.Entities
+@inject DbContextOptions<DatabaseContext> DbContextOptions
 
-<header>
-    <NavMenu />
-</header>
-<div class="main">
-    <div class="content px-4" style="max-width: 1500px; margin: auto; margin-bottom: 100px">
-        @Body
+<header class="sticky-top">
+    <div class="d-flex flex-row app-header navbar align-items-center px-3 py-1 bg-primary" data-bs-theme="dark">
+        <button class="btn btn-sm fs-5" 
+                type="button"
+                data-bs-toggle="collapse" 
+                data-bs-target="#largeNavMenu" 
+                aria-expanded="false" 
+                aria-controls="largeNavMenu"
+                @onclick="OnCollapseClick">
+            <div class="bi bi-list"></div>
+        </button>
+        <span class="navbar-brand flex-fill ms-2 fs-5">OpenBudgeteer</span>
+        <span class="navbar-text ms-3 d-none d-md-block">Database: @CurrentDatabase</span>
+        <span class="navbar-text ms-3 d-none d-md-block">Version: 1.8 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</span>
     </div>
+</header>
+<div class="container-fluid">
+    <div class="h-100 collapse collapse-horizontal show navbar navbar-left bg-dark" data-bs-theme="dark" id="largeNavMenu">
+        <NavMenu/>
+        <div class="align-self-end d-flex flex-column flex-fill navbar-footer px-3">
+            <span class="text-muted py-1"><i class="bi bi-github me-1"></i><a class="text-muted" href="https://github.com/TheAxelander/OpenBudgeteer" target="_blank"> GitHub</a></span>
+            <span class="text-muted py-1"><i class="bi bi-book me-1"></i><a class="text-muted" href="https://theaxelander.github.io/" target="_blank"> Documentation</a></span>
+            <span class="text-muted py-1"><a class="text-muted" href="https://icons8.com" target="_blank">App Icons by Icons8</a></span>
+        </div>
+    </div>
+    <div class="content pt-4" style="margin-left: @_marginLeft;">@Body</div>
 </div>
+
+@code {
+
+    private string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
+    private bool _isCollapsed;
+    private string _marginLeft = "250px";
+    
+    private void OnCollapseClick()
+    {
+        _isCollapsed = !_isCollapsed;
+        _marginLeft = _isCollapsed ? "0px" : "250px";
+    }
+
+}

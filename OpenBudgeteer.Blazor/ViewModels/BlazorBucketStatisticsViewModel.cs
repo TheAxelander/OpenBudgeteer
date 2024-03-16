@@ -7,14 +7,14 @@ using ChartJs.Blazor.ChartJS.Common.Properties;
 using ChartJs.Blazor.ChartJS.Common.Time;
 using ChartJs.Blazor.ChartJS.LineChart;
 using ChartJs.Blazor.Util;
-using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
-using OpenBudgeteer.Contracts.Models;
-using OpenBudgeteer.Data;
+using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
+using OpenBudgeteer.Core.ViewModels.Helper;
 
 namespace OpenBudgeteer.Blazor.ViewModels
 {
@@ -24,25 +24,24 @@ namespace OpenBudgeteer.Blazor.ViewModels
         public BarConfig MonthBalancesConfig
         {
             get => _monthBalancesConfig;
-            set => Set(ref _monthBalancesConfig, value);
+            private set => Set(ref _monthBalancesConfig, value);
         }
 
         private BarConfig _monthInputOutputConfig;
         public BarConfig MonthInputOutputConfig
         {
             get => _monthInputOutputConfig;
-            set => Set(ref _monthInputOutputConfig, value);
+            private set => Set(ref _monthInputOutputConfig, value);
         }
 
         private LineConfig _bucketProgressionConfig;
         public LineConfig BucketProgressionConfig
         {
             get => _bucketProgressionConfig;
-            set => Set(ref _bucketProgressionConfig, value);
+            private set => Set(ref _bucketProgressionConfig, value);
         }
 
-        protected BarConfig DefaultBarConfig =>
-        new BarConfig()
+        private BarConfig DefaultBarConfig => new()
         {
             Options = new BarOptions
             {
@@ -62,8 +61,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
             }
         };
 
-        protected LineConfig DefaultTimeLineConfig =>
-        new LineConfig
+        private LineConfig DefaultTimeLineConfig => new()
         {
             Options = new LineOptions
             {
@@ -109,13 +107,12 @@ namespace OpenBudgeteer.Blazor.ViewModels
             }
         };
 
-        public BlazorBucketStatisticsViewModel(
-            DbContextOptions<DatabaseContext> dbOptions, 
-            YearMonthSelectorViewModel yearMonthViewModel,
-            Bucket bucket) 
-            : base(dbOptions, yearMonthViewModel, bucket)
+        public BlazorBucketStatisticsViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel,
+            Guid bucketId) : base(serviceManager, yearMonthViewModel, bucketId)
         {
-            MonthBalancesConfig = new BarConfig();
+            _monthBalancesConfig = DefaultBarConfig;
+            _bucketProgressionConfig = DefaultTimeLineConfig;
+            _monthInputOutputConfig = DefaultBarConfig;
         }
 
         public async Task LoadDataAsync(bool withMovements)
@@ -132,7 +129,6 @@ namespace OpenBudgeteer.Blazor.ViewModels
 
         private async Task LoadMonthBalancesReportAsync()
         {
-            MonthBalancesConfig = DefaultBarConfig;
             MonthBalancesConfig.Options.Title.Text = "Month Balances";
 
             var backgroundColors = new List<string>();
@@ -171,7 +167,6 @@ namespace OpenBudgeteer.Blazor.ViewModels
 
         private async Task LoadMonthInputOutputReportAsync()
         {
-            MonthInputOutputConfig = DefaultBarConfig;
             MonthInputOutputConfig.Options.Title.Text = "Input & Output";
 
             var incomeResults = new List<object>();
@@ -209,7 +204,6 @@ namespace OpenBudgeteer.Blazor.ViewModels
 
         private async Task LoadBucketBalanceProgressionReportAsync()
         {
-            BucketProgressionConfig = DefaultTimeLineConfig;
             BucketProgressionConfig.Options.Title.Text = "Balance Progression";
 
             var lineDataSet = new LineDataset<TimeTuple<double>>

@@ -1,69 +1,57 @@
 ﻿@page "/report"
-@using ChartJs.Blazor.ChartJS.BarChart
 @using ChartJs.Blazor.Charts
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Blazor.ViewModels
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
 
 <div class="row">
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Month Balances</h4>
-        <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Month Balances</h4>
+            <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
+        </div>
     </div>
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Bank Balances</h4>
-        <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Bank Balances</h4>
+            <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
+        </div>
     </div>
 </div>
 <div class="row">
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Income & Expenses per Month</h4>
-        <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Income & Expenses per Month</h4>
+            <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
+        </div>
     </div>
-    <div class="col report-chart-box">
-		<h4 class="report-chart-header">Income & Expenses per Year</h4>
-        <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Income & Expenses per Year</h4>
+            <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+        </div>
     </div>
 </div>
 <div class="row">
-    <div class="col report-chart-box">
-        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
-        @foreach (var config in _monthBucketExpensesConfigsLeft)
-        {
-            <h5 class="report-chart-subheader">@config.Item1</h5>
-            <div >
-                <ChartJsBarChart Config="@config.Item2" Height="50"/>
-            </div>
-        }
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
+            @foreach (var config in _monthBucketExpensesConfigsLeft)
+            {
+                <h5 class="report-chart-subheader">@config.Item1</h5>
+                <div>
+                    <ChartJsBarChart Config="@config.Item2" Height="50"/>
+                </div>
+            }
+        </div>
     </div>
-    <div class="col report-chart-box">
-        <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
-        @foreach (var config in _monthBucketExpensesConfigsRight)
-        {
-            <h5 class="report-chart-subheader">@config.Item1</h5>
-            <div >
-                <ChartJsBarChart Config="@config.Item2" Height="50"/>
-            </div>
-        }
+    <div class="col-md-6 col-sm-12 p-1">
+        <div class="report-chart-box">
+            <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
+            @foreach (var config in _monthBucketExpensesConfigsRight)
+            {
+                <h5 class="report-chart-subheader">@config.Item1</h5>
+                <div>
+                    <ChartJsBarChart Config="@config.Item2" Height="50"/>
+                </div>
+            }
+        </div>
     </div>
 </div>
-
-@code {
-    BlazorReportViewModel _dataContext;
-    List<Tuple<string, BarConfig>> _monthBucketExpensesConfigsLeft;
-    List<Tuple<string, BarConfig>> _monthBucketExpensesConfigsRight;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _monthBucketExpensesConfigsLeft = new List<Tuple<string, BarConfig>>();
-        _monthBucketExpensesConfigsRight = new List<Tuple<string, BarConfig>>();
-
-        _dataContext = new BlazorReportViewModel(DbContextOptions);
-        await _dataContext.LoadDataAsync();
-
-        var halfIndex = _dataContext.MonthBucketExpensesConfigs.Count / 2;
-        _monthBucketExpensesConfigsLeft.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(0,halfIndex));
-        _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpensesConfigs.ToList().GetRange(halfIndex,_dataContext.MonthBucketExpensesConfigs.Count - halfIndex));
-    }
-}

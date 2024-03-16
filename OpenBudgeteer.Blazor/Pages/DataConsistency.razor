@@ -1,11 +1,5 @@
 ﻿@page "/dataconsistency"
-
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Contracts.Models
-@using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Data
-
-@inject DbContextOptions<DatabaseContext> DbContextOptions
+@using OpenBudgeteer.Core.Common
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
@@ -75,33 +69,8 @@
     </div>
 }
 
-@if (_isLoadingDialogVisible)
-{
-    <div class="modal fade show" style=" display: block;">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Check Data Consistency</h4>
-                </div>
-                <div class="modal-body">Execute several checks on your data...</div>
-                <div class="modal-footer"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal-backdrop fade show"></div>
-}
-
-@code {
-    DataConsistencyViewModel _dataContext;
-
-    bool _isLoadingDialogVisible;
-
-    protected override async Task OnInitializedAsync()
-    {
-        _isLoadingDialogVisible = true;
-        StateHasChanged();
-        _dataContext = new DataConsistencyViewModel(DbContextOptions);
-        await _dataContext.RunAllChecksAsync();
-        _isLoadingDialogVisible = false;
-    }
-}
+<InfoDialog
+    Title="Check Data Consistency"
+    Message="Execute several checks on your data..."
+    IsDialogVisible="@_isLoadingDialogVisible"
+    IsInteractionEnabled="@false"/>

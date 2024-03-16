@@ -1,5 +1,7 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
 @using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.ViewModels.Helper
+@using System.Globalization
 
 <style>
     .element-margin {
@@ -7,14 +9,14 @@
     }
 </style>
 
-<div class="col-md-auto d-flex justify-content-end align-items-center">
+<div class="d-flex justify-content-end align-items-center @Class">
     <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
     <select class="form-select form-select-sm element-margin" style="width: auto"
             @bind:get="DataContext.SelectedMonth.ToString()"
             @bind:set="(value) => { DataContext.SelectedMonth = Convert.ToInt32(value); }">
         @foreach (var month in DataContext.Months)
         {
-            <option value="@month">@_monthConverter.ConvertMonth(month)</option>
+            <option value="@month">@_monthConverter.ConvertMonth(month, CultureInfo.CurrentCulture)</option>
         }
     </select>
     <input class="form-control form-control-sm element-margin" style="text-align: right; width: 50px" type="text" @bind="DataContext.SelectedYear" />
@@ -23,9 +25,12 @@
 
 @code {
     [Parameter]
-    public YearMonthSelectorViewModel DataContext { get; set; }
+    public YearMonthSelectorViewModel DataContext { get; set; } = null!;
+    
+    [Parameter]
+    public string? Class { get; set; }
 
-    readonly MonthOutputConverter _monthConverter = new MonthOutputConverter();
+    readonly MonthOutputConverter _monthConverter = new();
 
     void SelectedMonth_SelectionChanged(ChangeEventArgs e)
     {

@@ -2,5 +2,5 @@
 
 public static class AppSettings
 {
-    public static string Theme { get; set; }
+    public static string Theme { get; set; } = "default";
 }

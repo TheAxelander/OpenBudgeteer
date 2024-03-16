@@ -1,11 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using OpenBudgeteer.Core.Data.Contracts.Services;
 
 namespace OpenBudgeteer.Core.ViewModels;
 
-public class ViewModelBase : INotifyPropertyChanged
+public abstract class ViewModelBase : INotifyPropertyChanged
 {
+    protected readonly IServiceManager ServiceManager;
+
+    protected ViewModelBase(IServiceManager serviceManager)
+    {
+        ServiceManager = serviceManager;
+    }
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
+    
     protected bool Set<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
     {
         if (EqualityComparer<T>.Default.Equals(field, value))
@@ -16,8 +26,6 @@ public class ViewModelBase : INotifyPropertyChanged
         NotifyPropertyChanged(propertyName);
         return true;
     }
-
-    public event PropertyChangedEventHandler PropertyChanged;
 
     protected void NotifyPropertyChanged(string propertyName)
     {

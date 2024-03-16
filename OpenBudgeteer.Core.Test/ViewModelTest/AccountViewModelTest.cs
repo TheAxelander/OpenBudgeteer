@@ -1,22 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Contracts.Models;
-using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Data;
+using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.PageViewModels;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
 
-public class AccountViewModelTest
+public class AccountViewModelTest : BaseTest
 {
-    private readonly DbContextOptions<DatabaseContext> _dbOptions;
-
-    public AccountViewModelTest()
+    public AccountViewModelTest() : base(nameof(AccountViewModelTest))
     {
-        _dbOptions = DbConnector.GetDbContextOptions(nameof(AccountViewModelTest));
-        DbConnector.CleanupDatabase(nameof(AccountViewModelTest));
     }
 
     public static IEnumerable<object[]> TestData_LoadData_CheckTransactionCalculations
@@ -39,32 +33,27 @@ public class AccountViewModelTest
         decimal expectedIn, 
         decimal expectedOut)
     {
-        using (var dbContext = new DatabaseContext(_dbOptions))
-        {
-            var testAccount = new Account() {Name = "Test Account", IsActive = 1};
-            dbContext.CreateAccount(testAccount);
-                
-            foreach (var transactionAmount in transactionAmounts)
-            {
-                dbContext.CreateBankTransaction(
-                    new BankTransaction()
-                    {
-                        AccountId = testAccount.AccountId,
-                        TransactionDate = DateTime.Now,
-                        Amount = transactionAmount
-                    }
-                );
-            }
-                
-            var viewModel = new AccountViewModel(_dbOptions);
-            viewModel.LoadData();
-            var testItem1 = viewModel.Accounts
-                .FirstOrDefault(i => i.Account.AccountId == testAccount.AccountId);
+        var testAccount = new Account() {Name = "Test Account", IsActive = 1};
+        ServiceManager.AccountService.Create(testAccount);
             
-            Assert.NotNull(testItem1);
-            Assert.Equal(expectedBalance, testItem1.Balance);
-            Assert.Equal(expectedIn, testItem1.In);
-            Assert.Equal(expectedOut, testItem1.Out);
+        foreach (var transactionAmount in transactionAmounts)
+        {
+            ServiceManager.BankTransactionService.Create(new BankTransaction()
+            {
+                AccountId = testAccount.Id,
+                TransactionDate = DateTime.Now,
+                Amount = transactionAmount
+            });
         }
+            
+        var viewModel = new AccountPageViewModel(ServiceManager);
+        viewModel.LoadData();
+        var testItem1 = viewModel.Accounts
+            .FirstOrDefault(i => i.AccountId == testAccount.Id);
+        
+        Assert.NotNull(testItem1);
+        Assert.Equal(expectedBalance, testItem1.Balance);
+        Assert.Equal(expectedIn, testItem1.In);
+        Assert.Equal(expectedOut, testItem1.Out);
     }
 }

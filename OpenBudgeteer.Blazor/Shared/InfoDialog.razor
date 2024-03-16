@@ -5,11 +5,17 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">@Title</h4>
-                    <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCloseClickCallback"></button>
+                    @if (IsInteractionEnabled)
+                    {
+                        <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnCloseClickCallback"></button>
+                    }
                 </div>
                 <div class="modal-body">@Message</div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="OnCloseClickCallback">Ok</button>
+                    @if (IsInteractionEnabled)
+                    {
+                        <button type="button" class="btn btn-primary" data-dismiss="modal" @onclick="OnCloseClickCallback">Ok</button>
+                    }
                 </div>
             </div>
         </div>
@@ -19,13 +25,16 @@
 
 @code {
 	[Parameter]
-    public string Title { get; set; }
+    public string Title { get; set; } = string.Empty;
 
     [Parameter]
-    public string Message { get; set; }
+    public string Message { get; set; } = string.Empty;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }
+
+    [Parameter] 
+    public bool IsInteractionEnabled { get; set; } = true;
 
 	[Parameter]
     public EventCallback<MouseEventArgs> OnCloseClickCallback { get; set; }

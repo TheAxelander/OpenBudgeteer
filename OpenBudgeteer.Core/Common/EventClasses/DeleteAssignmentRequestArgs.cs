@@ -1,5 +1,5 @@
-﻿using OpenBudgeteer.Core.ViewModels.ItemViewModels;
-using System;
+﻿using System;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.Common.EventClasses;
 
@@ -8,9 +8,9 @@ namespace OpenBudgeteer.Core.Common.EventClasses;
 /// </summary>
 public class DeleteAssignmentRequestArgs : EventArgs
 {
-    public PartialBucketViewModelItem Source { get; private set; }
+    public PartialBucketViewModel Source { get; private set; }
 
-    public DeleteAssignmentRequestArgs(PartialBucketViewModelItem source)
+    public DeleteAssignmentRequestArgs(PartialBucketViewModel source)
     {
         Source = source;
     }

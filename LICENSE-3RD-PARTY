@@ -1,10 +1,12 @@
 -----------------------------------------------------------------------------
                         The MIT License (MIT)
     applies to: 
+    - aspnet-api-versioning, Copyright (c) .NET Foundation and contributors
     - BlazorFileReader, Copyright (c) 2018 Tor
     - ChartJs.Blazor, Copyright (c) 2019 Marius Muntean   
     - efcore, Copyright (c) .NET Foundation and Contributors
     - Pomelo.EntityFrameworkCore.MySql, Copyright (c) 2017 Pomelo Foundation
+    - Swashbuckle.AspNetCore, Copyright (c) 2016 Richard Morris
     - TinyCsvParser, Copyright (c) Philipp Wagner and Contributors   
     - .NET runtime, Copyright (c) .NET Foundation and Contributors
 	- Bootstrap, Copyright (c) 2011-2018 Twitter, Inc. 

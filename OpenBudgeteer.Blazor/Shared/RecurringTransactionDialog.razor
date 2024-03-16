@@ -1,30 +1,31 @@
 ﻿@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
-@using OpenBudgeteer.Core.ViewModels.ItemViewModels
+@using System.Globalization
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
 @if (IsDialogVisible)
  {
     <div class="modal fade show" style=" display: block;">
-        <div class="modal-dialog modal-dialog-scrollable" style="min-width: 1300px">
+        <div class="modal-dialog modal-dialog-scrollable" style="max-width: 1300px">
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title">Recurring Transactions</h4>
                     <button type="button" class="btn-close" data-dismiss="modal" @onclick="OnClickCallback"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row align-items-center">
-                        <div class="col">
-                            @if (_massEditEnabled)
-                            {
-                                <button class="btn btn-sm btn-primary header-action-button" @onclick="@SaveAllTransaction">Save all</button>
-                                <button class="btn btn-sm btn-danger header-action-button" @onclick="@CancelAllTransaction">Cancel all</button>
-                            }
-                            else
-                            {
-                                <button class="btn btn-sm btn-primary header-action-button" @onclick="@DataContext.AddEmptyTransaction">Create Transaction</button>
-                                <button class="btn btn-sm btn-primary header-action-button" @onclick="@EditAllTransaction">Edit all</button>
-                            }
-                        </div>
+                    <div class="d-flex flex-row flex-wrap d-none d-md-block">
+                        @if (_massEditEnabled)
+                        {
+                            <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@SaveAllTransaction">Save all</button>
+                            <button class="btn btn-sm btn-danger me-2 mb-2" @onclick="@CancelAllTransaction">Cancel all</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@DataContext.AddEmptyTransaction">Create Transaction</button>
+                            <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@EditAllTransaction">Edit all</button>
+                        }
                     </div>
 
                     <table class="table table-sm table-hover">
@@ -35,8 +36,8 @@
                             <th style="width:150px">Account</th>
                             <th style="width:250px">Payee</th>
                             <th>Memo</th>
-                            <th style="text-align: right; width: 90px">Amount</th>
-                            <th style="width:120px" />
+                            <th style="text-align: right; width: 120px">Amount</th>
+                            <th class="d-none d-md-table-cell" style="width:120px" />
                         </tr>
                         </thead>
                         <tbody>
@@ -46,54 +47,51 @@
                                 {
                                     <tr>
                                         <td>
-                                            <input class="form-control form-control-sm number-input" type="date" @bind="transaction.Transaction.FirstOccurrenceDate" />
+                                            <input class="form-control form-control-sm number-input" type="date" @bind="transaction.FirstOccurrenceDate" />
                                         </td>
-                                        <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.RecurrenceAmount" /></td>
+                                        <td style="width:70px"><input class="form-control form-control-sm number-input" type="number" @bind="transaction.RecurrenceAmount" /></td>
                                         <td style="width:130px">
                                             <select class="form-select form-select-sm" 
-                                                    @bind:get="transaction.SelectedRecurrenceType.Key.ToString()"
-                                                    @bind:set="(value) => { transaction.SelectedRecurrenceType = transaction.AvailableRecurrenceTypes.First(i => i.Key == Convert.ToInt32(value)); }">
-                                                @foreach (var recurrenceType in transaction.AvailableRecurrenceTypes)
+                                                    @bind:get="transaction.RecurrenceType.ToString()"
+                                                    @bind:set="(value) => { TransactionRecurrenceType_SelectionChanged(value, transaction); }">
+                                                @foreach (var recurrenceType in Enum.GetValues<RecurringTransactionRecurrenceType>())
                                                 {
-                                                    <option value="@recurrenceType.Key">@recurrenceType.Value</option>
+                                                    <option value="@recurrenceType">@recurrenceType.GetStringValue()</option>
                                                 }
                                             </select>
                                         </td>
                                         <td>
                                             <select class="form-select form-select-sm"
                                                     @bind:get="transaction.SelectedAccount.AccountId.ToString()"
-                                                    @bind:set="(value) => { transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value)); }">
+                                                    @bind:set="(value) => { TransactionAccount_SelectionChanged(value, transaction); }">
                                                 @foreach (var account in transaction.AvailableAccounts)
                                                 {
                                                     <option value="@account.AccountId">@account.Name</option>
                                                 }
                                             </select>
                                         </td>
-                                        <td><input class="form-control form-control-sm" type="text" @bind="transaction.Transaction.Payee" /></td>
-                                        <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Transaction.Memo"></textarea></td>
-                                        <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Transaction.Amount" /></td>
-                                        <td class="col-buttons">
+                                        <td><input class="form-control form-control-sm" type="text" @bind="transaction.Payee" /></td>
+                                        <td><textarea class="form-control form-control-sm" rows="1" @bind="transaction.Memo"></textarea></td>
+                                        <td><input class="form-control form-control-sm number-input" type="number" @bind="transaction.Amount" /></td>
+                                        <td class="d-none d-md-table-cell col-buttons">
                                             <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => SaveTransaction(transaction))"></button>
-                                            <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => transaction.CancelModification())"></button>
+                                            <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => CancelTransaction(transaction))"></button>
                                         </td>
                                     </tr>
                                 }
                                 else
                                 {
-                                    <tr @onmouseover="@(() => transaction.IsHovered = true)" @onmouseout="@(() => transaction.IsHovered = false)">
-                                        <td class="col-numbers">@transaction.Transaction.FirstOccurrenceDate.ToShortDateString()</td>
-                                        <td style="width:70px">Every @transaction.Transaction.RecurrenceAmount</td>
-                                        <td style="width:130px">@transaction.SelectedRecurrenceType.Value</td>
+                                    <tr>
+                                        <td class="col-numbers">@transaction.FirstOccurrenceDate.ToShortDateString()</td>
+                                        <td style="width:70px">Every @transaction.RecurrenceAmount</td>
+                                        <td style="width:130px">@transaction.RecurrenceType.GetStringValue()</td>
                                         <td>@transaction.SelectedAccount.Name</td>
-                                        <td>@transaction.Transaction.Payee</td>
-                                        <td>@transaction.Transaction.Memo</td>
-                                        <td class="col-numbers">@transaction.Transaction.Amount</td>
-                                        <td class="col-buttons">
-                                            @if (transaction.IsHovered)
-                                            {
-                                                <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
-                                                <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
-                                            }
+                                        <td>@transaction.Payee</td>
+                                        <td>@transaction.Memo</td>
+                                        <td class="col-numbers">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
+                                        <td class="d-none d-md-table-cell col-buttons">
+                                            <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@(() => transaction.StartModification())"></button>
+                                            <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleTransactionDeletionRequest(transaction))"></button>
                                         </td>
                                     </tr>
                                 }
@@ -126,7 +124,7 @@
 
 @code {
     [Parameter]
-    public RecurringTransactionViewModel DataContext { get; set; }
+    public RecurringTransactionHandlerViewModel DataContext { get; set; } = null!;
 
     [Parameter]
     public bool IsDialogVisible { get; set; }
@@ -137,10 +135,10 @@
     bool _massEditEnabled;
 
     bool _isDeleteTransactionModalDialogVisible;
-    RecurringTransactionViewModelItem _transactionToBeDeleted;
+    RecurringTransactionViewModel? _transactionToBeDeleted;
 
     bool _isErrorModalDialogVisible;
-    string _errorModalDialogMessage;
+    string _errorModalDialogMessage = string.Empty;
 
     void EditAllTransaction()
     {
@@ -161,14 +159,32 @@
         StateHasChanged();
     }
 
-    async void SaveTransaction(RecurringTransactionViewModelItem transaction)
+    async void SaveTransaction(RecurringTransactionViewModel transaction)
     {
-        await HandleResult(
-            transaction.Transaction.TransactionId == Guid.Empty ? 
-            transaction.CreateItem() : transaction.UpdateItem());
+        await HandleResult(transaction.CreateOrUpdateTransaction());
     }
 
-    void HandleTransactionDeletionRequest(RecurringTransactionViewModelItem transaction)
+    void CancelTransaction(RecurringTransactionViewModel transaction)
+    {
+        transaction.CancelModification();
+        if (transaction.RecurringTransactionId == Guid.Empty) DataContext.Transactions.Remove(transaction);
+    }
+
+    void TransactionRecurrenceType_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        transaction.RecurrenceType = Enum.TryParse(typeof(RecurringTransactionRecurrenceType), value, out var result) 
+            ? (RecurringTransactionRecurrenceType)result 
+            : RecurringTransactionRecurrenceType.Weeks; 
+    }
+
+    void TransactionAccount_SelectionChanged(string? value, RecurringTransactionViewModel transaction)
+    {
+        if (string.IsNullOrEmpty(value)) return;
+        transaction.SelectedAccount = transaction.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value));
+    }
+
+    void HandleTransactionDeletionRequest(RecurringTransactionViewModel transaction)
     {
         _transactionToBeDeleted = transaction;
         _isDeleteTransactionModalDialogVisible = true;
@@ -183,7 +199,7 @@
     async void DeleteTransaction()
     {
         _isDeleteTransactionModalDialogVisible = false;
-        await HandleResult(_transactionToBeDeleted.DeleteItem());
+        await HandleResult(_transactionToBeDeleted!.DeleteItem());
     }
 
     async Task HandleResult(ViewModelOperationResult result)

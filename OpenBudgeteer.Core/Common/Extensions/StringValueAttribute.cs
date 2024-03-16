@@ -18,7 +18,7 @@ namespace OpenBudgeteer.Core.Common.Extensions
         /// <param name="value"></param>
         public StringValueAttribute(string value)
         {
-            this.StringValue = value;
+            StringValue = value;
         }
     }
 }

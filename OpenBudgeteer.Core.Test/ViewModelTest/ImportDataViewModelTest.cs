@@ -1,31 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenBudgeteer.Contracts.Models;
-using OpenBudgeteer.Data;
+using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
+using OpenBudgeteer.Core.ViewModels.PageViewModels;
 using Xunit;
 
 namespace OpenBudgeteer.Core.Test.ViewModelTest;
-public class ImportDataViewModelTest
+public class ImportPageViewModelTest : BaseTest
 {
-    private readonly DbContextOptions<DatabaseContext> _dbOptions;
     private readonly Account _testAccount;
+    private AccountViewModel TestAccountViewModel => AccountViewModel.CreateFromAccount(ServiceManager, _testAccount);
 
-    public ImportDataViewModelTest()
+    public ImportPageViewModelTest() : base(nameof(ImportPageViewModelTest))
     {
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
-        _dbOptions = DbConnector.GetDbContextOptions(nameof(ImportDataViewModelTest));
-        DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+        Cleanup();
         _testAccount = new Account() { Name = "Test Account", IsActive = 1 };
-        using (var dbContext = new DatabaseContext(_dbOptions))
-        {
-            dbContext.CreateAccount(_testAccount);
-        }
+        ServiceManager.AccountService.Create(_testAccount);
     }
 
     public static IEnumerable<object[]> TestData_LoadData_CheckAvailableProfiles
@@ -64,44 +59,41 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                var inactiveTestAccount = new Account() { Name = "Inactive Test Account", IsActive = 0 };
-                dbContext.CreateAccount(inactiveTestAccount);
+            var inactiveTestAccount = new Account() { Name = "Inactive Test Account", IsActive = 0 };
+            ServiceManager.AccountService.Create(inactiveTestAccount);
 
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
 
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
-                var loadedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
+            var loadedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
 
-                var foo = viewModel.AvailableAccounts;
-                var bar = dbContext.Account;
+            var activeAccountViewModel =
+                viewModel.AvailableAccounts.Single(i => i.AccountId == TestAccountViewModel.AccountId);
+            Assert.Equal(2, viewModel.AvailableAccounts.Count); // Dummy + 1 Single active account
+            Assert.Contains(activeAccountViewModel, viewModel.AvailableAccounts);
+            Assert.Equal(TestAccountViewModel.Name, activeAccountViewModel.Name);
+            Assert.Equal(TestAccountViewModel.IsActive, activeAccountViewModel.IsActive);
 
-                Assert.Single(viewModel.AvailableAccounts);
-                Assert.Equal(_testAccount.Name, viewModel.AvailableAccounts.First().Name);
-                Assert.Equal(_testAccount.IsActive, viewModel.AvailableAccounts.First().IsActive);
-
-                Assert.Single(viewModel.AvailableImportProfiles);
-                Assert.Equal(importProfile.ProfileName, loadedImportProfile.ProfileName);
-                Assert.Equal(importProfile.AccountId, loadedImportProfile.AccountId);
-                Assert.Equal(importProfile.TransactionDateColumnName, loadedImportProfile.TransactionDateColumnName);
-                Assert.Equal(importProfile.PayeeColumnName, loadedImportProfile.PayeeColumnName);
-                Assert.Equal(importProfile.MemoColumnName, loadedImportProfile.MemoColumnName);
-                Assert.Equal(importProfile.AmountColumnName, loadedImportProfile.AmountColumnName);
-                Assert.Equal(importProfile.CreditColumnName, loadedImportProfile.CreditColumnName);
-                Assert.Equal(importProfile.Delimiter, loadedImportProfile.Delimiter);
-                Assert.Equal(importProfile.TextQualifier, loadedImportProfile.TextQualifier);
-                Assert.Equal(importProfile.DateFormat, loadedImportProfile.DateFormat);
-                Assert.Equal(importProfile.NumberFormat, loadedImportProfile.NumberFormat);
-                Assert.Equal(importProfile.HeaderRow, loadedImportProfile.HeaderRow);
-            }
+            Assert.Equal(2, viewModel.AvailableImportProfiles.Count); // Dummy + 1 Single Import Profile
+            Assert.Equal(importProfile.ProfileName, loadedImportProfile.ProfileName);
+            Assert.Equal(importProfile.AccountId, loadedImportProfile.Account.AccountId);
+            Assert.Equal(importProfile.TransactionDateColumnName, loadedImportProfile.TransactionDateColumnName);
+            Assert.Equal(importProfile.PayeeColumnName, loadedImportProfile.PayeeColumnName);
+            Assert.Equal(importProfile.MemoColumnName, loadedImportProfile.MemoColumnName);
+            Assert.Equal(importProfile.AmountColumnName, loadedImportProfile.AmountColumnName);
+            Assert.Equal(importProfile.CreditColumnName, loadedImportProfile.CreditColumnName);
+            Assert.Equal(importProfile.Delimiter, loadedImportProfile.Delimiter);
+            Assert.Equal(importProfile.TextQualifier, loadedImportProfile.TextQualifier);
+            Assert.Equal(importProfile.DateFormat, loadedImportProfile.DateFormat);
+            Assert.Equal(importProfile.NumberFormat, loadedImportProfile.NumberFormat);
+            Assert.Equal(importProfile.HeaderRow, loadedImportProfile.HeaderRow);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 
@@ -130,7 +122,7 @@ public class ImportDataViewModelTest
                         HeaderRow = 11
                     },
                     "./Resources/TestImportFile1.txt",
-                    new List<string> {"Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
+                    new List<string> {"Dummy Column", "Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
                 }
             };
         }
@@ -145,31 +137,28 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
+
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
+            
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
+            viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
+
+            Assert.Equal(TestAccountViewModel.AccountId, viewModel.SelectedImportProfile.Account.AccountId);
+
+            Assert.Equal(8, viewModel.IdentifiedColumns.Count); // Dummy + 7 Identified columns
+            for (int i = 1; i < viewModel.IdentifiedColumns.Count; i++)
             {
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
-
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
-                
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
-                viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
-                viewModel.InitializeDataFromImportProfile();
-
-                Assert.Equal(_testAccount.AccountId, viewModel.SelectedAccount.AccountId);
-
-                Assert.Equal(7, viewModel.IdentifiedColumns.Count);
-                for (int i = 0; i < viewModel.IdentifiedColumns.Count; i++)
-                {
-                    Assert.Equal(fileHeaders[i], viewModel.IdentifiedColumns[i]);
-                }
+                Assert.Equal(fileHeaders[i], viewModel.IdentifiedColumns[i]);
             }
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 
@@ -211,59 +200,56 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
 
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
 
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
-                viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
-                viewModel.InitializeDataFromImportProfile();
-                await viewModel.ValidateDataAsync();
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
+            viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
+            await viewModel.ValidateDataAsync();
 
-                Assert.Equal(4, viewModel.TotalRecords);
-                Assert.Equal(4, viewModel.ValidRecords);
-                Assert.Equal(0, viewModel.RecordsWithErrors);
-                Assert.Equal(0, viewModel.PotentialDuplicates);
-                Assert.Equal(4, viewModel.ParsedRecords.Count);
-                Assert.Empty(viewModel.Duplicates);
+            Assert.Equal(4, viewModel.TotalRecords);
+            Assert.Equal(4, viewModel.ValidRecords);
+            Assert.Equal(0, viewModel.RecordsWithErrors);
+            Assert.Equal(0, viewModel.PotentialDuplicates);
+            Assert.Equal(4, viewModel.ParsedRecords.Count);
+            Assert.Empty(viewModel.Duplicates);
 
-                // Check Record 1
-                var checkRecord = viewModel.ParsedRecords[0].Result;
-                Assert.Equal(new DateTime(2022,02,14), checkRecord.TransactionDate);
-                Assert.Equal("Lorem ipsum", checkRecord.Payee);
-                Assert.Equal("dolor sit amet", checkRecord.Memo);
-                Assert.Equal(new decimal(-2.95), checkRecord.Amount);
+            // Check Record 1
+            var checkRecord = viewModel.ParsedRecords[0].Result;
+            Assert.Equal(new DateTime(2022,02,14), checkRecord.TransactionDate);
+            Assert.Equal("Lorem ipsum", checkRecord.Payee);
+            Assert.Equal("dolor sit amet", checkRecord.Memo);
+            Assert.Equal(new decimal(-2.95), checkRecord.Amount);
 
-                // Check Record 2
-                checkRecord = viewModel.ParsedRecords[1].Result;
-                Assert.Equal(new DateTime(2022, 02, 15), checkRecord.TransactionDate);
-                Assert.Equal("Foobar Company", checkRecord.Payee);
-                Assert.Equal(string.Empty, checkRecord.Memo);
-                Assert.Equal(new decimal(-27.5), checkRecord.Amount);
+            // Check Record 2
+            checkRecord = viewModel.ParsedRecords[1].Result;
+            Assert.Equal(new DateTime(2022, 02, 15), checkRecord.TransactionDate);
+            Assert.Equal("Foobar Company", checkRecord.Payee);
+            Assert.Equal(string.Empty, checkRecord.Memo);
+            Assert.Equal(new decimal(-27.5), checkRecord.Amount);
 
-                // Check Record 3
-                checkRecord = viewModel.ParsedRecords[2].Result;
-                Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
-                Assert.Equal("EMPLOYER", checkRecord.Payee);
-                Assert.Equal("Income Feb/2022", checkRecord.Memo);
-                Assert.Equal(new decimal(43), checkRecord.Amount);
+            // Check Record 3
+            checkRecord = viewModel.ParsedRecords[2].Result;
+            Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
+            Assert.Equal("EMPLOYER", checkRecord.Payee);
+            Assert.Equal("Income Feb/2022", checkRecord.Memo);
+            Assert.Equal(new decimal(43), checkRecord.Amount);
 
-                // Check Record 4
-                checkRecord = viewModel.ParsedRecords[3].Result;
-                Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
-                Assert.Equal("The Webshop.com", checkRecord.Payee);
-                Assert.Equal("Billing", checkRecord.Memo);
-                Assert.Equal(new decimal(-6.34), checkRecord.Amount);
-            }
+            // Check Record 4
+            checkRecord = viewModel.ParsedRecords[3].Result;
+            Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
+            Assert.Equal("The Webshop.com", checkRecord.Payee);
+            Assert.Equal("Billing", checkRecord.Memo);
+            Assert.Equal(new decimal(-6.34), checkRecord.Amount);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 
@@ -307,61 +293,58 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
 
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
 
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
-                viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
-                viewModel.InitializeDataFromImportProfile();
-                await viewModel.ValidateDataAsync();
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
+            viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
+            await viewModel.ValidateDataAsync();
 
-                Assert.Equal(4, viewModel.TotalRecords);
-                Assert.Equal(4, viewModel.ValidRecords);
-                Assert.Equal(0, viewModel.RecordsWithErrors);
-                Assert.Equal(0, viewModel.PotentialDuplicates);
-                Assert.Equal(4, viewModel.ParsedRecords.Count);
-                Assert.Empty(viewModel.Duplicates);
+            Assert.Equal(4, viewModel.TotalRecords);
+            Assert.Equal(4, viewModel.ValidRecords);
+            Assert.Equal(0, viewModel.RecordsWithErrors);
+            Assert.Equal(0, viewModel.PotentialDuplicates);
+            Assert.Equal(4, viewModel.ParsedRecords.Count);
+            Assert.Empty(viewModel.Duplicates);
 
-                // Check Record 1
-                var checkRecord = viewModel.ParsedRecords[0].Result;
-                Assert.Equal(new DateTime(2022, 02, 14), checkRecord.TransactionDate);
-                Assert.Equal("Lorem ipsum", checkRecord.Payee);
-                Assert.Equal("dolor sit amet", checkRecord.Memo);
-                Assert.Equal(new decimal(-2.95), checkRecord.Amount);
+            // Check Record 1
+            var checkRecord = viewModel.ParsedRecords[0].Result;
+            Assert.Equal(new DateTime(2022, 02, 14), checkRecord.TransactionDate);
+            Assert.Equal("Lorem ipsum", checkRecord.Payee);
+            Assert.Equal("dolor sit amet", checkRecord.Memo);
+            Assert.Equal(new decimal(-2.95), checkRecord.Amount);
 
-                // Check Record 2
-                checkRecord = viewModel.ParsedRecords[1].Result;
-                Assert.Equal(new DateTime(2022, 02, 15), checkRecord.TransactionDate);
-                Assert.Equal("Foobar Company", checkRecord.Payee);
-                Assert.Equal(string.Empty, checkRecord.Memo);
-                Assert.Equal(new decimal(-27.5), checkRecord.Amount);
+            // Check Record 2
+            checkRecord = viewModel.ParsedRecords[1].Result;
+            Assert.Equal(new DateTime(2022, 02, 15), checkRecord.TransactionDate);
+            Assert.Equal("Foobar Company", checkRecord.Payee);
+            Assert.Equal(string.Empty, checkRecord.Memo);
+            Assert.Equal(new decimal(-27.5), checkRecord.Amount);
 
-                // Check Record 3
-                checkRecord = viewModel.ParsedRecords[2].Result;
-                Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
-                Assert.Equal("EMPLOYER", checkRecord.Payee);
-                Assert.Equal("Income Feb/2022", checkRecord.Memo);
-                Assert.Equal(new decimal(43), checkRecord.Amount);
+            // Check Record 3
+            checkRecord = viewModel.ParsedRecords[2].Result;
+            Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
+            Assert.Equal("EMPLOYER", checkRecord.Payee);
+            Assert.Equal("Income Feb/2022", checkRecord.Memo);
+            Assert.Equal(new decimal(43), checkRecord.Amount);
 
-                // Check Record 4
-                // Credit Column value is positive in file and should be negative after import
-                // Debit Column value is 0,00 and should be skipped
-                checkRecord = viewModel.ParsedRecords[3].Result;
-                Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
-                Assert.Equal("The Webshop.com", checkRecord.Payee);
-                Assert.Equal("Billing", checkRecord.Memo);
-                Assert.Equal(new decimal(-6.34), checkRecord.Amount);
-            }
+            // Check Record 4
+            // Credit Column value is positive in file and should be negative after import
+            // Debit Column value is 0,00 and should be skipped
+            checkRecord = viewModel.ParsedRecords[3].Result;
+            Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
+            Assert.Equal("The Webshop.com", checkRecord.Payee);
+            Assert.Equal("Billing", checkRecord.Memo);
+            Assert.Equal(new decimal(-6.34), checkRecord.Amount);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 
@@ -403,45 +386,42 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
 
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
 
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
-                viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
-                viewModel.InitializeDataFromImportProfile();
-                await viewModel.ValidateDataAsync();
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
+            viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
+            await viewModel.ValidateDataAsync();
 
-                Assert.Equal(4, viewModel.TotalRecords);
-                Assert.Equal(2, viewModel.ValidRecords);
-                Assert.Equal(2, viewModel.RecordsWithErrors);
-                Assert.Equal(0, viewModel.PotentialDuplicates);
-                Assert.Equal(4, viewModel.ParsedRecords.Count);
-                Assert.Empty(viewModel.Duplicates);
+            Assert.Equal(4, viewModel.TotalRecords);
+            Assert.Equal(2, viewModel.ValidRecords);
+            Assert.Equal(2, viewModel.RecordsWithErrors);
+            Assert.Equal(0, viewModel.PotentialDuplicates);
+            Assert.Equal(4, viewModel.ParsedRecords.Count);
+            Assert.Empty(viewModel.Duplicates);
 
-                // Check Valid Record 1
-                var checkRecord = viewModel.ParsedRecords[0].Result;
-                Assert.Equal(new DateTime(2022, 02, 14), checkRecord.TransactionDate);
-                Assert.Equal("Lorem ipsum", checkRecord.Payee);
-                Assert.Equal("dolor sit amet", checkRecord.Memo);
-                Assert.Equal(new decimal(-2.95), checkRecord.Amount);
+            // Check Valid Record 1
+            var checkRecord = viewModel.ParsedRecords[0].Result;
+            Assert.Equal(new DateTime(2022, 02, 14), checkRecord.TransactionDate);
+            Assert.Equal("Lorem ipsum", checkRecord.Payee);
+            Assert.Equal("dolor sit amet", checkRecord.Memo);
+            Assert.Equal(new decimal(-2.95), checkRecord.Amount);
 
-                // Check Valid Record 2
-                checkRecord = viewModel.ParsedRecords[2].Result;
-                Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
-                Assert.Equal("EMPLOYER", checkRecord.Payee);
-                Assert.Equal("Income Feb/2022", checkRecord.Memo);
-                Assert.Equal(new decimal(43), checkRecord.Amount);
-            }
+            // Check Valid Record 2
+            checkRecord = viewModel.ParsedRecords[2].Result;
+            Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
+            Assert.Equal("EMPLOYER", checkRecord.Payee);
+            Assert.Equal("Income Feb/2022", checkRecord.Memo);
+            Assert.Equal(new decimal(43), checkRecord.Amount);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 
@@ -485,60 +465,57 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
 
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
 
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath1));
-                viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
-                viewModel.InitializeDataFromImportProfile();
-                await viewModel.ValidateDataAsync();
-                
-                Assert.Equal(4, viewModel.TotalRecords);
-                Assert.Equal(2, viewModel.ValidRecords);
-                Assert.Equal(2, viewModel.RecordsWithErrors);
-                Assert.Equal(0, viewModel.PotentialDuplicates);
-                Assert.Equal(4, viewModel.ParsedRecords.Count);
-                Assert.Empty(viewModel.Duplicates);
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath1));
+            viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
+            await viewModel.ValidateDataAsync();
+            
+            Assert.Equal(4, viewModel.TotalRecords);
+            Assert.Equal(2, viewModel.ValidRecords);
+            Assert.Equal(2, viewModel.RecordsWithErrors);
+            Assert.Equal(0, viewModel.PotentialDuplicates);
+            Assert.Equal(4, viewModel.ParsedRecords.Count);
+            Assert.Empty(viewModel.Duplicates);
 
-                await viewModel.ImportDataAsync();
+            await viewModel.ImportDataAsync();
 
-                Assert.Equal(2, dbContext.BankTransaction.Count());
+            Assert.Equal(2, ServiceManager.BankTransactionService.GetAll().ToList().Count);
 
-                // Load next file including two duplicates on existing BankTransaction
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath2));
-                await viewModel.ValidateDataAsync();
+            // Load next file including two duplicates on existing BankTransaction
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath2));
+            await viewModel.ValidateDataAsync();
 
-                Assert.Equal(4, viewModel.TotalRecords);
-                Assert.Equal(4, viewModel.ValidRecords);
-                Assert.Equal(0, viewModel.RecordsWithErrors);
-                Assert.Equal(2, viewModel.PotentialDuplicates);
-                Assert.Equal(4, viewModel.ParsedRecords.Count);
-                Assert.Equal(2, viewModel.Duplicates.Count);
+            Assert.Equal(4, viewModel.TotalRecords);
+            Assert.Equal(4, viewModel.ValidRecords);
+            Assert.Equal(0, viewModel.RecordsWithErrors);
+            Assert.Equal(2, viewModel.PotentialDuplicates);
+            Assert.Equal(4, viewModel.ParsedRecords.Count);
+            Assert.Equal(2, viewModel.Duplicates.Count);
 
-                // Exclude just one duplicate and import the rest
-                viewModel.ExcludeDuplicateRecord(viewModel.Duplicates.First());
+            // Exclude just one duplicate and import the rest
+            viewModel.ExcludeDuplicateRecord(viewModel.Duplicates.First());
 
-                Assert.Equal(3, viewModel.TotalRecords);
-                Assert.Equal(3, viewModel.ValidRecords);
-                Assert.Equal(0, viewModel.RecordsWithErrors);
-                Assert.Equal(1, viewModel.PotentialDuplicates);
-                Assert.Equal(3, viewModel.ParsedRecords.Count);
-                Assert.Single(viewModel.Duplicates);
+            Assert.Equal(3, viewModel.TotalRecords);
+            Assert.Equal(3, viewModel.ValidRecords);
+            Assert.Equal(0, viewModel.RecordsWithErrors);
+            Assert.Equal(1, viewModel.PotentialDuplicates);
+            Assert.Equal(3, viewModel.ParsedRecords.Count);
+            Assert.Single(viewModel.Duplicates);
 
-                await viewModel.ImportDataAsync(false);
+            await viewModel.ImportDataAsync(false);
 
-                Assert.Equal(5, dbContext.BankTransaction.Count());
-            }
+            Assert.Equal(5, ServiceManager.BankTransactionService.GetAll().ToList().Count);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 
@@ -580,59 +557,56 @@ public class ImportDataViewModelTest
     {
         try
         {
-            using (var dbContext = new DatabaseContext(_dbOptions))
-            {
-                importProfile.AccountId = _testAccount.AccountId;
-                dbContext.CreateImportProfile(importProfile);
+            importProfile.AccountId = TestAccountViewModel.AccountId;
+            ServiceManager.ImportProfileService.Create(importProfile);
 
-                var viewModel = new ImportDataViewModel(_dbOptions);
-                viewModel.LoadData();
+            var viewModel = new ImportPageViewModel(ServiceManager);
+            viewModel.LoadData();
 
-                await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
-                viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
-                    i => i.ImportProfileId == importProfile.ImportProfileId);
-                viewModel.InitializeDataFromImportProfile();
-                await viewModel.ValidateDataAsync();
+            await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
+            viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+                i => i.ImportProfileId == importProfile.Id);
+            viewModel.ResetLoadFigures();
+            await viewModel.ValidateDataAsync();
 
-                Assert.Equal(4, viewModel.TotalRecords);
-                Assert.Equal(4, viewModel.ValidRecords);
-                Assert.Equal(0, viewModel.RecordsWithErrors);
-                Assert.Equal(0, viewModel.PotentialDuplicates);
-                Assert.Equal(4, viewModel.ParsedRecords.Count);
-                Assert.Empty(viewModel.Duplicates);
+            Assert.Equal(4, viewModel.TotalRecords);
+            Assert.Equal(4, viewModel.ValidRecords);
+            Assert.Equal(0, viewModel.RecordsWithErrors);
+            Assert.Equal(0, viewModel.PotentialDuplicates);
+            Assert.Equal(4, viewModel.ParsedRecords.Count);
+            Assert.Empty(viewModel.Duplicates);
 
-                // Check Record 1
-                var checkRecord = viewModel.ParsedRecords[0].Result;
-                Assert.Equal(new DateTime(2022, 02, 14), checkRecord.TransactionDate);
-                Assert.Equal("Lorem ipsum", checkRecord.Payee);
-                Assert.Equal("dolor sit amet", checkRecord.Memo);
-                Assert.Equal(new decimal(-2.95), checkRecord.Amount);
+            // Check Record 1
+            var checkRecord = viewModel.ParsedRecords[0].Result;
+            Assert.Equal(new DateTime(2022, 02, 14), checkRecord.TransactionDate);
+            Assert.Equal("Lorem ipsum", checkRecord.Payee);
+            Assert.Equal("dolor sit amet", checkRecord.Memo);
+            Assert.Equal(new decimal(-2.95), checkRecord.Amount);
 
-                // Check Record 2
-                checkRecord = viewModel.ParsedRecords[1].Result;
-                Assert.Equal(new DateTime(2022, 02, 15), checkRecord.TransactionDate);
-                Assert.Equal("Foobar Company", checkRecord.Payee);
-                Assert.Equal(string.Empty, checkRecord.Memo);
-                Assert.Equal(new decimal(-27.5), checkRecord.Amount);
+            // Check Record 2
+            checkRecord = viewModel.ParsedRecords[1].Result;
+            Assert.Equal(new DateTime(2022, 02, 15), checkRecord.TransactionDate);
+            Assert.Equal("Foobar Company", checkRecord.Payee);
+            Assert.Equal(string.Empty, checkRecord.Memo);
+            Assert.Equal(new decimal(-27.5), checkRecord.Amount);
 
-                // Check Record 3
-                checkRecord = viewModel.ParsedRecords[2].Result;
-                Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
-                Assert.Equal("EMPLOYER", checkRecord.Payee);
-                Assert.Equal("Income Feb/2022", checkRecord.Memo);
-                Assert.Equal(new decimal(43), checkRecord.Amount);
+            // Check Record 3
+            checkRecord = viewModel.ParsedRecords[2].Result;
+            Assert.Equal(new DateTime(2022, 02, 16), checkRecord.TransactionDate);
+            Assert.Equal("EMPLOYER", checkRecord.Payee);
+            Assert.Equal("Income Feb/2022", checkRecord.Memo);
+            Assert.Equal(new decimal(43), checkRecord.Amount);
 
-                // Check Record 4
-                checkRecord = viewModel.ParsedRecords[3].Result;
-                Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
-                Assert.Equal("The Webshop.com", checkRecord.Payee);
-                Assert.Equal("Billing", checkRecord.Memo);
-                Assert.Equal(new decimal(-6.34), checkRecord.Amount);
-            }
+            // Check Record 4
+            checkRecord = viewModel.ParsedRecords[3].Result;
+            Assert.Equal(new DateTime(2022, 02, 17), checkRecord.TransactionDate);
+            Assert.Equal("The Webshop.com", checkRecord.Payee);
+            Assert.Equal("Billing", checkRecord.Memo);
+            Assert.Equal(new decimal(-6.34), checkRecord.Amount);
         }
         finally
         {
-            DbConnector.CleanupDatabase(nameof(ImportDataViewModelTest));
+            Cleanup();
         }
     }
 

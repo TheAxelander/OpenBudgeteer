@@ -1,9 +1,10 @@
 ﻿@using OpenBudgeteer.Core.ViewModels
 @using System.Drawing
-@using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Contracts.Models
-@using OpenBudgeteer.Data
-@inject DbContextOptions<DatabaseContext> DbContextOptions
+@using System.Globalization
+@using OpenBudgeteer.Core.Data
+@using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
 @inject YearMonthSelectorViewModel YearMonthDataContext
 
 @if (IsDialogVisible)
@@ -27,9 +28,9 @@
                                 <tr class="header-row">
                                     <th>Bucket</th>
                                     <th class="col-numbers col-bucket-numbers">Balance</th>
-                                    <th class="col-numbers col-bucket-numbers">In</th>
-                                    <th class="col-numbers col-bucket-numbers">Activity</th>
-                                    <th class="col-bucket-details">Details</th>
+                                    <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers">In</th>
+                                    <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers">Activity</th>
+                                    <th class="d-none d-md-table-cell col-bucket-details">Details</th>
                                 </tr>
                             </thead>
                             <tbody><tr></tr></tbody>
@@ -44,13 +45,13 @@
                                             <div>
                                                 <button class="btn btn-sm header-action-button collapse-button"
                                                         @onclick="@(() => bucketGroup.IsCollapsed = !bucketGroup.IsCollapsed)"><span>@(bucketGroup.IsCollapsed ? "▶" : "▼")</span></button>
-                                                <span class="bucketgroup-header-text">@bucketGroup.BucketGroup.Name</span>
+                                                <span class="bucketgroup-header-text">@bucketGroup.Name</span>
                                             </div>
                                         </th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("N2")</span></th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("N2"))</span></th>
-                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("N2"))</span></th>
-                                        <th class="col-bucket-details"></th>
+                                        <th class="col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@bucketGroup.TotalBalance.ToString("C", CultureInfo.CurrentCulture)</span></th>
+                                        <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalIn == 0 ? string.Empty : bucketGroup.TotalIn.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                                        <th class="d-none d-sm-table-cell col-numbers col-bucket-numbers"><span class="bucketgroup-header-text">@(bucketGroup.TotalActivity == 0 ? string.Empty : bucketGroup.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</span></th>
+                                        <th class="d-none d-md-table-cell col-bucket-details"></th>
                                     </tr>
                                 </thead>
                                 <tbody><tr></tr></tbody>
@@ -62,21 +63,21 @@
                                     {
                                         <tr @onmouseover="@(() => bucket.IsHovered = true)" @onmouseout="@(() => bucket.IsHovered = false)">
                                             <td>
-                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Bucket.Color); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket.Bucket)">
-                                                    @if (bucket.Bucket.IsInactive)
+                                                <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.Color); color: @ColorTranslator.ToHtml(bucket.TextColor); text-align: left" @onclick="() => OnBucketSelectedCallback.InvokeAsync(bucket)">
+                                                    @if (bucket.IsInactive)
                                                     {
-                                                        @($"{bucket.Bucket.Name} (Inactive from: {bucket.Bucket.IsInactiveFrom.ToShortDateString()})")
+                                                        @($"{bucket.Name} (Inactive from: {bucket.IsInactiveFrom.ToShortDateString()})")
                                                     }
                                                     else
                                                     {
-                                                        @bucket.Bucket.Name
+                                                        @bucket.Name
                                                     }
                                                 </button>
                                             </td>
-                                            <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("N2")</td>
-                                            <td class="col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("N2"))</td>
-                                            <td class="col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("N2"))</td>
-                                            <td class="col-bucket-details">
+                                            <td class="col-numbers col-bucket-numbers">@bucket.Balance.ToString("C", CultureInfo.CurrentCulture)</td>
+                                            <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers">@(bucket.In == 0 ? string.Empty : bucket.In.ToString("C", CultureInfo.CurrentCulture))</td>
+                                            <td class="d-none d-sm-table-cell col-numbers col-bucket-numbers">@(bucket.Activity == 0 ? string.Empty : bucket.Activity.ToString("C", CultureInfo.CurrentCulture))</td>
+                                            <td class="d-none d-md-table-cell col-bucket-details">
                                             @if (bucket.IsProgressbarVisible)
                                             {
                                                 <div class="row">
@@ -113,8 +114,8 @@
 
 @code {
     [Parameter]
-    public BucketViewModel DataContext { get; set; }
-    
+    public BucketListingViewModel DataContext { get; set; } = null!;
+
     [Parameter]
     public bool IsDialogVisible { get; set; }
 
@@ -122,7 +123,7 @@
     public bool IsDialogLoading { get; set; }
     
     [Parameter]
-    public EventCallback<Bucket> OnBucketSelectedCallback { get; set; }
+    public EventCallback<BucketViewModel> OnBucketSelectedCallback { get; set; }
     
     [Parameter]
     public EventCallback<MouseEventArgs> OnCancelCallback { get; set; }
