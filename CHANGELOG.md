@@ -1,3 +1,9 @@
+## 1.9 (2024-xx-xx)
+
+### :gear: Features & Enhancements
+
+* File content preview on Import Page no longer wraps, instead it uses horizontal scrolling [#227](https://github.com/TheAxelander/OpenBudgeteer/issues/227)
+
 ## 1.8.1 (2024-03-17)
 
 ### :beetle: Bug Fixes

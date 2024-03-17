@@ -124,6 +124,11 @@ button.btn-bucket {
     width: 100%
 }
 
+.no-wrap {
+    overflow-x: auto; 
+    white-space: nowrap;
+}
+
 /* Overwrite bootstrap styles */
 .table td, .table tbody td, .table th, .table thead th {
     vertical-align: middle;
