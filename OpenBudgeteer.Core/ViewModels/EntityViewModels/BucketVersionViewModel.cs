@@ -109,8 +109,22 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         get => _bucketTypeDateParameter;
         set
         {
-            if (Set(ref _bucketTypeDateParameter, value)) HasModification = true;
+            if (Set(ref _bucketTypeDateParameter, value))
+            {
+                HasModification = true;
+                BucketTypeDateParameterChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
+    }
+    
+    private DateTime _bucketTypeNextDateParameter;
+    /// <summary>
+    /// Date based parameter of the Bucket type (calculating to the next applying date)
+    /// </summary>
+    public DateTime BucketTypeNextDateParameter
+    {
+        get => _bucketTypeNextDateParameter; 
+        set => Set(ref _bucketTypeNextDateParameter, value);
     }
 
     private string _notes;
@@ -138,6 +152,12 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
     
     public bool HasModification { get; private set; }
     
+    /// <summary>
+    /// EventHandler which will be invoked once <see cref="BucketTypeDateParameter"/> has been changed.
+    /// Can be used to trigger the calculation of <see cref="BucketTypeNextDateParameter"/> 
+    /// </summary>
+    public event EventHandler<EventArgs>? BucketTypeDateParameterChanged; 
+    
     #endregion
 
     #region Constructors
@@ -159,6 +179,7 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
             _bucketTypeIntParameter = 0;
             _bucketTypeDecimalParameter = 0;
             _bucketTypeDateParameter = DateTime.MinValue;
+            _bucketTypeNextDateParameter = DateTime.MinValue;
             _notes = string.Empty;
         }
         else
@@ -171,6 +192,7 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
             _bucketTypeIntParameter = bucketVersion.BucketTypeXParam;
             _bucketTypeDecimalParameter = bucketVersion.BucketTypeYParam;
             _bucketTypeDateParameter = bucketVersion.BucketTypeZParam;
+            _bucketTypeNextDateParameter = bucketVersion.BucketTypeZParam;
             _notes = bucketVersion.Notes ?? string.Empty;
         }
     }
@@ -189,6 +211,7 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         _bucketTypeIntParameter = viewModel.BucketTypeIntParameter;
         _bucketTypeDecimalParameter = viewModel.BucketTypeDecimalParameter;
         _bucketTypeDateParameter = viewModel.BucketTypeDateParameter;
+        _bucketTypeNextDateParameter = viewModel.BucketTypeNextDateParameter;
         _notes = viewModel.Notes;
     }
 
