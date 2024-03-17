@@ -361,7 +361,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
             {
                 Id = Guid.Empty,
                 AccountId = Guid.Empty,
-                Account = new Account(),
+                Account = new Account(){ IsActive = 1},
                 Amount = bucketMovement.Amount,
                 Memo = "Bucket Movement",
                 Payee = string.Empty,
