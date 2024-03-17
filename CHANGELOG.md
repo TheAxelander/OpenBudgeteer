@@ -1,3 +1,10 @@
+## 1.8.1 (2024-xx-xx)
+
+### :beetle: Bug Fixes
+
+* Duplicate check on Import Page was showing wrong Account. Now only Transactions of the selected target Account will be considered during the analysis [#230](https://github.com/TheAxelander/OpenBudgeteer/issues/230)
+* Bucket Movements were shown with Account `(Inactive)` [#231](https://github.com/TheAxelander/OpenBudgeteer/issues/231)
+
 ## 1.8 (2024-03-16)
 
 ### :warning: Breaking Changes
