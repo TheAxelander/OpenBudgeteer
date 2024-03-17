@@ -407,7 +407,9 @@ public class ImportPageViewModel : ViewModelBase
     {
         await Task.Run(() =>
         {
-            var transactions = ServiceManager.BankTransactionService.GetAll().ToList();
+            var transactions = ServiceManager.BankTransactionService
+                .GetFromAccount(SelectedImportProfile.Account.AccountId)
+                .ToList();
             var parsedRecords = ParsedRecords
                 .Where(i => i.IsValid)
                 .ToList();
