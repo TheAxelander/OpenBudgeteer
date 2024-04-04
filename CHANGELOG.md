@@ -1,3 +1,9 @@
+## 1.8.2 (2024-04-04)
+
+### :hammer: Maintenance
+
+* Revert back to default ASP.NET Docker image to fix SQLite issue with Alpine image [#233](https://github.com/TheAxelander/OpenBudgeteer/issues/233)
+
 ## 1.8.1 (2024-03-17)
 
 ### :beetle: Bug Fixes
