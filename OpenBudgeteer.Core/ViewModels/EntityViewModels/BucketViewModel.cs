@@ -449,11 +449,14 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         #endregion*/
         
         #region Balance, In & Out
-        
-        var figures = ServiceManager.BucketService.GetFigures(BucketId, _currentYearMonth);
-        Balance = figures.Balance ?? 0;
-        In = figures.Input;
-        Activity = figures.Output;
+
+        if (BucketId != default)
+        {
+            var figures = ServiceManager.BucketService.GetFigures(BucketId, _currentYearMonth);
+            Balance = figures.Balance ?? 0;
+            In = figures.Input;
+            Activity = figures.Output;
+        }
         
         #endregion
 
