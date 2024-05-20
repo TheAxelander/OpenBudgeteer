@@ -24,7 +24,7 @@ Within the [Documentation](https://theaxelander.github.io) you will find all the
 
 ## Quick Start
 
-For a quick ramp-up up of OpenBudgeteer using Docker and Sqlite use below command or docker compose.
+For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB use below command or docker compose.
 
 ### docker run
 
