@@ -612,8 +612,8 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
                 ServiceManager.BucketService.Update(BucketVersion.HasModification
                     ? ConvertToDtoWithNewVersion()
                     : ConvertToDto());
+                CalculateValues();
             }
-            CalculateValues();
             return new ViewModelOperationResult(true, true);
         }
         catch (Exception e)
