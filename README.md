@@ -24,23 +24,7 @@ Within the [Documentation](https://theaxelander.github.io) you will find all the
 
 ## Quick Start
 
-For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB use below command or docker compose.
-
-### docker run
-
-```bash
-docker run -d --name='openbudgeteer' \
-    -e 'CONNECTION_PROVIDER'='mariadb' \
-    -e 'CONNECTION_SERVER'='192.168.178.100' \
-    -e 'CONNECTION_PORT'='3306' \
-    -e 'CONNECTION_DATABASE'='openbudgeteer' \
-    -e 'CONNECTION_USER'='openbudgeteer' \
-    -e 'CONNECTION_PASSWORD'='openbudgeteer' \
-    -p '8080:8080' \
-    'axelander/openbudgeteer:latest' # alternatively use 'pre-release' or a specific version tag
-```
-
-### docker compose
+For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB use below docker compose.
 
 ```yml
 services:
