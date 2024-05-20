@@ -1,5 +1,9 @@
 ## 1.8.3 (2024-05-20)
 
+### :warning: Breaking Changes
+
+* Dropping support for SQLite [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#242](https://github.com/TheAxelander/OpenBudgeteer/discussions/242)
+
 ### :beetle: Bug Fixes
 
 * Fix error message after creating new Bucket [#234](https://github.com/TheAxelander/OpenBudgeteer/issues/234) Thanks also [Anu6is](https://github.com/Anu6is)
