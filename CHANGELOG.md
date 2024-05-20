@@ -1,3 +1,17 @@
+## 1.8.3 (2024-05-20)
+
+### :warning: Breaking Changes
+
+* Dropping support for SQLite [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#242](https://github.com/TheAxelander/OpenBudgeteer/discussions/242)
+
+### :gear: Features & Enhancements
+
+* Replace News with Link to GitHub Announcements [#241](https://github.com/TheAxelander/OpenBudgeteer/issues/241)
+
+### :beetle: Bug Fixes
+
+* Fix error message after creating new Bucket [#234](https://github.com/TheAxelander/OpenBudgeteer/issues/234) Thanks also [Anu6is](https://github.com/Anu6is)
+
 ## 1.8.2 (2024-04-04)
 
 ### :hammer: Maintenance

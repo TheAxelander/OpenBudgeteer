@@ -3,17 +3,11 @@
 </p>
 
 <p align="center">
-    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml">
-        <img alt="Docker Image pre-release" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml/badge.svg">
-    </a>
-    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml">
-        <img alt="Docker Image latest" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml/badge.svg">
-    </a>
+    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml" target="_blank"><img alt="Docker Image pre-release" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml/badge.svg"></a>
+    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml" target="_blank"><img alt="Docker Image latest" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml/badge.svg"></a>
 </p>
 <p align="center">
-    <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#money-budgeting--management">
-        <img alt="Mentioned in Awesome-Selfhosted" src="https://awesome.re/mentioned-badge.svg">
-    </a>
+    <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#money-budgeting--management" target="_blank"><img alt="Mentioned in Awesome-Selfhosted" src="https://awesome.re/mentioned-badge.svg"></a>
     <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/axelander/openbudgeteer">
     <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/theaxelander/openbudgeteer">
 </p>
@@ -30,24 +24,9 @@ Within the [Documentation](https://theaxelander.github.io) you will find all the
 
 ## Quick Start
 
-For a quick ramp-up up of OpenBudgeteer using Docker and Sqlite use below command or docker compose.
-
-### docker run
-
-```bash
-docker run -d --name='openbudgeteer' \
-    -e 'CONNECTION_PROVIDER'='SQLITE' \
-    -e 'CONNECTION_DATABASE'='/srv/openbudgeteer.db' \
-    -p 8080:8080 \
-    -v 'data:/srv'  \
-    'axelander/openbudgeteer:latest' # alternatively use 'pre-release' or a specific version tag
-```
-
-### docker compose
+For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB use below docker compose.
 
 ```yml
-version: "3"
-
 services:
   openbudgeteer:
     image: axelander/openbudgeteer:latest
@@ -57,10 +36,33 @@ services:
     ports:
       - 8080:8080
     environment:
-      - CONNECTION_PROVIDER=SQLITE
-      - CONNECTION_DATABASE=/srv/openbudgeteer.db
+      - CONNECTION_PROVIDER=mariadb
+      - CONNECTION_SERVER=openbudgeteer-mysql
+      - CONNECTION_PORT=3306
+      - CONNECTION_DATABASE=openbudgeteer
+      - CONNECTION_USER=openbudgeteer
+      - CONNECTION_PASSWORD=openbudgeteer
+      - APPSETTINGS_CULTURE=en-US
+      - APPSETTINGS_THEME=solar
+    depends_on:
+      - mariadb
+      
+  mariadb:
+    image: mariadb
+    container_name: openbudgeteer-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: myRootPassword
     volumes:
-      - data:/srv
+      - data:/var/lib/mysql
+      
+  # optional    
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: openbudgeteer-phpmyadmin
+    links:
+      - mariadb:db
+    ports:
+      - 8081:80
         
 volumes:
   data:
