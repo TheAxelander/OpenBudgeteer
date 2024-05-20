@@ -703,7 +703,12 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
     {
         try
         {
-            ServiceManager.BucketService.CreateMovement(BucketId, InOut, _currentYearMonth);
+            var date = DateTime.Now;
+            if (_currentYearMonth.Year != date.Year || _currentYearMonth.Month != date.Month) {
+                var day = (date > _currentYearMonth) ? DateTime.DaysInMonth(_currentYearMonth.Year, _currentYearMonth.Month) : 1;
+                date = new DateTime(_currentYearMonth.Year, _currentYearMonth.Month, day);
+            }
+            ServiceManager.BucketService.CreateMovement(BucketId, InOut, date);
             CalculateValues();
             return new ViewModelOperationResult(true);
         }
