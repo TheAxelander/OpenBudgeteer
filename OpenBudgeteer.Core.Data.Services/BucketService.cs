@@ -428,7 +428,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
         }
     }
 
-    public BucketMovement CreateMovement(Guid bucketId, decimal amount, DateTime yearMonth)
+    public BucketMovement CreateMovement(Guid bucketId, decimal amount, DateTime movementDate)
     {
         try
         {
@@ -440,7 +440,7 @@ internal class BucketService : BaseService<Bucket>, IBucketService
                 Id = Guid.Empty,
                 BucketId = bucketId,
                 Amount = amount,
-                MovementDate = yearMonth
+                MovementDate = movementDate
             };
             var result = repository.Create(newBucketMovement);
             if (result == 0) throw new Exception($"Unable to create {typeof(BucketMovement)} in database");
