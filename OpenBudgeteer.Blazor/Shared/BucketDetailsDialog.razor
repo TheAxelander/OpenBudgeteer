@@ -1,6 +1,5 @@
-﻿@using ChartJs.Blazor
-@using ChartJs.Blazor.ChartJS.BarChart
-@using ChartJs.Blazor.Charts
+﻿@using ApexCharts
+@using OpenBudgeteer.Blazor.Common
 @using OpenBudgeteer.Blazor.ViewModels
 @using System.Globalization
 
@@ -61,13 +60,39 @@
                                     <div class="col-md-6 col-sm-12 p-1">
                                         <div class="report-chart-box">
                                             <h4 class="report-chart-header">Month Balances</h4>
-                                            <ChartJsBarChart Config="@DataContext.MonthBalancesConfig"/>
+                                            <ApexChart @ref="MonthBalanceChart" TItem="ReportRecord">
+                                                <ApexPointSeries
+                                                    TItem="ReportRecord"
+                                                    Items="DataContext.MonthBalances"
+                                                    Name="Balance"
+                                                    SeriesType="SeriesType.Bar"
+                                                    XValue="i => i.Label"
+                                                    YValue="i => i.Value"
+                                                    DataPointMutator="ApexHelper.BalanceChartMutator"/>
+                                            </ApexChart>
                                         </div>
                                     </div>
                                      <div class="col-md-6 col-sm-12 p-1">
                                          <div class="report-chart-box">
                                              <h4 class="report-chart-header">Input & Output</h4>
-                                             <ChartJsBarChart Config="@DataContext.MonthInputOutputConfig"/>
+                                             <ApexChart @ref="MonthInputOutputChart" TItem="ReportRecord" Options="MonthInputOutputChartOptions">
+                                                 <ApexPointSeries
+                                                     TItem="ReportRecord"
+                                                     Items="DataContext.MonthInput"
+                                                     Name="Input"
+                                                     SeriesType="SeriesType.Bar"
+                                                     XValue="i => i.Label"
+                                                     YValue="i => i.Value"
+                                                     Color=@System.Drawing.Color.Green.ToHexString()/>
+                                                 <ApexPointSeries
+                                                     TItem="ReportRecord"
+                                                     Items="DataContext.MonthOutput"
+                                                     Name="Output"
+                                                     SeriesType="SeriesType.Bar"
+                                                     XValue="i => i.Label"
+                                                     YValue="i => i.Value"
+                                                     Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                                             </ApexChart>
                                          </div>
                                     </div>
                                 </div>
@@ -75,7 +100,16 @@
                                     <div class="col p-1">
                                         <div class="report-chart-box">
                                             <h4 class="report-chart-header">Balance Progression</h4>
-                                            <ChartJsLineChart Config="@DataContext.BucketProgressionConfig"/>
+                                            <ApexChart @ref="BucketProgressionChart" TItem="ReportRecord" Height="300">
+                                                <ApexPointSeries
+                                                    TItem="ReportRecord"
+                                                    Items="DataContext.BucketProgression"
+                                                    Name="Balance"
+                                                    SeriesType="SeriesType.Area"
+                                                    XValue="i => i.Label"
+                                                    YValue="i => i.Value"
+                                                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                                            </ApexChart>
                                         </div>
                                     </div>
                                 </div>
@@ -107,12 +141,33 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+    
+    private ApexChart<ReportRecord> MonthBalanceChart;
+    private ApexChart<ReportRecord> MonthInputOutputChart;
+    private ApexChart<ReportRecord> BucketProgressionChart;
+    
+    private ApexChartOptions<ReportRecord> MonthInputOutputChartOptions = new()
+    {
+        Legend = new() { Show = false }
+    };
+
+    private ApexChartOptions<ReportRecord> BucketProgressionChartOptions = new()
+    {
+        Yaxis = [ new YAxis() { Min = 0 } ]
+    };
 
     private async void HideBucketMovementCheckboxClicked(ChangeEventArgs? eventArgs)
     {
         if (eventArgs?.Value == null) return;
         await DataContext.LoadBucketMovementsDataAsync((bool)eventArgs.Value);
         StateHasChanged();
+        var tasks = new List<Task>()
+        {
+            MonthBalanceChart.UpdateSeriesAsync(true),
+            MonthInputOutputChart.UpdateSeriesAsync(true),
+            BucketProgressionChart.UpdateSeriesAsync(true),
+        };
+        
+        await Task.WhenAll(tasks);
     }
-
 }

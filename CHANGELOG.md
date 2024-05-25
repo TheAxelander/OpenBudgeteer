@@ -4,6 +4,7 @@
 
 * Edit Bucket Dialog shows now a calculated next applying target date for Bucket type `Expense every X Months` and `Save X until Y date` [#201](https://github.com/TheAxelander/OpenBudgeteer/issues/201)
 * File content preview on Import Page no longer wraps, instead it uses horizontal scrolling [#227](https://github.com/TheAxelander/OpenBudgeteer/issues/227)
+* Migrated reports from ChartJs.Blazor to Blazor-ApexCharts
 
 ## 1.8.3 (2024-05-20)
 

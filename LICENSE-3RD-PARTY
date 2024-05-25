@@ -3,7 +3,7 @@
     applies to: 
     - aspnet-api-versioning, Copyright (c) .NET Foundation and contributors
     - BlazorFileReader, Copyright (c) 2018 Tor
-    - ChartJs.Blazor, Copyright (c) 2019 Marius Muntean   
+    - Blazor-ApexCharts, Copyright (c) 2020 Joakim Dangården
     - efcore, Copyright (c) .NET Foundation and Contributors
     - Pomelo.EntityFrameworkCore.MySql, Copyright (c) 2017 Pomelo Foundation
     - Swashbuckle.AspNetCore, Copyright (c) 2016 Richard Morris
