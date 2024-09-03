@@ -2,12 +2,14 @@
 @using ApexCharts
 @using OpenBudgeteer.Blazor.Common
 
-
 <div class="row">
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Month Balances</h4>
-            <ApexChart @ref="MonthBalanceChart" TItem="ReportRecord">
+            <ApexChart 
+                @ref="MonthBalanceChart" 
+                TItem="ReportRecord" 
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                 <ApexPointSeries 
                     TItem="ReportRecord"
                     Items="_apexContext.MonthBalances"
@@ -22,7 +24,10 @@
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Bank Balances</h4>
-            <ApexChart @ref="BankBalanceChart" TItem="ReportRecord">
+            <ApexChart 
+                @ref="BankBalanceChart" 
+                TItem="ReportRecord" 
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                 <ApexPointSeries
                     TItem="ReportRecord"
                     Items="_apexContext.BankBalances"
@@ -39,7 +44,10 @@
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Income & Expenses per Month</h4>
-            <ApexChart @ref="MonthIncomeExpensesChart" TItem="ReportRecord" Options="MonthIncomeExpensesChartOptions">
+            <ApexChart 
+                @ref="MonthIncomeExpensesChart" 
+                TItem="ReportRecord"
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
                 <ApexPointSeries
                     TItem="ReportRecord"
                     Items="_apexContext.MonthIncome"
@@ -62,7 +70,10 @@
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Income & Expenses per Year</h4>
-            <ApexChart @ref="YearIncomeExpensesChart" TItem="ReportRecord" Options="YearIncomeExpensesChartOptions">
+            <ApexChart 
+                @ref="YearIncomeExpensesChart" 
+                TItem="ReportRecord" 
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
                 <ApexPointSeries
                     TItem="ReportRecord"
                     Items="_apexContext.YearIncome"
@@ -89,7 +100,12 @@
             <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
             @foreach (var chart in _monthBucketExpensesConfigsLeft)
             {
-                <ApexChart @ref="InjectMonthBucketExpensesChart" Title="@chart.Item1" TItem="ReportRecord" Height="150">
+                <ApexChart 
+                    @ref="InjectMonthBucketExpensesChart" 
+                    TItem="ReportRecord" 
+                    Title="@chart.Item1"
+                    Height="150"
+                    Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                     <ApexPointSeries
                         TItem="ReportRecord"
                         Items="chart.Item2"
@@ -107,7 +123,12 @@
             <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
             @foreach (var chart in _monthBucketExpensesConfigsRight)
             {
-                <ApexChart @ref="InjectMonthBucketExpensesChart" Title="@chart.Item1" TItem="ReportRecord" Height="150">
+                <ApexChart 
+                    @ref="InjectMonthBucketExpensesChart" 
+                    TItem="ReportRecord" 
+                    Title="@chart.Item1" 
+                    Height="150"
+                    Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                     <ApexPointSeries
                         TItem="ReportRecord"
                         Items="chart.Item2"

@@ -6,6 +6,7 @@ using ApexCharts;
 using Microsoft.AspNetCore.Components;
 using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Blazor.ViewModels;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 
 namespace OpenBudgeteer.Blazor.Pages;
@@ -23,14 +24,10 @@ public partial class Report : ComponentBase
     {
         set => MonthBucketExpensesCharts.Add(value);
     }
-    
-    private ApexChartOptions<ReportRecord> MonthIncomeExpensesChartOptions = new()
+    private Theme BaseTheme => new()
     {
-        Legend = new() { Show = false }
-    };
-    private ApexChartOptions<ReportRecord> YearIncomeExpensesChartOptions = new()
-    {
-        Legend = new() { Show = false }
+        Mode = AppSettings.Mode == AppSettings.ThemeMode.Dark ? Mode.Dark : Mode.Light, 
+        Palette = PaletteType.Palette1
     };
     
     private ApexReportViewModel _apexContext = null!;
@@ -53,10 +50,10 @@ public partial class Report : ComponentBase
         StateHasChanged();
         var tasks = new List<Task>()
         {
-            MonthBalanceChart.UpdateSeriesAsync(true),
-            BankBalanceChart.UpdateSeriesAsync(true),
-            MonthIncomeExpensesChart.UpdateSeriesAsync(true),
-            YearIncomeExpensesChart.UpdateSeriesAsync(true)
+            MonthBalanceChart.UpdateSeriesAsync(),
+            BankBalanceChart.UpdateSeriesAsync(),
+            MonthIncomeExpensesChart.UpdateSeriesAsync(),
+            YearIncomeExpensesChart.UpdateSeriesAsync()
         };
         tasks.AddRange(MonthBucketExpensesCharts
             .Select(monthBucketExpensesChart => monthBucketExpensesChart.UpdateSeriesAsync()));
