@@ -18,9 +18,9 @@ jobs:
         ports:
           - 3306:3306
         env:
-          MARIADB_DATABASE: openbudgeteer_test
-          MARIADB_USER: openbudgeteer_test
-          MARIADB_PASSWORD: openbudgeteer_test
+          MARIADB_DATABASE: openbudgeteer
+          MARIADB_USER: openbudgeteer
+          MARIADB_PASSWORD: openbudgeteer
     
     steps:
       - name: Check out repo
@@ -37,13 +37,21 @@ jobs:
       - name: Build Blazor
         run: dotnet build OpenBudgeteer.Blazor --configuration Release --no-restore
         
+      - name: Wait for MariaDB to be ready
+        run: |
+          docker ps
+          while ! docker exec -i $(docker ps -q -f ancestor=mariadb:latest) mariadb -u openbudgeteer -p openbudgeteer -e "SHOW DATABASES"; do
+            echo "Waiting for MariaDB..."
+            sleep 3
+          done  
+        
       - name: Run Core Test Cases
         env:
           CONNECTION_SERVER: mariadb
           CONNECTION_PORT: 3306
-          CONNECTION_USER: openbudgeteer_test
-          CONNECTION_PASSWORD: openbudgeteer_test
-          CONNECTION_DATABASE: openbudgeteer_test
+          CONNECTION_USER: openbudgeteer
+          CONNECTION_PASSWORD: openbudgeteer
+          CONNECTION_DATABASE: openbudgeteer
         run: dotnet test OpenBudgeteer.Core.Test
   deploy-docker-app:
     runs-on: ubuntu-latest
