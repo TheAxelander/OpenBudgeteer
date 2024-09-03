@@ -39,7 +39,7 @@ jobs:
         
       - name: Run Core Test Cases
         env:
-          CONNECTION_SERVER: localhost
+          CONNECTION_SERVER: 127.0.0.1
           CONNECTION_PORT: 3306
           CONNECTION_USER: openbudgeteer_test
           CONNECTION_PASSWORD: openbudgeteer_test
