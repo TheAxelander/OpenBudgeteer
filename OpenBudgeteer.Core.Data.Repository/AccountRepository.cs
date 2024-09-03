@@ -14,10 +14,10 @@ public class AccountRepository : IAccountRepository
         DatabaseContext = databaseContext;
     }
 
-    public IQueryable<Account> All() => DatabaseContext.Account
+    public IEnumerable<Account> All() => DatabaseContext.Account
         .AsNoTracking();
     
-    public IQueryable<Account> AllWithIncludedEntities() => DatabaseContext.Account
+    public IEnumerable<Account> AllWithIncludedEntities() => DatabaseContext.Account
         .AsNoTracking();
 
     public Account? ById(Guid id) => DatabaseContext.Account

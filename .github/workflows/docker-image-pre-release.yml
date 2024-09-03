@@ -11,6 +11,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run Test Cases
+    
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_DATABASE: openbudgeteer_test
+          MYSQL_USER: openbudgeteer_test
+          MYSQL_PASSWORD: openbudgeteer_test
+    
     steps:
       - name: Check out repo
         uses: actions/checkout@v3
@@ -27,6 +38,12 @@ jobs:
         run: dotnet build OpenBudgeteer.Blazor --configuration Release --no-restore
         
       - name: Run Core Test Cases
+        env:
+          CONNECTION_SERVER: localhost
+          CONNECTION_PORT: 3306
+          CONNECTION_USER: openbudgeteer_test
+          CONNECTION_PASSWORD: openbudgeteer_test
+          CONNECTION_DATABASE: openbudgeteer_test
         run: dotnet test OpenBudgeteer.Core.Test
   deploy-docker-app:
     runs-on: ubuntu-latest

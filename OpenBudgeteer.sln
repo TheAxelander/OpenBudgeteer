@@ -20,8 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SECURITY.md = SECURITY.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Sqlite.Migrations", "OpenBudgeteer.Core.Data.Sqlite.Migrations\OpenBudgeteer.Core.Data.Sqlite.Migrations.csproj", "{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.MySql.Migrations", "OpenBudgeteer.Core.Data.MySql.Migrations\OpenBudgeteer.Core.Data.MySql.Migrations.csproj", "{3455E778-BED7-433F-A100-0874FF0D15C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data", "OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj", "{DEB5B758-7AA9-45C6-96C5-371DA35F9E5C}"
@@ -56,10 +54,6 @@ Global
 		{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2AFE22D2-18FA-4326-B011-B6E3D6365E6B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7D6ED82D-BAE4-4BC4-AEA9-22801037C6C3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3455E778-BED7-433F-A100-0874FF0D15C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3455E778-BED7-433F-A100-0874FF0D15C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3455E778-BED7-433F-A100-0874FF0D15C7}.Release|Any CPU.ActiveCfg = Release|Any CPU

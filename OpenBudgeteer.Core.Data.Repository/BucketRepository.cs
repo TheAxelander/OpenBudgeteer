@@ -14,19 +14,19 @@ public class BucketRepository : IBucketRepository
         DatabaseContext = databaseContext;
     }
     
-    public IQueryable<Bucket> All() => DatabaseContext.Bucket
+    public IEnumerable<Bucket> All() => DatabaseContext.Bucket
         .AsNoTracking();
     
-    public IQueryable<Bucket> AllWithVersions() => DatabaseContext.Bucket
+    public IEnumerable<Bucket> AllWithVersions() => DatabaseContext.Bucket
         .Include(i => i.BucketVersions)
         .AsNoTracking();
     
-    public IQueryable<Bucket> AllWithActivities() => DatabaseContext.Bucket
+    public IEnumerable<Bucket> AllWithActivities() => DatabaseContext.Bucket
         .Include(i => i.BucketMovements)
         .Include(i => i.BudgetedTransactions)!.ThenInclude(i => i.Transaction)
         .AsNoTracking();
     
-    public IQueryable<Bucket> AllWithIncludedEntities() => DatabaseContext.Bucket
+    public IEnumerable<Bucket> AllWithIncludedEntities() => DatabaseContext.Bucket
         .Include(i => i.BucketGroup)
         .Include(i => i.BucketMovements)
         .Include(i => i.BucketVersions)

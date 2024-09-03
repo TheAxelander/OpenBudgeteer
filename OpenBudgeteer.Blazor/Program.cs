@@ -11,6 +11,7 @@ using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Services;
+using OpenBudgeteer.Core.Data.Services.EFCore;
 using OpenBudgeteer.Core.ViewModels.Helper;
 using Tewr.Blazor.FileReader;
 
@@ -27,7 +28,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddFileReaderService();
 builder.Services.AddHostedService<HostedDatabaseMigrator>();
 builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddScoped<IServiceManager, ServiceManager>(x => new ServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
+builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => new EFCoreServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
 builder.Services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
         
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files

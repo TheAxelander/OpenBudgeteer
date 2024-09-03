@@ -19,8 +19,6 @@ public static partial class DbContextOptionsFactory
 {
     private static readonly Dictionary<string, Action<DbContextOptionsBuilder, IConfiguration>> OptionsFactoryLookup = new(StringComparer.OrdinalIgnoreCase)
     {
-        [ConfigurationKeyConstants.PROVIDER_TEMPDB] = SetupSqliteTempDbConnection,
-        [ConfigurationKeyConstants.PROVIDER_SQLITE] = SetupSqliteConnection,
         [ConfigurationKeyConstants.PROVIDER_MYSQL] = SetupMariaDbConnection,
         [ConfigurationKeyConstants.PROVIDER_MARIADB] = SetupMariaDbConnection,
         [ConfigurationKeyConstants.PROVIDER_POSTGRES] = SetupPostgresConnection,
@@ -48,31 +46,6 @@ public static partial class DbContextOptionsFactory
         return optionsBuilder.Options;
     }
     
-    private static void SetupSqliteTempDbConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
-    {
-        var dbFilePath = Path.GetTempFileName();
-        optionsBuilder.UseSqlite(
-            $"Data Source={dbFilePath}",
-            b => b.MigrationsAssembly("OpenBudgeteer.Core.Data.Sqlite.Migrations"));
-    }
-
-    private static void SetupSqliteConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
-    {
-        var dbFilePath = configuration.GetValue<string>(ConfigurationKeyConstants.CONNECTION_DATABASE);
-        dbFilePath = string.IsNullOrWhiteSpace(dbFilePath)
-            ? Path.Combine(Directory.GetCurrentDirectory(), "database", "openbudgeteer.db") 
-            : Path.GetFullPath(dbFilePath);
-
-        var directory = Path.GetDirectoryName(dbFilePath);
-        if (string.IsNullOrEmpty(directory)) throw new Exception("Unable to operate on provided directory");
-        if (!Directory.Exists(directory)) Directory.CreateDirectory(directory);
-
-        var connectionString = $"Data Source={dbFilePath}";
-        optionsBuilder.UseSqlite(
-                connectionString,
-                b => b.MigrationsAssembly("OpenBudgeteer.Core.Data.Sqlite.Migrations"));
-    }
-
     private static void SetupMariaDbConnection(DbContextOptionsBuilder optionsBuilder, IConfiguration configuration)
     {
         var databaseName = configuration.GetValue(ConfigurationKeyConstants.CONNECTION_DATABASE, "openbudgeteer");

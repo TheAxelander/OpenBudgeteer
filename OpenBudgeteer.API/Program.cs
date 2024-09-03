@@ -9,6 +9,7 @@ using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Services;
+using OpenBudgeteer.Core.Data.Services.EFCore;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,8 +31,8 @@ builder.Services.AddApiVersioning(options =>
     options.GroupNameFormat = "'v'VVV";
 });
 builder.Services.AddDatabase(builder.Configuration);
-builder.Services.AddScoped<IServiceManager, ServiceManager>(x => 
-    new ServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
+builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => 
+    new EFCoreServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
 
 var app = builder.Build();
 
@@ -41,7 +42,7 @@ var versionSet = app.NewApiVersionSet()
     // "api-supported-versions" and "api-deprecated-versions"
     .ReportApiVersions()
     .Build();
-var serviceManager = new ServiceManager(app.Services.GetRequiredService<DbContextOptions<DatabaseContext>>());
+var serviceManager = new EFCoreServiceManager(app.Services.GetRequiredService<DbContextOptions<DatabaseContext>>());
 
 #region AccountService
 

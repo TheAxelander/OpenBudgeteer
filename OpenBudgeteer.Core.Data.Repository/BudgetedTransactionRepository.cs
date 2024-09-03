@@ -15,15 +15,15 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
         DatabaseContext = databaseContext;
     }
     
-    public IQueryable<BudgetedTransaction> All() => DatabaseContext.BudgetedTransaction
+    public IEnumerable<BudgetedTransaction> All() => DatabaseContext.BudgetedTransaction
         .AsNoTracking();
     
-    public IQueryable<BudgetedTransaction> AllWithIncludedEntities() => DatabaseContext.BudgetedTransaction
+    public IEnumerable<BudgetedTransaction> AllWithIncludedEntities() => DatabaseContext.BudgetedTransaction
         .Include(i => i.Bucket)
         .Include(i => i.Transaction)
         .AsNoTracking();
     
-    public IQueryable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
+    public IEnumerable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
         .Include(i => i.Transaction)
         .Include(i => i.Transaction.Account)
         .AsNoTracking();
@@ -55,14 +55,18 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
 
     public int Update(BudgetedTransaction entity)
     {
-        DatabaseContext.BudgetedTransaction.Update(entity);
-        return DatabaseContext.SaveChanges();
+        // DatabaseContext.BudgetedTransaction.Update(entity);
+        // return DatabaseContext.SaveChanges();
+        throw new NotSupportedException(
+            $"{typeof(BudgetedTransaction)} should not be updated, instead delete and re-create");
     }
 
     public int UpdateRange(IEnumerable<BudgetedTransaction> entities)
     {
-        DatabaseContext.BudgetedTransaction.UpdateRange(entities);
-        return DatabaseContext.SaveChanges();
+        // DatabaseContext.BudgetedTransaction.UpdateRange(entities);
+        // return DatabaseContext.SaveChanges();
+        throw new NotSupportedException(
+            $"{typeof(BudgetedTransaction)} should not be updated, instead delete and re-create");
     }
 
     public int Delete(Guid id)

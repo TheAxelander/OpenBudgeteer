@@ -7,6 +7,10 @@
 * Migrated reports from ChartJs.Blazor to Blazor-ApexCharts
 * Bucket Movements will be now stored with the current date instead on first of the month [#240](https://github.com/TheAxelander/OpenBudgeteer/issues/240) Thanks [Lucaber](https://github.com/Lucaber) 
 
+### :hammer: Maintenance
+
+* Rework Unit Tests and Code cleanup after dropping Sqlite support [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#246](https://github.com/TheAxelander/OpenBudgeteer/issues/246)
+
 ## 1.8.3 (2024-05-20)
 
 ### :warning: Breaking Changes
