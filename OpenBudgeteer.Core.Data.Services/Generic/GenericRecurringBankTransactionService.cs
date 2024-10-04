@@ -81,12 +81,12 @@ public class GenericRecurringBankTransactionService : GenericBaseService<Recurri
         if (transactions.Any(i => i.Account?.IsActive == 0))
             throw new EntityUpdateException("Identified Transactions which would be assigned to an inactive Account");
 
-        // Ensure Account is not assigned to prevent double creation of Accounts
+        // Prevent creation of new accounts
         foreach (var transaction in transactions)
         {
-            transaction.Account = new Account();
+            transaction.Account = null!;
         }
-            
+
         _bankTransactionRepository.CreateRange(transactions);
                 
         return transactions;
