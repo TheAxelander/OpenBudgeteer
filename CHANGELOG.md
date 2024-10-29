@@ -11,6 +11,10 @@
 
 * Rework Unit Tests and Code cleanup after dropping Sqlite support [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#246](https://github.com/TheAxelander/OpenBudgeteer/issues/246)
 
+### :beetle: Bug Fixes
+
+* Creation of multiple new Accounts using Recurring Transactions [#255](https://github.com/TheAxelander/OpenBudgeteer/issues/255) [#267](https://github.com/TheAxelander/OpenBudgeteer/pull/267) Thanks [OSMIbra](https://github.com/OSMIbra) 
+
 ## 1.8.3 (2024-05-20)
 
 ### :warning: Breaking Changes
