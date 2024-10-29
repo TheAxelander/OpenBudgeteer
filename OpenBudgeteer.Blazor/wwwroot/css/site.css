@@ -125,8 +125,9 @@ button.btn-bucket {
 }
 
 .no-wrap {
-    overflow-x: auto; 
-    white-space: nowrap;
+    overflow-x: auto;
+    white-space: pre;
+    word-wrap: normal;
 }
 
 /* Overwrite bootstrap styles */
