@@ -2,10 +2,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.JSInterop;
+using OpenBudgeteer.Blazor.Common.InputLargeTextArea;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
@@ -22,11 +24,14 @@ public partial class Import : ComponentBase
     private ElementReference _inputElement;
     private ElementReference _step1AccordionButtonElement;
     private ElementReference _step4AccordionButtonElement;
+    
+    private InputLargeTextArea? _previewTextArea;
+    private CancellationTokenSource? _previewOnChangeCancellationTokenSource;
 
     //private const string DUMMY_COLUMN = "---Select Column---";
 
     //private ImportProfileViewModel _dummyImportProfile;
-
+    
     private bool _step2Enabled;
     private bool _step3Enabled;
     private bool _step4Enabled;
@@ -125,6 +130,7 @@ public partial class Import : ComponentBase
             var res = await _dataContext.HandleOpenFileAsync(stream);
             if (res.IsSuccessful)
             {
+                await SyncViewModelFileTextToPreviewTextAsync();
                 _step2Enabled = true;
             }
             return res;
@@ -146,9 +152,38 @@ public partial class Import : ComponentBase
         var file = (await FileReaderService.CreateReference(_inputElement).EnumerateFilesAsync()).FirstOrDefault();
         if (file == null) return;
         HandleResult(await _dataContext.HandleOpenFileAsync(await file.OpenReadAsync()));
+        await SyncViewModelFileTextToPreviewTextAsync();
         
         _isInfoDialogVisible = false;
         _step2Enabled = true;
+    }
+    
+    private async Task SyncPreviewTextToViewModelFileTextAsync()
+    {
+        var streamReader = await _previewTextArea!.GetTextAsync(maxLength: 100_000);
+        var textFromInputLargeTextArea = await streamReader.ReadToEndAsync();
+        _dataContext.FileText = textFromInputLargeTextArea;
+    }
+
+    private async Task SyncViewModelFileTextToPreviewTextAsync()
+    {
+        var textToWrite = _dataContext.FileText;
+
+        var memoryStream = new MemoryStream();
+        var streamWriter = new StreamWriter(memoryStream);
+        await streamWriter.WriteAsync(textToWrite);
+        await streamWriter.FlushAsync();
+        await _previewTextArea!.SetTextAsync(streamWriter);
+    }
+    
+    private async Task PreviewTextAreaChangedAsync(InputLargeTextAreaChangeEventArgs args)
+    {
+        // Cancel the previous task if it exists
+        _previewOnChangeCancellationTokenSource?.Cancel();
+        _previewOnChangeCancellationTokenSource = new();
+
+        await Task.Run(async () => await SyncPreviewTextToViewModelFileTextAsync(), 
+            _previewOnChangeCancellationTokenSource.Token);
     }
     
     private void LoadProfile()
@@ -197,6 +232,7 @@ public partial class Import : ComponentBase
     private async Task ValidateDataAsync()
     {
         _isValidationRunning = true;
+        await SyncPreviewTextToViewModelFileTextAsync(); // Required if PreviewTextArea has not yet lost focus
         _validationErrorMessage = (await _dataContext.ValidateDataAsync()).Message;
         _isValidationRunning = false;
     }
@@ -204,6 +240,7 @@ public partial class Import : ComponentBase
     private async Task ImportDataAsync(bool withoutDuplicates)
     {
         _isImportRunning = true;
+        await SyncPreviewTextToViewModelFileTextAsync(); // Required if PreviewTextArea has not yet lost focus
         var result = await _dataContext.ImportDataAsync(withoutDuplicates);
         _importConfirmationMessage = result.Message;
         _isImportRunning = false;
@@ -219,6 +256,7 @@ public partial class Import : ComponentBase
         await FileReaderService.CreateReference(_inputElement).ClearValue();
         _dataContext = new ImportPageViewModel(ServiceManager);
         LoadData();
+        await SyncViewModelFileTextToPreviewTextAsync();
         _forceShowStep1 = true;
         StateHasChanged();
     }

@@ -2,6 +2,7 @@
 @using Tewr.Blazor.FileReader
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using System.Globalization
+@using OpenBudgeteer.Blazor.Common.InputLargeTextArea
 @inject IFileReaderService FileReaderService
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavManager
@@ -413,7 +414,8 @@
 
 <div class="mb-3">
     <h5>File Content:</h5>
-    <textarea class="form-control form-control-sm no-wrap" rows="30" @bind="_dataContext.FileText"></textarea>
+    @* <textarea class="form-control form-control-sm no-wrap" rows="30" @bind="_dataContext.FileText"></textarea> *@
+    <InputLargeTextArea class="form-control form-control-sm no-wrap" rows="30" id="largeTextArea" @ref="_previewTextArea" OnChange="PreviewTextAreaChangedAsync" />
 </div>
 
 @if (_isConfirmationModalDialogVisible)
