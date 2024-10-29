@@ -15,6 +15,7 @@
 
 * Creation of multiple new Accounts using Recurring Transactions [#255](https://github.com/TheAxelander/OpenBudgeteer/issues/255) [#267](https://github.com/TheAxelander/OpenBudgeteer/pull/267) Thanks [OSMIbra](https://github.com/OSMIbra)
 * On Import Page, Preview modification for large texts couldn't be synced to ViewModel due to SignalR message size limitation [#248](https://github.com/TheAxelander/OpenBudgeteer/issues/248)
+* Correct usage of `APPSETTINGS_THEME` default value `default` [#253](https://github.com/TheAxelander/OpenBudgeteer/issues/253)
 
 ## 1.8.3 (2024-05-20)
 

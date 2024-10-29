@@ -46,7 +46,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
         
 app.UseRequestLocalization(builder.Configuration.GetValue<string>(APPSETTINGS_CULTURE, "en-US") ?? "en-US");
-AppSettings.Theme = builder.Configuration.GetValue(APPSETTINGS_THEME, "Default") ?? "Default";
+AppSettings.Theme = builder.Configuration.GetValue(APPSETTINGS_THEME, "default") ?? "default";
 
 //app.UseRouting();
 app.UseAntiforgery();
