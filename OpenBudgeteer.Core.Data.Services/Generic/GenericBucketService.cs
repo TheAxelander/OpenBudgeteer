@@ -37,6 +37,14 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
         return result;
     }
 
+    public IEnumerable<Bucket> GetAllWithSystemBuckets()
+    {
+        return _bucketRepository
+            .All()
+            .OrderBy(i => i.Name)
+            .ToList();
+    }
+    
     public override IEnumerable<Bucket> GetAll()
     {
         return _bucketRepository

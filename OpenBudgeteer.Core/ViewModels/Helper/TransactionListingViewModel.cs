@@ -84,10 +84,14 @@ public class TransactionListingViewModel : ViewModelBase
         {
             _transactions.Clear();
 
+            var allAccounts = ServiceManager.AccountService.GetAll()
+                .Select(i => AccountViewModel.CreateFromAccount(ServiceManager, i)).ToList();
+            var allBuckets = ServiceManager.BucketService.GetAllWithSystemBuckets();
+
             // Get all BankTransaction
             var transactionTasks = ServiceManager.BudgetedTransactionService.GetAllFromBucket(bucketId)
                 .Select(i => 
-                    TransactionViewModel.CreateFromTransactionWithoutBucketsAsync(ServiceManager, i.Transaction))
+                    TransactionViewModel.CreateFromTransactionAsync(ServiceManager, allAccounts, allBuckets, i.Transaction))
                 .ToList();
 
             if (withMovements)

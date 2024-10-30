@@ -47,6 +47,21 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
+    public IEnumerable<Bucket> GetAllWithSystemBuckets()
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(_dbContextOptions);
+            var baseService = CreateBaseService(dbContext);
+            return baseService.GetAllWithSystemBuckets();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
+    
     public override IEnumerable<Bucket> GetAll()
     {
         try
