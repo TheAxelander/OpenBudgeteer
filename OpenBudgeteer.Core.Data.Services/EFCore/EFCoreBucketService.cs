@@ -47,13 +47,13 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public IEnumerable<Bucket> GetAllWithSystemBuckets()
+    public IEnumerable<Bucket> GetAllWithoutSystemBuckets()
     {
         try
         {
             using var dbContext = new DatabaseContext(_dbContextOptions);
             var baseService = CreateBaseService(dbContext);
-            return baseService.GetAllWithSystemBuckets();
+            return baseService.GetAllWithoutSystemBuckets();
         }
         catch (Exception e)
         {

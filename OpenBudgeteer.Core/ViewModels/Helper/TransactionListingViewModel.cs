@@ -86,7 +86,7 @@ public class TransactionListingViewModel : ViewModelBase
 
             var allAccounts = ServiceManager.AccountService.GetAll()
                 .Select(i => AccountViewModel.CreateFromAccount(ServiceManager, i)).ToList();
-            var allBuckets = ServiceManager.BucketService.GetAllWithSystemBuckets();
+            var allBuckets = ServiceManager.BucketService.GetAll();
 
             // Get all BankTransaction
             var transactionTasks = ServiceManager.BudgetedTransactionService.GetAllFromBucket(bucketId)

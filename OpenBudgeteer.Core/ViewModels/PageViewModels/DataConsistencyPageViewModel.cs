@@ -78,7 +78,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
             const string checkName = "Bucket balance";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
             var checkTasks = ServiceManager.BucketService
-                .GetAll()
+                .GetAllWithoutSystemBuckets()
                 .Select(bucket => Task.Run(() =>
                 {
                     var bucketBalance = ServiceManager.BudgetedTransactionService.GetAllFromBucket(bucket.Id)
@@ -196,7 +196,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
             const string checkName = "Budgeted Transaction outside of validity date";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string, List<BankTransaction>>>();
             var checkTasks = ServiceManager.BucketService
-                .GetAll()
+                .GetAllWithoutSystemBuckets()
                 .Where(i => i.IsInactive)
                 .Select(bucket => Task.Run(() =>
                 {

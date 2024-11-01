@@ -37,7 +37,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
         return result;
     }
 
-    public IEnumerable<Bucket> GetAllWithSystemBuckets()
+    public override IEnumerable<Bucket> GetAll()
     {
         return _bucketRepository
             .All()
@@ -45,7 +45,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
             .ToList();
     }
     
-    public override IEnumerable<Bucket> GetAll()
+    public IEnumerable<Bucket> GetAllWithoutSystemBuckets()
     {
         return _bucketRepository
             .All()
