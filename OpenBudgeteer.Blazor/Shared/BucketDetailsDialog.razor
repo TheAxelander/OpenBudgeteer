@@ -50,13 +50,13 @@
                                                 <td class="d-none d-md-table-cell">@transaction.SelectedAccount.Name</td>
                                                 <td class="d-none d-md-table-cell">@transaction.Payee</td>
                                                 <td>@transaction.Memo</td>
-                                                @if (transaction.Buckets.Count == 0)
+                                                @if (transaction.Buckets.Count <= 1)
                                                 {
                                                     <td style="text-align: right">@transaction.Amount.ToString("C", CultureInfo.CurrentCulture)</td>
                                                 }
                                                 else
                                                 {
-                                                    <td style="text-align: right">@transaction.Buckets.Where(b => b.SelectedBucketId == DataContext.BucketId).Sum(b => b.Amount).ToString("C", CultureInfo.CurrentCulture)</td>
+                                                    <td style="text-align: right">@transaction.Buckets.Where(b => b.SelectedBucketId == DataContext.BucketId).Sum(b => b.Amount).ToString("C", CultureInfo.CurrentCulture)*</td>
                                                 }
                                             </tr>
                                         }
