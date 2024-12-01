@@ -35,13 +35,13 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
 
     private static OpenApiInfo CreateInfoForApiVersion( ApiVersionDescription description )
     {
-        var text = new StringBuilder( "An example application with OpenAPI, Swashbuckle, and API versioning." );
+        var text = new StringBuilder( "Documention of OpenBudgeteer API mainly interacting with the Database." );
         var info = new OpenApiInfo()
         {
-            Title = "Example API",
+            Title = "OpenBudgeteer API",
             Version = description.ApiVersion.ToString(),
-            Contact = new OpenApiContact() { Name = "Bill Mei", Email = "bill.mei@somewhere.com" },
-            License = new OpenApiLicense() { Name = "MIT", Url = new Uri( "https://opensource.org/licenses/MIT" ) }
+            Contact = new OpenApiContact() { Name = "Alexander Preibisch", Email = "alexpreib@outlook.com" },
+            License = new OpenApiLicense() { Name = "MIT", Url = new Uri( "https://github.com/TheAxelander/OpenBudgeteer/blob/master/LICENSE" ) }
         };
 
         if ( description.IsDeprecated )
