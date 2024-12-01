@@ -11,6 +11,7 @@
 ### :hammer: Maintenance
 
 * Rework Unit Tests and Code cleanup after dropping Sqlite support [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#246](https://github.com/TheAxelander/OpenBudgeteer/issues/246)
+* New API Version `1.1` with new Endpoint `/withoutSystemBuckets` 
 
 ### :beetle: Bug Fixes
 
