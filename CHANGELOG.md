@@ -19,6 +19,7 @@
 * On Import Page, Preview modification for large texts couldn't be synced to ViewModel due to SignalR message size limitation [#248](https://github.com/TheAxelander/OpenBudgeteer/issues/248)
 * Correct usage of `APPSETTINGS_THEME` default value `default` [#253](https://github.com/TheAxelander/OpenBudgeteer/issues/253)
 * Fix Preview Word Wrap on Import Page using Firefox [#261](https://github.com/TheAxelander/OpenBudgeteer/issues/261)
+* Adding additional checks for Bucket Proposal to prevent inconsistent database state [#254](https://github.com/TheAxelander/OpenBudgeteer/issues/254)
 
 ## 1.8.3 (2024-05-20)
 
