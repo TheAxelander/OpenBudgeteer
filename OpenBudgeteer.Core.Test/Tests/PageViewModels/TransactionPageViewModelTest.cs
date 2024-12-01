@@ -13,6 +13,31 @@ namespace OpenBudgeteer.Core.Test.Tests.PageViewModels;
 
 public class TransactionPageViewModelTest
 {
+    public static IEnumerable<object[]> TestData_ProposeBuckets_CheckOrder => new[]
+    {
+        new object[]
+        {
+            
+        }
+    };
+    
+    public static IEnumerable<object[]> TestData_ProposeBuckets_CheckValidBucket => new[]
+    {
+        new object[]
+        {
+            
+        }
+    };
+
+    public async Task ProposeBuckets_CheckOrder()
+    {
+        var serviceManager = new MockServiceManager(new MockDatabase());
+        var testAccount = new Account() { IsActive = 1, Name = "Account" };
+        
+        serviceManager.AccountService.Create(testAccount);
+        //TODO: Create Test Cases for Propose Buckets
+    }
+    
     public static IEnumerable<object[]> TestData_AddRecurringTransactionsAsync_CheckRecurrance => new[]
     {
         // Every week, starting 1.1.2010

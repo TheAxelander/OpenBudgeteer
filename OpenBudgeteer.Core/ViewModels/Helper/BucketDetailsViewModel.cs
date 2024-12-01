@@ -221,7 +221,7 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
                 for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
                 {
                     var month = currentMonth.AddMonths(monthIndex * -1);
-                    //TODO Consider rewrite for more optimized query
+                    //TODO: Consider rewrite for more optimized query
                     var lastDayOfMonth = month.AddMonths(1).AddDays(-1);
                     var transactions = ServiceManager.BudgetedTransactionService
                         .GetAllFromBucket(BucketId, DateTime.MinValue, lastDayOfMonth)

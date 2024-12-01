@@ -1067,7 +1067,7 @@ public class BucketPageViewModelTest
         }
     }
 
-    //TODO Finalize Test Case DistributeBudget_CheckDistributedMoney
+    //TODO: Finalize Test Case DistributeBudget_CheckDistributedMoney
     [Theory (Skip = "Work in progress")]
     [MemberData(nameof(TestData_DistributeBudget_CheckDistributedMoney))]
     public void DistributeBudget_CheckDistributedMoney(
