@@ -314,6 +314,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     public static TransactionViewModel CreateFromTransaction(IServiceManager serviceManager, 
         IEnumerable<AccountViewModel> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
     {
+        //TODO Refactor availableAccounts to Account instead of AccountViewModel
         return new TransactionViewModel(serviceManager, availableAccounts, availableBuckets, transaction);
     }
     
@@ -328,6 +329,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     public static async Task<TransactionViewModel> CreateFromTransactionAsync(IServiceManager serviceManager, 
         IEnumerable<AccountViewModel> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
     {
+        //TODO Refactor availableAccounts to Account instead of AccountViewModel
         return await Task.Run(() => CreateFromTransaction(serviceManager, availableAccounts, availableBuckets, transaction));
     }
 
