@@ -167,7 +167,7 @@ bucket.MapGet("{id:guid}", (Guid id) => bucketService.Get(id))
     .MapToApiVersion(1,0);
 bucket.MapGet("/withLatestVersion/{id:guid}", (Guid id) => bucketService.GetWithLatestVersion(id))
     .MapToApiVersion(1,0);
-bucket.MapGet("/", () => bucketService.GetAll())
+bucket.MapGet("/", () => bucketService.GetAllWithoutSystemBuckets())
     .MapToApiVersion(1,0);
 bucket.MapGet("/systemBuckets", () => bucketService.GetSystemBuckets())
     .MapToApiVersion(1,0);

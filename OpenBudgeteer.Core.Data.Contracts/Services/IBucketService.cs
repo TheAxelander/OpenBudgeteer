@@ -5,6 +5,7 @@ namespace OpenBudgeteer.Core.Data.Contracts.Services;
 public interface IBucketService : IBaseService<Bucket>
 {
     public Bucket GetWithLatestVersion(Guid id);
+    public IEnumerable<Bucket> GetAllWithoutSystemBuckets();
     public IEnumerable<Bucket> GetSystemBuckets();
     public IEnumerable<Bucket> GetActiveBuckets(DateTime validFrom);
     //public BucketVersion GetLatestVersion(Guid bucketId);

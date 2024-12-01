@@ -41,6 +41,14 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
     {
         return _bucketRepository
             .All()
+            .OrderBy(i => i.Name)
+            .ToList();
+    }
+    
+    public IEnumerable<Bucket> GetAllWithoutSystemBuckets()
+    {
+        return _bucketRepository
+            .All()
             .Where(i => 
                 i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
                 i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002"))
