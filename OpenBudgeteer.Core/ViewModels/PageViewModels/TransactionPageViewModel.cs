@@ -146,7 +146,11 @@ public class TransactionPageViewModel : TransactionListingViewModel
     /// </summary>
     public void ResetNewTransaction()
     {
-        var lastEnteredDate = NewTransaction?.TransactionDate ?? _yearMonthViewModel.CurrentMonth;
+        var lastEnteredDate = 
+            // Use previous entered date
+            NewTransaction?.TransactionDate ?? (
+            // Alternative use current Date or current selected month
+            _yearMonthViewModel.IsTodayInCurrentMonth ? DateTime.Now : _yearMonthViewModel.CurrentMonth);
         NewTransaction = TransactionViewModel.CreateEmpty(ServiceManager);
         NewTransaction.TransactionDate = lastEnteredDate;
     }

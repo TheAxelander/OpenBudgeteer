@@ -23,6 +23,7 @@ public partial class Transaction : ComponentBase
     private BucketListingViewModel? _bucketSelectDialogDataContext;
     private bool _isBucketSelectDialogVisible;
     private bool _isBucketSelectDialogLoading;
+    private TransactionViewModel? _transactionViewModelToBeUpdated;
     private PartialBucketViewModel? _partialBucketViewModelToBeUpdated;
 
     private bool _isRecurringTransactionModalDialogVisible;
@@ -147,11 +148,12 @@ public partial class Transaction : ComponentBase
         _isRecurringTransactionModalDialogVisible = true;
     }
 
-    private async void HandleShowBucketSelectDialog(PartialBucketViewModel partialBucketViewModel)
+    private async void HandleShowBucketSelectDialog(TransactionViewModel transactionViewModel, PartialBucketViewModel partialBucketViewModel)
     {
         _isBucketSelectDialogVisible = true;
         _isBucketSelectDialogLoading = true;
         
+        _transactionViewModelToBeUpdated = transactionViewModel;
         _partialBucketViewModelToBeUpdated = partialBucketViewModel;
         _bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
         await _bucketSelectDialogDataContext.LoadDataAsync(true, true);
@@ -163,6 +165,14 @@ public partial class Transaction : ComponentBase
     private void UpdateSelectedBucket(BucketViewModel selectedBucket)
     {
         _partialBucketViewModelToBeUpdated!.UpdateSelectedBucket(selectedBucket);
+        if (_partialBucketViewModelToBeUpdated.Amount == 0)
+        {
+            _partialBucketViewModelToBeUpdated.Amount = 
+                _transactionViewModelToBeUpdated!.Amount - 
+                _transactionViewModelToBeUpdated!.Buckets
+                    .Where(i => i.SelectedBucketId != _partialBucketViewModelToBeUpdated.SelectedBucketId)
+                    .Sum(i => i.Amount);
+        }
         _isBucketSelectDialogVisible = false;
     }
 
