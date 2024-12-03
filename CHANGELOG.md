@@ -7,6 +7,9 @@
 * Migrated reports from ChartJs.Blazor to Blazor-ApexCharts
 * Bucket Movements will be now stored with the current date instead on first of the month [#240](https://github.com/TheAxelander/OpenBudgeteer/issues/240) Thanks [Lucaber](https://github.com/Lucaber)
 * Bucket Details will now show the right amount (highlighted with a `*`) in case it's part of a split Transaction [#256](https://github.com/TheAxelander/OpenBudgeteer/issues/256) [#272](https://github.com/TheAxelander/OpenBudgeteer/pull/272) Thanks [Lucaber](https://github.com/Lucaber)
+* New defaults on Date and Amount for creating/editing a Transaction [#270](https://github.com/TheAxelander/OpenBudgeteer/issues/270)
+* Add confirmation dialog before closing an Account [#264](https://github.com/TheAxelander/OpenBudgeteer/issues/264)
+* Redesign Blazor reconnect dialog [#250](https://github.com/TheAxelander/OpenBudgeteer/issues/250)
 
 ### :hammer: Maintenance
 
