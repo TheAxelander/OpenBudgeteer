@@ -48,6 +48,27 @@
         <a href="" class="reload">Reload</a>
     </div>
 
+    <div id="components-reconnect-modal" class="toast mt-3 start-50 translate-middle-x" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Notification</strong>
+        </div>
+        <div class="toast-body reconnect">
+            <div>
+                Connection lost.<br>Attempting to reconnect to server:
+                <span id="components-reconnect-current-attempt"></span> /
+                <span id="components-reconnect-max-retries"></span>
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="toast-body reconnect-failed">
+            <div>
+                Unable to restore connection.<br>Try reloading the page.
+            </div>
+        </div>
+    </div>
+
     <script src="_framework/blazor.web.js"></script>
     <script src="js/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="js/custom.js"></script>
