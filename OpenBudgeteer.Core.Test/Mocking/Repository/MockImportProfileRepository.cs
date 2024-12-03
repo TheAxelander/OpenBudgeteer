@@ -15,12 +15,12 @@ public class MockImportProfileRepository : IImportProfileRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<ImportProfile> All()
+    public IQueryable<ImportProfile> All()
     {
-        return _mockDatabase.ImportProfiles.Values;
+        return _mockDatabase.ImportProfiles.Values.AsQueryable();
     }
 
-    public IEnumerable<ImportProfile> AllWithIncludedEntities()
+    public IQueryable<ImportProfile> AllWithIncludedEntities()
     {
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var importProfiles = All().ToList();
@@ -30,7 +30,7 @@ public class MockImportProfileRepository : IImportProfileRepository
                                          ?? throw new Exception("Account doesn't exist");
         }
 
-        return importProfiles;
+        return importProfiles.AsQueryable();
     }
 
     public ImportProfile? ById(Guid id)

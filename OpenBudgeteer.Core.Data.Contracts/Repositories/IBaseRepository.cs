@@ -5,8 +5,8 @@ namespace OpenBudgeteer.Core.Data.Contracts.Repositories;
 
 public interface IBaseRepository<T> where T : IEntity
 {
-    IEnumerable<T> All(); 
-    IEnumerable<T> AllWithIncludedEntities();
+    IQueryable<T> All(); 
+    IQueryable<T> AllWithIncludedEntities();
     T? ById(Guid id);
     T? ByIdWithIncludedEntities(Guid id);
     int Create(T entity); 

@@ -14,10 +14,10 @@ public class BucketVersionRepository : IBucketVersionRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<BucketVersion> All() => DatabaseContext.BucketVersion
+    public IQueryable<BucketVersion> All() => DatabaseContext.BucketVersion
         .AsNoTracking();
     
-    public IEnumerable<BucketVersion> AllWithIncludedEntities() => DatabaseContext.BucketVersion
+    public IQueryable<BucketVersion> AllWithIncludedEntities() => DatabaseContext.BucketVersion
         .Include(i => i.Bucket)
         .AsNoTracking();
 

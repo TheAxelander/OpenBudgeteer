@@ -15,12 +15,12 @@ public class MockBudgetedTransactionRepository : IBudgetedTransactionRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<BudgetedTransaction> All()
+    public IQueryable<BudgetedTransaction> All()
     {
-        return _mockDatabase.BudgetedTransactions.Values;
+        return _mockDatabase.BudgetedTransactions.Values.AsQueryable();
     }
 
-    public IEnumerable<BudgetedTransaction> AllWithIncludedEntities()
+    public IQueryable<BudgetedTransaction> AllWithIncludedEntities()
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var mockBankTransactionRepository = new MockBankTransactionRepository(_mockDatabase);
@@ -33,10 +33,10 @@ public class MockBudgetedTransactionRepository : IBudgetedTransactionRepository
                                   ?? throw new Exception("BankTransaction doesn't exist");
         }
 
-        return budgetedTransactions;
+        return budgetedTransactions.AsQueryable();
     }
     
-    public IEnumerable<BudgetedTransaction> AllWithTransactions()
+    public IQueryable<BudgetedTransaction> AllWithTransactions()
     {
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
@@ -52,7 +52,7 @@ public class MockBudgetedTransactionRepository : IBudgetedTransactionRepository
                                                       ?? throw new Exception("Account doesn't exist");
         }
 
-        return budgetedTransactions;
+        return budgetedTransactions.AsQueryable();
     }
 
     public BudgetedTransaction? ById(Guid id)

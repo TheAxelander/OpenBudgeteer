@@ -15,12 +15,12 @@ public class MockBucketGroupRepository : IBucketGroupRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<BucketGroup> All()
+    public IQueryable<BucketGroup> All()
     {
-        return _mockDatabase.BucketGroups.Values;
+        return _mockDatabase.BucketGroups.Values.AsQueryable();
     }
 
-    public IEnumerable<BucketGroup> AllWithIncludedEntities()
+    public IQueryable<BucketGroup> AllWithIncludedEntities()
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var bucketGroups = All().ToList();
@@ -35,7 +35,7 @@ public class MockBucketGroupRepository : IBucketGroupRepository
             }
         }
 
-        return bucketGroups;
+        return bucketGroups.AsQueryable();
     }
 
     public BucketGroup? ById(Guid id)

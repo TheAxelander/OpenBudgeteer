@@ -15,10 +15,10 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<BucketRuleSet> All() => DatabaseContext.BucketRuleSet
+    public IQueryable<BucketRuleSet> All() => DatabaseContext.BucketRuleSet
         .AsNoTracking();
     
-    public IEnumerable<BucketRuleSet> AllWithIncludedEntities() => DatabaseContext.BucketRuleSet
+    public IQueryable<BucketRuleSet> AllWithIncludedEntities() => DatabaseContext.BucketRuleSet
         .Include(i => i.TargetBucket)
         .Include(i => i.MappingRules)
         .AsNoTracking();

@@ -15,12 +15,12 @@ public class MockBucketRuleSetRepository : IBucketRuleSetRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<BucketRuleSet> All()
+    public IQueryable<BucketRuleSet> All()
     {
-        return _mockDatabase.BucketRuleSets.Values;
+        return _mockDatabase.BucketRuleSets.Values.AsQueryable();
     }
 
-    public IEnumerable<BucketRuleSet> AllWithIncludedEntities()
+    public IQueryable<BucketRuleSet> AllWithIncludedEntities()
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var mockMappingRuleRepository = new MockMappingRuleRepository(_mockDatabase);
@@ -39,7 +39,7 @@ public class MockBucketRuleSetRepository : IBucketRuleSetRepository
             }
         }
 
-        return bucketRuleSets;
+        return bucketRuleSets.AsQueryable();
     }
 
     public BucketRuleSet? ById(Guid id)

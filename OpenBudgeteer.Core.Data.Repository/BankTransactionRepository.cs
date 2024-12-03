@@ -15,10 +15,10 @@ public class BankTransactionRepository : IBankTransactionRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<BankTransaction> All() => DatabaseContext.BankTransaction
+    public IQueryable<BankTransaction> All() => DatabaseContext.BankTransaction
         .AsNoTracking();
     
-    public IEnumerable<BankTransaction> AllWithIncludedEntities() => DatabaseContext.BankTransaction
+    public IQueryable<BankTransaction> AllWithIncludedEntities() => DatabaseContext.BankTransaction
         .Include(i => i.Account)
         .AsNoTracking();
 

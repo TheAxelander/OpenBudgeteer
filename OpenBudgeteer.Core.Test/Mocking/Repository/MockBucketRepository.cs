@@ -15,12 +15,12 @@ public class MockBucketRepository : IBucketRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<Bucket> All()
+    public IQueryable<Bucket> All()
     {
-        return _mockDatabase.Buckets.Values;
+        return _mockDatabase.Buckets.Values.AsQueryable();
     }
 
-    public IEnumerable<Bucket> AllWithVersions()
+    public IQueryable<Bucket> AllWithVersions()
     {
         var mockBucketVersionRepository = new MockBucketVersionRepository(_mockDatabase);
         var buckets = All().ToList();
@@ -35,10 +35,10 @@ public class MockBucketRepository : IBucketRepository
             }
         }
 
-        return buckets;
+        return buckets.AsQueryable();
     }
 
-    public IEnumerable<Bucket> AllWithActivities()
+    public IQueryable<Bucket> AllWithActivities()
     {
         var mockBucketMovementRepository = new MockBucketMovementRepository(_mockDatabase);
         var mockBudgetedTransactionRepository = new MockBudgetedTransactionRepository(_mockDatabase);
@@ -62,10 +62,10 @@ public class MockBucketRepository : IBucketRepository
             }
         }
 
-        return buckets;
+        return buckets.AsQueryable();
     }
 
-    public IEnumerable<Bucket> AllWithIncludedEntities()
+    public IQueryable<Bucket> AllWithIncludedEntities()
     {
         var mockBucketGroupRepository = new MockBucketGroupRepository(_mockDatabase);
         var mockBucketMovementRepository = new MockBucketMovementRepository(_mockDatabase);
@@ -102,7 +102,7 @@ public class MockBucketRepository : IBucketRepository
             }
         }
 
-        return buckets;
+        return buckets.AsQueryable();
     }
 
     public Bucket? ById(Guid id)

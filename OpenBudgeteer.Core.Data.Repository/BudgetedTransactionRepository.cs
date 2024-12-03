@@ -15,15 +15,15 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<BudgetedTransaction> All() => DatabaseContext.BudgetedTransaction
+    public IQueryable<BudgetedTransaction> All() => DatabaseContext.BudgetedTransaction
         .AsNoTracking();
     
-    public IEnumerable<BudgetedTransaction> AllWithIncludedEntities() => DatabaseContext.BudgetedTransaction
+    public IQueryable<BudgetedTransaction> AllWithIncludedEntities() => DatabaseContext.BudgetedTransaction
         .Include(i => i.Bucket)
         .Include(i => i.Transaction)
         .AsNoTracking();
     
-    public IEnumerable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
+    public IQueryable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
         .Include(i => i.Transaction)
         .Include(i => i.Transaction.Account)
         .AsNoTracking();

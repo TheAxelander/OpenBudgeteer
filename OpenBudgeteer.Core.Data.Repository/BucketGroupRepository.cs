@@ -14,10 +14,10 @@ public class BucketGroupRepository : IBucketGroupRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<BucketGroup> All() => DatabaseContext.BucketGroup
+    public IQueryable<BucketGroup> All() => DatabaseContext.BucketGroup
         .AsNoTracking();
     
-    public IEnumerable<BucketGroup> AllWithIncludedEntities() => DatabaseContext.BucketGroup
+    public IQueryable<BucketGroup> AllWithIncludedEntities() => DatabaseContext.BucketGroup
         .Include(i => i.Buckets)
         .AsNoTracking();
 

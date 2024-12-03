@@ -14,10 +14,10 @@ public class BucketMovementRepository : IBucketMovementRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<BucketMovement> All() => DatabaseContext.BucketMovement
+    public IQueryable<BucketMovement> All() => DatabaseContext.BucketMovement
         .AsNoTracking();
     
-    public IEnumerable<BucketMovement> AllWithIncludedEntities() => DatabaseContext.BucketMovement
+    public IQueryable<BucketMovement> AllWithIncludedEntities() => DatabaseContext.BucketMovement
         .Include(i => i.Bucket)
         .AsNoTracking();
 

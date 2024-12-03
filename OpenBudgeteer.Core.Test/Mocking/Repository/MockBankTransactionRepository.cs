@@ -15,12 +15,12 @@ public class MockBankTransactionRepository : IBankTransactionRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<BankTransaction> All()
+    public IQueryable<BankTransaction> All()
     {
-        return _mockDatabase.BankTransactions.Values;
+        return _mockDatabase.BankTransactions.Values.AsQueryable();
     }
 
-    public IEnumerable<BankTransaction> AllWithIncludedEntities()
+    public IQueryable<BankTransaction> AllWithIncludedEntities()
     {
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var mockBudgetedTransactionRepository = new MockBudgetedTransactionRepository(_mockDatabase);
@@ -38,7 +38,7 @@ public class MockBankTransactionRepository : IBankTransactionRepository
             }
         }
 
-        return transactions;
+        return transactions.AsQueryable();
     }
 
     public BankTransaction? ById(Guid id)

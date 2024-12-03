@@ -15,12 +15,12 @@ public class MockBucketVersionRepository : IBucketVersionRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<BucketVersion> All()
+    public IQueryable<BucketVersion> All()
     {
-        return _mockDatabase.BucketVersions.Values;
+        return _mockDatabase.BucketVersions.Values.AsQueryable();
     }
 
-    public IEnumerable<BucketVersion> AllWithIncludedEntities()
+    public IQueryable<BucketVersion> AllWithIncludedEntities()
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var bucketVersions = All().ToList();
@@ -30,7 +30,7 @@ public class MockBucketVersionRepository : IBucketVersionRepository
                                    ?? throw new Exception("Bucket doesn't exist");
         }
 
-        return bucketVersions;
+        return bucketVersions.AsQueryable();
     }
 
     public BucketVersion? ById(Guid id)

@@ -14,10 +14,10 @@ public class MappingRuleRepository : IMappingRuleRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<MappingRule> All() => DatabaseContext.MappingRule
+    public IQueryable<MappingRule> All() => DatabaseContext.MappingRule
         .AsNoTracking();
     
-    public IEnumerable<MappingRule> AllWithIncludedEntities() => DatabaseContext.MappingRule
+    public IQueryable<MappingRule> AllWithIncludedEntities() => DatabaseContext.MappingRule
         .Include(i => i.BucketRuleSet)
         .AsNoTracking();
 

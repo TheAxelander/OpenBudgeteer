@@ -15,12 +15,12 @@ public class MockBucketMovementRepository : IBucketMovementRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<BucketMovement> All()
+    public IQueryable<BucketMovement> All()
     {
-        return _mockDatabase.BucketMovements.Values;
+        return _mockDatabase.BucketMovements.Values.AsQueryable();
     }
 
-    public IEnumerable<BucketMovement> AllWithIncludedEntities()
+    public IQueryable<BucketMovement> AllWithIncludedEntities()
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var bucketMovements = All().ToList();
@@ -30,7 +30,7 @@ public class MockBucketMovementRepository : IBucketMovementRepository
                                          ?? throw new Exception("Bucket doesn't exist");
         }
 
-        return bucketMovements;
+        return bucketMovements.AsQueryable();
     }
 
     public BucketMovement? ById(Guid id)

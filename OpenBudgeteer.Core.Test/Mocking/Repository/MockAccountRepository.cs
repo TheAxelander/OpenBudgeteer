@@ -15,12 +15,12 @@ public class MockAccountRepository : IAccountRepository
         _mockDatabase = mockDatabase;
     }
     
-    public IEnumerable<Account> All()
+    public IQueryable<Account> All()
     {
-        return _mockDatabase.Accounts.Values;
+        return _mockDatabase.Accounts.Values.AsQueryable();
     }
 
-    public IEnumerable<Account> AllWithIncludedEntities()
+    public IQueryable<Account> AllWithIncludedEntities()
     {
         return All();
     }

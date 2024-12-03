@@ -15,10 +15,10 @@ public class ImportProfileRepository : IImportProfileRepository
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<ImportProfile> All() => DatabaseContext.ImportProfile
+    public IQueryable<ImportProfile> All() => DatabaseContext.ImportProfile
         .AsNoTracking();
     
-    public IEnumerable<ImportProfile> AllWithIncludedEntities() => DatabaseContext.ImportProfile
+    public IQueryable<ImportProfile> AllWithIncludedEntities() => DatabaseContext.ImportProfile
         .Include(i => i.Account)
         .AsNoTracking();
 

@@ -15,12 +15,12 @@ public class MockMappingRuleRepository : IMappingRuleRepository
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<MappingRule> All()
+    public IQueryable<MappingRule> All()
     {
-        return _mockDatabase.MappingRules.Values;
+        return _mockDatabase.MappingRules.Values.AsQueryable();
     }
 
-    public IEnumerable<MappingRule> AllWithIncludedEntities()
+    public IQueryable<MappingRule> AllWithIncludedEntities()
     {
         var mockBucketRuleSetRepository = new MockBucketRuleSetRepository(_mockDatabase);
         var mappingRules = All().ToList();
@@ -30,7 +30,7 @@ public class MockMappingRuleRepository : IMappingRuleRepository
                                          ?? throw new Exception("BucketRuleSet doesn't exist");
         }
 
-        return mappingRules;
+        return mappingRules.AsQueryable();
     }
 
     public MappingRule? ById(Guid id)

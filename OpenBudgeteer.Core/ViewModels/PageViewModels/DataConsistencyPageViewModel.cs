@@ -134,31 +134,30 @@ public class DataConsistencyPageViewModel : ViewModelBase
         {
             const string checkName = "Transactions with incomplete bucket assignment";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
-            var checkTasks = ServiceManager.BankTransactionService
-                .GetAll()
-                .Select(bankTransaction => Task.Run(() =>
+            var findings = ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue)
+                .GroupBy(i => i.Transaction)
+                .Select(g => new
                 {
-                    var budgetedTransactions =
-                        ServiceManager.BudgetedTransactionService.GetAllFromTransaction(bankTransaction.Id).ToList();
-                    var budgetedAmount = budgetedTransactions.Select(x => x.Amount).Sum();
-                    if (!budgetedTransactions.Any() || budgetedAmount != bankTransaction.Amount)
-                    {
-                        results.Add(new(
-                            DataConsistencyCheckResult.StatusCode.Warning, 
-                            new[]
-                            {
-                                bankTransaction.TransactionDate.ToShortDateString(), 
-                                bankTransaction.Memo ?? string.Empty, 
-                                bankTransaction.Amount.ToString("C", CultureInfo.CurrentCulture),
-                                budgetedAmount.ToString("C", CultureInfo.CurrentCulture)
-                            }));
-                    }
-                }))
+                    Transaction = g.Key,
+                    Amount = g.Sum(i => i.Amount)
+                })
+                .Where(i => i.Transaction.Amount != i.Amount)
                 .ToList();
 
-            await Task.WhenAll(checkTasks);
-
-            if (results.All(i => i.Item1 == DataConsistencyCheckResult.StatusCode.Ok))
+            foreach (var finding in findings)
+            {
+                results.Add(new(
+                    DataConsistencyCheckResult.StatusCode.Warning, 
+                    new[]
+                    {
+                        finding.Transaction.TransactionDate.ToShortDateString(), 
+                        finding.Transaction.Memo ?? string.Empty, 
+                        finding.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture),
+                        finding.Amount.ToString("C", CultureInfo.CurrentCulture)
+                    }));
+            }
+            
+            if (!results.Any())
             {
                 return new DataConsistencyCheckResult(
                     checkName,

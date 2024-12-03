@@ -15,10 +15,10 @@ public class RecurringBankTransactionRepository : IRecurringBankTransactionRepos
         DatabaseContext = databaseContext;
     }
     
-    public IEnumerable<RecurringBankTransaction> All() => DatabaseContext.RecurringBankTransaction
+    public IQueryable<RecurringBankTransaction> All() => DatabaseContext.RecurringBankTransaction
         .AsNoTracking();
     
-    public IEnumerable<RecurringBankTransaction> AllWithIncludedEntities() => DatabaseContext.RecurringBankTransaction
+    public IQueryable<RecurringBankTransaction> AllWithIncludedEntities() => DatabaseContext.RecurringBankTransaction
         .Include(i => i.Account)
         .AsNoTracking();
 

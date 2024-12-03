@@ -15,12 +15,12 @@ public class MockRecurringBankTransactionRepository : IRecurringBankTransactionR
         _mockDatabase = mockDatabase;
     }
 
-    public IEnumerable<RecurringBankTransaction> All()
+    public IQueryable<RecurringBankTransaction> All()
     {
-        return _mockDatabase.RecurringBankTransactions.Values;
+        return _mockDatabase.RecurringBankTransactions.Values.AsQueryable();
     }
 
-    public IEnumerable<RecurringBankTransaction> AllWithIncludedEntities()
+    public IQueryable<RecurringBankTransaction> AllWithIncludedEntities()
     {
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var recurringBankTransactions = All().ToList();
@@ -30,7 +30,7 @@ public class MockRecurringBankTransactionRepository : IRecurringBankTransactionR
                                     ?? throw new Exception("Account doesn't exist");
         }
 
-        return recurringBankTransactions;
+        return recurringBankTransactions.AsQueryable();
     }
 
     public RecurringBankTransaction? ById(Guid id)
