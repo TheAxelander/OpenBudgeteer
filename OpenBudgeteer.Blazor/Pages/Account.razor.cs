@@ -20,6 +20,9 @@ public partial class Account : ComponentBase
 
     private bool _isTransactionModalDialogVisible;
     private bool _isTransactionModalDialogDataContextLoading;
+    
+    private bool _isCloseAccountDialogVisible;
+    private AccountViewModel? _accountToBeClosed;
 
     private bool _isErrorModalDialogVisible;
     private string _errorModalDialogMessage = string.Empty;
@@ -56,10 +59,23 @@ public partial class Account : ComponentBase
         _isEditAccountModalDialogVisible = false;
         HandleResult(_dataContext.LoadData());
     }
-
-    private void CloseAccount(AccountViewModel account)
+    
+    private void HandleShowCloseAccountDialog(AccountViewModel account)
     {
-        HandleResult(account.CloseAccount());
+        _accountToBeClosed = account;
+        _isCloseAccountDialogVisible = true;
+    }
+    
+    private void CancelCloseAccount()
+    {
+        _isCloseAccountDialogVisible = false;
+        _accountToBeClosed = null;
+    }
+
+    private void CloseAccount()
+    {
+        _isCloseAccountDialogVisible = false;
+        HandleResult(_accountToBeClosed!.CloseAccount());
     }
 
     private void HandleResult(ViewModelOperationResult result)
