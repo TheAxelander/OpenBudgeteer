@@ -134,16 +134,27 @@ public class DataConsistencyPageViewModel : ViewModelBase
         {
             const string checkName = "Transactions with incomplete bucket assignment";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
-            var findings = ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue)
-                .GroupBy(i => i.Transaction)
-                .Select(g => new
-                {
-                    Transaction = g.Key,
-                    Amount = g.Sum(i => i.Amount)
-                })
+            var findings = 
+                // Get all BudgetedTransaction which are not 1:1 budgeted (Missing Assignments or Split Transaction) 
+                ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue)
                 .Where(i => i.Transaction.Amount != i.Amount)
+                // Grouping results to summarize potential Split Transaction
+                .GroupBy(i => i.TransactionId,
+                    (key, group) =>
+                    {
+                        var groupedBudgetedTransactions = group.ToList();
+                        return new
+                        {
+                            TransactionId = key,
+                            Transaction = groupedBudgetedTransactions.First().Transaction,
+                            BudgetedAmount = groupedBudgetedTransactions.Sum(i => i.Amount),
+                            TransactionAmount = groupedBudgetedTransactions.First().Transaction.Amount, //Should be always the same
+                        };
+                    })
+                // Check on remaining missing assignment
+                .Where(i => i.BudgetedAmount != i.TransactionAmount)
                 .ToList();
-
+            
             foreach (var finding in findings)
             {
                 results.Add(new(
@@ -152,8 +163,8 @@ public class DataConsistencyPageViewModel : ViewModelBase
                     {
                         finding.Transaction.TransactionDate.ToShortDateString(), 
                         finding.Transaction.Memo ?? string.Empty, 
-                        finding.Transaction.Amount.ToString("C", CultureInfo.CurrentCulture),
-                        finding.Amount.ToString("C", CultureInfo.CurrentCulture)
+                        finding.TransactionAmount.ToString("C", CultureInfo.CurrentCulture),
+                        finding.BudgetedAmount.ToString("C", CultureInfo.CurrentCulture)
                     }));
             }
             
