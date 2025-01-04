@@ -4,9 +4,9 @@
 
 | Version     | Supported          |
 |-------------| ------------------ |
-| 1.8.3       | :white_check_mark: |
+| 1.9         | :white_check_mark: |
 | pre-release | :white_check_mark: |
-| < 1.8.3     | :x:                |
+| < 1.9       | :x:                |
 
 ## Reporting a Vulnerability
 
