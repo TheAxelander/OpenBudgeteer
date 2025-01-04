@@ -12,6 +12,23 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run Test Cases
+    
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306:3306
+        env:
+          MARIADB_DATABASE: openbudgeteer
+          MARIADB_USER: openbudgeteer
+          MARIADB_PASSWORD: openbudgeteer
+          MARIADB_ROOT_PASSWORD: openbudgeteer
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    
     steps:
       - name: Check out repo
         uses: actions/checkout@v3
@@ -28,10 +45,18 @@ jobs:
         run: dotnet build OpenBudgeteer.Blazor --configuration Release --no-restore
 
       - name: Run Core Test Cases
+        env:
+          CONNECTION_PROVIDER: mariadb
+          CONNECTION_SERVER: localhost
+          CONNECTION_PORT: 3306
+          CONNECTION_USER: openbudgeteer
+          CONNECTION_PASSWORD: openbudgeteer
+          CONNECTION_DATABASE: openbudgeteer
         run: dotnet test OpenBudgeteer.Core.Test
-  deploy-docker:
+  
+  deploy-docker-app:
     runs-on: ubuntu-latest
-    name: Build and Push Docker Image
+    name: Build and Push Docker Image (App)
     needs: test
     if: success()
     steps:
