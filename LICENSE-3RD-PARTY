@@ -9,9 +9,8 @@
     - Swashbuckle.AspNetCore, Copyright (c) 2016 Richard Morris
     - TinyCsvParser, Copyright (c) Philipp Wagner and Contributors   
     - .NET runtime, Copyright (c) .NET Foundation and Contributors
-	- Bootstrap, Copyright (c) 2011-2018 Twitter, Inc. 
-                 Copyright (c) 2011-2018 The Bootstrap Authors
-    - Bootstrap Icons, Copyright (c) 2019-2023 The Bootstrap Authors
+	- Bootstrap, Copyright (c) 2011-2024 The Bootstrap Authors
+    - Bootstrap Icons, Copyright (c) 2019-2024 The Bootstrap Authors
 -----------------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
