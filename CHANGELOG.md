@@ -1,4 +1,4 @@
-## 1.9 (2024-xx-xx)
+## 1.9 (2025-01-04)
 
 ### :gear: Features & Enhancements
 
