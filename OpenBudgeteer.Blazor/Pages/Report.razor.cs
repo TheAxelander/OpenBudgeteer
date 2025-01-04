@@ -15,14 +15,14 @@ public partial class Report : ComponentBase
 {
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     
-    private ApexChart<ReportRecord> MonthBalanceChart;
-    private ApexChart<ReportRecord> BankBalanceChart;
-    private ApexChart<ReportRecord> MonthIncomeExpensesChart;
-    private ApexChart<ReportRecord> YearIncomeExpensesChart;
-    private List<ApexChart<ReportRecord>> MonthBucketExpensesCharts = new();
+    private ApexChart<ReportRecord> _monthBalanceChart = null!;
+    private ApexChart<ReportRecord> _bankBalanceChart = null!;
+    private ApexChart<ReportRecord> _monthIncomeExpensesChart = null!;
+    private ApexChart<ReportRecord> _yearIncomeExpensesChart = null!;
+    private List<ApexChart<ReportRecord>> _monthBucketExpensesCharts = new();
     private ApexChart<ReportRecord> InjectMonthBucketExpensesChart
     {
-        set => MonthBucketExpensesCharts.Add(value);
+        set => _monthBucketExpensesCharts.Add(value);
     }
     private Theme BaseTheme => new()
     {
@@ -38,7 +38,7 @@ public partial class Report : ComponentBase
     {
         _monthBucketExpensesConfigsLeft = new List<Tuple<string, List<ReportRecord>>>();
         _monthBucketExpensesConfigsRight = new List<Tuple<string, List<ReportRecord>>>();
-        MonthBucketExpensesCharts = new();
+        _monthBucketExpensesCharts = new();
     
         _apexContext = new ApexReportViewModel(ServiceManager);
         await _apexContext.LoadDataAsync();
@@ -50,12 +50,12 @@ public partial class Report : ComponentBase
         StateHasChanged();
         var tasks = new List<Task>()
         {
-            MonthBalanceChart.UpdateSeriesAsync(),
-            BankBalanceChart.UpdateSeriesAsync(),
-            MonthIncomeExpensesChart.UpdateSeriesAsync(),
-            YearIncomeExpensesChart.UpdateSeriesAsync()
+            _monthBalanceChart.UpdateSeriesAsync(),
+            _bankBalanceChart.UpdateSeriesAsync(),
+            _monthIncomeExpensesChart.UpdateSeriesAsync(),
+            _yearIncomeExpensesChart.UpdateSeriesAsync()
         };
-        tasks.AddRange(MonthBucketExpensesCharts
+        tasks.AddRange(_monthBucketExpensesCharts
             .Select(monthBucketExpensesChart => monthBucketExpensesChart.UpdateSeriesAsync()));
 
         await Task.WhenAll(tasks);

@@ -130,7 +130,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
     /// <returns>Result of Data Consistency Check</returns>
     public async Task<DataConsistencyCheckResult> CheckBankTransactionIncompleteBucketAssignmentAsync()
     {
-        return await Task.Run(async () =>
+        return await Task.Run(() =>
         {
             const string checkName = "Transactions with incomplete bucket assignment";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
@@ -170,11 +170,11 @@ public class DataConsistencyPageViewModel : ViewModelBase
             
             if (!results.Any())
             {
-                return new DataConsistencyCheckResult(
+                return Task.FromResult(new DataConsistencyCheckResult(
                     checkName,
                     DataConsistencyCheckResult.StatusCode.Ok,
                     "All Transactions are fully assigned to at least one Bucket",
-                    new List<string[]>());
+                    new List<string[]>()));
             }
 
             var detailsBuilder = new List<string[]>
@@ -186,11 +186,11 @@ public class DataConsistencyPageViewModel : ViewModelBase
                 .Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok)
                 .Select(i => i.Item2));
 
-            return new DataConsistencyCheckResult(
+            return Task.FromResult(new DataConsistencyCheckResult(
                 checkName,
                 DataConsistencyCheckResult.StatusCode.Warning,
                 "Some Transactions are not fully assigned",
-                detailsBuilder);
+                detailsBuilder));
         });
     }
 

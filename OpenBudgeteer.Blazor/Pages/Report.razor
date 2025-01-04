@@ -7,7 +7,7 @@
         <div class="report-chart-box">
             <h4 class="report-chart-header">Month Balances</h4>
             <ApexChart 
-                @ref="MonthBalanceChart" 
+                @ref="_monthBalanceChart" 
                 TItem="ReportRecord" 
                 Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                 <ApexPointSeries 
@@ -25,7 +25,7 @@
         <div class="report-chart-box">
             <h4 class="report-chart-header">Bank Balances</h4>
             <ApexChart 
-                @ref="BankBalanceChart" 
+                @ref="_bankBalanceChart" 
                 TItem="ReportRecord" 
                 Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                 <ApexPointSeries
@@ -45,7 +45,7 @@
         <div class="report-chart-box">
             <h4 class="report-chart-header">Income & Expenses per Month</h4>
             <ApexChart 
-                @ref="MonthIncomeExpensesChart" 
+                @ref="_monthIncomeExpensesChart" 
                 TItem="ReportRecord"
                 Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
                 <ApexPointSeries
@@ -71,7 +71,7 @@
         <div class="report-chart-box">
             <h4 class="report-chart-header">Income & Expenses per Year</h4>
             <ApexChart 
-                @ref="YearIncomeExpensesChart" 
+                @ref="_yearIncomeExpensesChart" 
                 TItem="ReportRecord" 
                 Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
                 <ApexPointSeries

@@ -68,7 +68,7 @@
                                     <div class="col-md-6 col-sm-12 p-1">
                                         <div class="report-chart-box">
                                             <h4 class="report-chart-header">Month Balances</h4>
-                                            <ApexChart @ref="MonthBalanceChart" TItem="ReportRecord">
+                                            <ApexChart @ref="_monthBalanceChart" TItem="ReportRecord">
                                                 <ApexPointSeries
                                                     TItem="ReportRecord"
                                                     Items="DataContext.MonthBalances"
@@ -83,7 +83,7 @@
                                      <div class="col-md-6 col-sm-12 p-1">
                                          <div class="report-chart-box">
                                              <h4 class="report-chart-header">Input & Output</h4>
-                                             <ApexChart @ref="MonthInputOutputChart" TItem="ReportRecord" Options="MonthInputOutputChartOptions">
+                                             <ApexChart @ref="_monthInputOutputChart" TItem="ReportRecord" Options="_monthInputOutputChartOptions">
                                                  <ApexPointSeries
                                                      TItem="ReportRecord"
                                                      Items="DataContext.MonthInput"
@@ -108,7 +108,7 @@
                                     <div class="col p-1">
                                         <div class="report-chart-box">
                                             <h4 class="report-chart-header">Balance Progression</h4>
-                                            <ApexChart @ref="BucketProgressionChart" TItem="ReportRecord" Height="300">
+                                            <ApexChart @ref="_bucketProgressionChart" TItem="ReportRecord" Height="300">
                                                 <ApexPointSeries
                                                     TItem="ReportRecord"
                                                     Items="DataContext.BucketProgression"
@@ -150,16 +150,16 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
     
-    private ApexChart<ReportRecord> MonthBalanceChart;
-    private ApexChart<ReportRecord> MonthInputOutputChart;
-    private ApexChart<ReportRecord> BucketProgressionChart;
+    private ApexChart<ReportRecord> _monthBalanceChart = null!;
+    private ApexChart<ReportRecord> _monthInputOutputChart = null!;
+    private ApexChart<ReportRecord> _bucketProgressionChart = null!;
     
-    private ApexChartOptions<ReportRecord> MonthInputOutputChartOptions = new()
+    private ApexChartOptions<ReportRecord> _monthInputOutputChartOptions = new()
     {
         Legend = new() { Show = false }
     };
 
-    private ApexChartOptions<ReportRecord> BucketProgressionChartOptions = new()
+    private ApexChartOptions<ReportRecord> _bucketProgressionChartOptions = new()
     {
         Yaxis = [ new YAxis() { Min = 0 } ]
     };
@@ -171,9 +171,9 @@
         StateHasChanged();
         var tasks = new List<Task>()
         {
-            MonthBalanceChart.UpdateSeriesAsync(true),
-            MonthInputOutputChart.UpdateSeriesAsync(true),
-            BucketProgressionChart.UpdateSeriesAsync(true),
+            _monthBalanceChart.UpdateSeriesAsync(true),
+            _monthInputOutputChart.UpdateSeriesAsync(true),
+            _bucketProgressionChart.UpdateSeriesAsync(true),
         };
         
         await Task.WhenAll(tasks);
