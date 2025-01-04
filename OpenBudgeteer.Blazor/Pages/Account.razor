@@ -15,7 +15,7 @@
                 <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
                 <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
                 <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => EditAccount(account))">Edit</button>
-                <button class="btn btn-sm btn-danger header-action-button" @onclick="@(() => CloseAccount(account))">Close</button>
+                <button class="btn btn-sm btn-danger header-action-button" @onclick="@(() => HandleShowCloseAccountDialog(account))">Close</button>
             </div>
         </div>
     }
@@ -34,6 +34,13 @@
     IsDialogVisible="@_isTransactionModalDialogVisible" 
     IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
     OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
+
+<DeleteConfirmationDialog
+    Title="Close Account"
+    Message="Do you really want to close this Account?"
+    IsDialogVisible="@_isCloseAccountDialogVisible"
+    OnDeleteClickCallback="CloseAccount"
+    OnCancelClickCallback="CancelCloseAccount"/>
 
 <ErrorMessageDialog 
     Title="Account" 

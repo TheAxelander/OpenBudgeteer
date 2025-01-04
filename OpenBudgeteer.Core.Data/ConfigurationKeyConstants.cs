@@ -14,6 +14,4 @@ public static class ConfigurationKeyConstants
     public const string PROVIDER_MARIADB = "MARIADB";
     public const string PROVIDER_POSTGRES = "POSTGRES";
     public const string PROVIDER_POSTGRESQL = "POSTGRESQL";
-    public const string PROVIDER_SQLITE = "SQLITE";
-    public const string PROVIDER_TEMPDB = "TEMPDB";
 }

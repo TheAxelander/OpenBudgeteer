@@ -56,6 +56,11 @@ public class YearMonthSelectorViewModel : ViewModelBase
         CurrentMonth,
         CurrentMonth.AddMonths(1).AddDays(-1)
     );
+    
+    /// <summary>
+    /// Returns true if today's day is within the currently selected YearMonth 
+    /// </summary>
+    public bool IsTodayInCurrentMonth => CurrentMonth.Year == DateTime.Now.Year && CurrentMonth.Month == DateTime.Now.Month;
 
     /// <summary>
     /// EventHandler which should be invoked once the a year and/or a month has been modified. To be used to trigger

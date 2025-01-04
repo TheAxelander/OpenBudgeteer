@@ -55,14 +55,18 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
 
     public int Update(BudgetedTransaction entity)
     {
-        DatabaseContext.BudgetedTransaction.Update(entity);
-        return DatabaseContext.SaveChanges();
+        // DatabaseContext.BudgetedTransaction.Update(entity);
+        // return DatabaseContext.SaveChanges();
+        throw new NotSupportedException(
+            $"{typeof(BudgetedTransaction)} should not be updated, instead delete and re-create");
     }
 
     public int UpdateRange(IEnumerable<BudgetedTransaction> entities)
     {
-        DatabaseContext.BudgetedTransaction.UpdateRange(entities);
-        return DatabaseContext.SaveChanges();
+        // DatabaseContext.BudgetedTransaction.UpdateRange(entities);
+        // return DatabaseContext.SaveChanges();
+        throw new NotSupportedException(
+            $"{typeof(BudgetedTransaction)} should not be updated, instead delete and re-create");
     }
 
     public int Delete(Guid id)

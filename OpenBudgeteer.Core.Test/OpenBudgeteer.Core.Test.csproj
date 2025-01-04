@@ -31,10 +31,12 @@
       <Content Include="Resources\TestImportFile1.txt">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <Content Include="xunit.runner.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.3" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
       <PackageReference Include="xunit" Version="2.7.0" />
@@ -51,7 +53,6 @@
     <ItemGroup>
       <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Core.Data.MySql.Migrations\OpenBudgeteer.Core.Data.MySql.Migrations.csproj" />
-      <ProjectReference Include="..\OpenBudgeteer.Core.Data.Sqlite.Migrations\OpenBudgeteer.Core.Data.Sqlite.Migrations.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj" />
     </ItemGroup>
 

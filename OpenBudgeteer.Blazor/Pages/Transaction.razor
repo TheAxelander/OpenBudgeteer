@@ -74,7 +74,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)" @onclick="() => HandleShowBucketSelectDialog(_dataContext.NewTransaction, bucket)">
                                             @bucket.SelectedBucketName
                                         </button>
                                     </td>
@@ -144,7 +144,7 @@
                             {
                                 <tr>
                                     <td>
-                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)" @onclick="() => HandleShowBucketSelectDialog(bucket)">
+                                        <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(bucket.SelectedBucketColor); color: @ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)" @onclick="() => HandleShowBucketSelectDialog(transaction, bucket)">
                                             @bucket.SelectedBucketName
                                         </button>
                                     </td>

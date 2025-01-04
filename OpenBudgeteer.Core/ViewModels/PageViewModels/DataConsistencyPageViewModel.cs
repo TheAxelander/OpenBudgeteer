@@ -36,7 +36,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
         {
             CheckTransferReconciliationAsync(),
             CheckBucketBalanceAsync(),
-            CheckBankTransactionWithoutBucketAssignmentAsync(),
+            CheckBankTransactionIncompleteBucketAssignmentAsync(),
             CheckBudgetedTransactionOutsideOfValidityDateAsync(),
             CheckNegativeBankTransactionAssignedToIncomeAsync()
         };
@@ -78,7 +78,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
             const string checkName = "Bucket balance";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
             var checkTasks = ServiceManager.BucketService
-                .GetAll()
+                .GetAllWithoutSystemBuckets()
                 .Select(bucket => Task.Run(() =>
                 {
                     var bucketBalance = ServiceManager.BudgetedTransactionService.GetAllFromBucket(bucket.Id)
@@ -125,58 +125,72 @@ public class DataConsistencyPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Checks if there is any <see cref="BankTransaction"/> which doesn't have a <see cref="Bucket"/> assigned
+    /// Checks if there is any <see cref="BankTransaction"/> which are not fully assigned to a <see cref="Bucket"/>
     /// </summary>
     /// <returns>Result of Data Consistency Check</returns>
-    public async Task<DataConsistencyCheckResult> CheckBankTransactionWithoutBucketAssignmentAsync()
+    public async Task<DataConsistencyCheckResult> CheckBankTransactionIncompleteBucketAssignmentAsync()
     {
-        return await Task.Run(async () =>
+        return await Task.Run(() =>
         {
-            const string checkName = "Transactions without Bucket assignment";
+            const string checkName = "Transactions with incomplete bucket assignment";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
-            var checkTasks = ServiceManager.BankTransactionService
-                .GetAll()
-                .Select(bankTransaction => Task.Run(() =>
-                {
-                    if (!ServiceManager.BudgetedTransactionService.GetAllFromTransaction(bankTransaction.Id).Any())
+            var findings = 
+                // Get all BudgetedTransaction which are not 1:1 budgeted (Missing Assignments or Split Transaction) 
+                ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue)
+                .Where(i => i.Transaction.Amount != i.Amount)
+                // Grouping results to summarize potential Split Transaction
+                .GroupBy(i => i.TransactionId,
+                    (key, group) =>
                     {
-                        results.Add(new(
-                            DataConsistencyCheckResult.StatusCode.Warning, 
-                            new[]
-                            {
-                                bankTransaction.TransactionDate.ToShortDateString(), 
-                                bankTransaction.Memo ?? string.Empty, 
-                                bankTransaction.Amount.ToString("C", CultureInfo.CurrentCulture)
-                            }));
-                    }
-                }))
+                        var groupedBudgetedTransactions = group.ToList();
+                        return new
+                        {
+                            TransactionId = key,
+                            Transaction = groupedBudgetedTransactions.First().Transaction,
+                            BudgetedAmount = groupedBudgetedTransactions.Sum(i => i.Amount),
+                            TransactionAmount = groupedBudgetedTransactions.First().Transaction.Amount, //Should be always the same
+                        };
+                    })
+                // Check on remaining missing assignment
+                .Where(i => i.BudgetedAmount != i.TransactionAmount)
                 .ToList();
-
-            await Task.WhenAll(checkTasks);
-
-            if (results.All(i => i.Item1 == DataConsistencyCheckResult.StatusCode.Ok))
+            
+            foreach (var finding in findings)
             {
-                return new DataConsistencyCheckResult(
+                results.Add(new(
+                    DataConsistencyCheckResult.StatusCode.Warning, 
+                    new[]
+                    {
+                        finding.Transaction.TransactionDate.ToShortDateString(), 
+                        finding.Transaction.Memo ?? string.Empty, 
+                        finding.TransactionAmount.ToString("C", CultureInfo.CurrentCulture),
+                        finding.BudgetedAmount.ToString("C", CultureInfo.CurrentCulture)
+                    }));
+            }
+            
+            if (!results.Any())
+            {
+                return Task.FromResult(new DataConsistencyCheckResult(
                     checkName,
                     DataConsistencyCheckResult.StatusCode.Ok,
-                    "All Transactions are assigned to at least one Bucket",
-                    new List<string[]>());
+                    "All Transactions are fully assigned to at least one Bucket",
+                    new List<string[]>()));
             }
 
             var detailsBuilder = new List<string[]>
             {
-                new[] { "Transaction Date", "Memo", "Amount" }
+                new[] { "Transaction Date", "Memo", "Amount", "Budgeted" }
             };
 
             detailsBuilder.AddRange(results
                 .Where(i => i.Item1 != DataConsistencyCheckResult.StatusCode.Ok)
                 .Select(i => i.Item2));
 
-            return new DataConsistencyCheckResult(
+            return Task.FromResult(new DataConsistencyCheckResult(
                 checkName,
                 DataConsistencyCheckResult.StatusCode.Warning,
-                "Some Transactions do not have any Bucket assigned",
-                detailsBuilder);
+                "Some Transactions are not fully assigned",
+                detailsBuilder));
         });
     }
 
@@ -192,7 +206,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
             const string checkName = "Budgeted Transaction outside of validity date";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string, List<BankTransaction>>>();
             var checkTasks = ServiceManager.BucketService
-                .GetAll()
+                .GetAllWithoutSystemBuckets()
                 .Where(i => i.IsInactive)
                 .Select(bucket => Task.Run(() =>
                 {

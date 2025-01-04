@@ -10,12 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ChartJs.Blazor" Version="1.1.0" />
+    <PackageReference Include="Blazor-ApexCharts" Version="3.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Tewr.Blazor.FileReader" Version="3.3.2.23201" />
@@ -25,7 +24,6 @@
     <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
     <ProjectReference Include="..\OpenBudgeteer.Core.Data.MySql.Migrations\OpenBudgeteer.Core.Data.MySql.Migrations.csproj" />
     <ProjectReference Include="..\OpenBudgeteer.Core.Data.Postgres.Migrations\OpenBudgeteer.Core.Data.Postgres.Migrations.csproj" />
-    <ProjectReference Include="..\OpenBudgeteer.Core.Data.Sqlite.Migrations\OpenBudgeteer.Core.Data.Sqlite.Migrations.csproj" />
   </ItemGroup>
 
 </Project>

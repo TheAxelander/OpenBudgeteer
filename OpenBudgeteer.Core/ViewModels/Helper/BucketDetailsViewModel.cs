@@ -38,7 +38,7 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// <summary>
         /// Current <see cref="Bucket"/> that will be used
         /// </summary>
-        private readonly Guid _bucketId;
+        public readonly Guid BucketId;
 
         /// <summary>
         /// Reused <see cref="TransactionViewModel"/> to display <see cref="BucketMovement"/> data
@@ -57,7 +57,7 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
             Guid bucketId) : base(serviceManager)
         {
             _yearMonthViewModel = yearMonthViewModel;
-            _bucketId = bucketId;
+            BucketId = bucketId;
             BucketMovementsData = new TransactionListingViewModel(serviceManager, _yearMonthViewModel);
         }
 
@@ -69,7 +69,7 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// <returns>Object which contains information and results of this method</returns>
         public async Task<ViewModelOperationResult> LoadBucketMovementsDataAsync(bool withMovements)
         {
-            return await BucketMovementsData.LoadDataAsync(_bucketId, withMovements);
+            return await BucketMovementsData.LoadDataAsync(BucketId, withMovements);
         }
 
         /// <summary>
@@ -187,13 +187,13 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         {
             // Get all BankTransaction assigned to this Bucket
             var transactions = ServiceManager.BudgetedTransactionService
-                .GetAllFromBucket(_bucketId, startingMonth, DateTime.MaxValue)
+                .GetAllFromBucket(BucketId, startingMonth, DateTime.MaxValue)
                 .Select(i => new BucketActivity(i))
                 .ToList();
 
             // Append Bucket Movements
             transactions.AddRange(ServiceManager.BucketMovementService
-                .GetAllFromBucket(_bucketId, startingMonth, DateTime.MaxValue)
+                .GetAllFromBucket(BucketId, startingMonth, DateTime.MaxValue)
                 .Select(i => new BucketActivity(i))
                 .ToList());
 
@@ -221,14 +221,14 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
                 for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
                 {
                     var month = currentMonth.AddMonths(monthIndex * -1);
-                    //TODO Consider rewrite for more optimized query
+                    //TODO: Consider rewrite for more optimized query
                     var lastDayOfMonth = month.AddMonths(1).AddDays(-1);
                     var transactions = ServiceManager.BudgetedTransactionService
-                        .GetAllFromBucket(_bucketId, DateTime.MinValue, lastDayOfMonth)
+                        .GetAllFromBucket(BucketId, DateTime.MinValue, lastDayOfMonth)
                         .ToList();
                         
                     var bucketMovements = ServiceManager.BucketMovementService
-                        .GetAllFromBucket(_bucketId, DateTime.MinValue, lastDayOfMonth)
+                        .GetAllFromBucket(BucketId, DateTime.MinValue, lastDayOfMonth)
                         .ToList();
 
                     // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)

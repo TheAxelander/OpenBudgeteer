@@ -1,3 +1,29 @@
+## 1.9 (2025-01-04)
+
+### :gear: Features & Enhancements
+
+* Edit Bucket Dialog shows now a calculated next applying target date for Bucket type `Expense every X Months` and `Save X until Y date` [#201](https://github.com/TheAxelander/OpenBudgeteer/issues/201)
+* File content preview on Import Page no longer wraps, instead it uses horizontal scrolling [#227](https://github.com/TheAxelander/OpenBudgeteer/issues/227)
+* Migrated reports from ChartJs.Blazor to Blazor-ApexCharts
+* Bucket Movements will be now stored with the current date instead on first of the month [#240](https://github.com/TheAxelander/OpenBudgeteer/issues/240) Thanks [Lucaber](https://github.com/Lucaber)
+* Bucket Details will now show the right amount (highlighted with a `*`) in case it's part of a split Transaction [#256](https://github.com/TheAxelander/OpenBudgeteer/issues/256) [#272](https://github.com/TheAxelander/OpenBudgeteer/pull/272) Thanks [Lucaber](https://github.com/Lucaber)
+* New defaults on Date and Amount for creating/editing a Transaction [#270](https://github.com/TheAxelander/OpenBudgeteer/issues/270)
+* Add confirmation dialog before closing an Account [#264](https://github.com/TheAxelander/OpenBudgeteer/issues/264)
+* Redesign Blazor reconnect dialog [#250](https://github.com/TheAxelander/OpenBudgeteer/issues/250)
+
+### :hammer: Maintenance
+
+* Rework Unit Tests and Code cleanup after dropping Sqlite support [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#246](https://github.com/TheAxelander/OpenBudgeteer/issues/246)
+* New API Version `1.1` with new Endpoint `/withoutSystemBuckets` 
+
+### :beetle: Bug Fixes
+
+* Creation of multiple new Accounts using Recurring Transactions [#255](https://github.com/TheAxelander/OpenBudgeteer/issues/255) [#267](https://github.com/TheAxelander/OpenBudgeteer/pull/267) Thanks [OSMIbra](https://github.com/OSMIbra)
+* On Import Page, Preview modification for large texts couldn't be synced to ViewModel due to SignalR message size limitation [#248](https://github.com/TheAxelander/OpenBudgeteer/issues/248)
+* Correct usage of `APPSETTINGS_THEME` default value `default` [#253](https://github.com/TheAxelander/OpenBudgeteer/issues/253)
+* Fix Preview Word Wrap on Import Page using Firefox [#261](https://github.com/TheAxelander/OpenBudgeteer/issues/261)
+* Adding additional checks for Bucket Proposal to prevent inconsistent database state [#254](https://github.com/TheAxelander/OpenBudgeteer/issues/254)
+
 ## 1.8.3 (2024-05-20)
 
 ### :warning: Breaking Changes

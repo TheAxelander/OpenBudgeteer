@@ -1,17 +1,42 @@
 ﻿@page "/report"
-@using ChartJs.Blazor.Charts
+@using ApexCharts
+@using OpenBudgeteer.Blazor.Common
 
 <div class="row">
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Month Balances</h4>
-            <ChartJsBarChart Config="@_dataContext.MonthBalancesConfig"/>
+            <ApexChart 
+                @ref="_monthBalanceChart" 
+                TItem="ReportRecord" 
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                <ApexPointSeries 
+                    TItem="ReportRecord"
+                    Items="_apexContext.MonthBalances"
+                    Name="Balance"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    DataPointMutator="ApexHelper.BalanceChartMutator"/>
+            </ApexChart>
         </div>
     </div>
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Bank Balances</h4>
-            <ChartJsLineChart Config="@_dataContext.BankBalancesConfig"/>
+            <ApexChart 
+                @ref="_bankBalanceChart" 
+                TItem="ReportRecord" 
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.BankBalances"
+                    Name="Balance"
+                    SeriesType="SeriesType.Area"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.Green.ToHexString()/>
+            </ApexChart>
         </div>
     </div>
 </div>
@@ -19,13 +44,53 @@
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Income & Expenses per Month</h4>
-            <ChartJsBarChart Config="@_dataContext.MonthIncomeExpensesConfig"/>
+            <ApexChart 
+                @ref="_monthIncomeExpensesChart" 
+                TItem="ReportRecord"
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.MonthIncome"
+                    Name="Income"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.MonthExpenses"
+                    Name="Expenses"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+            </ApexChart>
         </div>
     </div>
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Income & Expenses per Year</h4>
-            <ChartJsBarChart Config="@_dataContext.YearIncomeExpensesConfig"/>
+            <ApexChart 
+                @ref="_yearIncomeExpensesChart" 
+                TItem="ReportRecord" 
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.YearIncome"
+                    Name="Income"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.YearExpenses"
+                    Name="Expenses"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+            </ApexChart>
         </div>
     </div>
 </div>
@@ -33,24 +98,46 @@
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
-            @foreach (var config in _monthBucketExpensesConfigsLeft)
+            @foreach (var chart in _monthBucketExpensesConfigsLeft)
             {
-                <h5 class="report-chart-subheader">@config.Item1</h5>
-                <div>
-                    <ChartJsBarChart Config="@config.Item2" Height="50"/>
-                </div>
+                <ApexChart 
+                    @ref="InjectMonthBucketExpensesChart" 
+                    TItem="ReportRecord" 
+                    Title="@chart.Item1"
+                    Height="150"
+                    Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                    <ApexPointSeries
+                        TItem="ReportRecord"
+                        Items="chart.Item2"
+                        Name="Expenses"
+                        SeriesType="SeriesType.Bar"
+                        XValue="i => i.Label"
+                        YValue="i => i.Value"
+                        Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                </ApexChart>
             }
         </div>
     </div>
     <div class="col-md-6 col-sm-12 p-1">
         <div class="report-chart-box">
             <h4 class="report-chart-header">Bucket Monthly Expenses</h4>
-            @foreach (var config in _monthBucketExpensesConfigsRight)
+            @foreach (var chart in _monthBucketExpensesConfigsRight)
             {
-                <h5 class="report-chart-subheader">@config.Item1</h5>
-                <div>
-                    <ChartJsBarChart Config="@config.Item2" Height="50"/>
-                </div>
+                <ApexChart 
+                    @ref="InjectMonthBucketExpensesChart" 
+                    TItem="ReportRecord" 
+                    Title="@chart.Item1" 
+                    Height="150"
+                    Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                    <ApexPointSeries
+                        TItem="ReportRecord"
+                        Items="chart.Item2"
+                        Name="Expenses"
+                        SeriesType="SeriesType.Bar"
+                        XValue="i => i.Label"
+                        YValue="i => i.Value"
+                        Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                </ApexChart>
             }
         </div>
     </div>

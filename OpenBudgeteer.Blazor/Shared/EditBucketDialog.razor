@@ -64,7 +64,8 @@
                             <label class="form-label">(First) Target Date:</label>
                             @if (_isTargetDataEnabled)
                             {
-                                <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeDateParameter" @bind:format="yyyy-MM-dd"/>    
+                                <input class="form-control form-control-sm" style="text-align: right;" type="date" @bind="DataContext.BucketVersion.BucketTypeDateParameter" @bind:format="yyyy-MM-dd"/>
+                                <span class="text-muted">Next applying date: @DataContext.BucketVersion.BucketTypeNextDateParameter.ToShortDateString()</span>
                             }
                             else
                             {

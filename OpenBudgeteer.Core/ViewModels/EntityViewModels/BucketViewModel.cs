@@ -240,6 +240,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
             _isInactiveFrom = DateTime.MaxValue;
 
             _bucketVersion = BucketVersionViewModel.CreateEmpty(serviceManager);
+            _bucketVersion.BucketTypeDateParameterChanged += CalculateBucketVersionNextApplyingDate;
         }
         else
         {
@@ -253,6 +254,8 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
             _isInactiveFrom = bucket.IsInactiveFrom;
             
             _bucketVersion = BucketVersionViewModel.CreateFromBucket(serviceManager, bucket, _currentYearMonth);
+            _bucketVersion.BucketTypeDateParameterChanged += CalculateBucketVersionNextApplyingDate;
+            CalculateBucketVersionNextApplyingDate(this, EventArgs.Empty); // Run it once for initial calculation
             // Run calculations, excluding system default Buckets
             if (bucket.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001"))
             {
@@ -260,7 +263,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
             }
         }
     }
-    
+
     /// <summary>
     /// Full constructor, used for modifying a <see cref="Bucket"/>
     /// </summary>
@@ -302,6 +305,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         BucketId = viewModel.BucketId;
         _name = viewModel.Name;
         _bucketVersion = (BucketVersionViewModel)viewModel.BucketVersion.Clone();
+        _bucketVersion.BucketTypeDateParameterChanged += CalculateBucketVersionNextApplyingDate;
         _selectedBucketGroup = viewModel.SelectedBucketGroup;
         _colorCode = viewModel.ColorCode;
         _textColorCode = viewModel.TextColorCode;
@@ -445,11 +449,14 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         #endregion*/
         
         #region Balance, In & Out
-        
-        var figures = ServiceManager.BucketService.GetFigures(BucketId, _currentYearMonth);
-        Balance = figures.Balance ?? 0;
-        In = figures.Input;
-        Activity = figures.Output;
+
+        if (BucketId != default)
+        {
+            var figures = ServiceManager.BucketService.GetFigures(BucketId, _currentYearMonth);
+            Balance = figures.Balance ?? 0;
+            In = figures.Input;
+            Activity = figures.Output;
+        }
         
         #endregion
 
@@ -696,7 +703,13 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
     {
         try
         {
-            ServiceManager.BucketService.CreateMovement(BucketId, InOut, _currentYearMonth);
+            var date = DateTime.Now;
+            if (_currentYearMonth.Year != date.Year || _currentYearMonth.Month != date.Month) 
+            {
+                var day = (date > _currentYearMonth) ? DateTime.DaysInMonth(_currentYearMonth.Year, _currentYearMonth.Month) : 1;
+                date = new DateTime(_currentYearMonth.Year, _currentYearMonth.Month, day);
+            }
+            ServiceManager.BucketService.CreateMovement(BucketId, InOut, date);
             CalculateValues();
             return new ViewModelOperationResult(true);
         }
@@ -704,6 +717,35 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>
         {
             return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
         }
+    }
+
+    /// <summary>
+    /// Calculates the next applying target date based on current <see cref="BucketVersion"/> settings
+    /// </summary>
+    private void CalculateBucketVersionNextApplyingDate(object? sender, EventArgs e)
+    {
+        switch (BucketVersion.BucketTypeParameter)
+        {
+            case BucketVersionViewModel.BucketType.MonthlyExpense:
+                BucketVersion.BucketTypeNextDateParameter = _currentYearMonth.AddMonths(1);
+                break;
+            case BucketVersionViewModel.BucketType.ExpenseEveryXMonths:
+                var nextTargetDate = BucketVersion.BucketTypeDateParameter;
+                while (nextTargetDate < _currentYearMonth)
+                {
+                    nextTargetDate = nextTargetDate.AddMonths(BucketVersion.BucketTypeIntParameter);
+                }
+
+                BucketVersion.BucketTypeNextDateParameter = nextTargetDate;
+                break;
+            case BucketVersionViewModel.BucketType.SaveXUntilYDate:
+                BucketVersion.BucketTypeNextDateParameter = BucketVersion.BucketTypeDateParameter;
+                break;
+            case BucketVersionViewModel.BucketType.StandardBucket:
+            default:
+                BucketVersion.BucketTypeNextDateParameter = DateTime.MinValue;
+                break;
+        }       
     }
     
     #endregion

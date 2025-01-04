@@ -24,6 +24,38 @@ a, .btn-link {
     top: 0.5rem;
 }
 
+#components-reconnect-modal {
+    display: none;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    z-index: 10001;
+}
+
+#components-reconnect-modal.components-reconnect-show {
+    display: block;
+}
+#components-reconnect-modal.components-reconnect-show div.reconnect {
+    display: block;
+}
+div.reconnect {
+    display: none;
+}
+
+#components-reconnect-modal.components-reconnect-failed,
+#components-reconnect-modal.components-reconnect-rejected {
+    display: block;
+}
+#components-reconnect-modal.components-reconnect-failed div.reconnect-failed {
+    display: block;
+}
+#components-reconnect-modal.components-reconnect-rejected div.reconnect-failed {
+    display: block;
+}
+div.reconnect-failed {
+    display: none;
+}
+
 /* App specific styles
 -------------------------------------------------- */
 .app-header {
@@ -122,6 +154,12 @@ input.number-input {
 button.btn-bucket {
     border-radius: 25px;
     width: 100%
+}
+
+.no-wrap {
+    overflow-x: auto;
+    white-space: pre;
+    word-wrap: normal;
 }
 
 /* Overwrite bootstrap styles */
