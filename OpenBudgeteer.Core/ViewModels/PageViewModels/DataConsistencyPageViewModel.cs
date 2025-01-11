@@ -134,6 +134,33 @@ public class DataConsistencyPageViewModel : ViewModelBase
         {
             const string checkName = "Transactions with incomplete bucket assignment";
             var results = new List<Tuple<DataConsistencyCheckResult.StatusCode, string[]>>();
+            
+            // Check on Transactions which have overall no Bucket assignments
+            var unassignedTransactions = ServiceManager.BankTransactionService
+                .GetAll(DateTime.MinValue, DateTime.MaxValue)
+                .GroupJoin(
+                    ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue),
+                    transaction => transaction.Id,
+                    budgetedTransaction => budgetedTransaction.TransactionId,
+                    (bankTransaction, budgetedTransactions) => new
+                        { BankTransaction = bankTransaction, BudgetedTransactions = budgetedTransactions })
+                .Where(i => !i.BudgetedTransactions.Any())
+                .Select(i => i.BankTransaction)
+                .ToList();
+
+            foreach (var unassignedTransaction in unassignedTransactions)
+            {
+                results.Add(new(
+                    DataConsistencyCheckResult.StatusCode.Warning,
+                    [
+                        unassignedTransaction.TransactionDate.ToShortDateString(), 
+                        unassignedTransaction.Memo ?? string.Empty, 
+                        unassignedTransaction.Amount.ToString("C", CultureInfo.CurrentCulture),
+                        new decimal(0).ToString("C", CultureInfo.CurrentCulture)
+                    ]));
+            }
+            
+            // Check on incomplete assignments
             var findings = 
                 // Get all BudgetedTransaction which are not 1:1 budgeted (Missing Assignments or Split Transaction) 
                 ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue)
@@ -158,14 +185,13 @@ public class DataConsistencyPageViewModel : ViewModelBase
             foreach (var finding in findings)
             {
                 results.Add(new(
-                    DataConsistencyCheckResult.StatusCode.Warning, 
-                    new[]
-                    {
+                    DataConsistencyCheckResult.StatusCode.Warning,
+                    [
                         finding.Transaction.TransactionDate.ToShortDateString(), 
                         finding.Transaction.Memo ?? string.Empty, 
                         finding.TransactionAmount.ToString("C", CultureInfo.CurrentCulture),
                         finding.BudgetedAmount.ToString("C", CultureInfo.CurrentCulture)
-                    }));
+                    ]));
             }
             
             if (!results.Any())
