@@ -1,3 +1,10 @@
+## 1.9.1 (2025-01-11)
+
+### :beetle: Bug Fixes
+
+* Unable to move a Bucket Group [#282](https://github.com/TheAxelander/OpenBudgeteer/issues/282)
+* Data Inconsistency Check for incomplete Bucket assignments didn't cover Transactions without any assignment [#283](https://github.com/TheAxelander/OpenBudgeteer/issues/283)
+
 ## 1.9 (2025-01-04)
 
 ### :gear: Features & Enhancements
