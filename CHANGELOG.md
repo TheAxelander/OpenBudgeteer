@@ -1,3 +1,9 @@
+## 1.9.1 (2025-01-09)
+
+### :beetle: Bug Fixes
+
+* Unable to move a Bucket Group [#282](https://github.com/TheAxelander/OpenBudgeteer/issues/282)
+
 ## 1.9 (2025-01-04)
 
 ### :gear: Features & Enhancements

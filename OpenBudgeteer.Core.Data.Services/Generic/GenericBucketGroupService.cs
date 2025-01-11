@@ -103,31 +103,33 @@ public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucke
 
     public BucketGroup Move(Guid bucketGroupId, int positions)
     {
-        var bucketGroup = Get(bucketGroupId);
-        if (positions == 0) return bucketGroup;
-
-        // Create in an interim List for later use
+        // Create in an interim list to handle position updates
         var existingBucketGroups = new ObservableCollection<BucketGroup>();
         foreach (var group in GetAll().ToList())
         {
             existingBucketGroups.Add(group);
         }
+        
+        // Re-use existing reference in interim list of passed Bucket Group (see #282) 
+        var bucketGroup = existingBucketGroups.First(i => i.Id == bucketGroupId);
+        if (positions == 0) return bucketGroup;
+
+        // Calculate new target position
         var bucketGroupCount = existingBucketGroups.Count();
         var targetPosition = bucketGroup.Position + positions;
         if (targetPosition < 1) targetPosition = 1;
         if (targetPosition > bucketGroupCount) targetPosition = bucketGroupCount;
         if (targetPosition == bucketGroup.Position) return bucketGroup; // Group is already at the end or top. No further action
 
-        // Move Group in interim List
+        // Move Group in interim list
         existingBucketGroups.Move(bucketGroup.Position - 1, targetPosition - 1);
                     
-        // Update Position number
+        // Update Position number for each group
         var newPosition = 1;
         foreach (var group in existingBucketGroups)
         {
             group.Position = newPosition;
             _bucketGroupRepository.Update(group);
-            if (group.Id == bucketGroupId) bucketGroup = group; // Use correct object reference for final return
             newPosition++;
         }
 
