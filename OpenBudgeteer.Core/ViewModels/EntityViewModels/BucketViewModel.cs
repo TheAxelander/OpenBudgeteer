@@ -212,6 +212,16 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
         get => _isHovered;
         set => Set(ref _isHovered, value);
     }
+    
+    private bool _isHiddenFromSummaries;
+    /// <summary>
+    /// Whether the transaction in this bucket should be hidden from summaries/statistics
+    /// </summary>
+    public bool IsHiddenFromSummaries
+    {
+        get => _isHiddenFromSummaries;
+        set => Set(ref _isHiddenFromSummaries, value);
+    }
 
     /// <summary>
     /// Helper collection to list available System colors
@@ -252,6 +262,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
             _validFrom = yearMonth;
             _isInactive = false;
             _isInactiveFrom = DateOnly.MaxValue;
+            _isHiddenFromSummaries = false;
 
             _bucketVersion = BucketVersionViewModel.CreateEmpty(serviceManager);
             _bucketVersion.BucketTypeDateParameterChanged += CalculateBucketVersionNextApplyingDate;
@@ -266,6 +277,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
             _validFrom = bucket.ValidFrom;
             _isInactive = bucket.IsInactive;
             _isInactiveFrom = bucket.IsInactiveFrom;
+            _isHiddenFromSummaries = bucket.IsHiddenFromSummaries;
             
             _bucketVersion = BucketVersionViewModel.CreateFromBucket(serviceManager, bucket, _currentYearMonth);
             _bucketVersion.BucketTypeDateParameterChanged += CalculateBucketVersionNextApplyingDate;
@@ -336,6 +348,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
         _progress = viewModel.Progress;
         _isProgressBarVisible = viewModel.IsProgressbarVisible;
         _isHovered = viewModel.IsHovered;
+        _isHiddenFromSummaries = viewModel.IsHiddenFromSummaries;
 
         if (viewModel.AvailableColors is not null)
         {
@@ -599,6 +612,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
             ValidFrom = ValidFrom,
             IsInactive = IsInactive,
             IsInactiveFrom = IsInactiveFrom,
+            IsHiddenFromSummaries = IsHiddenFromSummaries,
         };
     }
 

@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Data.Entities;
 
 #nullable disable
 
-namespace OpenBudgeteer.Core.Migrations.MySql
+namespace OpenBudgeteer.Core.Data.MySql.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseServiceModelSnapshot : ModelSnapshot
+    [Migration("20250201193948_BucketIsHiddenFromSummaries")]
+    partial class BucketIsHiddenFromSummaries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,8 +62,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<string>("Payee")
                         .HasColumnType("longtext");
 
-                    b.Property<DateOnly>("TransactionDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -88,8 +91,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<bool>("IsInactive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateOnly>("IsInactiveFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("IsInactiveFrom")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
@@ -97,8 +100,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<string>("TextColorCode")
                         .HasColumnType("longtext");
 
-                    b.Property<DateOnly>("ValidFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -138,8 +141,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<Guid>("BucketId")
                         .HasColumnType("char(36)");
 
-                    b.Property<DateOnly>("MovementDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("MovementDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -190,14 +193,14 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<decimal>("BucketTypeYParam")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateOnly>("BucketTypeZParam")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("BucketTypeZParam")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
-                    b.Property<DateOnly>("ValidFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");
@@ -341,8 +344,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateOnly>("FirstOccurrenceDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("FirstOccurrenceDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Memo")
                         .HasColumnType("longtext");

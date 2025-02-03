@@ -68,11 +68,12 @@ public abstract class ReportPageViewModel : ViewModelBase
         {
             var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
 
-            var transactions = ServiceManager.BankTransactionService
+            var transactions = ServiceManager.BudgetedTransactionService
                 .GetAll(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
+                .Where(t => !t.Bucket.IsHiddenFromSummaries)
                 .ToList();
             var monthBalances = transactions
-                .GroupBy(i => new DateOnly(i.TransactionDate.Year, i.TransactionDate.Month, 1))
+                .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
                 .Select(i => new
                 {
                     YearMonth = i.Key,
@@ -104,7 +105,8 @@ public abstract class ReportPageViewModel : ViewModelBase
 
             // Get all Transactions which are not marked as "Transfer"
             var transactions = ServiceManager.BudgetedTransactionService
-                .GetAllNonTransfer(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
+                .GetAll(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
+                .Where(t => !t.Bucket.IsHiddenFromSummaries)
                 .ToList();
 
             var monthIncomeExpenses = transactions
@@ -141,7 +143,8 @@ public abstract class ReportPageViewModel : ViewModelBase
 
             // Get all Transactions which are not marked as "Transfer"
             var transactions = ServiceManager.BudgetedTransactionService
-                    .GetAllNonTransfer(currentMonth.AddYears((years - 1) * -1), DateOnly.MaxValue)
+                    .GetAll(currentMonth.AddYears((years - 1) * -1), DateOnly.MaxValue)
+                    .Where(t => !t.Bucket.IsHiddenFromSummaries)
                     .ToList();
 
             var yearIncomeExpenses = transactions
