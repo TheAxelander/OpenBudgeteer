@@ -480,7 +480,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>
     }
 
     /// <summary>
-    /// Event that handles the deletion of teh requested Bucket
+    /// Event that handles the deletion of the requested Bucket
     /// </summary>
     /// <param name="sender">Object that has triggered the event</param>
     /// <param name="args">Event Arguments about deletion request</param>

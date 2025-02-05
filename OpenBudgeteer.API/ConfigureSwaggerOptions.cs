@@ -35,7 +35,7 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
 
     private static OpenApiInfo CreateInfoForApiVersion( ApiVersionDescription description )
     {
-        var text = new StringBuilder( "Documention of OpenBudgeteer API mainly interacting with the Database." );
+        var text = new StringBuilder( "Documentation of OpenBudgeteer API mainly interacting with the Database." );
         var info = new OpenApiInfo()
         {
             Title = "OpenBudgeteer API",

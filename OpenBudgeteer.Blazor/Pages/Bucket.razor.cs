@@ -186,7 +186,7 @@ public partial class Bucket : ComponentBase
     private void CloseErrorDialog()
     {
         _isErrorModalDialogVisible = false;
-        // In case error occuring in EditBucketDialog, display it again
+        // In case error occurring in EditBucketDialog, display it again
         if (_hasErrorInBucketModalDialog)
         {
             _isEditBucketModalDialogVisible = true;

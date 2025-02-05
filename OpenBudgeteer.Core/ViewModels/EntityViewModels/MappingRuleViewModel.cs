@@ -41,7 +41,7 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
 
     private string _comparisonValue;
     /// <summary>
-    /// Value which should be used for the comparision
+    /// Value which should be used for the comparison
     /// </summary>
     public string ComparisonValue 
     { 
