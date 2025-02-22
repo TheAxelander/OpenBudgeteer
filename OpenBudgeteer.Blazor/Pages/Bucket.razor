@@ -108,7 +108,7 @@
                 @context.Name
             </MudText>
         </MudTd>
-        <MudTd DataLabel="Balance" Class="col-numbers">@context.Balance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+        <MudTd DataLabel="Balance" Class="col-numbers" Style="@GetBalanceColor(context.Balance)">@context.Balance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
         <MudTd DataLabel="InOut">
             <MudNumericField T="decimal" Format="N2" Culture="CultureInfo.CurrentCulture" @bind-Value="@context.InOut" OnKeyUp="@(args => InOut_Changed(context, args))"/>
         </MudTd>

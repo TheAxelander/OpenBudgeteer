@@ -161,4 +161,13 @@ public partial class Bucket : ComponentBase
         };
         await DialogService.ShowAsync<BucketDetailsDialog>("Bucket Details", parameters, dialogOptions);
     }
+
+    // Determines the color of the balance based on its value
+    private string GetBalanceColor(decimal balance)
+    {
+        if (balance == 0)
+            return string.Empty;
+
+        return balance < 0 ? "color: red;" : "color: green;";
+    }
 }
