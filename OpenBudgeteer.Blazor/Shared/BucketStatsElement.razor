@@ -3,7 +3,7 @@
     <MudPaper Class="no-background" Elevation="0">
         <MudText Align="Align.Center" Style="font-weight: bold">@Title</MudText>
         <MudDivider Class="my-1"/>
-        <MudText Align="Align.Center" Style="@GetBalanceColor(Amount)">@Amount</MudText>
+        <MudText Align="Align.Center" Style="@GetBalanceColor(Amount, Title)">@Amount</MudText>
     </MudPaper>
 </MudStack>
 
@@ -18,12 +18,15 @@
     public string? Amount { get; set; }
 
     // Determines the color style for the balance text based on its value.
-    private string GetBalanceColor(string balance)
+    private string GetBalanceColor(string balance, string title)
     {
         var amount = decimal.Parse(System.Text.RegularExpressions.Regex.Replace(balance, @"[^\d.-]", ""));
 
         if (amount == 0)
             return string.Empty;
+
+        if (title.Equals("Pending Want"))
+            return amount > 0 ? "color: orange;" : string.Empty;
 
         return amount < 0 ? "color: red;" : "color: green;";
     }
