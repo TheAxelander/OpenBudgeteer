@@ -10,25 +10,25 @@
         <BucketStatsElement
             ImageUrl="css/icons8/refund.png"
             Title="Income"
-            Amount="@_dataContext.Income.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.Income"/>
     </MudItem>
     <MudItem xs="3" Class="d-none d-lg-block">
         <BucketStatsElement
             ImageUrl="css/icons8/cash-in-hand.png"
             Title="Expenses"
-            Amount="@_dataContext.Expenses.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.Expenses"/>
     </MudItem>
     <MudItem xs="3" Class="d-none d-lg-block">
         <BucketStatsElement
             ImageUrl="css/icons8/exchange.png"
             Title="Month Balance"
-            Amount="@_dataContext.MonthBalance.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.MonthBalance"/>
     </MudItem>
     <MudItem xs="3" Class="d-none d-lg-block">
         <BucketStatsElement
             ImageUrl="css/icons8/merchant-account.png"
             Title="Bank Balance"
-            Amount="@_dataContext.BankBalance.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.BankBalance"/>
     </MudItem>
 </MudGrid>
 <MudDivider Class="my-4" />
@@ -37,25 +37,25 @@
         <BucketStatsElement
             ImageUrl="css/icons8/banknotes.png"
             Title="Budget"
-            Amount="@_dataContext.Budget.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.Budget"/>
     </MudItem>
     <MudItem xs="3" Class="d-none d-lg-block">
         <BucketStatsElement
             ImageUrl="css/icons8/receive-cash.png"
             Title="Pending Want"
-            Amount="@_dataContext.PendingWant.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.PendingWant"/>
     </MudItem>
     <MudItem xs="3" Class="d-none d-lg-block">
         <BucketStatsElement
             ImageUrl="css/icons8/money-bag-euro.png"
             Title="Remaining Budget"
-            Amount="@_dataContext.RemainingBudget.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.RemainingBudget"/>
     </MudItem>
     <MudItem xs="3" Class="d-none d-lg-block">
         <BucketStatsElement
             ImageUrl="css/icons8/high-priority.png"
             Title="Negative Bucket Balance"
-            Amount="@_dataContext.NegativeBucketBalance.ToString("C", CultureInfo.CurrentCulture)"/>
+            Amount="@_dataContext.NegativeBucketBalance"/>
     </MudItem>
 </MudGrid>
 
