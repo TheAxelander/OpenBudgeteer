@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Initialization;
 
-namespace OpenBudgeteer.Blazor;
+namespace OpenBudgeteer.Blazor.Common;
 
 public class HostedDatabaseMigrator : IHostedService
 {

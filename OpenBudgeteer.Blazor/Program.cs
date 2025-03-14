@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MudBlazor.Services;
 using OpenBudgeteer.Blazor;
+using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Contracts.Services;
