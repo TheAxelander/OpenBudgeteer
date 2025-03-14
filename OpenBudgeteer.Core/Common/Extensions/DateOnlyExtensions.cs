@@ -1,6 +1,6 @@
 using System;
 
-namespace OpenBudgeteer.Blazor.Common;
+namespace OpenBudgeteer.Core.Common.Extensions;
 
 public static class DateOnlyExtensions
 {

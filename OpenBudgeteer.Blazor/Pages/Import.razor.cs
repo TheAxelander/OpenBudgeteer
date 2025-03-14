@@ -11,6 +11,7 @@ using OpenBudgeteer.Blazor.Common.CustomMudFilter;
 using OpenBudgeteer.Blazor.Common.InputLargeTextArea;
 using OpenBudgeteer.Blazor.Shared.Dialog;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.PageViewModels;
 using TinyCsvParser.Mapping;
