@@ -43,7 +43,7 @@ services:
       - CONNECTION_USER=openbudgeteer
       - CONNECTION_PASSWORD=openbudgeteer
       - APPSETTINGS_CULTURE=en-US
-      - APPSETTINGS_THEME=solar
+      - APPSETTINGS_THEME=dark
     depends_on:
       - mariadb
       
