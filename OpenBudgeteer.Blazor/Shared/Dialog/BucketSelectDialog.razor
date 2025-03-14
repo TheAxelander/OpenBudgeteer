@@ -1,16 +1,26 @@
 ﻿@using System.Drawing
 @using System.Globalization
+@using System.Threading
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using OpenBudgeteer.Core.ViewModels.Helper
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
-@inject YearMonthSelectorViewModel YearMonthDataContext
 
 <MudDialog Class="dialog-background">
     <TitleContent>
         <MudText Typo="Typo.h6">Select Bucket</MudText>
     </TitleContent>
     <DialogContent>
+        <MudAutocomplete
+            T="BucketViewModel"
+            SearchFunc="BucketQuickSelectSearchFunction"
+            AutoFocus="true"
+            Class="mb-4"
+            Dense="true"
+            Label="Bucket quick select"
+            Margin="Margin.Dense"
+            Variant="Variant.Outlined"
+            ValueChanged="BucketQuickSelectChanged"/>
         <MudTable
             Items="@DataContext.LoadedBuckets"
             Dense="true"
@@ -99,4 +109,22 @@
     private void CancelSelection() => MudDialog.Close();
 
     private void ConfirmSelection(BucketViewModel bucket) => MudDialog.Close(DialogResult.Ok(bucket));
+
+    private void BucketQuickSelectChanged(BucketViewModel bucket) => ConfirmSelection(bucket);
+
+    private async Task<IEnumerable<BucketViewModel>> BucketQuickSelectSearchFunction(string? searchString, CancellationToken cancellationToken)
+    {
+        return await Task.Run(() =>
+        {
+            var buckets = DataContext.BucketGroups
+                .SelectMany(i => i.Buckets)
+                .Order()
+                .ToList();
+
+            return string.IsNullOrEmpty(searchString) ? 
+                buckets : 
+                buckets.Where(i => i.Name.Contains(searchString, StringComparison.InvariantCultureIgnoreCase));
+        }, cancellationToken);
+    }
+
 }
