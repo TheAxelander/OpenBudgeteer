@@ -525,7 +525,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
 
         // Consistency and Validity Checks
         if (SelectedAccount.AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
-        if (!SelectedAccount.IsActive) return new ViewModelOperationResult(false, "The selected Bank account is inactive.");
+        // Deactivated check to allow edits of transactions assigned to inactive accounts (see #308)
+        //if (!SelectedAccount.IsActive) return new ViewModelOperationResult(false, "The selected Bank account is inactive.");
         if (Buckets.Count == 0) return new ViewModelOperationResult(false, "No Bucket assigned to this Transaction.");
         
         foreach (var assignedBucket in Buckets)
