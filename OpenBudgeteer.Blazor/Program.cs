@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +14,6 @@ using OpenBudgeteer.Core.Data.Services.EFCore;
 using OpenBudgeteer.Core.ViewModels.Helper;
 
 const string APPSETTINGS_CULTURE = "APPSETTINGS_CULTURE";
-const string APPSETTINGS_THEME = "APPSETTINGS_THEME";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +26,7 @@ builder.Services.AddDatabase(builder.Configuration); // Check, establish and reg
 builder.Services.AddHostedService<HostedDatabaseMigrator>(); // Run database migrations
 builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => new EFCoreServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
 builder.Services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
+builder.Services.AddSingleton(x => new AppSettings(builder.Configuration));
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
 
@@ -44,7 +43,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
         
 app.UseRequestLocalization(builder.Configuration.GetValue<string>(APPSETTINGS_CULTURE, "en-US"));
-AppSettings.Theme = builder.Configuration.GetValue(APPSETTINGS_THEME, "default");
 
 app.UseAntiforgery();
 app.MapRazorComponents<App>()

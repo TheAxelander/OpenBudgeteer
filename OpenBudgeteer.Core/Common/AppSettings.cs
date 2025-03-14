@@ -1,21 +1,26 @@
-﻿using OpenBudgeteer.Core.Common.Extensions;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace OpenBudgeteer.Core.Common;
 
-public static class AppSettings
+public class AppSettings
 {
     public enum ThemeMode { Light, Dark }
     
-    public static string Theme { get; set; } = "default";
+    private const string APPSETTINGS_THEME = "APPSETTINGS_THEME";
+    
+    public string Theme { get; set; }
 
-    public static ThemeMode Mode => Theme switch
+    public ThemeMode Mode { get; set; }
+
+    public bool IsDarkMode
     {
-        "cyborg" or 
-        "darkly" or 
-        "slate" or 
-        "solar" or 
-        "superhero" or 
-        "vapor" => ThemeMode.Dark,
-        _ => ThemeMode.Light
-    };
+        get => Mode == ThemeMode.Dark;
+        set => Mode = value ? ThemeMode.Dark : ThemeMode.Light;
+    }
+
+    public AppSettings(ConfigurationManager configuration)
+    {
+        Mode = configuration.GetValue(APPSETTINGS_THEME, "dark") == "dark" ? ThemeMode.Dark : ThemeMode.Light;
+        Theme = configuration.GetValue(APPSETTINGS_THEME, "default") ?? "default";
+    }
 }

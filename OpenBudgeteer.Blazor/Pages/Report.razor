@@ -5,125 +5,137 @@
 
 <MudGrid>
     <MudItem xs="12" sm="6">
-        <MudText Typo="Typo.h5" Align="Align.Center">Month Balances</MudText>
-        <ApexChart
-            @ref="_monthBalanceChart"
-            TItem="ReportRecord"
-            Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
-            <ApexPointSeries
-                TItem="ReportRecord"
-                Items="_apexContext.MonthBalances"
-                Name="Balance"
-                SeriesType="SeriesType.Bar"
-                XValue="i => i.Label"
-                YValue="i => i.Value"
-                DataPointMutator="ApexHelper.BalanceChartMutator"/>
-        </ApexChart>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <MudText Typo="Typo.h5" Align="Align.Center">Bank Balances</MudText>
-        <ApexChart
-            @ref="_bankBalanceChart"
-            TItem="ReportRecord"
-            Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
-            <ApexPointSeries
-                TItem="ReportRecord"
-                Items="_apexContext.BankBalances"
-                Name="Balance"
-                SeriesType="SeriesType.Area"
-                XValue="i => i.Label"
-                YValue="i => i.Value"
-                Color=@System.Drawing.Color.Green.ToHexString()/>
-        </ApexChart>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <MudText Typo="Typo.h5" Align="Align.Center">Income & Expenses per Month</MudText>
-        <ApexChart
-            @ref="_monthIncomeExpensesChart"
-            TItem="ReportRecord"
-            Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
-            <ApexPointSeries
-                TItem="ReportRecord"
-                Items="_apexContext.MonthIncome"
-                Name="Income"
-                SeriesType="SeriesType.Bar"
-                XValue="i => i.Label"
-                YValue="i => i.Value"
-                Color=@System.Drawing.Color.Green.ToHexString()/>
-            <ApexPointSeries
-                TItem="ReportRecord"
-                Items="_apexContext.MonthExpenses"
-                Name="Expenses"
-                SeriesType="SeriesType.Bar"
-                XValue="i => i.Label"
-                YValue="i => i.Value"
-                Color=@System.Drawing.Color.DarkRed.ToHexString()/>
-        </ApexChart>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <MudText Typo="Typo.h5" Align="Align.Center">Income & Expenses per Year</MudText>
-        <ApexChart
-            @ref="_yearIncomeExpensesChart"
-            TItem="ReportRecord"
-            Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
-            <ApexPointSeries
-                TItem="ReportRecord"
-                Items="_apexContext.YearIncome"
-                Name="Income"
-                SeriesType="SeriesType.Bar"
-                XValue="i => i.Label"
-                YValue="i => i.Value"
-                Color=@System.Drawing.Color.Green.ToHexString()/>
-            <ApexPointSeries
-                TItem="ReportRecord"
-                Items="_apexContext.YearExpenses"
-                Name="Expenses"
-                SeriesType="SeriesType.Bar"
-                XValue="i => i.Label"
-                YValue="i => i.Value"
-                Color=@System.Drawing.Color.DarkRed.ToHexString()/>
-        </ApexChart>
-    </MudItem>
-    <MudItem xs="12" sm="6">
-        <MudText Typo="Typo.h5" Align="Align.Center">Bucket Monthly Expenses</MudText>
-        @foreach (var chart in _monthBucketExpensesConfigsLeft)
-        {
+        <MudPaper Elevation="2" Class="pt-2 px-2">
+            <MudText Typo="Typo.h5" Align="Align.Center">Month Balances</MudText>
             <ApexChart
-                @ref="InjectMonthBucketExpensesChart"
+                @ref="_monthBalanceChart"
                 TItem="ReportRecord"
-                Title="@chart.Item1"
-                Height="150"
                 Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
                 <ApexPointSeries
                     TItem="ReportRecord"
-                    Items="chart.Item2"
+                    Items="_apexContext.MonthBalances"
+                    Name="Balance"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    DataPointMutator="ApexHelper.BalanceChartMutator"/>
+            </ApexChart>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Elevation="2" Class="pt-2 px-2">
+            <MudText Typo="Typo.h5" Align="Align.Center">Bank Balances</MudText>
+            <ApexChart
+                @ref="_bankBalanceChart"
+                TItem="ReportRecord"
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.BankBalances"
+                    Name="Balance"
+                    SeriesType="SeriesType.Area"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.Green.ToHexString()/>
+            </ApexChart>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Elevation="2" Class="pt-2 px-2">
+            <MudText Typo="Typo.h5" Align="Align.Center">Income & Expenses per Month</MudText>
+            <ApexChart
+                @ref="_monthIncomeExpensesChart"
+                TItem="ReportRecord"
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.MonthIncome"
+                    Name="Income"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.MonthExpenses"
                     Name="Expenses"
                     SeriesType="SeriesType.Bar"
                     XValue="i => i.Label"
                     YValue="i => i.Value"
                     Color=@System.Drawing.Color.DarkRed.ToHexString()/>
             </ApexChart>
-        }
+        </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="6">
-        <MudText Typo="Typo.h5" Align="Align.Center">Bucket Monthly Expenses</MudText>
-        @foreach (var chart in _monthBucketExpensesConfigsRight)
-        {
+        <MudPaper Elevation="2" Class="pt-2 px-2">
+            <MudText Typo="Typo.h5" Align="Align.Center">Income & Expenses per Year</MudText>
             <ApexChart
-                @ref="InjectMonthBucketExpensesChart"
+                @ref="_yearIncomeExpensesChart"
                 TItem="ReportRecord"
-                Title="@chart.Item1"
-                Height="150"
-                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme, Legend = new() { Show = false } })">
                 <ApexPointSeries
                     TItem="ReportRecord"
-                    Items="chart.Item2"
+                    Items="_apexContext.YearIncome"
+                    Name="Income"
+                    SeriesType="SeriesType.Bar"
+                    XValue="i => i.Label"
+                    YValue="i => i.Value"
+                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                <ApexPointSeries
+                    TItem="ReportRecord"
+                    Items="_apexContext.YearExpenses"
                     Name="Expenses"
                     SeriesType="SeriesType.Bar"
                     XValue="i => i.Label"
                     YValue="i => i.Value"
                     Color=@System.Drawing.Color.DarkRed.ToHexString()/>
             </ApexChart>
-        }
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Elevation="2" Class="pt-2 px-2">
+            <MudText Typo="Typo.h5" Align="Align.Center">Bucket Monthly Expenses</MudText>
+            @foreach (var chart in _monthBucketExpensesConfigsLeft)
+            {
+                <ApexChart
+                    @ref="InjectMonthBucketExpensesChart"
+                    TItem="ReportRecord"
+                    Title="@chart.Item1"
+                    Height="150"
+                    Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                    <ApexPointSeries
+                        TItem="ReportRecord"
+                        Items="chart.Item2"
+                        Name="Expenses"
+                        SeriesType="SeriesType.Bar"
+                        XValue="i => i.Label"
+                        YValue="i => i.Value"
+                        Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                </ApexChart>
+            }
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Elevation="2" Class="pt-2 px-2">
+            <MudText Typo="Typo.h5" Align="Align.Center">Bucket Monthly Expenses</MudText>
+            @foreach (var chart in _monthBucketExpensesConfigsRight)
+            {
+                <ApexChart
+                    @ref="InjectMonthBucketExpensesChart"
+                    TItem="ReportRecord"
+                    Title="@chart.Item1"
+                    Height="150"
+                    Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                    <ApexPointSeries
+                        TItem="ReportRecord"
+                        Items="chart.Item2"
+                        Name="Expenses"
+                        SeriesType="SeriesType.Bar"
+                        XValue="i => i.Label"
+                        YValue="i => i.Value"
+                        Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                </ApexChart>
+            }
+        </MudPaper>
     </MudItem>
 </MudGrid>

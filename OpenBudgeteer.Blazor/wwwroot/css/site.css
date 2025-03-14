@@ -54,3 +54,9 @@
 #components-reconnect-modal.components-reconnect-rejected {
     display: block;
 }
+
+/* Style overwrites
+-------------------------------------------------- */
+.apexcharts-svg {
+    background: transparent!important;
+}

@@ -14,6 +14,7 @@ namespace OpenBudgeteer.Blazor.Pages;
 public partial class Report : ComponentBase
 {
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
+    [Inject] private AppSettings AppSettings { get; set; } = null!;
     
     private ApexChart<ReportRecord>? _monthBalanceChart;
     private ApexChart<ReportRecord>? _bankBalanceChart;
