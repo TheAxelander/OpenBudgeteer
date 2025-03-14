@@ -20,6 +20,7 @@
     * Column mapping is now restored from the Import Profile in case the Header Row index had to be changed
   * Misc:
     * Various table views are now sortable and filterable
+    * Quick selection for Buckets [#193](https://github.com/TheAxelander/OpenBudgeteer/issues/193)
     * Handling of Color themes changed, that also means Bootswatch themes are no longer compatible
     * New UI to display unexpected Exceptions
     * Reworked Reconnect message which is now displayed in the App Header
