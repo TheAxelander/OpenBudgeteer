@@ -1,6 +1,6 @@
 using System.Drawing;
 
-namespace OpenBudgeteer.Blazor.Common;
+namespace OpenBudgeteer.Blazor.Common.Extensions;
 
 public static class ColorExtensions
 {

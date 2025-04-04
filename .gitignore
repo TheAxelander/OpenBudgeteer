@@ -10,6 +10,7 @@
 *.DS_Store
 OpenBudgeteer.Blazor/appsettings.Development.json
 OpenBudgeteer.API/appsettings.Development.json
+.env
 
 # User-specific files
 *.rsuser

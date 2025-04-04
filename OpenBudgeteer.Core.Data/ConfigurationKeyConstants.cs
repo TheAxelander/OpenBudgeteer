@@ -9,6 +9,15 @@ public static class ConfigurationKeyConstants
     public const string CONNECTION_PASSWORD = "CONNECTION_PASSWORD";
     public const string CONNECTION_ROOT_PASSWORD = "CONNECTION_ROOT_PASSWORD";
     public const string CONNECTION_PROVIDER = "CONNECTION_PROVIDER";
+    
+    public const string CONNECTION_REDIS_SERVER = "CONNECTION_REDIS_SERVER";
+    public const string CONNECTION_REDIS_PORT = "CONNECTION_REDIS_PORT";
+    public const string CONNECTION_REDIS_USER = "CONNECTION_REDIS_USER";
+    public const string CONNECTION_REDIS_PASSWORD = "CONNECTION_REDIS_PASSWORD";
+    public const string CONNECTION_REDIS_PREFIX = "CONNECTION_REDIS_PREFIX";
+
+    public const string APPSETTINGS_CULTURE = "APPSETTINGS_CULTURE";
+    public const string APPSETTINGS_THEME = "APPSETTINGS_CULTURE";
 
     public const string PROVIDER_MYSQL = "MYSQL";
     public const string PROVIDER_MARIADB = "MARIADB";

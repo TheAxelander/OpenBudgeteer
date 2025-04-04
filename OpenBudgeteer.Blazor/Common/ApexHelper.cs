@@ -1,4 +1,5 @@
 using ApexCharts;
+using OpenBudgeteer.Blazor.Common.Extensions;
 
 namespace OpenBudgeteer.Blazor.Common;
 

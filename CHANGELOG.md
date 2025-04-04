@@ -26,7 +26,9 @@
     * Reworked Reconnect message which is now displayed in the App Header
 * Improved database connection handling and logging on application start
 * Add Info Page for database connection details and 3rd party software licenses
+* Add Settings Page to set UI colors (replacement for Bootswatch themes)
 * Coloring amounts on Bucket Page [#300](https://github.com/TheAxelander/OpenBudgeteer/pull/300) [#293](https://github.com/TheAxelander/OpenBudgeteer/issues/293) Thanks [YannisAm](https://github.com/YannisAm)
+* It's now possible to use a `.env` file to set environment variables, please check documentation for further details 
 
 ### :x: Removed
 
@@ -34,6 +36,7 @@
 
 ### :warning: Important notice
 
+* Requires now a Redis container, please check documentation for further details
 * Switched License from MIT to GNU Affero General Public License v3.0
 
 ### :warning: Known issues

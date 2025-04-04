@@ -1,11 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Blazor.Common.Services
 @using OpenBudgeteer.Core.Data.Entities
 @inject DbContextOptions<DatabaseContext> DbContextOptions
-@inject AppSettings AppSettings
+@inject MudThemeService MudThemeService
 
-<MudThemeProvider Theme="_myCustomTheme" @bind-IsDarkMode="@AppSettings.IsDarkMode"/>
+<MudThemeProvider Theme="MudThemeService.CurrentTheme" @bind-IsDarkMode="@MudThemeService.IsDarkMode"/>
 <MudPopoverProvider/>
 <MudDialogProvider
     BackdropClick="false"
@@ -30,7 +30,6 @@
             </MudAlert>
         </div>
         <MudSpacer/>
-        <MudToggleIconButton @bind-Toggled="@AppSettings.IsDarkMode" Icon="@Icons.Material.Filled.LightMode" Color="Color.Inherit" ToggledIcon="@Icons.Material.Filled.DarkMode"/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer" Target="_blank"/>
         <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Color="Color.Inherit" Href="https://theaxelander.github.io/" Target="_blank"/>
         <MudText Class="ms-2">@CurrentDatabase</MudText>
@@ -76,17 +75,13 @@
     private ErrorBoundary? _errorBoundary;
     bool _errorMessageExpanded;
 
-    private readonly MudTheme _myCustomTheme = new()
+    protected override async Task OnInitializedAsync()
     {
-        Typography = new()
-        {
-            Button = new ButtonTypography()
-            {
-                TextTransform = "none"
-            }
-        }
-    };
-    
+        await MudThemeService.InitializeAsync();
+        MudThemeService.ThemeChanged += (_, _) => StateHasChanged();
+        StateHasChanged();
+    }
+
     protected override void OnParametersSet()
     {
         _errorBoundary?.Recover();
@@ -96,5 +91,4 @@
     {
         _drawerOpen = !_drawerOpen;
     }
-
 }

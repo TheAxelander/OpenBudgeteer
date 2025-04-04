@@ -24,46 +24,4 @@ Within the [Documentation](https://theaxelander.github.io) you will find all the
 
 ## Quick Start
 
-For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB use below docker compose.
-
-```yml
-services:
-  openbudgeteer:
-    image: axelander/openbudgeteer:latest
-    #image: axelander/openbudgeteer:pre-release
-    #image: axelander/openbudgeteer:1.7
-    container_name: openbudgeteer
-    ports:
-      - 8080:8080
-    environment:
-      - CONNECTION_PROVIDER=mariadb
-      - CONNECTION_SERVER=openbudgeteer-mysql
-      - CONNECTION_PORT=3306
-      - CONNECTION_DATABASE=openbudgeteer
-      - CONNECTION_USER=openbudgeteer
-      - CONNECTION_PASSWORD=openbudgeteer
-      - APPSETTINGS_CULTURE=en-US
-      - APPSETTINGS_THEME=dark
-    depends_on:
-      - mariadb
-      
-  mariadb:
-    image: mariadb
-    container_name: openbudgeteer-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: myRootPassword
-    volumes:
-      - data:/var/lib/mysql
-      
-  # optional    
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: openbudgeteer-phpmyadmin
-    links:
-      - mariadb:db
-    ports:
-      - 8081:80
-        
-volumes:
-  data:
-```
+For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB see [here](https://theaxelander.github.io/latest/quick-start/).

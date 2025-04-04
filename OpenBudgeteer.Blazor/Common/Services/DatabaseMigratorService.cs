@@ -6,16 +6,16 @@ using Microsoft.Extensions.Hosting;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Initialization;
 
-namespace OpenBudgeteer.Blazor.Common;
+namespace OpenBudgeteer.Blazor.Common.Services;
 
-public class HostedDatabaseMigrator : IHostedService
+public class DatabaseMigratorService : IHostedService
 {
     private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
     private readonly IConfiguration _configuration;
     
     private const string APPSETTINGS_DEMO_DATA = "APPSETTINGS_DEMO_DATA";
 
-    public HostedDatabaseMigrator(DbContextOptions<DatabaseContext> dbContextOptions, IConfiguration configuration)
+    public DatabaseMigratorService(DbContextOptions<DatabaseContext> dbContextOptions, IConfiguration configuration)
     {
         _dbContextOptions = dbContextOptions;
         _configuration = configuration;

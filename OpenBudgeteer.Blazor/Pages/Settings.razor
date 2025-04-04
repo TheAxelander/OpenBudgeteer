@@ -1,0 +1,66 @@
+@page "/settings"
+
+<MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ApplyThemeAsync">Apply Changes</MudButton>
+    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="RestoreThemeAsync">Restore Theme</MudButton>
+    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="RestoreDefaultThemeAsync">Restore Default</MudButton>
+    <MudSwitch @bind-Value="_dataContext.UseDarkTheme" Color="Color.Primary" Label="Use Dark Theme"/>
+    <MudSwitch @bind-Value="_showAll" Color="Color.Primary" Label="Show all"/>
+</MudStack>
+
+<MudGrid>
+    <MudItem sm="12" md="4">
+        <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>Theme Colors</b></MudText>
+        <MudThemeColorItem Name="Primary" @bind-Value="@_dataContext.CurrentPalette.Primary" ColorPickerView="ColorPickerView.Spectrum"/>
+        @if (_showAll)
+        {
+            <MudThemeColorItem Name="Secondary" @bind-Value="@_dataContext.CurrentPalette.Secondary" ColorPickerView="ColorPickerView.Spectrum"/>
+            <MudThemeColorItem Name="Tertiary" @bind-Value="@_dataContext.CurrentPalette.Tertiary" ColorPickerView="ColorPickerView.Spectrum"/>
+        }
+        <MudThemeColorItem Name="Info" @bind-Value="@_dataContext.CurrentPalette.Info" ColorPickerView="ColorPickerView.Spectrum"/>
+        <MudThemeColorItem Name="Success" @bind-Value="@_dataContext.CurrentPalette.Success" ColorPickerView="ColorPickerView.Spectrum"/>
+        <MudThemeColorItem Name="Warning" @bind-Value="@_dataContext.CurrentPalette.Warning" ColorPickerView="ColorPickerView.Spectrum"/>
+        <MudThemeColorItem Name="Error" @bind-Value="@_dataContext.CurrentPalette.Error" ColorPickerView="ColorPickerView.Spectrum"/>
+        @if (_showAll)
+        {
+            <MudThemeColorItem Name="Dark" @bind-Value="@_dataContext.CurrentPalette.Dark" ColorPickerView="ColorPickerView.Spectrum"/>
+        }
+    </MudItem>
+    @if (_showAll)
+    {
+        <MudItem sm="12" md="4">
+            <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>Components</b></MudText>
+            <MudThemeColorItem Name="Appbar Text" @bind-Value="@_dataContext.CurrentPalette.AppbarText" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Appbar Background" @bind-Value="@_dataContext.CurrentPalette.AppbarBackground" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Drawer Text" @bind-Value="@_dataContext.CurrentPalette.DrawerText" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Drawer Icons" @bind-Value="@_dataContext.CurrentPalette.DrawerIcon" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Drawer Background" @bind-Value="@_dataContext.CurrentPalette.DrawerBackground" ColorPickerView="ColorPickerView.Spectrum" />
+        </MudItem>
+    }
+    <MudItem sm="12" md="4">
+        <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>General</b></MudText>
+        <MudThemeColorItem Name="Surface" @bind-Value="@_dataContext.CurrentPalette.Surface" ColorPickerView="ColorPickerView.Spectrum" />
+        <MudThemeColorItem Name="Background" @bind-Value="@_dataContext.CurrentPalette.Background" ColorPickerView="ColorPickerView.Spectrum" />
+        @if (_showAll)
+        {
+            <MudThemeColorItem Name="Background Gray" @bind-Value="@_dataContext.CurrentPalette.BackgroundGray" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Lines Default" @bind-Value="@_dataContext.CurrentPalette.LinesDefault" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Lines Inputs" @bind-Value="@_dataContext.CurrentPalette.LinesInputs" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Divider" @bind-Value="@_dataContext.CurrentPalette.Divider" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Divider Light" @bind-Value="@_dataContext.CurrentPalette.DividerLight" ColorPickerView="ColorPickerView.Spectrum" />
+        }
+    </MudItem>
+    <MudItem sm="12" md="4">
+        <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>Text & Actions</b></MudText>
+        <MudThemeColorItem Name="Text Primary" @bind-Value="@_dataContext.CurrentPalette.TextPrimary" ColorPickerView="ColorPickerView.Spectrum" />
+        <MudThemeColorItem Name="Text Secondary" @bind-Value="@_dataContext.CurrentPalette.TextSecondary" ColorPickerView="ColorPickerView.Spectrum" />
+        @if (_showAll)
+        {
+            <MudThemeColorItem Name="Text Disabled" @bind-Value="@_dataContext.CurrentPalette.TextDisabled" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Action Default" @bind-Value="@_dataContext.CurrentPalette.ActionDefault" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Action Disabled" @bind-Value="@_dataContext.CurrentPalette.ActionDisabled" ColorPickerView="ColorPickerView.Spectrum" />
+            <MudThemeColorItem Name="Disabled Background" @bind-Value="@_dataContext.CurrentPalette.ActionDisabledBackground" ColorPickerView="ColorPickerView.Spectrum" />
+        }
+        <MudThemeColorItem Name="Surface" @bind-Value="@_dataContext.CurrentPalette.Surface" ColorPickerView="ColorPickerView.Spectrum" />
+    </MudItem>
+</MudGrid>

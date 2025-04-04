@@ -3,12 +3,14 @@
 @using OpenBudgeteer.Blazor.ViewModels
 @using System.Globalization
 @using OpenBudgeteer.Blazor.Common.CustomMudFilter
+@using OpenBudgeteer.Blazor.Common.Extensions
+@using OpenBudgeteer.Blazor.Common.Services
 @using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
-@inject AppSettings AppSettings
+@inject MudThemeService MudThemeService
 
 <MudDialog Class="dialog-background">
     <TitleContent>
@@ -197,7 +199,7 @@
     
     private Theme BaseTheme => new()
     {
-        Mode = AppSettings.Mode == AppSettings.ThemeMode.Dark ? Mode.Dark : Mode.Light, 
+        Mode = MudThemeService.IsDarkMode ? Mode.Dark : Mode.Light, 
         Palette = PaletteType.Palette1
     };
     

@@ -3,9 +3,11 @@
     applies to: 
     - aspnet-api-versioning, Copyright (c) .NET Foundation and contributors
     - Blazor-ApexCharts, Copyright (c) 2020 Joakim Dangården
+    - dotnet-env, Copyright (c) 2016 Toni Solarin-Sodara
     - efcore, Copyright (c) .NET Foundation and Contributors
     - Pomelo.EntityFrameworkCore.MySql, Copyright (c) 2017 Pomelo Foundation
     - MudBlazor, Copyright (c) 2021 MudBlazor
+    - StackExchange.Redis, Copyright (c) 2014 Stack Exchange
     - Swashbuckle.AspNetCore, Copyright (c) 2016 Richard Morris
     - TinyCsvParser, Copyright (c) Philipp Wagner and Contributors   
     - .NET runtime, Copyright (c) .NET Foundation and Contributors
