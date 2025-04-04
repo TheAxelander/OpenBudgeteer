@@ -11,16 +11,17 @@
         <MudText Typo="Typo.h6">Select Bucket</MudText>
     </TitleContent>
     <DialogContent>
-        <MudAutocomplete
-            T="BucketViewModel"
-            SearchFunc="BucketQuickSelectSearchFunction"
-            AutoFocus="true"
-            Class="mb-4"
-            Dense="true"
-            Label="Bucket quick select"
-            Margin="Margin.Dense"
-            Variant="Variant.Outlined"
-            ValueChanged="BucketQuickSelectChanged"/>
+        <MudFocusTrap DefaultFocus="DefaultFocus.FirstChild">
+            <MudAutocomplete
+                T="BucketViewModel"
+                SearchFunc="BucketQuickSelectSearchFunction"
+                Class="mb-4"
+                Dense="true"
+                Label="Bucket quick select"
+                Margin="Margin.Dense"
+                Variant="Variant.Outlined"
+                ValueChanged="BucketQuickSelectChanged"/>
+        </MudFocusTrap>
         <MudTable
             Items="@DataContext.LoadedBuckets"
             Dense="true"

@@ -84,7 +84,7 @@ public class GenericBankTransactionService : GenericBaseService<BankTransaction>
                     throw new EntityUpdateException("Unable to delete old Bucket Assignments of that Transaction");
             }
                 
-            // Reset all Guid for re-creation
+            // Ensure that all BudgetedTransaction Guids of incoming entity are empty to enable their (re)creation
             foreach (var budgetedTransaction in entity.BudgetedTransactions)
             {
                 budgetedTransaction.Id = Guid.Empty;

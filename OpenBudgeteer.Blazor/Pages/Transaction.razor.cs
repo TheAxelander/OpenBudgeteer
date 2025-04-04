@@ -74,6 +74,8 @@ public partial class Transaction : ComponentBase
             .DistinctBy(i => i.SelectedBucketId)
             .OrderBy(i => i.SelectedBucketName)
             .ToList();
+        _bucketMudFilter.AvailableItems.Insert(0, PartialBucketViewModel.CreateNoSelection(ServiceManager));
+        
         
         _accountMudFilter.ResetFilter();
         _dateOnlyMudFilter.ResetFilter();
