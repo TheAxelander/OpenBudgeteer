@@ -42,6 +42,12 @@ namespace OpenBudgeteer.Core.Data.MySql.Migrations
                 nullable: false,
                 oldClrType: typeof(DateTime),
                 oldType: "datetime(6)");
+            
+           migrationBuilder.Sql(@"
+               UPDATE Bucket
+               SET IsInactiveFrom = '9999-12-31'
+               WHERE IsInactiveFrom > '9999-12-31';
+           ");
 
             migrationBuilder.AlterColumn<DateOnly>(
                 name: "ValidFrom",
