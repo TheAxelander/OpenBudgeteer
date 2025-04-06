@@ -45,7 +45,8 @@
     MultiSelection="true"
     ReadOnly="@(!_massEditEnabled)"
     SortMode="SortMode.Multiple"
-    SelectedItemsChanged="Transactions_SelectionChanged">
+    SelectedItemsChanged="Transactions_SelectionChanged"
+    QuickFilter="Transactions_QuickFilter">
     <Columns>
         <SelectColumn T="TransactionViewModel"/>
         <PropertyColumn Property="x => x.TransactionDate" Title="Date">
