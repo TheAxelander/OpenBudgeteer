@@ -36,6 +36,21 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
         }
     }
     
+    public IEnumerable<BudgetedTransaction> GetAllForReporting(DateOnly periodStart, DateOnly periodEnd)
+    {
+        try
+        {
+            using var dbContext = new DatabaseContext(_dbContextOptions);
+            var baseService = CreateBaseService(dbContext);
+            return baseService.GetAllForReporting(periodStart, periodEnd);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw new Exception($"Error on querying database: {e.Message}");
+        }
+    }
+    
     public IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId)
     {
         return GetAllFromTransaction(transactionId, DateOnly.MinValue, DateOnly.MaxValue);

@@ -69,8 +69,7 @@ public abstract class ReportPageViewModel : ViewModelBase
             var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
 
             var transactions = ServiceManager.BudgetedTransactionService
-                .GetAll(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
-                .Where(t => !t.Bucket.IsHiddenFromSummaries)
+                .GetAllForReporting(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
                 .ToList();
             var monthBalances = transactions
                 .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
@@ -105,8 +104,7 @@ public abstract class ReportPageViewModel : ViewModelBase
 
             // Get all Transactions which are not marked as "Transfer"
             var transactions = ServiceManager.BudgetedTransactionService
-                .GetAll(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
-                .Where(t => !t.Bucket.IsHiddenFromSummaries)
+                .GetAllForReporting(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
                 .ToList();
 
             var monthIncomeExpenses = transactions
@@ -143,9 +141,8 @@ public abstract class ReportPageViewModel : ViewModelBase
 
             // Get all Transactions which are not marked as "Transfer"
             var transactions = ServiceManager.BudgetedTransactionService
-                    .GetAll(currentMonth.AddYears((years - 1) * -1), DateOnly.MaxValue)
-                    .Where(t => !t.Bucket.IsHiddenFromSummaries)
-                    .ToList();
+                .GetAllForReporting(currentMonth.AddYears((years - 1) * -1), DateOnly.MaxValue)
+                .ToList();
 
             var yearIncomeExpenses = transactions
                 .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, 1, 1))
@@ -214,7 +211,8 @@ public abstract class ReportPageViewModel : ViewModelBase
                          .GetActiveBuckets(DateOnly.FromDateTime(DateTime.Today))
                          .Where(i => 
                              i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
-                             i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002")))
+                             i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
+                             !i.IsHiddenFromSummaries))
             {
                 // Check on right Bucket Type
                 var latestVersion = bucket.BucketVersions!

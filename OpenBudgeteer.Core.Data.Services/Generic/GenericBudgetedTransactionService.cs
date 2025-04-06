@@ -24,6 +24,17 @@ public class GenericBudgetedTransactionService : GenericBaseService<BudgetedTran
             .ToList();
     }
     
+    public IEnumerable<BudgetedTransaction> GetAllForReporting(DateOnly periodStart, DateOnly periodEnd)
+    {
+        return _budgetedTransactionRepository
+            .AllWithTransactions()
+            .Where(i =>
+                i.Transaction.TransactionDate >= periodStart &&
+                i.Transaction.TransactionDate <= periodEnd &&
+                !i.Bucket!.IsHiddenFromSummaries)
+            .ToList();
+    }
+    
     public IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId)
     {
         return GetAllFromTransaction(transactionId, DateOnly.MinValue, DateOnly.MaxValue);

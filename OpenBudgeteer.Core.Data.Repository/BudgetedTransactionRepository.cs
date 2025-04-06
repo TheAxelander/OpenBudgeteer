@@ -21,10 +21,10 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
     public IQueryable<BudgetedTransaction> AllWithIncludedEntities() => DatabaseContext.BudgetedTransaction
         .Include(i => i.Bucket)
         .Include(i => i.Transaction)
-        .Include(i => i.Transaction.Account)
         .AsNoTracking();
     
     public IQueryable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
+        .Include(i => i.Bucket)
         .Include(i => i.Transaction)
         .Include(i => i.Transaction.Account)
         .AsNoTracking();
