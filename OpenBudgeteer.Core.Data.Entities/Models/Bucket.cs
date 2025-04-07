@@ -37,4 +37,6 @@ public class Bucket : IEntity
     public ICollection<BudgetedTransaction>? BudgetedTransactions { get; set; }
     
     public ICollection<BucketMovement>? BucketMovements { get; set; }
+
+    public bool IsHiddenFromSummaries { get; set; }
 }

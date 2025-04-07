@@ -223,8 +223,11 @@ public class BucketPageViewModel : BucketListingViewModel
                 .ToList()
                 .Sum(i => i.Amount);
 
+            // Hide transfer transactions
+            var transferDiff = ServiceManager.BudgetedTransactionService.GetAllFromBucket(new Guid("00000000-0000-0000-0000-000000000002"), DateOnly.MinValue, YearMonthViewModel.CurrentPeriod.Item2)
+                .Sum(t => t.Amount);
 
-            Budget = BankBalance - BucketGroups.Sum(i => i.TotalBalance);
+            Budget = BankBalance - transferDiff - BucketGroups.Sum(i => i.TotalBalance);
 
             PendingWant = BucketGroups.Sum(i => i.TotalWant);
             RemainingBudget = Budget - PendingWant;

@@ -24,6 +24,7 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
         .AsNoTracking();
     
     public IQueryable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
+        .Include(i => i.Bucket)
         .Include(i => i.Transaction)
         .Include(i => i.Transaction.Account)
         .AsNoTracking();

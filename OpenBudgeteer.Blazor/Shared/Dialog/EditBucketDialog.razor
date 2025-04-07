@@ -60,6 +60,10 @@
                 </MudSelect>
             </MudItem>
             <MudItem xs="12">
+                <MudCheckBox T="bool" Label="Hide assigned Transactions from Summaries and Statistics" @bind-Value="DataContext.IsHiddenFromSummaries">
+                </MudCheckBox>
+            </MudItem>
+            <MudItem xs="12">
                 <MudText Typo="Typo.subtitle1">Preview:</MudText>
                 <MudPaper 
                     Class="d-flex align-center justify-center mud-width-full bucket-indicator no-background" 

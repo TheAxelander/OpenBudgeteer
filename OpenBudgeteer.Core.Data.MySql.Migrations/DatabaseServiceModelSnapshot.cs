@@ -82,6 +82,9 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<string>("ColorCode")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsHiddenFromSummaries")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsInactive")
                         .HasColumnType("tinyint(1)");
 

@@ -2,38 +2,41 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OpenBudgeteer.Core.Data.Entities;
 
 #nullable disable
 
-namespace OpenBudgeteer.Data.Migrations
+namespace OpenBudgeteer.Core.Data.MySql.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20250201193948_BucketIsHiddenFromSummaries")]
+    partial class BucketIsHiddenFromSummaries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.3")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("AccountId");
 
                     b.Property<int>("IsActive")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -44,23 +47,23 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("TransactionId");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
                     b.Property<string>("Memo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Payee")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
-                    b.Property<DateOnly>("TransactionDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -73,32 +76,32 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("BucketId");
 
                     b.Property<Guid>("BucketGroupId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("ColorCode")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<bool>("IsHiddenFromSummaries")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsInactive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
-                    b.Property<DateOnly>("IsInactiveFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("IsInactiveFrom")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("TextColorCode")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
-                    b.Property<DateOnly>("ValidFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -111,14 +114,14 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("BucketGroupId");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Position")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -129,17 +132,17 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("BucketMovementId");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
                     b.Property<Guid>("BucketId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
-                    b.Property<DateOnly>("MovementDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("MovementDate")
+                        .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
 
@@ -152,17 +155,17 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("BucketRuleSetId");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("Priority")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("TargetBucketId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -175,32 +178,32 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("BucketVersionId");
 
                     b.Property<Guid>("BucketId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("BucketType")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("BucketTypeXParam")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("BucketTypeYParam")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateOnly>("BucketTypeZParam")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("BucketTypeZParam")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
-                    b.Property<DateOnly>("ValidFrom")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ValidFrom")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<int>("Version")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -213,17 +216,17 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("BudgetedTransactionId");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
                     b.Property<Guid>("BucketId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("TransactionId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
@@ -238,59 +241,61 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("ImportProfileId");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("AdditionalSettingAmountCleanup")
-                        .HasColumnType("boolean");
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("AdditionalSettingAmountCleanupValue")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("AdditionalSettingCreditValue")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("AmountColumnName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("CreditColumnIdentifierColumnName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("CreditColumnIdentifierValue")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("CreditColumnName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("DateFormat")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
-                    b.Property<char>("Delimiter")
-                        .HasColumnType("character(1)");
+                    b.Property<string>("Delimiter")
+                        .IsRequired()
+                        .HasColumnType("varchar(1)");
 
                     b.Property<int>("HeaderRow")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("MemoColumnName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("NumberFormat")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("PayeeColumnName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("ProfileName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
-                    b.Property<char>("TextQualifier")
-                        .HasColumnType("character(1)");
+                    b.Property<string>("TextQualifier")
+                        .IsRequired()
+                        .HasColumnType("varchar(1)");
 
                     b.Property<string>("TransactionDateColumnName")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -303,21 +308,21 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("MappingRuleId");
 
                     b.Property<Guid>("BucketRuleSetId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<int>("ComparisonField")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("ComparisonType")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("ComparisonValue")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -330,29 +335,29 @@ namespace OpenBudgeteer.Data.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
+                        .HasColumnType("char(36)")
                         .HasColumnName("TransactionId");
 
                     b.Property<Guid>("AccountId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("char(36)");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateOnly>("FirstOccurrenceDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("FirstOccurrenceDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Memo")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Payee")
-                        .HasColumnType("text");
+                        .HasColumnType("longtext");
 
                     b.Property<int>("RecurrenceAmount")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int>("RecurrenceType")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
