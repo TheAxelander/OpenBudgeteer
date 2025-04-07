@@ -130,7 +130,11 @@ public partial class Transaction : ComponentBase
     private void EditAllTransaction()
     {
         _massEditEnabled = true;
-        _dataContext.EditAllTransaction();
+        var transactionsToModify = _selectedTransactions.Count > 0 ? _selectedTransactions.ToList() : _dataContext.Transactions.ToList();
+        foreach (var transaction in transactionsToModify)
+        {
+            transaction.StartModification();
+        }
     }
 
     private async Task DeleteSelectedTransactions()
@@ -195,6 +199,16 @@ public partial class Transaction : ComponentBase
     private async Task AddRecurringTransactions()
     {
         await HandleResult(await _dataContext.AddRecurringTransactionsAsync());
+    }
+    
+    private bool Transactions_QuickFilter(TransactionViewModel transactionViewModel)
+    {
+        if (!_massEditEnabled)
+        {
+            return true;
+        }
+
+        return transactionViewModel.InModification;
     }
 
     private async Task ShowRecurringTransactionDialog()
