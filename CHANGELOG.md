@@ -6,7 +6,9 @@
   * Transaction Page:
     * Transaction creation is now happening is a separate dialog 
     * Mass Deletion of Transactions
-    * There are only two modes available: Display Mode and (Mass) Edit Mode
+    * There are only two modes available: Display Mode and Edit Mode
+      * Without any selection, all Transactions will be edited
+      * If certain Transactions are selected, only those will be considered in Edit Mode. Thanks [Lucaber](https://github.com/Lucaber)
     * It's no longer possible to change the Amount assigment if no Bucket is selected (displaying the `No Selection` Bucket)
     * Bucket split is happening automatically based on total assigned Amount
     * Rework buttons for Recurring Transaction due to sizing issues
@@ -28,6 +30,7 @@
 * Add Info Page for database connection details and 3rd party software licenses
 * Add Settings Page to set UI colors (replacement for Bootswatch themes)
 * Coloring amounts on Bucket Page [#300](https://github.com/TheAxelander/OpenBudgeteer/pull/300) [#293](https://github.com/TheAxelander/OpenBudgeteer/issues/293) Thanks [YannisAm](https://github.com/YannisAm)
+* Add option to hide Buckets from certain statistics and reports [#314](https://github.com/TheAxelander/OpenBudgeteer/pull/314) Thanks [Lucaber](https://github.com/Lucaber)
 * It's now possible to use a `.env` file to set environment variables, please check documentation for further details 
 
 ### :x: Removed
