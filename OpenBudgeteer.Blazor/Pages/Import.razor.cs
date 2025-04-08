@@ -131,13 +131,13 @@ public partial class Import : ComponentBase
             { x => x.Message, "Uploading and processing file..." },
             { x => x.IsInteractionEnabled, false }
         };
-        var dialog = DialogService.ShowAsync<InfoDialog>("Import", parameters);
+        var dialog = await DialogService.ShowAsync<InfoDialog>("Import", parameters);
         
         _selectedFileName = file.Name;
         await HandleResult(await _dataContext.HandleOpenFileAsync(file.OpenReadStream()));
         await SyncViewModelFileTextToPreviewTextAsync();
         
-        (await dialog).Close();
+        dialog.Close();
         _maxStepLevel = MaxStepLevel.Step2;
     }
 

@@ -30,10 +30,10 @@ public partial class DataConsistency : ComponentBase
             { x => x.Message, "Execute several checks on your data..." },
             { x => x.IsInteractionEnabled, false }
         };
-        var dialog = DialogService.ShowAsync<InfoDialog>("Check Data Consistency", parameters);
+        var dialog = await DialogService.ShowAsync<InfoDialog>("Check Data Consistency", parameters);
 
         await _dataContext.RunAllChecksAsync();
-        (await dialog).Close();
+        dialog.Close();
         StateHasChanged();
     }
 

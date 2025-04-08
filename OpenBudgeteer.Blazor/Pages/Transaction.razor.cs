@@ -171,11 +171,11 @@ public partial class Transaction : ComponentBase
             { x => x.Message, "Searching Buckets based on defined rules..." },
             { x => x.IsInteractionEnabled, false }
         };
-        var dialog = DialogService.ShowAsync<InfoDialog>("Propose Buckets", parameters);
+        var dialog = await DialogService.ShowAsync<InfoDialog>("Propose Buckets", parameters);
 
         await _dataContext.ProposeBuckets();
         _massEditEnabled = true;
-        (await dialog).Close();
+        dialog.Close();
     }
     
     private void Transactions_SelectionChanged(HashSet<TransactionViewModel> items)
