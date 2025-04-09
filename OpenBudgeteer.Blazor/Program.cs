@@ -32,7 +32,9 @@ builder.Services.AddHostedService<DatabaseMigratorService>(); // Run database mi
 builder.Services.AddRedis(configuration); // Check, establish and register Redis database connection 
 builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => new EFCoreServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
 builder.Services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
-builder.Services.AddScoped(x => new MudThemeService(x.GetRequiredService<RedisService>()));
+builder.Services.AddSingleton(x => new AppSettingService(x.GetRequiredService<RedisService>()));
+builder.Services.AddSingleton(x => new MudThemeService(x.GetRequiredService<RedisService>()));
+builder.Services.AddHostedService<AppInitializerHostedService>(); // Initialize and get settings from Redis
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
 
@@ -55,4 +57,3 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
-

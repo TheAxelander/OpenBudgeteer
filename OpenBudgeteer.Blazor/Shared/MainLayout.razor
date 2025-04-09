@@ -5,16 +5,15 @@
 @inject DbContextOptions<DatabaseContext> DbContextOptions
 @inject MudThemeService MudThemeService
 
-<MudThemeProvider Theme="MudThemeService.CurrentTheme" @bind-IsDarkMode="@MudThemeService.IsDarkMode"/>
+<MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
 <MudPopoverProvider/>
-<MudDialogProvider
-    BackdropClick="false"
-    CloseOnEscapeKey="false"/>
+<MudDialogProvider BackdropClick="false" CloseOnEscapeKey="false"/>
 <MudSnackbarProvider/>
 
 <MudLayout>
     <MudAppBar>
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
+        <MudImage Src="favicon.ico" Height="40" Class="ms-1 me-3 pa-1 rounded-circle" Style=@($"background-color: {AppIconBackground};")/>
         <MudText>OpenBudgeteer</MudText>
         <MudSpacer/>
         <div id="components-reconnect-modal">
@@ -35,7 +34,7 @@
         <MudText Class="ms-2">@CurrentDatabase</MudText>
         <MudText Class="ms-3 d-none d-md-block">Version: 1.10.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</MudText>
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen">
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Docked">
         <NavMenu/>
     </MudDrawer>
     <MudMainContent>
@@ -69,17 +68,16 @@
 
 @code {
 
+    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white"; 
     private string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
     private bool _drawerOpen = true;
     
     private ErrorBoundary? _errorBoundary;
     bool _errorMessageExpanded;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await MudThemeService.InitializeAsync();
-        MudThemeService.ThemeChanged += (_, _) => StateHasChanged();
-        StateHasChanged();
+        MudThemeService.ThemeChanged += async (_, _) => await InvokeAsync(StateHasChanged);
     }
 
     protected override void OnParametersSet()

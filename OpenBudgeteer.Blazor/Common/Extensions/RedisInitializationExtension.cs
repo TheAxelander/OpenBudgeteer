@@ -32,7 +32,7 @@ public static class RedisInitializationExtension
         if (!string.IsNullOrEmpty(password)) connectionString += $",password={password}";
         
         services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(connectionString));
-        services.AddScoped(x => new RedisService(x.GetRequiredService<IConnectionMultiplexer>(), prefix));
+        services.AddSingleton(x => new RedisService(x.GetRequiredService<IConnectionMultiplexer>(), prefix));
     }
     
     private static bool IsDatabaseOnline(string server, int port, int maxAttempts = 10)

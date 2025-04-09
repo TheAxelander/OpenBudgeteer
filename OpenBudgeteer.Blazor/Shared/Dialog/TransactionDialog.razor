@@ -1,12 +1,14 @@
 ﻿@using System.Globalization
 @using OpenBudgeteer.Blazor.Common
 @using OpenBudgeteer.Blazor.Common.CustomMudFilter
+@using OpenBudgeteer.Blazor.Common.Services
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.Data.Entities.Models
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using OpenBudgeteer.Core.ViewModels.Helper
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
+@inject AppSettingService AppSettingService
 
 <MudDialog Class="dialog-background">
     <TitleContent>
@@ -22,7 +24,7 @@
             FixedHeader="true"
             Hover="true"
             ReadOnly="true"
-            RowsPerPage="@PagerSize"
+            RowsPerPage="@AppSettingService.CurrentSettings.TransactionPagerSize"
             SortMode="SortMode.Multiple">
             <Columns>
                 <PropertyColumn Property="x => x.TransactionDate" Title="Date">
@@ -102,8 +104,6 @@
 
     private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter;
     private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter;
-    
-    private int PagerSize { get; set; } = 25;
 
     private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
 

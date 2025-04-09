@@ -5,12 +5,12 @@
 @using OpenBudgeteer.Blazor.Common.CustomMudFilter
 @using OpenBudgeteer.Blazor.Common.Extensions
 @using OpenBudgeteer.Blazor.Common.Services
-@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
 @inject MudThemeService MudThemeService
+@inject AppSettingService AppSettingService
 
 <MudDialog Class="dialog-background">
     <TitleContent>
@@ -30,7 +30,7 @@
                     FixedHeader="true"
                     Hover="true"
                     ReadOnly="true"
-                    RowsPerPage="@PagerSize">
+                    RowsPerPage="@AppSettingService.CurrentSettings.TransactionPagerSize">
                     <Columns>
                         <PropertyColumn Property="x => x.TransactionDate" Title="Date">
                             <FilterTemplate>
@@ -190,8 +190,6 @@
     private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter;
     private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter;
     private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter;
-    
-    private int PagerSize { get; set; } = 25;
 
     private ApexChart<ReportRecord>? _monthBalanceChart;
     private ApexChart<ReportRecord>? _monthInputOutputChart;
@@ -199,7 +197,7 @@
     
     private Theme BaseTheme => new()
     {
-        Mode = MudThemeService.IsDarkMode ? Mode.Dark : Mode.Light, 
+        Mode = MudThemeService.CurrentThemeSetting.IsDarkMode ? Mode.Dark : Mode.Light, 
         Palette = PaletteType.Palette1
     };
     

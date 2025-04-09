@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Components;
 using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Blazor.ViewModels;
-using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 
 namespace OpenBudgeteer.Blazor.Pages;
@@ -16,6 +15,7 @@ public partial class Report : ComponentBase
 {
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private AppSettingService AppSettingService { get; set; } = null!;
     
     private ApexChart<ReportRecord>? _monthBalanceChart;
     private ApexChart<ReportRecord>? _bankBalanceChart;
@@ -28,7 +28,7 @@ public partial class Report : ComponentBase
     }
     private Theme BaseTheme => new()
     {
-        Mode = MudThemeService.IsDarkMode ? Mode.Dark : Mode.Light, 
+        Mode = MudThemeService.CurrentThemeSetting.IsDarkMode ? Mode.Dark : Mode.Light, 
         Palette = PaletteType.Palette1
     };
     
@@ -42,7 +42,7 @@ public partial class Report : ComponentBase
         _monthBucketExpensesConfigsRight = new List<Tuple<string, List<ReportRecord>>>();
         _monthBucketExpensesCharts = new();
     
-        _apexContext = new ApexReportViewModel(ServiceManager);
+        _apexContext = new ApexReportViewModel(ServiceManager, AppSettingService);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

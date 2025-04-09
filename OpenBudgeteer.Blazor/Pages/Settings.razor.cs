@@ -14,13 +14,14 @@ public partial class Settings : ComponentBase
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private AppSettingService AppSettingService { get; set; } = null!;
     
     private SettingsPageViewModel _dataContext = null!;
     private bool _showAll;
 
     protected override async Task OnInitializedAsync()
     {
-        _dataContext = new SettingsPageViewModel(ServiceManager, MudThemeService);
+        _dataContext = new SettingsPageViewModel(ServiceManager, MudThemeService, AppSettingService);
         await RestoreThemeAsync();
     }
     
@@ -57,6 +58,18 @@ public partial class Settings : ComponentBase
     private async Task RestoreDefaultThemeAsync()
     {
         await _dataContext.RestoreDefaultThemeAsync();
+        StateHasChanged();
+    }
+
+    private async Task ApplySettingsAsync()
+    {
+        await HandleResult(await _dataContext.ApplySettingsAsync());
+        StateHasChanged();
+    }
+    
+    private async Task RestoreSettingsAsync()
+    {
+        await HandleResult(await _dataContext.LoadDataAsync());
         StateHasChanged();
     }
 }

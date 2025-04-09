@@ -8,38 +8,38 @@ namespace OpenBudgeteer.Blazor.Common.Services;
 
 public class MudThemeService
 {
-    public MudTheme CurrentTheme { get; private set; }
-    public bool IsDarkMode { get; set; }
-
-    public event EventHandler<MudTheme>? ThemeChanged;
+    public record MudThemeSetting(MudTheme CurrentTheme, bool IsDarkMode);
+    
+    public MudThemeSetting CurrentThemeSetting { get; private set; }
+    
+    public event EventHandler<MudThemeSetting>? ThemeChanged;
 
     private readonly RedisService _redisService;
     
-    private const string IS_DARK_MODE = "IsDarkMode";
-    private const string PALETTE_LIGHT = "PaletteLight";
-    private const string PALETTE_DARK = "PaletteDark";
+    private const string IS_DARK_MODE = "Theme:IsDarkMode";
+    private const string PALETTE_LIGHT = "Theme:PaletteLight";
+    private const string PALETTE_DARK = "Theme:PaletteDark";
     
     public MudThemeService(RedisService redisService)
     {
         _redisService = redisService;
-        CurrentTheme = new MudTheme();
+        CurrentThemeSetting = new(new MudTheme(), false);
     }
 
     public async Task InitializeAsync()
     {
-        CurrentTheme = await GetThemeAsync();
+        CurrentThemeSetting = await GetThemeAsync();
     }
     
-    public async Task<MudTheme> GetThemeAsync()
+    public async Task<MudThemeSetting> GetThemeAsync()
     {
-        var result = GetDefaultTheme();
-        
-        IsDarkMode = bool.TryParse(await _redisService.GetStringValueAsync(IS_DARK_MODE), out var parsedValue) && parsedValue;
+        var theme = GetDefaultTheme();
+        var isDarkMode = bool.TryParse(await _redisService.GetStringValueAsync(IS_DARK_MODE), out var parsedValue) && parsedValue;
 
-        await UpdatePaletteAsync(PALETTE_LIGHT, result.PaletteLight);
-        await UpdatePaletteAsync(PALETTE_DARK, result.PaletteDark); 
+        await UpdatePaletteAsync(PALETTE_LIGHT, theme.PaletteLight);
+        await UpdatePaletteAsync(PALETTE_DARK, theme.PaletteDark);
         
-        return result;
+        return new(theme, isDarkMode);
     }
 
     public MudTheme GetDefaultTheme()
@@ -143,14 +143,15 @@ public class MudThemeService
         }
     }
     
-    public async Task ApplyThemeAsync(MudTheme newTheme)
+    public async Task ApplyThemeAsync(MudThemeSetting newSetting)
     {
-        await _redisService.SetStringValueAsync(IS_DARK_MODE, IsDarkMode.ToString());
-        await _redisService.SetHashValueAsync(PALETTE_LIGHT, BuildPaletteHash(newTheme.PaletteLight, new PaletteLight()));
-        await _redisService.SetHashValueAsync(PALETTE_DARK, BuildPaletteHash(newTheme.PaletteDark, new PaletteDark()));
+        await _redisService.SetStringValueAsync(IS_DARK_MODE, newSetting.IsDarkMode.ToString());
+        await _redisService.SetHashValueAsync(PALETTE_LIGHT, BuildPaletteHash(newSetting.CurrentTheme.PaletteLight, new PaletteLight()));
+        await _redisService.SetHashValueAsync(PALETTE_DARK, BuildPaletteHash(newSetting.CurrentTheme.PaletteDark, new PaletteDark()));
         
-        CurrentTheme = newTheme;
-        ThemeChanged?.Invoke(this, CurrentTheme);
+        CurrentThemeSetting = newSetting;
+        
+        ThemeChanged?.Invoke(this, CurrentThemeSetting);
     }
     
     private Dictionary<string, string> BuildPaletteHash(Palette currentPalette, Palette defaultPalette)

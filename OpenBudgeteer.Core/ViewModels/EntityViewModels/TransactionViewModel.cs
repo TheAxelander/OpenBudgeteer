@@ -329,6 +329,19 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
         //TODO: Refactor availableAccounts to Account instead of AccountViewModel
         return await Task.Run(() => CreateFromTransaction(serviceManager, availableAccounts, availableBuckets, transaction));
     }
+    
+    /// <summary>
+    /// Initialize ViewModel for displaying the <see cref="BankTransaction"/> object without assigned Buckets.
+    /// Not to be used for any modification purposes
+    /// </summary>
+    /// <param name="serviceManager">Reference to API based services</param>
+    /// <param name="transaction">Transaction instance</param>
+    /// <returns>New ViewModel instance</returns>
+    public static TransactionViewModel CreateFromTransactionWithoutBuckets(IServiceManager serviceManager, 
+        BankTransaction transaction)
+    {
+        return new TransactionViewModel(serviceManager, null, null, transaction);
+    }
 
     /// <summary>
     /// Initialize ViewModel for displaying the <see cref="BankTransaction"/> object without assigned Buckets.
@@ -340,7 +353,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     public static async Task<TransactionViewModel> CreateFromTransactionWithoutBucketsAsync(IServiceManager serviceManager, 
         BankTransaction transaction)
     {
-        return await Task.Run(() => new TransactionViewModel(serviceManager, null, null, transaction));
+        return await Task.Run(() => CreateFromTransactionWithoutBuckets(serviceManager, transaction));
     }
 
     /// <summary>
