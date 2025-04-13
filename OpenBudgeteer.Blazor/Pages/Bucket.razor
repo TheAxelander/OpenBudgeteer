@@ -113,7 +113,14 @@
             <MudText
                 Class="px-3 bucket-indicator"
                 Style="@($"background-color: {ColorTranslator.ToHtml(context.Color)}; color: {ColorTranslator.ToHtml(context.TextColor)}")">
-                @context.Name
+                @if (context.IsInactive)
+                {
+                    @($"{context.Name} (Inactive from: {context.IsInactiveFrom.ToShortDateString()})")
+                }
+                else
+                {
+                    @context.Name
+                }
             </MudText>
         </MudTd>
         <MudTd DataLabel="Balance" Class="col-numbers" Style="@GetBalanceColor(context.Balance)">@context.Balance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
