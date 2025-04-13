@@ -53,8 +53,8 @@ public class TransactionListingViewModel : ViewModelBase
             var availableBuckets = ServiceManager.BucketService.GetActiveBuckets(_yearMonthViewModel.CurrentMonth).ToList();
             var transactionTasks = ServiceManager.BankTransactionService
                 .GetAll(
-                    _yearMonthViewModel.CurrentPeriod.Item1,
-                    _yearMonthViewModel.CurrentPeriod.Item2)
+                    _yearMonthViewModel.CurrentPeriod.StartDate,
+                    _yearMonthViewModel.CurrentPeriod.EndDate)
                 .Select(i => TransactionViewModel
                     .CreateFromTransactionAsync(ServiceManager, availableAccounts, availableBuckets, i))
                 .ToList();

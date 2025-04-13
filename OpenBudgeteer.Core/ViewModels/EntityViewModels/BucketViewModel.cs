@@ -493,7 +493,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
         
         #region Balance, In & Out
 
-        if (BucketId != default)
+        if (BucketId != Guid.Empty)
         {
             var figures = ServiceManager.BucketService.GetFigures(BucketId, _currentYearMonth);
             Balance = figures.Balance ?? 0;

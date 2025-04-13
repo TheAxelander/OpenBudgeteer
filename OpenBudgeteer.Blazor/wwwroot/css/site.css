@@ -14,15 +14,11 @@
 }
 
 .col-bucket-numbers {
-    width: 120px;
+    min-width: 120px;
 }
 
 .col-bucket-details {
-    width: 250px;
-}
-
-.col-bucket-buttons {
-    width: 180px;
+    min-width: 200px;
 }
 
 .dialog-background {

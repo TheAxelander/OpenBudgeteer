@@ -23,9 +23,11 @@
   * Misc:
     * Various table views are now sortable and filterable
     * Quick selection for Buckets [#193](https://github.com/TheAxelander/OpenBudgeteer/issues/193)
+    * Adding tooltips on some UI Elements
     * Handling of Color themes changed, that also means Bootswatch themes are no longer compatible
     * New UI to display unexpected Exceptions
     * Reworked Reconnect message which is now displayed in the App Header
+* Budget & Bank Balance calculation are now based on total values instead of individual month
 * Improved database connection handling and logging on application start
 * Add Info Page for database connection details and 3rd party software licenses
 * Add Settings Page to set UI colors (replacement for Bootswatch themes)

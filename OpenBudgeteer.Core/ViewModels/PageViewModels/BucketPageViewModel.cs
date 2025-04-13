@@ -192,8 +192,8 @@ public class BucketPageViewModel : BucketListingViewModel
         try
         {
             var buckets = new List<BucketViewModel>();
-            foreach (var bucketGroup in BucketGroups.Where(i => 
-                         i.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001")))
+            foreach (var bucketGroup in BucketGroups
+                         .Where(i => i.BucketGroupId != Guid.Parse("00000000-0000-0000-0000-000000000001")))
             {
                 bucketGroup.TotalBalance = bucketGroup.Buckets.Sum(i => i.Balance);
                 bucketGroup.TotalWant = bucketGroup.Buckets.Where(i => i.Want > 0).Sum(i => i.Want);
@@ -205,8 +205,8 @@ public class BucketPageViewModel : BucketListingViewModel
             // Get all Transactions which are not marked as "Transfer" for current YearMonth
             var results = ServiceManager.BudgetedTransactionService
                 .GetAllNonTransfer(
-                    YearMonthViewModel.CurrentPeriod.Item1, 
-                    YearMonthViewModel.CurrentPeriod.Item2)
+                    YearMonthViewModel.CurrentPeriod.StartDate, 
+                    YearMonthViewModel.CurrentPeriod.EndDate)
                 .ToList();
             
             Income = results
@@ -219,16 +219,19 @@ public class BucketPageViewModel : BucketListingViewModel
 
             MonthBalance = Income + Expenses;
             BankBalance = ServiceManager.BankTransactionService
-                .GetAll(DateOnly.MinValue, YearMonthViewModel.CurrentPeriod.Item2)
-                .ToList()
+                .GetAll()
                 .Sum(i => i.Amount);
 
-            // Hide transfer transactions
-            var transferDiff = ServiceManager.BudgetedTransactionService.GetAllFromBucket(new Guid("00000000-0000-0000-0000-000000000002"), DateOnly.MinValue, YearMonthViewModel.CurrentPeriod.Item2)
-                .Sum(t => t.Amount);
-
-            Budget = BankBalance - transferDiff - BucketGroups.Sum(i => i.TotalBalance);
-
+            var sumOfAllExpenses = ServiceManager.BudgetedTransactionService
+                .GetAll(DateOnly.MinValue, DateOnly.MaxValue) // Transfers should equal to 0 here
+                .Where(i => i.BucketId != new Guid("00000000-0000-0000-0000-000000000001")) // Exclude Income
+                .Sum(i => i.Amount);
+            var sumOfAllMovements = ServiceManager.BucketMovementService
+                .GetAll()
+                .Sum(i => i.Amount);
+            var totalBucketBalance = sumOfAllExpenses + sumOfAllMovements;
+            Budget = BankBalance - totalBucketBalance;
+            
             PendingWant = BucketGroups.Sum(i => i.TotalWant);
             RemainingBudget = Budget - PendingWant;
             NegativeBucketBalance = buckets

@@ -6,30 +6,34 @@
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
 
-<MudStack Row Justify="Justify.SpaceBetween" Class="mb-2">
+<MudStack Row Spacing="2" Class="mb-2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
     @if (_massEditEnabled)
     {
-        <MudStack Row Spacing="1">
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SaveAllTransaction">Save all</MudButton>
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelAllTransaction">Cancel all</MudButton>
-        </MudStack>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SaveAllTransaction">Save all</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelAllTransaction">Cancel all</MudButton>
     }
     else
     {
-        <MudStack Row Spacing="1">
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowCreateTransactionDialog">Create Transaction</MudButton>
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="EditAllTransaction">Edit Mode</MudButton>
-            @if (_selectedTransactions.Count > 0)
-            {
-                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedTransactions">Delete @_selectedTransactions.Count Selected</MudButton>
-            }
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ProposeBucketsAsync">Propose Buckets</MudButton>
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="AddRecurringTransactions">Add Recurring Transactions</MudButton>
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowRecurringTransactionDialog">Manage Recurring Transactions</MudButton>
-        </MudStack>
-        <MudStack Row Spacing="3" AlignItems="AlignItems.Center">
-            <YearMonthSelector Class="mb-2" DataContext="YearMonthDataContext"/>
-        </MudStack>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowCreateTransactionDialog">Create Transaction</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="EditAllTransaction">Edit Mode</MudButton>
+        @if (_selectedTransactions.Count > 0)
+        {
+            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedTransactions">Delete @_selectedTransactions.Count Selected</MudButton>
+        }
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ProposeBucketsAsync">Propose Buckets</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="AddRecurringTransactions">Add Recurring Transactions</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowRecurringTransactionDialog">Manage Recurring Transactions</MudButton>
+        <MudSpacer/>
+        <MudTooltip RootClass="d-flex align-center">
+            <ChildContent>
+                <MudIcon Icon="@Icons.Material.Outlined.Info"/>
+            </ChildContent>
+            <TooltipContent>
+                <MudText Typo="Typo.body2" Style="font-weight: bold">Press Shift + move the mouse wheel</MudText>
+                <MudText Typo="Typo.body2" Style="font-weight: bold">to scroll horizontally in below table</MudText>
+            </TooltipContent>
+        </MudTooltip>
+        <YearMonthSelector DataContext="YearMonthDataContext"/>
     }
 </MudStack>
 

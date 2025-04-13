@@ -2,7 +2,7 @@
 
 <MudTabs Elevation="2" Rounded PanelClass="pa-4">
     <MudTabPanel Text="Theme" Icon="@Icons.Material.Filled.ColorLens">
-        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+        <MudStack Row Spacing="2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ApplyThemeAsync">Apply Changes</MudButton>
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="RestoreThemeAsync">Restore Theme</MudButton>
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="RestoreDefaultThemeAsync">Restore Default</MudButton>
@@ -68,7 +68,7 @@
         </MudGrid>
     </MudTabPanel>
     <MudTabPanel Text="Misc" Icon="@Icons.Material.Filled.Settings">
-        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+        <MudStack Row Spacing="3" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ApplySettingsAsync">Apply Changes</MudButton>
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="RestoreSettingsAsync">Cancel</MudButton>
         </MudStack>

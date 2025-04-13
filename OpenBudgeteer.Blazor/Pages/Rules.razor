@@ -6,11 +6,11 @@
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
 
-<MudStack Row Spacing="1">
-    <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="() => ShowEditRuleSetDialog(null)">Create Rule</MudButton>
+<MudStack Row Spacing="2" Class="mb-2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="() => ShowEditRuleSetDialog(null)">Create Rule</MudButton>
     @if (_selectedRuleSets.Count > 0)
     {
-        <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedRuleSets">Delete @_selectedRuleSets.Count Selected</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedRuleSets">Delete @_selectedRuleSets.Count Selected</MudButton>
     }
 </MudStack>
 

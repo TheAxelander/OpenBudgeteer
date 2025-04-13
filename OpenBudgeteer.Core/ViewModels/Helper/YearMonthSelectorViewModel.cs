@@ -7,6 +7,8 @@ namespace OpenBudgeteer.Core.ViewModels.Helper;
 
 public class YearMonthSelectorViewModel : ViewModelBase
 {
+    public record DateRange(DateOnly StartDate, DateOnly EndDate);
+    
     private int _selectedMonth;
     /// <summary>
     /// Number of the current month
@@ -52,7 +54,7 @@ public class YearMonthSelectorViewModel : ViewModelBase
     /// <summary>
     /// Returns the first and last day as <see cref="DateTime"/> based on <see cref="SelectedYear"/> and <see cref="SelectedMonth"/>
     /// </summary>
-    public Tuple<DateOnly, DateOnly> CurrentPeriod => new(
+    public DateRange CurrentPeriod => new(
         CurrentMonth,
         CurrentMonth.AddMonths(1).AddDays(-1)
     );
