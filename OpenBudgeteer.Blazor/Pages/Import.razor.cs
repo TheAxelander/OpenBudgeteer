@@ -192,7 +192,7 @@ public partial class Import : ComponentBase
             {
                 { x => x.Title, "Import" },
                 { x => x.Message, "Profile has been created." },
-                { x => x.IsInteractionEnabled, false }
+                { x => x.IsInteractionEnabled, true }
             };
             await DialogService.ShowAsync<InfoDialog>("Import", parameters);
         }
@@ -212,7 +212,7 @@ public partial class Import : ComponentBase
             {
                 { x => x.Title, "Import" },
                 { x => x.Message, "Changes for Profile have been saved." },
-                { x => x.IsInteractionEnabled, false }
+                { x => x.IsInteractionEnabled, true }
             };
             await DialogService.ShowAsync<InfoDialog>("Import", parameters);
         }
