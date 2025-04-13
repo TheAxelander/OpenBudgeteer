@@ -74,6 +74,13 @@
             <MudItem xs="12">
                 <MudTextField Label="Notes:" @bind-Value="DataContext.BucketVersion.Notes" Lines="5"/>
             </MudItem>
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
+                    @(DataContext.BucketId == Guid.Empty
+                        ? "Bucket will be valid from the currently selected month."
+                        : "Changes will apply from the currently selected month.")
+                </MudAlert>
+            </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>

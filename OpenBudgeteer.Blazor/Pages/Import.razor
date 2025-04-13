@@ -85,6 +85,9 @@
             Completed="@_maxStepLevel.In(MaxStepLevel.Step4)"
             Disabled="@_maxStepLevel.In(MaxStepLevel.Step1, MaxStepLevel.Step2)">
             <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Column Mapping:</MudText>
+                </MudItem>
                 <MudItem xs="6" sm="3">
                     <MudSelect T="string" Label="Transaction Date:" @bind-Value="_dataContext.ModifiedImportProfile.TransactionDateColumnName">
                         @foreach (var column in _dataContext.IdentifiedColumns)

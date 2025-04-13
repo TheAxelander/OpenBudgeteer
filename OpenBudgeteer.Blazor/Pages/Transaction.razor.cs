@@ -23,7 +23,7 @@ public partial class Transaction : ComponentBase
     [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
 
     private TransactionPageViewModel _dataContext = null!;
-    private bool _massEditEnabled;
+    private bool _isEditModeEnabled;
     
     private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter;
     private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter;
@@ -127,10 +127,12 @@ public partial class Transaction : ComponentBase
         if (reloadRequired) await ReloadDataContext();
     }
 
-    private void EditAllTransaction()
+    private void SwitchToEditMode()
     {
-        _massEditEnabled = true;
-        var transactionsToModify = _selectedTransactions.Count > 0 ? _selectedTransactions.ToList() : _dataContext.Transactions.ToList();
+        _isEditModeEnabled = true;
+        var transactionsToModify = _selectedTransactions.Count > 0 
+            ? _selectedTransactions.ToList() 
+            : _dataContext.Transactions.ToList();
         foreach (var transaction in transactionsToModify)
         {
             transaction.StartModification();
@@ -174,7 +176,7 @@ public partial class Transaction : ComponentBase
         var dialog = await DialogService.ShowAsync<InfoDialog>("Propose Buckets", parameters);
 
         await _dataContext.ProposeBuckets();
-        _massEditEnabled = true;
+        _isEditModeEnabled = true;
         dialog.Close();
     }
     
@@ -185,13 +187,13 @@ public partial class Transaction : ComponentBase
 
     private async Task SaveAllTransaction()
     {
-        _massEditEnabled = false;
+        _isEditModeEnabled = false;
         await HandleResult(_dataContext.SaveAllTransaction());
     }
 
     private async Task CancelAllTransaction()
     {
-        _massEditEnabled = false;
+        _isEditModeEnabled = false;
         await ReloadDataContext();
         StateHasChanged();
     }
@@ -203,11 +205,8 @@ public partial class Transaction : ComponentBase
     
     private bool Transactions_QuickFilter(TransactionViewModel transactionViewModel)
     {
-        if (!_massEditEnabled)
-        {
-            return true;
-        }
-
+        if (!_isEditModeEnabled) return true; // Display all items if Edit Mode is not enabled 
+        
         return transactionViewModel.InModification;
     }
 

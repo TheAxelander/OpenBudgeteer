@@ -585,12 +585,18 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
         }
     }
 
+    /// <summary>
+    /// Marks the ViewModel to be in modification
+    /// </summary>
     public void StartModification()
     {
         _oldTransactionViewModelItem = new TransactionViewModel(this);
         InModification = true;
     }
 
+    /// <summary>
+    /// Marks the ViewModel to be no longer in modification and reset all values
+    /// </summary>
     public void CancelModification()
     {
         if (_oldTransactionViewModelItem is null) return;

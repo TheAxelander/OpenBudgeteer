@@ -7,7 +7,7 @@
 @using Size = MudBlazor.Size
 
 <MudStack Row Spacing="2" Class="mb-2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-    @if (_massEditEnabled)
+    @if (_isEditModeEnabled)
     {
         <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SaveAllTransaction">Save all</MudButton>
         <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelAllTransaction">Cancel all</MudButton>
@@ -15,7 +15,7 @@
     else
     {
         <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowCreateTransactionDialog">Create Transaction</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="EditAllTransaction">Edit Mode</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SwitchToEditMode">Edit @(_selectedTransactions.Count == 0 ? "all" : $"{_selectedTransactions.Count} Selected")</MudButton>
         @if (_selectedTransactions.Count > 0)
         {
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedTransactions">Delete @_selectedTransactions.Count Selected</MudButton>
@@ -47,7 +47,7 @@
     FixedHeader="true"
     Hover="true"
     MultiSelection="true"
-    ReadOnly="@(!_massEditEnabled)"
+    ReadOnly="@(!_isEditModeEnabled)"
     SortMode="SortMode.Multiple"
     SelectedItemsChanged="Transactions_SelectionChanged"
     QuickFilter="Transactions_QuickFilter">

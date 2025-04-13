@@ -59,7 +59,7 @@ public partial class Account : ComponentBase
         var parameters = new DialogParameters<DeleteConfirmationDialog>
         {
             { x => x.Title, "Close Account" },
-            { x => x.Message, "Do you really want to close this Account?" }
+            { x => x.Message, "Do you really want to close this Account? Ensure that the balance is 0." }
         };
         var dialog = await DialogService.ShowAsync<DeleteConfirmationDialog>("Close Account", parameters);
         var result = await dialog.Result;
