@@ -41,7 +41,7 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
             Title = "OpenBudgeteer API",
             Version = description.ApiVersion.ToString(),
             Contact = new OpenApiContact() { Name = "Alexander Preibisch", Email = "alexpreib@outlook.com" },
-            License = new OpenApiLicense() { Name = "MIT", Url = new Uri( "https://github.com/TheAxelander/OpenBudgeteer/blob/master/LICENSE" ) }
+            License = new OpenApiLicense() { Name = "AGPL-3.0", Url = new Uri( "https://github.com/TheAxelander/OpenBudgeteer/blob/master/LICENSE" ) }
         };
 
         if ( description.IsDeprecated )
