@@ -33,7 +33,7 @@
 * Add Settings Page to set UI colors (replacement for Bootswatch themes)
 * Coloring amounts on Bucket Page [#300](https://github.com/TheAxelander/OpenBudgeteer/pull/300) [#293](https://github.com/TheAxelander/OpenBudgeteer/issues/293) Thanks [YannisAm](https://github.com/YannisAm)
 * Add option to hide Buckets from certain statistics and reports [#314](https://github.com/TheAxelander/OpenBudgeteer/pull/314) Thanks [Lucaber](https://github.com/Lucaber)
-* It's now possible to use a `.env` file to set environment variables, please check documentation for further details 
+* It's now possible to use a `.env` file to set environment variables, please check documentation for further details
 
 ### :x: Removed
 
@@ -42,6 +42,7 @@
 ### :warning: Important notice
 
 * Requires now a Redis container, please check documentation for further details
+* API: Replace Swagger with Scalar (accessible via endpoint `/api`). Only API Version `1.1` will be provided. 
 * Switched License from MIT to GNU Affero General Public License v3.0
 
 ### :warning: Known issues

@@ -24,7 +24,7 @@
       <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
       <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
-      <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+      <PackageReference Include="Scalar.AspNetCore" Version="2.1.13" />
     </ItemGroup>
 
 </Project>
