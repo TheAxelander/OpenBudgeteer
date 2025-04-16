@@ -63,7 +63,7 @@
                     <MudTextField Label="Delimiter:" MaxLength="1" @bind-Value="DelimiterHelper"/>
                 </MudItem>
                 <MudItem xs="6" sm="4">
-                    <MudTextField Label="Date format:" @bind-Value="_dataContext.ModifiedImportProfile.DateFormat"/>
+                    <MudTextField Label="Date format:" HelperText="e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy" @bind-Value="_dataContext.ModifiedImportProfile.DateFormat"/>
                 </MudItem>
                 <MudItem xs="6" sm="4">
                     <MudTextField Label="Text qualifier:" MaxLength="1" @bind-Value="TextQualifierHelper"/>
