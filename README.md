@@ -14,7 +14,7 @@
 
 OpenBudgeteer is a budgeting app based on the Bucket Budgeting Principle and inspired by [YNAB](https://www.youneedabudget.com) and [Buckets](https://www.budgetwithbuckets.com). The Core is based on .NET and the MVVM Pattern, the Front End uses Blazor Server.
 
-![Screenshot 1](assets/screenshot1.png)
+![Bucket Page](assets/bucket.png)
 
 --------------------
 
@@ -25,3 +25,10 @@ Within the [Documentation](https://theaxelander.github.io) you will find all the
 ## Quick Start
 
 For a quick ramp-up up of OpenBudgeteer using Docker and MariaDB see [here](https://theaxelander.github.io/latest/quick-start/).
+
+## Screenshots
+
+![Account Page](assets/account.png)
+![Transaction Page](assets/transaction.png)
+![Report Page](assets/report.png)
+![Settings Page](assets/settings.png)
