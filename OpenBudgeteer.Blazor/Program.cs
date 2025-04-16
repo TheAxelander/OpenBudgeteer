@@ -22,6 +22,7 @@ var configuration = new ConfigurationBuilder()
     .AddConfiguration(builder.Configuration) // Overwrite values from compose.yml file or CLI 
     .Build();
 
+builder.Services.AddSingleton<IConfiguration>(configuration);
 builder.Services.AddLocalization();
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
