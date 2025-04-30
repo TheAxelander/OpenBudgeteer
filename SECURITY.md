@@ -4,10 +4,10 @@
 
 | Version     | Supported          |
 |-------------| ------------------ |
-| 1.9.1       | :white_check_mark: |
+| 1.10        | :white_check_mark: |
 | pre-release | :white_check_mark: |
-| < 1.9.1     | :x:                |
+| < 1.10      | :x:                |
 
 ## Reporting a Vulnerability
 
-For any findings, please contact me via Mail (alexpreib@outlook.com) where I can give you feedback on short notice.
+For any findings, please draft a [new security advisory](https://github.com/TheAxelander/OpenBudgeteer/security/advisories/new)
