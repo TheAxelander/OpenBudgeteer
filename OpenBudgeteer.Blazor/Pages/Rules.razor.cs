@@ -20,8 +20,8 @@ public partial class Rules : ComponentBase
 
     private RulesPageViewModel _dataContext = null!;
     
-    private EntityViewModelMudFilter<BucketViewModel, RuleSetViewModel> _bucketMudFilter;
-    private MappingRuleMudFilter<RuleSetViewModel> _mappingRuleMudFilter;
+    private EntityViewModelMudFilter<BucketViewModel, RuleSetViewModel> _bucketMudFilter = null!;
+    private MappingRuleMudFilter<RuleSetViewModel> _mappingRuleMudFilter = null!;
     
     private HashSet<RuleSetViewModel> _selectedRuleSets = new();
 

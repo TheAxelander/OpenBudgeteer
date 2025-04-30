@@ -128,7 +128,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="availableAccounts">List of all available <see cref="Account"/> from database. (Use a cached list here)</param>
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="transaction">Transaction instance</param>
-    protected TransactionViewModel(IServiceManager serviceManager, IEnumerable<AccountViewModel>? availableAccounts, 
+    protected TransactionViewModel(IServiceManager serviceManager, IEnumerable<Account>? availableAccounts, 
         IEnumerable<Bucket>? availableBuckets, BankTransaction? transaction) : base(serviceManager)
     {
         _buckets = new();
@@ -140,7 +140,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
         {
             foreach (var availableAccount in availableAccounts)
             {
-                AvailableAccounts.Add(availableAccount);
+                AvailableAccounts.Add(AccountViewModel.CreateFromAccount(serviceManager, availableAccount));
             }
         }
         
@@ -289,7 +289,6 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     {
         var availableAccounts = serviceManager.AccountService
             .GetActiveAccounts()
-            .Select(i => AccountViewModel.CreateFromAccount(serviceManager, i))
             .ToList();
         
         var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -309,9 +308,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
     public static TransactionViewModel CreateFromTransaction(IServiceManager serviceManager, 
-        IEnumerable<AccountViewModel> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
+        IEnumerable<Account> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
     {
-        //TODO: Refactor availableAccounts to Account instead of AccountViewModel
         return new TransactionViewModel(serviceManager, availableAccounts, availableBuckets, transaction);
     }
     
@@ -324,9 +322,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
     public static async Task<TransactionViewModel> CreateFromTransactionAsync(IServiceManager serviceManager, 
-        IEnumerable<AccountViewModel> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
+        IEnumerable<Account> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
     {
-        //TODO: Refactor availableAccounts to Account instead of AccountViewModel
         return await Task.Run(() => CreateFromTransaction(serviceManager, availableAccounts, availableBuckets, transaction));
     }
     

@@ -128,8 +128,8 @@ public class SettingsPageViewModel : ViewModelBase
     {
         _mudThemeService = mudThemeService;
         _settingService = settingService;
-        CurrentTheme = new MudTheme();
-        CurrentPalette = CurrentTheme.PaletteLight;
+        _currentTheme = new MudTheme();
+        _currentPalette = CurrentTheme.PaletteLight;
     }
 
     /// <summary>

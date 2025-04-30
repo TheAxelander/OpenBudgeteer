@@ -10,7 +10,7 @@ namespace OpenBudgeteer.Blazor.Common.CustomMudFilter;
 public class MappingRuleMudFilter<T> : ICustomMudFilter<T>
 {
     public MappingRuleComparisonField SelectedComparisonField { get; set; }
-    public string ComparisionValue { get; set; }
+    public string ComparisionValue { get; set; } = string.Empty;
     
     public FilterDefinition<T> FilterDefinition { get; }
 

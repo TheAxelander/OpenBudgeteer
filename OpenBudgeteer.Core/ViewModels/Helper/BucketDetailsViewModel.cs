@@ -217,27 +217,40 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
             {
                 var result = new List<Tuple<DateOnly, decimal>>();
                 var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
-                
+
+                var transactions = ServiceManager.BudgetedTransactionService
+                    .GetAllFromBucket(BucketId, DateOnly.MinValue, currentMonth)
+                    .GroupBy(i => new { i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month })
+                    .Select(i => new
+                    {
+                        CurrentMonth = new DateOnly(i.Key.Year, i.Key.Month, 1),
+                        Balance = i.Sum(j => j.Amount)
+                    })
+                    .ToList();
+                var bucketMovements = ServiceManager.BucketMovementService
+                    .GetAllFromBucket(BucketId, DateOnly.MinValue, currentMonth)
+                    .GroupBy(i => new { i.MovementDate.Year, i.MovementDate.Month })
+                    .Select(i => new
+                    {
+                        CurrentMonth = new DateOnly(i.Key.Year, i.Key.Month, 1),
+                        Balance = i.Sum(j => j.Amount)
+                    })
+                    .ToList();
+
                 for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
                 {
-                    var month = currentMonth.AddMonths(monthIndex * -1);
-                    //TODO: Consider rewrite for more optimized query
-                    var lastDayOfMonth = month.AddMonths(1).AddDays(-1);
-                    var transactions = ServiceManager.BudgetedTransactionService
-                        .GetAllFromBucket(BucketId, DateOnly.MinValue, lastDayOfMonth)
-                        .ToList();
-                        
-                    var bucketMovements = ServiceManager.BucketMovementService
-                        .GetAllFromBucket(BucketId, DateOnly.MinValue, lastDayOfMonth)
-                        .ToList();
+                    var currentPeriod = currentMonth.AddMonths(monthIndex * -1);
 
-                    // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
-                    var bucketBalance = 
-                        transactions.Sum(i => i.Amount) +
-                        bucketMovements.Sum(i => i.Amount);
-                    result.Add(new Tuple<DateOnly, decimal>(month, bucketBalance));
+                    var sumOfTransactions = transactions
+                        .Where(i => i.CurrentMonth <= currentPeriod)
+                        .Sum(i => i.Balance);
+                    var sumOfMovements = bucketMovements
+                        .Where(i => i.CurrentMonth <= currentPeriod)
+                        .Sum(i => i.Balance);
+                    
+                    result.Add(new Tuple<DateOnly, decimal>(currentPeriod, sumOfTransactions + sumOfMovements));
                 }
-
+                
                 return result;
             });
         }

@@ -313,12 +313,6 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
         }
     }
     
-    // TODO Move to BucketViewModel
-    public BucketViewModel CreateEmptyBucket()
-    {
-        return BucketViewModel.CreateEmpty(ServiceManager, ConvertToDto().Id, _currentMonth);
-    }
-    
     #endregion
 
     #region IEquatable & IComparable Implementation

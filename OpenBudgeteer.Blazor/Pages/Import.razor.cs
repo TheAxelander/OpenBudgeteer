@@ -57,9 +57,9 @@ public partial class Import : ComponentBase
     private MaxStepLevel _maxStepLevel = MaxStepLevel.Step1;
     private int _stepperIndex;
     
-    private DateOnlyMudFilter<CsvMappingResult<ParsedBankTransaction>> _validRecordsDateOnlyMudFilter;
-    private DateOnlyMudFilter<ImportPageViewModel.Duplicate> _duplicateRecordsDateOnlyMudFilter;
-    private CsvMappingErrorMudFilter<CsvMappingResult<ParsedBankTransaction>> _errorRecordsMudFilter;
+    private DateOnlyMudFilter<CsvMappingResult<ParsedBankTransaction>> _validRecordsDateOnlyMudFilter = null!;
+    private DateOnlyMudFilter<ImportPageViewModel.Duplicate> _duplicateRecordsDateOnlyMudFilter = null!;
+    private CsvMappingErrorMudFilter<CsvMappingResult<ParsedBankTransaction>> _errorRecordsMudFilter = null!;
 
     private bool _isValidationRunning;
     private bool _isImportRunning;
@@ -98,10 +98,10 @@ public partial class Import : ComponentBase
         _maxStepLevel = MaxStepLevel.Step1;
     }
 
-    private async Task OnPreviewInteraction(StepperInteractionEventArgs arg)
+    private Task OnPreviewInteraction(StepperInteractionEventArgs arg)
     {
         // occurs when clicking next or on a step header
-        if (arg.Action is not (StepAction.Activate or StepAction.Complete)) return;
+        if (arg.Action is not (StepAction.Activate or StepAction.Complete)) return Task.CompletedTask;
         switch (arg.StepIndex)
         {
             case 1:
@@ -114,6 +114,8 @@ public partial class Import : ComponentBase
                 if (_maxStepLevel is not MaxStepLevel.Step4) arg.Cancel = true;
                 break;
         }
+
+        return Task.CompletedTask;
     }
     
     private async Task UploadFile(IBrowserFile? file)
@@ -169,7 +171,7 @@ public partial class Import : ComponentBase
             _previewOnChangeCancellationTokenSource.Token);
     }
     
-    private async Task SelectedImportProfile_SelectionChanged()
+    private void SelectedImportProfile_SelectionChanged()
     {
         _dataContext.ResetLoadFigures();
 

@@ -19,13 +19,10 @@
     public decimal? Amount { get; set; }
 
     // Determines the color style for the balance text based on its value.
-    private string GetAmountColor(decimal? balance, string title)
+    private string GetAmountColor(decimal? balance, string? title)
     {
-        if (balance == 0)
-            return string.Empty;
-
-        if (title.Equals("Pending Want"))
-            return balance > 0 ? "color: orange;" : string.Empty;
+        if (balance == 0) return string.Empty;
+        if (title is "Pending Want") return balance > 0 ? "color: orange;" : string.Empty;
 
         return balance < 0 ? "color: red;" : "color: green;";
     }

@@ -25,9 +25,9 @@ public partial class Transaction : ComponentBase
     private TransactionPageViewModel _dataContext = null!;
     private bool _isEditModeEnabled;
     
-    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter;
-    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter;
-    private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter;
+    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
+    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
+    private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter = null!;
     
     private HashSet<TransactionViewModel> _selectedTransactions = new();
 

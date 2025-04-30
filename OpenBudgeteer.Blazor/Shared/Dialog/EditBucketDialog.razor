@@ -37,7 +37,7 @@
                 <MudNumericField T="decimal" Format="N2" Label="Amount:" Disabled="@(!_isAmountEnabled)" @bind-Value="DataContext.BucketVersion.BucketTypeDecimalParameter"/>
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudDatePicker Label="(First) Target Date:" Disabled="@(!_isTargetDateEnabled)" @bind-Value="DataContext.BucketVersion.BucketTypeDateParameter"/>
+                <MudDatePicker Label="(First) Target Date:" Disabled="@(!_isTargetDateEnabled)" Date="@(DataContext.BucketVersion.BucketTypeDateParameter.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(time))"/>
                 @if (_isTargetDateEnabled)
                 {
                     <MudText Typo="Typo.body2">Next applying date: @DataContext.BucketVersion.BucketTypeNextDateParameter.ToShortDateString()</MudText>
@@ -146,10 +146,15 @@
         return base.OnParametersSetAsync();
     }
 
-    void BucketType_SelectionChanged(BucketVersionViewModel.BucketType obj)
+    void BucketType_SelectionChanged(BucketVersionViewModel.BucketType bucketType)
     {
-        DataContext.BucketVersion.BucketTypeParameter = obj;
+        DataContext.BucketVersion.BucketTypeParameter = bucketType;
         UpdateInputFieldsState();
+    }
+    
+    void TransactionDateChanged(DateTime? dateTime)
+    {
+        DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
     }
 
     void UpdateInputFieldsState()
@@ -160,26 +165,34 @@
                 _isNumberOfMonthsEnabled = false;
                 _isAmountEnabled = false;
                 _isTargetDateEnabled = false;
+                DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.MinValue;
                 break;
             case BucketVersionViewModel.BucketType.MonthlyExpense:
                 _isNumberOfMonthsEnabled = false;
                 _isAmountEnabled = true;
                 _isTargetDateEnabled = false;
+                DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.MinValue;
                 break;
             case BucketVersionViewModel.BucketType.ExpenseEveryXMonths:
                 _isNumberOfMonthsEnabled = true;
                 _isAmountEnabled = true;
                 _isTargetDateEnabled = true;
+                if (DataContext.BucketVersion.BucketTypeDateParameter == DateOnly.MinValue) 
+                    DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(DateTime.Now);
                 break;
             case BucketVersionViewModel.BucketType.SaveXUntilYDate:
                 _isNumberOfMonthsEnabled = false;
                 _isAmountEnabled = true;
                 _isTargetDateEnabled = true;
+                if (DataContext.BucketVersion.BucketTypeDateParameter == DateOnly.MinValue) 
+                    DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(DateTime.Now);
                 break;
             default:
                 _isNumberOfMonthsEnabled = true;
                 _isAmountEnabled = true;
                 _isTargetDateEnabled = true;
+                if (DataContext.BucketVersion.BucketTypeDateParameter == DateOnly.MinValue) 
+                    DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(DateTime.Now);
                 break;
         }
     }

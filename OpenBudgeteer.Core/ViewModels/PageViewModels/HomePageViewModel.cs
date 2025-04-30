@@ -42,7 +42,7 @@ public class HomePageViewModel : ViewModelBase
     
     private decimal _bankBalanceToday;
     /// <summary>
-    /// 
+    /// Total bank balance from today
     /// </summary>
     public decimal BankBalanceToday
     {
@@ -52,7 +52,7 @@ public class HomePageViewModel : ViewModelBase
     
     private decimal _bankBalanceLastYear;
     /// <summary>
-    /// 
+    /// Total bank balance from last year at the same day
     /// </summary>
     public decimal BankBalanceLastYear
     {
@@ -62,7 +62,7 @@ public class HomePageViewModel : ViewModelBase
     
     private decimal _bankBalanceDifference;
     /// <summary>
-    /// 
+    /// Difference between <see cref="BankBalanceToday"/> and <see cref="_bankBalanceLastYear"/>
     /// </summary>
     public decimal BankBalanceDifference
     {
@@ -72,7 +72,7 @@ public class HomePageViewModel : ViewModelBase
     
     private ObservableCollection<TransactionViewModel> _highestIncomes;
     /// <summary>
-    /// 
+    /// Top X Transactions with the highest amount
     /// </summary>
     public ObservableCollection<TransactionViewModel> HighestIncomes
     {
@@ -82,7 +82,7 @@ public class HomePageViewModel : ViewModelBase
     
     private ObservableCollection<TransactionViewModel> _highestExpenses;
     /// <summary>
-    /// 
+    /// Top X Transactions with the lowest amount (or highest expense)
     /// </summary>
     public ObservableCollection<TransactionViewModel> HighestExpenses
     {
@@ -92,8 +92,8 @@ public class HomePageViewModel : ViewModelBase
     
     public HomePageViewModel(IServiceManager serviceManager) : base(serviceManager)
     {
-        HighestIncomes = new();
-        HighestExpenses = new ();
+        _highestIncomes = new();
+        _highestExpenses = new ();
     }
 
     public ViewModelOperationResult LoadData(int topTransactionsAmount)

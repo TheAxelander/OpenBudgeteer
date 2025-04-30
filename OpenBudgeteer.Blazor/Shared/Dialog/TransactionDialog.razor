@@ -102,8 +102,8 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
 
-    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter;
-    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter;
+    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
+    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
 
     private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
 

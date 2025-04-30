@@ -133,8 +133,8 @@
     public RecurringTransactionHandlerViewModel DataContext { get; set; } = null!;
 
     bool _massEditEnabled;
-    DateOnlyMudFilter<RecurringTransactionViewModel> _dateOnlyMudFilter;
-    EntityViewModelMudFilter<AccountViewModel, RecurringTransactionViewModel> _accountMudFilter;
+    DateOnlyMudFilter<RecurringTransactionViewModel> _dateOnlyMudFilter = null!;
+    EntityViewModelMudFilter<AccountViewModel, RecurringTransactionViewModel> _accountMudFilter = null!;
 
     HashSet<RecurringTransactionViewModel> _selectedRecurringTransactions = new();
 
