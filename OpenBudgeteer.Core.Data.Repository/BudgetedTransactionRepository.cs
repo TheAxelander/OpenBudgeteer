@@ -24,6 +24,7 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
         .AsNoTracking();
     
     public IQueryable<BudgetedTransaction> AllWithTransactions() => DatabaseContext.BudgetedTransaction
+        .Include(i => i.Bucket)
         .Include(i => i.Transaction)
         .Include(i => i.Transaction.Account)
         .AsNoTracking();
@@ -72,7 +73,7 @@ public class BudgetedTransactionRepository : IBudgetedTransactionRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.BudgetedTransaction.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"BudgetedTransaction with id {id} not found.");
+        if (entity is null) throw new Exception($"BudgetedTransaction with id {id} not found.");
 
         DatabaseContext.BudgetedTransaction.Remove(entity);
         return DatabaseContext.SaveChanges();

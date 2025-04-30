@@ -1,46 +1,92 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.EntityFrameworkCore
+@using OpenBudgeteer.Blazor.Common.Services
 @using OpenBudgeteer.Core.Data.Entities
 @inject DbContextOptions<DatabaseContext> DbContextOptions
+@inject MudThemeService MudThemeService
 
-<header class="sticky-top">
-    <div class="d-flex flex-row app-header navbar align-items-center px-3 py-1 bg-primary" data-bs-theme="dark">
-        <button class="btn btn-sm fs-5" 
-                type="button"
-                data-bs-toggle="collapse" 
-                data-bs-target="#largeNavMenu" 
-                aria-expanded="false" 
-                aria-controls="largeNavMenu"
-                @onclick="OnCollapseClick">
-            <div class="bi bi-list"></div>
-        </button>
-        <span class="navbar-brand flex-fill ms-2 fs-5">OpenBudgeteer</span>
-        <span class="navbar-text ms-3 d-none d-md-block">Database: @CurrentDatabase</span>
-        <span class="navbar-text ms-3 d-none d-md-block">Version: 1.9.1 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</span>
-    </div>
-</header>
-<div class="container-fluid">
-    <div class="h-100 collapse collapse-horizontal show navbar navbar-left bg-dark" data-bs-theme="dark" id="largeNavMenu">
-        <NavMenu/>
-        <div class="align-self-end d-flex flex-column flex-fill navbar-footer px-3">
-            <span class="text-muted py-1"><i class="bi bi-github me-1"></i><a class="text-muted" href="https://github.com/TheAxelander/OpenBudgeteer" target="_blank"> GitHub</a></span>
-            <span class="text-muted py-1"><i class="bi bi-book me-1"></i><a class="text-muted" href="https://theaxelander.github.io/" target="_blank"> Documentation</a></span>
-            <span class="text-muted py-1"><a class="text-muted" href="https://icons8.com" target="_blank">App Icons by Icons8</a></span>
+<MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider BackdropClick="false" CloseOnEscapeKey="false"/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
+        <MudImage Src="favicon.ico" Height="40" Class="ms-1 me-3 pa-1 rounded-circle" Style=@($"background-color: {AppIconBackground};")/>
+        <MudText>OpenBudgeteer</MudText>
+        <MudSpacer/>
+        <div id="components-reconnect-modal">
+            <MudAlert Severity="Severity.Warning" Dense="true" Variant="Variant.Outlined" NoIcon="true">
+                <MudStack Row Spacing="4">
+                    <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Warning"/>
+                    <MudText>Connection lost. Current reconnect attempt:
+                        <span id="components-reconnect-current-attempt"></span> /
+                        <span id="components-reconnect-max-retries"></span>
+                    </MudText>
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>
+                </MudStack>
+            </MudAlert>
         </div>
-    </div>
-    <div class="content pt-4" style="margin-left: @_marginLeft;">@Body</div>
-</div>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer" Target="_blank"/>
+        <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Color="Color.Inherit" Href="https://theaxelander.github.io/" Target="_blank"/>
+        <MudText Class="ms-2">@CurrentDatabase</MudText>
+        <MudText Class="ms-3 d-none d-md-block">Version: 1.10.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</MudText>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Docked">
+        <NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        <ErrorBoundary @ref="_errorBoundary">
+            <ChildContent>
+                <MudContainer MaxWidth="MaxWidth.False" Class="pt-6 pb-6">@Body</MudContainer>
+            </ChildContent>
+            <ErrorContent Context="exception">
+                <MudContainer MaxWidth="MaxWidth.False" Class="pt-6 pb-6">
+                    <MudStack Spacing="4">
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" OnClick="() => _errorMessageExpanded = !_errorMessageExpanded">
+                            An unexpected error occured. Feel free to create an issue on GitHub and include below report.
+                        </MudAlert>
+                        <MudDivider/>
+                        <MudExpansionPanels>
+                            <MudExpansionPanel Text="Detailed Report">
+                                <MudStack Spacing="4">
+                                    <MudText Typo="Typo.h5">Error Message</MudText>
+                                    <MudText>@exception.Message</MudText>
+                                    <MudText Typo="Typo.h5">Stack Trace</MudText>
+                                    <MudTextField T="string" Text="@exception.StackTrace" ReadOnly="true" Variant="Variant.Outlined" AutoGrow />
+                                </MudStack>
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    </MudStack>
+                </MudContainer>
+            </ErrorContent>
+        </ErrorBoundary>
+    </MudMainContent>
+</MudLayout>
 
 @code {
 
+    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white"; 
     private string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
-    private bool _isCollapsed;
-    private string _marginLeft = "250px";
+    private bool _drawerOpen = true;
     
-    private void OnCollapseClick()
+    private ErrorBoundary? _errorBoundary;
+    bool _errorMessageExpanded;
+
+    protected override void OnInitialized()
     {
-        _isCollapsed = !_isCollapsed;
-        _marginLeft = _isCollapsed ? "0px" : "250px";
+        MudThemeService.ThemeChanged += async (_, _) => await InvokeAsync(StateHasChanged);
     }
 
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
 }

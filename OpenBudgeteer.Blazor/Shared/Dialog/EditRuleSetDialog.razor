@@ -1,0 +1,107 @@
+@using System.Drawing
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.Data.Contracts.Services
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+@inject IServiceManager ServiceManager
+@inject IDialogService DialogService
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="4">
+            <MudItem xs="12" sm="3">
+                <MudTextField Label="Priority:" @bind-Value="DataContext.Priority"/>
+            </MudItem>
+            <MudItem xs="12" sm="9">
+                <MudTextField Label="Name:" @bind-Value="DataContext.Name"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle1">Target Bucket:</MudText>
+                <MudButton
+                    Size="Size.Small"
+                    Class="mud-width-full bucket-indicator"
+                    Style="@($"background-color: {ColorTranslator.ToHtml(DataContext.TargetBucket.Color)}; color: {ColorTranslator.ToHtml(DataContext.TargetBucket.TextColor)}")"
+                    OnClick="ShowBucketSelectDialog">
+                    @DataContext.TargetBucket.Name
+                </MudButton>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle1">Mapping Rules:</MudText>
+                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="DataContext.AddEmptyMappingRule">Add Mapping Rule</MudButton>
+            </MudItem>
+            @foreach (var mappingRule in DataContext.MappingRules)
+            {
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="MappingRuleComparisonField" @bind-Value="mappingRule.ComparisonField">
+                        @foreach (var comparisionField in Enum.GetValues<MappingRuleComparisonField>().Where(i => i > 0))
+                        {
+                            <MudSelectItem value="@comparisionField">@comparisionField.GetStringValue()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="3">
+                    <MudSelect T="MappingRuleComparisonType" @bind-Value="mappingRule.ComparisonType">
+                        @foreach (var comparisonType in Enum.GetValues<MappingRuleComparisonType>())
+                        {
+                            <MudSelectItem value="@comparisonType">@comparisonType.GetStringValue()</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudStack Row>
+                        <MudTextField @bind-Value="mappingRule.ComparisonValue"/>
+                        <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="() => DataContext.DeleteMappingRule(mappingRule)"></MudIconButton>
+                    </MudStack>
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmSave">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="ConfirmCancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public RuleSetViewModel DataContext { get; set; } = null!;
+    
+    private void ConfirmSave() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void ConfirmCancel() => MudDialog.Cancel();
+
+    private async Task ShowBucketSelectDialog()
+    {
+        var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, null);
+        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        
+        var parameters = new DialogParameters<BucketSelectDialog>
+        {
+            { x => x.DataContext, bucketSelectDialogDataContext }
+        };
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true
+        };
+        var dialog = await DialogService.ShowAsync<BucketSelectDialog>("Select Bucket", parameters, options);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is { Canceled: false, Data: BucketViewModel selectedBucket })
+        {
+            DataContext.TargetBucket = selectedBucket;
+        }
+      
+        StateHasChanged();
+    }
+}

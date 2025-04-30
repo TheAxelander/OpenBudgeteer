@@ -1,27 +1,18 @@
-﻿@using OpenBudgeteer.Core.ViewModels
-@using OpenBudgeteer.Core.Common
+﻿@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.ViewModels.Helper
 @using System.Globalization
 
-<style>
-    .element-margin {
-        margin-left: 5px;
-    }
-</style>
-
-<div class="d-flex justify-content-end align-items-center @Class">
-    <button class="btn btn-sm btn-primary" @onclick="@(DataContext.PreviousMonth)">&lt;</button>
-    <select class="form-select form-select-sm element-margin" style="width: auto"
-            @bind:get="DataContext.SelectedMonth.ToString()"
-            @bind:set="(value) => { DataContext.SelectedMonth = Convert.ToInt32(value); }">
+<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+    <MudIconButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.NavigateBefore" OnClick="DataContext.PreviousMonth"></MudIconButton>
+    <MudSelect T="Int32" @bind-Value="DataContext.SelectedMonth" Style="width: 80px">
         @foreach (var month in DataContext.Months)
         {
-            <option value="@month">@_monthConverter.ConvertMonth(month, CultureInfo.CurrentCulture)</option>
+            <MudSelectItem Value="@month">@_monthConverter.ConvertMonth(month, CultureInfo.CurrentCulture)</MudSelectItem>
         }
-    </select>
-    <input class="form-control form-control-sm element-margin" style="text-align: right; width: 50px" type="text" @bind="DataContext.SelectedYear" />
-    <button class="btn btn-sm btn-primary element-margin" @onclick="@(DataContext.NextMonth)">&gt;</button>
-</div>
+    </MudSelect>
+    <MudNumericField T="Int32" @bind-Value="@DataContext.SelectedYear" Style="text-align: right; width: 80px"/>
+    <MudIconButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.NavigateNext" OnClick="DataContext.NextMonth"></MudIconButton>
+</MudStack>
 
 @code {
     [Parameter]

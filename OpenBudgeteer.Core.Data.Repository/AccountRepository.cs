@@ -53,7 +53,7 @@ public class AccountRepository : IAccountRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.Account.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"Account with id {id} not found.");
+        if (entity is null) throw new Exception($"Account with id {id} not found.");
 
         DatabaseContext.Account.Remove(entity);
         return DatabaseContext.SaveChanges();

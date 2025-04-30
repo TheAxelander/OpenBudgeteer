@@ -10,8 +10,8 @@
     <title>OpenBudgeteer</title>
     <base href="/" />
     <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/bootstrap/@AppSettings.Theme/bootstrap.css" />
-    <link rel="stylesheet" href="css/bootstrap/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="css/site.css" rel="stylesheet" />
     <style>
         /* Hide Spinner for number Input fields*/
@@ -30,48 +30,10 @@
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 <body>
-    <Routes @rendermode="InteractiveServer"/>
-
-    <div id="blazor-error-ui" style="z-index: 1">
-        @if (Env.IsDevelopment())
-        {
-            <text>
-                An unhandled exception has occurred. See browser dev tools for details.
-            </text>
-        }
-        else
-        {
-            <text>
-                An error has occurred. This app may no longer respond until reloaded. Please check logs and submit a bug report on GitHub.
-            </text>
-        }
-        <a href="" class="reload">Reload</a>
-    </div>
-
-    <div id="components-reconnect-modal" class="toast mt-3 start-50 translate-middle-x" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <strong class="me-auto">Notification</strong>
-        </div>
-        <div class="toast-body reconnect">
-            <div>
-                Connection lost.<br>Attempting to reconnect to server:
-                <span id="components-reconnect-current-attempt"></span> /
-                <span id="components-reconnect-max-retries"></span>
-                <div class="spinner-border spinner-border-sm" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        </div>
-        <div class="toast-body reconnect-failed">
-            <div>
-                Unable to restore connection.<br>Try reloading the page.
-            </div>
-        </div>
-    </div>
+<Routes @rendermode="InteractiveServer"/>
 
     <script src="_framework/blazor.web.js"></script>
-    <script src="js/bootstrap/bootstrap.bundle.min.js"></script>
-    <script src="js/custom.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="js/InputLargeTextArea.js"></script>
 
     <!-- Reference the included moment.js javascript file. -->

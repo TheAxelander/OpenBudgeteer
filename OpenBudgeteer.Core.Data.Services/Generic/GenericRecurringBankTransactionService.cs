@@ -21,7 +21,7 @@ public class GenericRecurringBankTransactionService : GenericBaseService<Recurri
     public RecurringBankTransaction GetWithEntities(Guid id)
     {
         var result = _recurringBankTransactionRepository.ByIdWithIncludedEntities(id);
-        if (result == null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException();
         return result;
     }
     
@@ -32,7 +32,7 @@ public class GenericRecurringBankTransactionService : GenericBaseService<Recurri
             .ToList();
     }
 
-    public async Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateTime yearMonth)
+    public async Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateOnly yearMonth)
     {
         var recurringBankTransactionTasks = new List<Task<List<BankTransaction>>>();
         var recurringBankTransactions = _recurringBankTransactionRepository.AllWithIncludedEntities().ToList();
@@ -75,10 +75,10 @@ public class GenericRecurringBankTransactionService : GenericBaseService<Recurri
         return result;
     }
 
-    public async Task<IEnumerable<BankTransaction>> CreatePendingBankTransactionAsync(DateTime yearMonth)
+    public async Task<IEnumerable<BankTransaction>> CreatePendingBankTransactionAsync(DateOnly yearMonth)
     {
         var transactions = (await GetPendingBankTransactionAsync(yearMonth)).ToList();
-        if (transactions.Any(i => i.Account?.IsActive == 0))
+        if (transactions.Any(i => i.Account.IsActive == 0))
             throw new EntityUpdateException("Identified Transactions which would be assigned to an inactive Account");
 
         // Prevent creation of new accounts

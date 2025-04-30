@@ -13,13 +13,13 @@ public class MonthOutputConverter
 
     public int ConvertBack(string value, CultureInfo culture)
     {
-        if (string.IsNullOrWhiteSpace(value)) return DateTime.Now.Month;
+        if (string.IsNullOrWhiteSpace(value)) return DateTime.Today.Month;
         for (var i = 1; i < 13; i++)
         {
             var date = new DateTime(1, i, 1);
             if (date.ToString("MMM", culture) == value) return i;
         }
-        return DateTime.Now.Month;
+        return DateTime.Today.Month;
     }
 
     public string ConvertMonth(int value, CultureInfo culture)

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.Linq;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
@@ -9,7 +8,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
+public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>, IEquatable<RuleSetViewModel>, IComparable<RuleSetViewModel>
 {
     #region Properties & Fields
     
@@ -38,55 +37,15 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         set => Set(ref _name, value);
     }
     
-    private Guid _targetBucketId;
+    private BucketViewModel _targetBucket;
     /// <summary>
-    /// Database Id of the Bucket which will be used once the BucketRuleSet applies
+    /// Reference to the Bucket which will be used once the BucketRuleSet applies
     /// </summary>
-    public Guid TargetBucketId 
+    public BucketViewModel TargetBucket 
     { 
-        get => _targetBucketId;
-        set => Set(ref _targetBucketId, value);
+        get => _targetBucket;
+        set => Set(ref _targetBucket, value);
     }
-    
-    private string _targetBucketName;
-    /// <summary>
-    /// Name of the Bucket
-    /// </summary>
-    public string TargetBucketName
-    {
-        get => _targetBucketName;
-        set => Set(ref _targetBucketName, value);
-    }
-    
-    private string _targetBucketColorCode;
-    /// <summary>
-    /// Name of the background color based from <see cref="Color"/>
-    /// </summary>
-    public string TargetBucketColorCode 
-    { 
-        get => _targetBucketColorCode;
-        set => Set(ref _targetBucketColorCode, value);
-    }
-    
-    /// <summary>
-    /// Background <see cref="Color"/> of the Bucket 
-    /// </summary>
-    public Color TargetBucketColor => string.IsNullOrEmpty(TargetBucketColorCode) ? Color.LightGray : Color.FromName(TargetBucketColorCode);
-    
-    private string _targetBucketTextColorCode;
-    /// <summary>
-    /// Name of the text color based from <see cref="Color"/>
-    /// </summary>
-    public string TargetBucketTextColorCode 
-    { 
-        get => _targetBucketTextColorCode;
-        set => Set(ref _targetBucketTextColorCode, value);
-    }
-    
-    /// <summary>
-    /// Text <see cref="Color"/> of the Bucket 
-    /// </summary>
-    public Color TargetBucketTextColor => string.IsNullOrEmpty(TargetBucketTextColorCode) ? Color.Black : Color.FromName(TargetBucketTextColorCode);
     
     private bool _inModification;
     /// <summary>
@@ -148,7 +107,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         }
         
         // Handle RuleSet
-        if (bucketRuleSet == null)
+        if (bucketRuleSet is null)
         {
             // Create empty RuleSet
             var noSelectBucket = new Bucket
@@ -163,22 +122,16 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
             BucketRuleSetId = Guid.Empty;
             _name = string.Empty;
             _priority = 0;
-            _targetBucketId = noSelectBucket.Id;
-            _targetBucketName = noSelectBucket.Name;
-            _targetBucketColorCode = string.Empty;
-            _targetBucketTextColorCode = string.Empty;
+            _targetBucket = BucketViewModel.CreateNoSelection(serviceManager);
         }
         else
         {
             BucketRuleSetId = bucketRuleSet.Id;
             _name = bucketRuleSet.Name ?? string.Empty;
             _priority = bucketRuleSet.Priority;
-            _targetBucketId = bucketRuleSet.TargetBucketId;
-            _targetBucketName = bucketRuleSet.TargetBucket.Name ?? string.Empty;
-            _targetBucketColorCode = bucketRuleSet.TargetBucket.ColorCode ?? string.Empty;
-            _targetBucketTextColorCode = bucketRuleSet.TargetBucket.TextColorCode ?? string.Empty;
+            _targetBucket = BucketViewModel.CreateForListing(serviceManager, bucketRuleSet.TargetBucket);
 
-            if (bucketRuleSet.MappingRules != null)
+            if (bucketRuleSet.MappingRules is not null)
             {
                 foreach (var mappingRule in bucketRuleSet.MappingRules)
                 {
@@ -198,10 +151,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         BucketRuleSetId = viewModel.BucketRuleSetId;
         _name = viewModel.Name;
         _priority = viewModel.Priority;
-        _targetBucketId = viewModel.TargetBucketId;
-        _targetBucketName = viewModel.TargetBucketName;
-        _targetBucketColorCode = viewModel.TargetBucketColorCode;
-        _targetBucketTextColorCode = viewModel.TargetBucketTextColorCode;
+        _targetBucket = (viewModel.TargetBucket.Clone() as BucketViewModel)!;
         _inModification = viewModel.InModification;
         _isHovered = viewModel.IsHovered;
         
@@ -226,7 +176,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     /// <param name="serviceManager">Reference to API based services</param>
     public static RuleSetViewModel CreateEmpty(IServiceManager serviceManager)
     {
-        var currentYearMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var currentYearMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
         var availableBuckets = serviceManager.BucketService.GetActiveBuckets(currentYearMonth).ToList();
         return new RuleSetViewModel(serviceManager, availableBuckets, null);
     }
@@ -262,7 +212,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
             Id = BucketRuleSetId,
             Name = Name,
             Priority = Priority,
-            TargetBucketId = TargetBucketId
+            TargetBucketId = TargetBucket.BucketId
         };
     }
     
@@ -271,10 +221,10 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         var result = ConvertToDto();
         result.TargetBucket = new Bucket()
         {
-            Id = TargetBucketId,
-            Name = TargetBucketName,
-            ColorCode = TargetBucketColorCode,
-            TextColorCode = TargetBucketTextColorCode
+            Id = TargetBucket.BucketId,
+            Name = TargetBucket.Name,
+            ColorCode = TargetBucket.ColorCode,
+            TextColorCode = TargetBucket.TextColorCode
         };
         result.MappingRules = new List<MappingRule>();
         foreach (var mappingRuleViewModel in MappingRules)
@@ -297,18 +247,6 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     }
 
     /// <summary>
-    /// Updates ViewModel data based on ViewModel data
-    /// </summary>
-    /// <param name="bucketViewModel">Newly selected Bucket</param>
-    public void UpdateSelectedBucket(BucketViewModel bucketViewModel)
-    {
-        TargetBucketId = bucketViewModel.BucketId;
-        TargetBucketName = bucketViewModel.Name;
-        TargetBucketColorCode = bucketViewModel.ColorCode;
-        TargetBucketTextColorCode = bucketViewModel.TextColorCode;
-    }
-
-    /// <summary>
     /// Helper method to start modification process
     /// </summary>
     public void StartModification()
@@ -324,7 +262,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
     {
         Name = _oldRuleSetViewModelItem!.Name;
         Priority = _oldRuleSetViewModelItem!.Priority;
-        TargetBucketId = _oldRuleSetViewModelItem!.TargetBucketId;
+        TargetBucket = _oldRuleSetViewModelItem!.TargetBucket;
         MappingRules = _oldRuleSetViewModelItem.MappingRules;
         InModification = false;
         _oldRuleSetViewModelItem = null;
@@ -387,7 +325,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         try
         {
             ServiceManager.BucketRuleSetService.Delete(BucketRuleSetId);
-            return new ViewModelOperationResult(true);
+            return new ViewModelOperationResult(true, true);
         }
         catch (Exception e)
         {
@@ -395,5 +333,47 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>
         }
     }
     
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+
+    public bool Equals(RuleSetViewModel? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return 
+            BucketRuleSetId.Equals(other.BucketRuleSetId) && 
+            _priority == other._priority && 
+            _name == other._name && 
+            TargetBucket.Equals(other.TargetBucket) &&
+            _mappingRules.Equals(other._mappingRules);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((RuleSetViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(BucketRuleSetId);
+        hashCode.Add(_priority);
+        hashCode.Add(_name);
+        hashCode.Add(TargetBucket);
+        hashCode.Add(_mappingRules);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(RuleSetViewModel? other)
+    {
+        return string.Compare(_name, other?.Name, StringComparison.Ordinal);
+    }
+
+    public override string ToString() => Name;
+
     #endregion
 }

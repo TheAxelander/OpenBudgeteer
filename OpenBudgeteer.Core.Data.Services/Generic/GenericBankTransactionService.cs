@@ -21,17 +21,17 @@ public class GenericBankTransactionService : GenericBaseService<BankTransaction>
     public BankTransaction GetWithEntities(Guid id)
     {
         var result = _bankTransactionRepository.ByIdWithIncludedEntities(id);
-        if (result == null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException();
         return result;
     }
     
-    public IEnumerable<BankTransaction> GetAll(DateTime? periodStart, DateTime? periodEnd, int limit = 0)
+    public IEnumerable<BankTransaction> GetAll(DateOnly? periodStart, DateOnly? periodEnd, int limit = 0)
     {
         var result = _bankTransactionRepository
             .AllWithIncludedEntities()
             .Where(i =>
-                i.TransactionDate >= (periodStart ?? DateTime.MinValue) &&
-                i.TransactionDate <= (periodEnd ?? DateTime.MaxValue))
+                i.TransactionDate >= (periodStart ?? DateOnly.MinValue) &&
+                i.TransactionDate <= (periodEnd ?? DateOnly.MaxValue))
             .OrderByDescending(i => i.TransactionDate)
             .ToList();
         return limit > 0
@@ -44,13 +44,13 @@ public class GenericBankTransactionService : GenericBaseService<BankTransaction>
         return GetFromAccount(accountId, null, null, limit);
     }
     
-    public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, DateTime? periodStart, DateTime? periodEnd, int limit = 0)
+    public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, DateOnly? periodStart, DateOnly? periodEnd, int limit = 0)
     {
         var result = _bankTransactionRepository
             .AllWithIncludedEntities()
             .Where(i =>
-                i.TransactionDate >= (periodStart ?? DateTime.MinValue) &&
-                i.TransactionDate <= (periodEnd ?? DateTime.MaxValue) &&
+                i.TransactionDate >= (periodStart ?? DateOnly.MinValue) &&
+                i.TransactionDate <= (periodEnd ?? DateOnly.MaxValue) &&
                 i.AccountId == accountId)
             .OrderByDescending(i => i.TransactionDate)
             .ToList();
@@ -68,7 +68,7 @@ public class GenericBankTransactionService : GenericBaseService<BankTransaction>
 
     public override BankTransaction Update(BankTransaction entity)
     {
-        if (entity.BudgetedTransactions != null && entity.BudgetedTransactions.Any())
+        if (entity.BudgetedTransactions is not null && entity.BudgetedTransactions.Any())
         {
             // Delete all existing bucket assignments, as they will be replaced by passed assignments
             var deletedIds =
@@ -84,7 +84,7 @@ public class GenericBankTransactionService : GenericBaseService<BankTransaction>
                     throw new EntityUpdateException("Unable to delete old Bucket Assignments of that Transaction");
             }
                 
-            // Reset all Guid for re-creation
+            // Ensure that all BudgetedTransaction Guids of incoming entity are empty to enable their (re)creation
             foreach (var budgetedTransaction in entity.BudgetedTransactions)
             {
                 budgetedTransaction.Id = Guid.Empty;

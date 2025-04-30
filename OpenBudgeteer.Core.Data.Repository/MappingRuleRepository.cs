@@ -55,7 +55,7 @@ public class MappingRuleRepository : IMappingRuleRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.MappingRule.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"MappingRule with id {id} not found.");
+        if (entity is null) throw new Exception($"MappingRule with id {id} not found.");
 
         DatabaseContext.MappingRule.Remove(entity);
         return DatabaseContext.SaveChanges();

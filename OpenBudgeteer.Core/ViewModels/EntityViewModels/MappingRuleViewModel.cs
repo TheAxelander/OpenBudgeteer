@@ -5,7 +5,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
+public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>, IEquatable<MappingRuleViewModel>, IComparable<MappingRuleViewModel>
 {
     #region Properties & Fields
     
@@ -41,7 +41,7 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
 
     private string _comparisonValue;
     /// <summary>
-    /// Value which should be used for the comparision
+    /// Value which should be used for the comparison
     /// </summary>
     public string ComparisonValue 
     { 
@@ -49,13 +49,6 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
         set => Set(ref _comparisonValue, value);
     }
 
-    /// <summary>
-    /// Helper property to generate a readable output for <see cref="MappingRule"/>
-    /// </summary>
-    public string RuleOutput => $"{ComparisonField.GetStringValue()} " +
-                                $"{ComparisonType.GetStringValue()} " +
-                                $"{ComparisonValue}";
-    
     #endregion
     
     #region Constructors
@@ -111,5 +104,49 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>
         };
     }
     
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+
+    public bool Equals(MappingRuleViewModel? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return 
+            MappingRuleId.Equals(other.MappingRuleId) && 
+            BucketRuleSetId.Equals(other.BucketRuleSetId) && 
+            _comparisonField == other._comparisonField && 
+            _comparisonType == other._comparisonType && 
+            _comparisonValue == other._comparisonValue;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((MappingRuleViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(MappingRuleId);
+        hashCode.Add(BucketRuleSetId);
+        hashCode.Add((int)_comparisonField);
+        hashCode.Add((int)_comparisonType);
+        hashCode.Add(_comparisonValue);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(MappingRuleViewModel? other)
+    {
+        return string.Compare(ToString(), other?.ToString(), StringComparison.Ordinal);
+    }
+
+    public override string ToString() => $"{ComparisonField.GetStringValue()} " +
+                                         $"{ComparisonType.GetStringValue()} " +
+                                         $"{ComparisonValue}";
+
     #endregion
 }

@@ -48,13 +48,12 @@ public class TransactionListingViewModel : ViewModelBase
             
             var availableAccounts = ServiceManager.AccountService
                 .GetActiveAccounts()
-                .Select(i => AccountViewModel.CreateFromAccount(ServiceManager, i))
                 .ToList();
             var availableBuckets = ServiceManager.BucketService.GetActiveBuckets(_yearMonthViewModel.CurrentMonth).ToList();
             var transactionTasks = ServiceManager.BankTransactionService
                 .GetAll(
-                    _yearMonthViewModel.CurrentPeriod.Item1,
-                    _yearMonthViewModel.CurrentPeriod.Item2)
+                    _yearMonthViewModel.CurrentPeriod.StartDate,
+                    _yearMonthViewModel.CurrentPeriod.EndDate)
                 .Select(i => TransactionViewModel
                     .CreateFromTransactionAsync(ServiceManager, availableAccounts, availableBuckets, i))
                 .ToList();
@@ -84,8 +83,7 @@ public class TransactionListingViewModel : ViewModelBase
         {
             _transactions.Clear();
 
-            var allAccounts = ServiceManager.AccountService.GetAll()
-                .Select(i => AccountViewModel.CreateFromAccount(ServiceManager, i)).ToList();
+            var allAccounts = ServiceManager.AccountService.GetAll().ToList();
             var allBuckets = ServiceManager.BucketService.GetAll();
 
             // Get all BankTransaction

@@ -14,7 +14,7 @@ public class GenericBucketMovementService : GenericBaseService<BucketMovement>, 
         _bucketMovementRepository = bucketMovementRepository;
     }
 
-    public IEnumerable<BucketMovement> GetAll(DateTime periodStart, DateTime periodEnd)
+    public IEnumerable<BucketMovement> GetAll(DateOnly periodStart, DateOnly periodEnd)
     {
         return _bucketMovementRepository
             .All()
@@ -26,10 +26,10 @@ public class GenericBucketMovementService : GenericBaseService<BucketMovement>, 
 
     public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId)
     {
-        return GetAllFromBucket(bucketId, DateTime.MinValue, DateTime.MaxValue);
+        return GetAllFromBucket(bucketId, DateOnly.MinValue, DateOnly.MaxValue);
     }
 
-    public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId, DateTime periodStart, DateTime periodEnd)
+    public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
     {
         return _bucketMovementRepository
             .All()

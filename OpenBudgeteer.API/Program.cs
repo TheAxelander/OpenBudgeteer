@@ -1,34 +1,17 @@
-using System.Globalization;
-using Asp.Versioning;
-using Asp.Versioning.Conventions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using OpenBudgeteer.API;
 using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Services;
 using OpenBudgeteer.Core.Data.Services.EFCore;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddDatabase(Configuration);
-builder.Services.AddProblemDetails();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-builder.Services.AddSwaggerGen(options => options.OperationFilter<SwaggerDefaultValues>());
-builder.Services.AddApiVersioning(options =>
+builder.Services.AddOpenApi("v1.1", options =>
 {
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ApiVersionReader = new QueryStringApiVersionReader();
-}).AddApiExplorer(options =>
-{
-    // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
-    // note: the specified format code will format the version as "'v'major[.minor][-status]"
-    options.GroupNameFormat = "'v'VVV";
+    options.AddDocumentTransformer<CustomDocumentTransformer>();
 });
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => 
@@ -36,372 +19,222 @@ builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x =>
 
 var app = builder.Build();
 
-var versionSet = app.NewApiVersionSet()
-    .HasApiVersion(1, 0)
-    .HasApiVersion(1, 1)
-    // reporting api versions will return the headers
-    // "api-supported-versions" and "api-deprecated-versions"
-    .ReportApiVersions()
-    .Build();
 var serviceManager = new EFCoreServiceManager(app.Services.GetRequiredService<DbContextOptions<DatabaseContext>>());
 
 #region AccountService
 
-var account = app.MapGroup( "/account" )
-    .WithApiVersionSet(versionSet);
+var account = app.MapGroup("/account").WithTags("account");
 var accountService = serviceManager.AccountService;
 
 // GET
-account.MapGet("{id:guid}", (Guid id) => accountService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-account.MapGet("/", () => accountService.GetAll())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-account.MapGet("/activeAccounts", () => accountService.GetActiveAccounts())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+account.MapGet("{id:guid}", (Guid id) => accountService.Get(id));
+account.MapGet("/", () => accountService.GetAll());
+account.MapGet("/activeAccounts", () => accountService.GetActiveAccounts());
 
 // POST
-account.MapPost( "/", (Account entity) => accountService.Create(entity))
-    .Accepts<Account>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+account.MapPost( "/", (Account entity) => accountService.Create(entity));
 
 // PATCH
-account.MapPatch( "/", (Account entity) => accountService.Update(entity))
-    .Accepts<Account>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+account.MapPatch( "/", (Account entity) => accountService.Update(entity));
 
 // DELETE
-account.MapDelete( "/{id:guid}", (Guid id) => accountService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-account.MapDelete( "/close/{id:guid}", (Guid id) => accountService.CloseAccount(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+account.MapDelete( "/{id:guid}", (Guid id) => accountService.Delete(id));
+account.MapDelete( "/close/{id:guid}", (Guid id) => accountService.CloseAccount(id));
 
 #endregion
 
 #region BankTransaction
 
-var transaction = app.MapGroup( "/transaction" )
-    .WithApiVersionSet(versionSet);
+var transaction = app.MapGroup("/transaction").WithTags("transaction");
 var bankTransactionService = serviceManager.BankTransactionService;
 
 // GET
-transaction.MapGet("{id:guid}", (Guid id) => bankTransactionService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-transaction.MapGet("/", (DateTime? start, DateTime? end, int? limit) => 
-        bankTransactionService.GetAll(start, end, limit ?? 0))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-transaction.MapGet("/fromAccount/{id:guid}", (Guid id, DateTime? start, DateTime? end, int? limit) => 
-        bankTransactionService.GetFromAccount(id, start, end, limit ?? 0))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+transaction.MapGet("{id:guid}", (Guid id) => bankTransactionService.Get(id));
+transaction.MapGet("/", (DateOnly? start, DateOnly? end, int? limit) => 
+    bankTransactionService.GetAll(start, end, limit ?? 0));
+transaction.MapGet("/fromAccount/{id:guid}", (Guid id, DateOnly? start, DateOnly? end, int? limit) => 
+    bankTransactionService.GetFromAccount(id, start, end, limit ?? 0));
 transaction.MapGet( "/withEntities/{id:guid}", (Guid id) => 
-        bankTransactionService.GetWithEntities(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    bankTransactionService.GetWithEntities(id));
 
 // POST
 transaction.MapPost( "/", (BankTransaction entity) => bankTransactionService.Create(entity))
-    .Accepts<BankTransaction>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-transaction.MapPost( "/withBucket", (BankTransaction entity) => 
-        bankTransactionService.Create(entity))
-    .Accepts<BankTransaction>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BankTransaction>("application/json");
+transaction.MapPost( "/withBucket", (BankTransaction entity) => bankTransactionService.Create(entity))
+    .Accepts<BankTransaction>("application/json");
 
 // PATCH
 transaction.MapPatch( "/", (BankTransaction entity) => bankTransactionService.Update(entity))
-    .Accepts<BankTransaction>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-transaction.MapPatch( "/withBucket", (BankTransaction entity) => 
-        bankTransactionService.Update(entity))
-    .Accepts<BankTransaction>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BankTransaction>("application/json");
+transaction.MapPatch( "/withBucket", (BankTransaction entity) => bankTransactionService.Update(entity))
+    .Accepts<BankTransaction>("application/json");
 
 // DELETE
-transaction.MapDelete( "/{id:guid}", (Guid id) => bankTransactionService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+transaction.MapDelete( "/{id:guid}", (Guid id) => bankTransactionService.Delete(id));
 
 #endregion
 
 #region RecurringTransaction
 
-var recurring = app.MapGroup( "/recurring" )
-    .WithApiVersionSet(versionSet);
+var recurring = app.MapGroup("/recurring").WithTags("recurring");
 var recurringTransactionService = serviceManager.RecurringBankTransactionService;
 
 // GET
-recurring.MapGet("{id:guid}", (Guid id) => recurringTransactionService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-recurring.MapGet("/", () => recurringTransactionService.GetAllWithEntities())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+recurring.MapGet("{id:guid}", (Guid id) => recurringTransactionService.Get(id));
+recurring.MapGet("/", () => recurringTransactionService.GetAllWithEntities());
 recurring.MapGet( "/withEntities/{id:guid}", (Guid id) => 
-        recurringTransactionService.GetWithEntities(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-recurring.MapGet("/pendingTransactions", async (DateTime yearMonth) => 
-        await recurringTransactionService.GetPendingBankTransactionAsync(yearMonth))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    recurringTransactionService.GetWithEntities(id));
+recurring.MapGet("/pendingTransactions", async (DateOnly yearMonth) => 
+    await recurringTransactionService.GetPendingBankTransactionAsync(yearMonth));
 
 // POST
 recurring.MapPost( "/", (RecurringBankTransaction entity) => recurringTransactionService.Create(entity))
-    .Accepts<RecurringBankTransaction>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-recurring.MapPost("/pendingTransactions", async (DateTime yearMonth) => 
-        await recurringTransactionService.CreatePendingBankTransactionAsync(yearMonth))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<RecurringBankTransaction>("application/json");
+recurring.MapPost("/pendingTransactions", async (DateOnly yearMonth) => 
+    await recurringTransactionService.CreatePendingBankTransactionAsync(yearMonth));
 
 // PATCH
 recurring.MapPatch( "/", (RecurringBankTransaction entity) => recurringTransactionService.Update(entity))
-    .Accepts<RecurringBankTransaction>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<RecurringBankTransaction>("application/json");
 
 // DELETE
-recurring.MapDelete( "/{id:guid}", (Guid id) => recurringTransactionService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+recurring.MapDelete( "/{id:guid}", (Guid id) => recurringTransactionService.Delete(id));
 
 #endregion
 
 #region Bucket
 
-var bucket = app.MapGroup( "/bucket" )
-    .WithApiVersionSet(versionSet);
+var bucket = app.MapGroup("/bucket").WithTags("bucket");
 var bucketService = serviceManager.BucketService;
 
 // GET
-bucket.MapGet("{id:guid}", (Guid id) => bucketService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/withLatestVersion/{id:guid}", (Guid id) => bucketService.GetWithLatestVersion(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/", () => bucketService.GetAll())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/withoutSystemBuckets", () => bucketService.GetAllWithoutSystemBuckets())
-    .MapToApiVersion(1,1);
-bucket.MapGet("/systemBuckets", () => bucketService.GetSystemBuckets())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/activeBuckets", (DateTime? validFrom) => bucketService.GetActiveBuckets(validFrom ?? DateTime.Now))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/getVersion/{id:guid}", (Guid id, DateTime? yearMonth) => bucketService.GetLatestVersion(id, yearMonth ?? DateTime.Now))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/figures/{id:guid}", (Guid id, DateTime? yearMonth) => 
-        bucketService.GetFigures(id, yearMonth ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/balance/{id:guid}", (Guid id, DateTime? yearMonth) => 
-        bucketService.GetBalance(id, yearMonth ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapGet("/inOut/{id:guid}", (Guid id, DateTime? yearMonth) => 
-        bucketService.GetInAndOut(id, yearMonth ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+bucket.MapGet("{id:guid}", (Guid id) => bucketService.Get(id));
+bucket.MapGet("/withLatestVersion/{id:guid}", (Guid id) => bucketService.GetWithLatestVersion(id));
+bucket.MapGet("/", () => bucketService.GetAll());
+bucket.MapGet("/withoutSystemBuckets", () => bucketService.GetAllWithoutSystemBuckets());
+bucket.MapGet("/systemBuckets", () => bucketService.GetSystemBuckets());
+bucket.MapGet("/activeBuckets", (DateOnly? validFrom) => 
+    bucketService.GetActiveBuckets(validFrom ?? DateOnly.FromDateTime(DateTime.Today)));
+bucket.MapGet("/getVersion/{id:guid}", (Guid id, DateOnly? yearMonth) => 
+    bucketService.GetLatestVersion(id, yearMonth ?? DateOnly.FromDateTime(DateTime.Today)));
+bucket.MapGet("/figures/{id:guid}", (Guid id, DateOnly? yearMonth) => 
+    bucketService.GetFigures(id, yearMonth ?? new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1)));
+bucket.MapGet("/balance/{id:guid}", (Guid id, DateOnly? yearMonth) => 
+    bucketService.GetBalance(id, yearMonth ?? new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1)));
+bucket.MapGet("/inOut/{id:guid}", (Guid id, DateOnly? yearMonth) => 
+    bucketService.GetInAndOut(id, yearMonth ?? new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1)));
 
 // POST
 bucket.MapPost( "/", (Bucket entity) => bucketService.Create(entity))
-    .Accepts<Bucket>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<Bucket>("application/json");
 
 // PATCH
 bucket.MapPatch( "/", (Bucket entity) => bucketService.Update(entity))
-    .Accepts<Bucket>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<Bucket>("application/json");
 
 // DELETE
-bucket.MapDelete( "/{id:guid}", (Guid id) => bucketService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-bucket.MapDelete( "/close/{id:guid}", (Guid id, DateTime? yearMonth) => 
-        bucketService.Close(id, yearMonth ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+bucket.MapDelete( "/{id:guid}", (Guid id) => bucketService.Delete(id));
+bucket.MapDelete( "/close/{id:guid}", (Guid id, DateOnly? yearMonth) => 
+    bucketService.Close(id, yearMonth ?? new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1)));
 
 #endregion
 
 #region BucketGroup
 
-var group = app.MapGroup( "/group" )
-    .WithApiVersionSet(versionSet);
+var group = app.MapGroup("/group").WithTags("group");
 var groupService = serviceManager.BucketGroupService;
 
 // GET
-group.MapGet("{id:guid}", (Guid id) => groupService.GetWithBuckets(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-group.MapGet("/", (bool full) => full ? groupService.GetAllFull() : groupService.GetAll())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+group.MapGet("{id:guid}", (Guid id) => groupService.GetWithBuckets(id));
+group.MapGet("/", (bool full) => full ? groupService.GetAllFull() : groupService.GetAll());
 
 // POST
 group.MapPost( "/", (BucketGroup entity) => groupService.Create(entity))
-    .Accepts<BucketGroup>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BucketGroup>("application/json");
 
 // PATCH
 group.MapPatch( "/", (BucketGroup entity) => groupService.Update(entity))
-    .Accepts<BucketGroup>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-group.MapPatch( "/move/{id:guid}", (Guid id, int positions) => groupService.Move(id, positions))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BucketGroup>("application/json");
+group.MapPatch( "/move/{id:guid}", (Guid id, int positions) => groupService.Move(id, positions));
 
 // DELETE
-group.MapDelete( "/{id:guid}", (Guid id) => groupService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+group.MapDelete( "/{id:guid}", (Guid id) => groupService.Delete(id));
 
 #endregion
 
 #region RuleSet
 
-var rules = app.MapGroup( "/rules" )
-    .WithApiVersionSet(versionSet);
+var rules = app.MapGroup("/rules").WithTags("rules");
 var ruleSetService = serviceManager.BucketRuleSetService;
 
 // GET
-rules.MapGet("{id:guid}", (Guid id) => ruleSetService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-rules.MapGet("/", () => ruleSetService.GetAll())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-rules.MapGet("/mappings/{id:guid}", (Guid id) => ruleSetService.GetMappingRules(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+rules.MapGet("{id:guid}", (Guid id) => ruleSetService.Get(id));
+rules.MapGet("/", () => ruleSetService.GetAll());
+rules.MapGet("/mappings/{id:guid}", (Guid id) => ruleSetService.GetMappingRules(id));
 
 // POST
 rules.MapPost( "/", (BucketRuleSet entity) => ruleSetService.Create(entity))
-    .Accepts<BucketRuleSet>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BucketRuleSet>("application/json");
 
 // PATCH
 rules.MapPatch( "/", (BucketRuleSet entity) => ruleSetService.Update(entity))
-    .Accepts<BucketRuleSet>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BucketRuleSet>("application/json");
 
 // DELETE
-rules.MapDelete( "/{id:guid}", (Guid id) => ruleSetService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+rules.MapDelete( "/{id:guid}", (Guid id) => ruleSetService.Delete(id));
 
 #endregion
 
 #region BucketMovement
 
-var movement = app.MapGroup( "/movement" )
-    .WithApiVersionSet(versionSet);
+var movement = app.MapGroup("/movement").WithTags("movement");
 var movementService = serviceManager.BucketMovementService;
 
 // GET
-movement.MapGet("{id:guid}", (Guid id) => movementService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-movement.MapGet("/", (DateTime? periodStart, DateTime? periodEnd) => 
-        movementService.GetAll(periodStart ?? DateTime.MinValue, periodEnd ?? DateTime.MaxValue))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-movement.MapGet("/fromBucket/{id:guid}", (Guid id, DateTime? periodStart, DateTime? periodEnd) => 
-        movementService.GetAllFromBucket(id, periodStart ?? DateTime.MinValue, periodEnd ?? DateTime.MaxValue))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+movement.MapGet("{id:guid}", (Guid id) => movementService.Get(id));
+movement.MapGet("/", (DateOnly? periodStart, DateOnly? periodEnd) => 
+    movementService.GetAll(periodStart ?? DateOnly.MinValue, periodEnd ?? DateOnly.MaxValue));
+movement.MapGet("/fromBucket/{id:guid}", (Guid id, DateOnly? periodStart, DateOnly? periodEnd) =>
+    movementService.GetAllFromBucket(id, periodStart ?? DateOnly.MinValue, periodEnd ?? DateOnly.MaxValue));
 
 // POST
 movement.MapPost( "/", (BucketMovement entity) => movementService.Create(entity))
-    .Accepts<BucketMovement>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BucketMovement>("application/json");
 
 // PATCH
 movement.MapPatch( "/", (BucketMovement entity) => movementService.Update(entity))
-    .Accepts<BucketMovement>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<BucketMovement>("application/json");
 
 // DELETE
-movement.MapDelete( "/{id:guid}", (Guid id) => movementService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+movement.MapDelete( "/{id:guid}", (Guid id) => movementService.Delete(id));
 
 #endregion
 
 #region ImportProfile
 
-var import = app.MapGroup( "/import" )
-    .WithApiVersionSet(versionSet);
+var import = app.MapGroup( "/import").WithTags("import");
 var importProfileService = serviceManager.ImportProfileService;
 
 // GET
-import.MapGet("{id:guid}", (Guid id) => importProfileService.Get(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
-import.MapGet("/", () => importProfileService.GetAll())
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+import.MapGet("{id:guid}", (Guid id) => importProfileService.Get(id));
+import.MapGet("/", () => importProfileService.GetAll());
 
 // POST
 import.MapPost( "/", (ImportProfile entity) => importProfileService.Create(entity))
-    .Accepts<ImportProfile>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<ImportProfile>("application/json");
 
 // PATCH
 import.MapPatch( "/", (ImportProfile entity) => importProfileService.Update(entity))
-    .Accepts<ImportProfile>("application/json")
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+    .Accepts<ImportProfile>("application/json");
 
 // DELETE
-import.MapDelete( "/{id:guid}", (Guid id) => importProfileService.Delete(id))
-    .MapToApiVersion(1,0)
-    .MapToApiVersion(1,1);
+import.MapDelete( "/{id:guid}", (Guid id) => importProfileService.Delete(id));
 
 #endregion
 
-//if (app.Environment.IsDevelopment())
-//{
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        var descriptions = app.DescribeApiVersions();
-
-        // build a swagger endpoint for each discovered API version
-        foreach (var description in descriptions)
-        {
-            var url = $"/swagger/{description.GroupName}/swagger.json";
-            var name = description.GroupName.ToUpperInvariant();
-            options.SwaggerEndpoint(url, name);
-        }
-    });
-//}
-
+app.MapOpenApi("/openapi/{documentName}/openapi.json");
+app.MapScalarApiReference("/api", options =>
+{
+    options.AddDocument("v1.1", "OpenBudgeteer API", routePattern: "openapi/{documentName}/openapi.json");
+});
 app.Run();

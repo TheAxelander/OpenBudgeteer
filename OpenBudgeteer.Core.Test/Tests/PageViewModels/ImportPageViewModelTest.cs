@@ -81,7 +81,7 @@ public class ImportPageViewModelTest
         var loadedImportProfile = viewModel.AvailableImportProfiles.Single(
             i => i.ImportProfileId == importProfile.Id);
 
-        Assert.Equal(2, viewModel.AvailableImportProfiles.Count); // Dummy + 1 Single Import Profile
+        Assert.Single(viewModel.AvailableImportProfiles);
         Assert.Equal(importProfile.ProfileName, loadedImportProfile.ProfileName);
         Assert.Equal(importProfile.AccountId, loadedImportProfile.Account.AccountId);
         Assert.Equal(importProfile.TransactionDateColumnName, loadedImportProfile.TransactionDateColumnName);
@@ -121,7 +121,7 @@ public class ImportPageViewModelTest
                         HeaderRow = 11
                     },
                     "./Resources/TestImportFile1.txt",
-                    new List<string> {"Dummy Column", "Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
+                    new List<string> {"Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
                 }
             };
         }
@@ -136,7 +136,6 @@ public class ImportPageViewModelTest
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
             
-            
         importProfile.AccountId = _testAccount.Id;
         serviceManager.ImportProfileService.Create(importProfile);
 
@@ -148,9 +147,9 @@ public class ImportPageViewModelTest
             i => i.ImportProfileId == importProfile.Id);
         viewModel.ResetLoadFigures();
 
-        Assert.Equal(_testAccount.Id, viewModel.SelectedImportProfile.Account.AccountId);
+        Assert.Equal(_testAccount.Id, viewModel.ModifiedImportProfile.Account.AccountId);
 
-        Assert.Equal(8, viewModel.IdentifiedColumns.Count); // Dummy + 7 Identified columns
+        Assert.Equal(7, viewModel.IdentifiedColumns.Count);
         for (int i = 1; i < viewModel.IdentifiedColumns.Count; i++)
         {
             Assert.Equal(fileHeaders[i], viewModel.IdentifiedColumns[i]);

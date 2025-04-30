@@ -17,7 +17,7 @@ namespace OpenBudgeteer.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -59,8 +59,8 @@ namespace OpenBudgeteer.Data.Migrations
                     b.Property<string>("Payee")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("TransactionDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -82,11 +82,14 @@ namespace OpenBudgeteer.Data.Migrations
                     b.Property<string>("ColorCode")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsHiddenFromSummaries")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsInactive")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTime>("IsInactiveFrom")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("IsInactiveFrom")
+                        .HasColumnType("date");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -94,8 +97,8 @@ namespace OpenBudgeteer.Data.Migrations
                     b.Property<string>("TextColorCode")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -135,8 +138,8 @@ namespace OpenBudgeteer.Data.Migrations
                     b.Property<Guid>("BucketId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("MovementDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("MovementDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -187,14 +190,14 @@ namespace OpenBudgeteer.Data.Migrations
                     b.Property<decimal>("BucketTypeYParam")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateTime>("BucketTypeZParam")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("BucketTypeZParam")
+                        .HasColumnType("date");
 
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
 
                     b.Property<int>("Version")
                         .HasColumnType("integer");
@@ -336,8 +339,8 @@ namespace OpenBudgeteer.Data.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateTime>("FirstOccurrenceDate")
-                        .HasColumnType("timestamp without time zone");
+                    b.Property<DateOnly>("FirstOccurrenceDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Memo")
                         .HasColumnType("text");

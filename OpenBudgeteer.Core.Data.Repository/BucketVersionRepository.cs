@@ -55,7 +55,7 @@ public class BucketVersionRepository : IBucketVersionRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.BucketVersion.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"BucketVersion with id {id} not found.");
+        if (entity is null) throw new Exception($"BucketVersion with id {id} not found.");
 
         DatabaseContext.BucketVersion.Remove(entity);
         return DatabaseContext.SaveChanges();

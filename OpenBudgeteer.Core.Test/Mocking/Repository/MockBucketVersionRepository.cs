@@ -43,7 +43,7 @@ public class MockBucketVersionRepository : IBucketVersionRepository
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var bucketVersion = ById(id);
-        if (bucketVersion == null) return bucketVersion;
+        if (bucketVersion is null) return bucketVersion;
         bucketVersion.Bucket = mockBucketRepository.ById(bucketVersion.BucketId)
                                 ?? throw new Exception("Bucket doesn't exist");
 

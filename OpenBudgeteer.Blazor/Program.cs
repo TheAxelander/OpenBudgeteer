@@ -1,36 +1,42 @@
-using System;
 using System.Text;
+using DotNetEnv;
+using DotNetEnv.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MudBlazor.Services;
 using OpenBudgeteer.Blazor;
-using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Blazor.Common.Extensions;
+using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
-using OpenBudgeteer.Core.Data.Services;
 using OpenBudgeteer.Core.Data.Services.EFCore;
 using OpenBudgeteer.Core.ViewModels.Helper;
-using Tewr.Blazor.FileReader;
 
-const string APPSETTINGS_CULTURE = "APPSETTINGS_CULTURE";
-const string APPSETTINGS_THEME = "APPSETTINGS_THEME";
-
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
+var configuration = new ConfigurationBuilder()
+    .AddDotNetEnv(".env", LoadOptions.TraversePath())
+    .AddConfiguration(builder.Configuration) // Overwrite values from compose.yml file or CLI 
+    .Build();
 
+builder.Services.AddSingleton<IConfiguration>(configuration);
 builder.Services.AddLocalization();
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddFileReaderService();
-builder.Services.AddHostedService<HostedDatabaseMigrator>();
-builder.Services.AddDatabase(builder.Configuration);
+builder.Services.AddMudServices();
+builder.Services.AddDatabase(configuration); // Check, establish and register database connection
+builder.Services.AddHostedService<DatabaseMigratorService>(); // Run database migrations
+builder.Services.AddRedis(configuration); // Check, establish and register Redis database connection 
 builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => new EFCoreServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
 builder.Services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
-        
+builder.Services.AddSingleton(x => new AppSettingService(x.GetRequiredService<RedisService>()));
+builder.Services.AddSingleton(x => new MudThemeService(x.GetRequiredService<RedisService>()));
+builder.Services.AddHostedService<AppInitializerHostedService>(); // Initialize and get settings from Redis
+
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
 
 var app = builder.Build();
@@ -45,17 +51,10 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
         
-app.UseRequestLocalization(builder.Configuration.GetValue<string>(APPSETTINGS_CULTURE, "en-US") ?? "en-US");
-AppSettings.Theme = builder.Configuration.GetValue(APPSETTINGS_THEME, "default") ?? "default";
+app.UseRequestLocalization(configuration.GetValue<string>(ConfigurationKeyConstants.APPSETTINGS_CULTURE, "en-US"));
 
-//app.UseRouting();
 app.UseAntiforgery();
-/*app.UseEndpoints(endpoints =>
-{
-    endpoints.MapRazorComponents<App>().AddInteractiveServerRenderMode();
-});*/
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
-

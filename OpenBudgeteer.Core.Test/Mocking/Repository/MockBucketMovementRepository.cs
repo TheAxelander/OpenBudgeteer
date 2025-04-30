@@ -43,7 +43,7 @@ public class MockBucketMovementRepository : IBucketMovementRepository
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var bucketMovement = ById(id);
-        if (bucketMovement == null) return bucketMovement;
+        if (bucketMovement is null) return bucketMovement;
         bucketMovement.Bucket = mockBucketRepository.ById(bucketMovement.BucketId) 
                                 ?? throw new Exception("Bucket doesn't exist");
 

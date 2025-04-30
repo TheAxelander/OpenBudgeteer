@@ -132,8 +132,8 @@ public class BucketDatabaseTest : BaseDatabaseTest<Bucket>
             bucket.ValidFrom = bucket.ValidFrom.AddDays(1);
             bucket.IsInactive = !bucket.IsInactive;
             bucket.IsInactiveFrom = bucket.IsInactive 
-                ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day) 
-                : DateTime.MinValue;
+                ? new DateOnly(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day) 
+                : DateOnly.MinValue;
 
             var result = bucketRepository.Update(bucket);
             Assert.Equal(1, result);

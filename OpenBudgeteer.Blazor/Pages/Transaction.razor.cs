@@ -1,7 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using OpenBudgeteer.Blazor.Common;
+using OpenBudgeteer.Blazor.Common.CustomMudFilter;
+using OpenBudgeteer.Blazor.Shared.Dialog;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
@@ -13,179 +18,260 @@ namespace OpenBudgeteer.Blazor.Pages;
 
 public partial class Transaction : ComponentBase
 {
+    [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
 
     private TransactionPageViewModel _dataContext = null!;
-    private bool _newTransactionEnabled;
-    private bool _massEditEnabled;
+    private bool _isEditModeEnabled;
+    
+    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
+    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
+    private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter = null!;
+    
+    private HashSet<TransactionViewModel> _selectedTransactions = new();
 
-    private BucketListingViewModel? _bucketSelectDialogDataContext;
-    private bool _isBucketSelectDialogVisible;
-    private bool _isBucketSelectDialogLoading;
-    private TransactionViewModel? _transactionViewModelToBeUpdated;
-    private PartialBucketViewModel? _partialBucketViewModelToBeUpdated;
-
-    private bool _isRecurringTransactionModalDialogVisible;
     private RecurringTransactionHandlerViewModel? _recurringTransactionHandlerViewModel;
-
-    private bool _isDeleteTransactionDialogVisible;
-    private TransactionViewModel? _transactionToBeDeleted;
-
-    private bool _isErrorModalDialogVisible;
-    private string _errorModalDialogMessage = string.Empty;
-
-    private bool _isProposeBucketsInfoDialogVisible;
 
     protected override async Task OnInitializedAsync()
     {
         _dataContext = new TransactionPageViewModel(ServiceManager, YearMonthDataContext);
+        _dateOnlyMudFilter = new(new()
+        {
+            FilterFunction = x => 
+                x.TransactionDate.IsBetween(_dateOnlyMudFilter.DateRange.Start, _dateOnlyMudFilter.DateRange.End)
+        });
+        _accountMudFilter = new(new()
+        {
+            FilterFunction = x => _accountMudFilter.FilterItems.Contains(x.SelectedAccount)
+        });
+        _bucketMudFilter = new(new()
+        {
+            FilterFunction = x => x.Buckets.Any(bucket => _bucketMudFilter.FilterItems.Contains(bucket))
+        });
 
-        await HandleResult(await _dataContext.LoadDataAsync());
+        await ReloadDataContext();
 
         YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) =>
         {
-            await HandleResult(await _dataContext.LoadDataAsync());
+            await ReloadDataContext();
             StateHasChanged();
         };
     }
 
-    private void StartCreateNewTransaction()
+    private async Task ReloadDataContext()
     {
-        _newTransactionEnabled = true;
+        await HandleResult(await _dataContext.LoadDataAsync());
+        _selectedTransactions.Clear();
+        
+        _accountMudFilter.AvailableItems = _dataContext.Transactions
+            .Select(i => i.SelectedAccount)
+            .Distinct()
+            .OrderBy(i => i.Name)
+            .ToList();
+        _bucketMudFilter.AvailableItems = _dataContext.Transactions
+            .SelectMany(i => i.Buckets)
+            .DistinctBy(i => i.SelectedBucketId)
+            .OrderBy(i => i.SelectedBucketName)
+            .ToList();
+        _bucketMudFilter.AvailableItems.Insert(0, PartialBucketViewModel.CreateNoSelection(ServiceManager));
+        
+        
+        _accountMudFilter.ResetFilter();
+        _dateOnlyMudFilter.ResetFilter();
+        _bucketMudFilter.ResetFilter();
+    }
+    
+    private void TransactionDateChanged(DateTime? dateTime, TransactionViewModel context)
+    {
+        context.TransactionDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
+    }
+    
+    private async Task ShowCreateTransactionDialog()
+    {
+        var reloadRequired = false;
+        while (true)
+        {
+            var createDialogParameters = new DialogParameters<CreateTransactionDialog>
+            {
+                { x => x.DataContext, _dataContext.NewTransaction }
+            };
+            var createDialog = await DialogService.ShowAsync<CreateTransactionDialog>(
+                "Create Transactions", createDialogParameters);
+            var createDialogResult = await createDialog.Result;
+            if (createDialogResult is { Canceled: false })
+            {
+                var createItemResult = _dataContext.CreateItem();
+                if (createItemResult.IsSuccessful)
+                {
+                    reloadRequired = true;
+                    if (createDialogResult.Data is CreateDialogResponse.CreateAnother)
+                    {
+                        _dataContext.ResetNewTransaction();
+                        continue;
+                    }
+                }
+                else
+                {
+                    var errorDialogParameters = new DialogParameters<ErrorMessageDialog>
+                    {
+                        { x => x.Title, "Create Transaction" },
+                        { x => x.Message, createItemResult.Message }
+                    };
+                    await DialogService.ShowAsync<ErrorMessageDialog>("Create Transaction", errorDialogParameters);
+                }
+            }
+
+            break;
+        }
+        if (reloadRequired) await ReloadDataContext();
     }
 
-    private void CancelNewTransaction()
+    private void SwitchToEditMode()
     {
-        _newTransactionEnabled = false;
-        _dataContext.ResetNewTransaction();
+        _isEditModeEnabled = true;
+        var transactionsToModify = _selectedTransactions.Count > 0 
+            ? _selectedTransactions.ToList() 
+            : _dataContext.Transactions.ToList();
+        foreach (var transaction in transactionsToModify)
+        {
+            transaction.StartModification();
+        }
     }
 
-    private void EditAllTransaction()
+    private async Task DeleteSelectedTransactions()
     {
-        _massEditEnabled = true;
-        _dataContext.EditAllTransaction();
-    }
-
-    private void NewTransactionAccount_SelectionChanged(string? value)
-    {
-        if (string.IsNullOrEmpty(value)) return;
-        _dataContext.NewTransaction!.SelectedAccount = _dataContext.NewTransaction!.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value));
+        var parameters = new DialogParameters<DeleteConfirmationDialog>
+        {
+            { x => x.Title, "Delete Transactions" },
+            { x => x.Message, "Do you really want to delete the selected Transactions?" }
+        };
+        var dialog = await DialogService.ShowAsync<DeleteConfirmationDialog>("Delete Transactions", parameters);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            var deletionResults = _selectedTransactions
+                .Select(i => i.DeleteTransaction())
+                .ToList();
+            if (deletionResults.Any(i => !i.IsSuccessful))
+            {
+                await HandleResult(deletionResults.First(i => !i.IsSuccessful));
+            }
+            else
+            {
+                await HandleResult(deletionResults.First());
+            }
+            _selectedTransactions.Clear();
+        }
     }
 
     private async Task ProposeBucketsAsync()
     {
-        _isProposeBucketsInfoDialogVisible = true;
-        StateHasChanged();
+        var parameters = new DialogParameters<InfoDialog>
+        {
+            { x => x.Title, "Propose Buckets" },
+            { x => x.Message, "Searching Buckets based on defined rules..." },
+            { x => x.IsInteractionEnabled, false }
+        };
+        var dialog = await DialogService.ShowAsync<InfoDialog>("Propose Buckets", parameters);
+
         await _dataContext.ProposeBuckets();
-        if (_dataContext.Transactions.Any(i => i.InModification)) _massEditEnabled = true;
-        _isProposeBucketsInfoDialogVisible = false;
+        _isEditModeEnabled = true;
+        dialog.Close();
+    }
+    
+    private void Transactions_SelectionChanged(HashSet<TransactionViewModel> items)
+    {
+        _selectedTransactions = items;
     }
 
-    private void TransactionAccount_SelectionChanged(string? value, TransactionViewModel transactionViewModel)
+    private async Task SaveAllTransaction()
     {
-        if (string.IsNullOrEmpty(value)) return;
-        transactionViewModel.SelectedAccount = transactionViewModel.AvailableAccounts.First(i => i.AccountId == Guid.Parse(value));
-    }
-
-    private void SplitTransaction(TransactionViewModel transaction) =>
-        transaction.AddBucketItem(transaction.Amount - transaction.Buckets.Sum(b => b.Amount));
-
-    private async void SaveAllTransaction()
-    {
-        _massEditEnabled = false;
+        _isEditModeEnabled = false;
         await HandleResult(_dataContext.SaveAllTransaction());
     }
 
-    private async void CancelAllTransaction()
+    private async Task CancelAllTransaction()
     {
-        _massEditEnabled = false;
-        await HandleResult(await _dataContext.CancelAllTransactionAsync());
+        _isEditModeEnabled = false;
+        await ReloadDataContext();
         StateHasChanged();
     }
 
-    private async void SaveTransaction(TransactionViewModel transaction)
-    {
-        await HandleResult(transaction.CreateOrUpdateTransaction());
-    }
-
-    private void Filter_SelectionChanged(string? value)
-    {
-        if (string.IsNullOrEmpty(value)) return;
-        
-        _dataContext.CurrentFilter = Enum.TryParse(typeof(TransactionFilter), value, out var result) 
-            ? (TransactionFilter)result 
-            : TransactionFilter.NoFilter;
-    }
-
-    private void HandleShowDeletionTransactionDialog(TransactionViewModel transaction)
-    {
-        _transactionToBeDeleted = transaction;
-        _isDeleteTransactionDialogVisible = true;
-    }
-
-    private void CancelDeleteTransaction()
-    {
-        _isDeleteTransactionDialogVisible = false;
-        _transactionToBeDeleted = null;
-    }
-
-    private async void DeleteTransaction()
-    {
-        _isDeleteTransactionDialogVisible = false;
-        await HandleResult(_transactionToBeDeleted!.DeleteTransaction());
-    }
-
-    private async void AddRecurringTransactions()
+    private async Task AddRecurringTransactions()
     {
         await HandleResult(await _dataContext.AddRecurringTransactionsAsync());
     }
+    
+    private bool Transactions_QuickFilter(TransactionViewModel transactionViewModel)
+    {
+        if (!_isEditModeEnabled) return true; // Display all items if Edit Mode is not enabled 
+        
+        return transactionViewModel.InModification;
+    }
 
-    private async Task DisplayRecurringTransactions()
+    private async Task ShowRecurringTransactionDialog()
     {
         _recurringTransactionHandlerViewModel = new RecurringTransactionHandlerViewModel(ServiceManager);
         await _recurringTransactionHandlerViewModel.LoadDataAsync();
-        _isRecurringTransactionModalDialogVisible = true;
-    }
-
-    private async void HandleShowBucketSelectDialog(TransactionViewModel transactionViewModel, PartialBucketViewModel partialBucketViewModel)
-    {
-        _isBucketSelectDialogVisible = true;
-        _isBucketSelectDialogLoading = true;
-        
-        _transactionViewModelToBeUpdated = transactionViewModel;
-        _partialBucketViewModelToBeUpdated = partialBucketViewModel;
-        _bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
-        await _bucketSelectDialogDataContext.LoadDataAsync(true, true);
-        
-        _isBucketSelectDialogLoading = false;
-        StateHasChanged();
-    }
-
-    private void UpdateSelectedBucket(BucketViewModel selectedBucket)
-    {
-        _partialBucketViewModelToBeUpdated!.UpdateSelectedBucket(selectedBucket);
-        if (_partialBucketViewModelToBeUpdated.Amount == 0)
+        var parameters = new DialogParameters<RecurringTransactionDialog>
         {
-            _partialBucketViewModelToBeUpdated.Amount = 
-                _transactionViewModelToBeUpdated!.Amount - 
-                _transactionViewModelToBeUpdated!.Buckets
-                    .Where(i => i.SelectedBucketId != _partialBucketViewModelToBeUpdated.SelectedBucketId)
-                    .Sum(i => i.Amount);
+            { x => x.DataContext, _recurringTransactionHandlerViewModel }
+        };
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.ExtraLarge,
+            FullWidth = true
+        };
+        await DialogService.ShowAsync<RecurringTransactionDialog>("Recurring Transactions", parameters, options);
+    }
+
+    private async Task ShowBucketSelectDialog(TransactionViewModel transactionViewModel, PartialBucketViewModel partialBucketViewModel)
+    {
+        var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
+        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        
+        var parameters = new DialogParameters<BucketSelectDialog>
+        {
+            { x => x.DataContext, bucketSelectDialogDataContext }
+        };
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true
+        };
+        var dialog = await DialogService.ShowAsync<BucketSelectDialog>("Select Bucket", parameters, options);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is { Canceled: false, Data: BucketViewModel selectedBucket })
+        {
+            partialBucketViewModel.UpdateSelectedBucket(selectedBucket);
+            if (partialBucketViewModel.Amount == 0)
+            {
+                partialBucketViewModel.Amount = 
+                    transactionViewModel.Amount - 
+                    transactionViewModel.Buckets
+                        .Where(i => i.SelectedBucketId != partialBucketViewModel.SelectedBucketId)
+                        .Sum(i => i.Amount);
+            }
         }
-        _isBucketSelectDialogVisible = false;
+      
+        StateHasChanged();
     }
 
     private async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)
         {
-            _errorModalDialogMessage = result.Message;
-            _isErrorModalDialogVisible = true;
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Transaction" },
+                { x => x.Message, result.Message }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Transaction", parameters);
         }
 		if (result.ViewModelReloadRequired)
         {
-            await _dataContext.LoadDataAsync();
+            await ReloadDataContext();
             StateHasChanged();
         }
     }

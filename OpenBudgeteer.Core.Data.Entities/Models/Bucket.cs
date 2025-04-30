@@ -23,11 +23,11 @@ public class Bucket : IEntity
     public string? TextColorCode { get; set; }
     
     [Required]
-    public DateTime ValidFrom { get; set; }
+    public DateOnly ValidFrom { get; set; }
 
     public bool IsInactive { get; set; }
 
-    public DateTime IsInactiveFrom { get; set; }
+    public DateOnly IsInactiveFrom { get; set; }
     
     [NotMapped]
     public BucketVersion? CurrentVersion { get; set; }
@@ -37,4 +37,6 @@ public class Bucket : IEntity
     public ICollection<BudgetedTransaction>? BudgetedTransactions { get; set; }
     
     public ICollection<BucketMovement>? BucketMovements { get; set; }
+
+    public bool IsHiddenFromSummaries { get; set; }
 }

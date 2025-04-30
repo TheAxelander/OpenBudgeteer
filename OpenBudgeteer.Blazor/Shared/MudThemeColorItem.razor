@@ -1,0 +1,45 @@
+@*
+Source: https://github.com/MudBlazor/ThemeManager
+*@
+@using MudBlazor.Utilities
+
+<MudOverlay @bind-Visible="_isOpen" AutoClose="true" />
+
+<div class="relative">
+    <div class="mud-list-item-clickable mud-ripple px-4 py-3" @onclick="() => _isOpen = !_isOpen">
+        <MudText Typo="Typo.body2" Class="mud-float-left">@Name</MudText>
+        <div style="background:@(Value?.ToString() ?? "none");" class="px-8 py-3 mud-float-right rounded mud-elevation-25"></div>
+    </div>
+    <MudPopover Open="@_isOpen" Elevation="25" Square="true" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
+        <MudColorPicker
+            Value="Value"
+            Class="mud-thememanager-color-picker" 
+            PickerVariant="PickerVariant.Static" 
+            Elevation="0" 
+            ColorPickerView="ColorPickerView"
+            ValueChanged="OnColorSelected"/>
+    </MudPopover>
+</div>
+
+
+@code {
+    private bool _isOpen;
+
+    [Parameter]
+    public string? Name { get; set; }
+
+    [Parameter]
+    public MudColor? Value { get; set; }
+    
+    [Parameter]
+    public EventCallback<MudColor?> ValueChanged { get; set; }
+
+    [Parameter]
+    public ColorPickerView ColorPickerView { get; set; } = ColorPickerView.Spectrum;
+
+    private async Task OnColorSelected(MudColor? value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+}

@@ -5,7 +5,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
+public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquatable<ImportProfileViewModel>, IComparable<ImportProfileViewModel>
 {
     #region Properties & Fields
     
@@ -227,25 +227,23 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
     /// <param name="importProfile">ImportProfile instance</param>
     protected ImportProfileViewModel(IServiceManager serviceManager, ImportProfile? importProfile) : base(serviceManager)
     {
-        var dummyColumn = "---Select Column---";
-        
-        if (importProfile == null)
+        if (importProfile is null)
         {
             _importProfileId = Guid.Empty;
             _profileName = string.Empty;
             _account = AccountViewModel.CreateEmpty(serviceManager);
             _headerRow = 0;
-            _delimiter = new char();
-            _textQualifier = new char();
+            _delimiter = '\0';
+            _textQualifier = '\0';
             _dateFormat = string.Empty;
             _numberFormat = string.Empty;
-            _transactionDateColumnName = dummyColumn;
-            _payeeColumnName = dummyColumn;
-            _memoColumnName = dummyColumn;
-            _amountColumnName = dummyColumn;
+            _transactionDateColumnName = string.Empty;
+            _payeeColumnName = string.Empty;
+            _memoColumnName = string.Empty;
+            _amountColumnName = string.Empty;
             _additionalSettingCreditValue = AdditionalSettingsForCreditValues.NoSettings;
-            _creditColumnName = dummyColumn;
-            _creditColumnIdentifierColumnName = dummyColumn;
+            _creditColumnName = string.Empty;
+            _creditColumnIdentifierColumnName = string.Empty;
             _creditColumnIdentifierValue = string.Empty;
             _additionalSettingAmountCleanup = false;
             _additionalSettingAmountCleanupValue = string.Empty;
@@ -262,17 +260,16 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
             _textQualifier = importProfile.TextQualifier;
             _dateFormat = importProfile.DateFormat ?? string.Empty;
             _numberFormat = importProfile.NumberFormat ?? string.Empty;
-            _transactionDateColumnName = importProfile.TransactionDateColumnName ?? dummyColumn;
-            _payeeColumnName = importProfile.PayeeColumnName ?? dummyColumn;
-            _memoColumnName = importProfile.MemoColumnName ?? dummyColumn;
-            _amountColumnName = importProfile.AmountColumnName ?? dummyColumn;
+            _transactionDateColumnName = importProfile.TransactionDateColumnName ?? string.Empty;
+            _payeeColumnName = importProfile.PayeeColumnName ?? string.Empty;
+            _memoColumnName = importProfile.MemoColumnName ?? string.Empty;
+            _amountColumnName = importProfile.AmountColumnName ?? string.Empty;
             _additionalSettingCreditValue = (AdditionalSettingsForCreditValues)importProfile.AdditionalSettingCreditValue;
-            _creditColumnName = importProfile.CreditColumnName ?? dummyColumn;
-            _creditColumnIdentifierColumnName = importProfile.CreditColumnIdentifierColumnName ?? dummyColumn;
+            _creditColumnName = importProfile.CreditColumnName ?? string.Empty;
+            _creditColumnIdentifierColumnName = importProfile.CreditColumnIdentifierColumnName ?? string.Empty;
             _creditColumnIdentifierValue = importProfile.CreditColumnIdentifierValue ?? string.Empty;
             _additionalSettingAmountCleanup = importProfile.AdditionalSettingAmountCleanup;
             _additionalSettingAmountCleanupValue = importProfile.AdditionalSettingAmountCleanupValue ?? string.Empty;
-
         }
     }
     
@@ -314,7 +311,7 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
     }
     
     /// <summary>
-    /// Create a copy of this ViewModel to be used as fallback during modification
+    /// Create a copy of this ViewModel to be used for modification
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
     /// <returns>Copy of current ViewModel instance</returns>
@@ -330,20 +327,7 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
     /// <returns>New ViewModel instance</returns>
     public static ImportProfileViewModel CreateEmpty(IServiceManager serviceManager)
     {
-        return new ImportProfileViewModel(serviceManager, (ImportProfile?)null);
-    }
-
-    /// <summary>
-    /// Initialize ViewModel with dummy values. Not to be used for real interactions.
-    /// </summary>
-    /// <param name="serviceManager">Reference to API based services</param>
-    /// <returns>New ViewModel instance</returns>
-    public static ImportProfileViewModel CreateDummy(IServiceManager serviceManager)
-    {
-        return new ImportProfileViewModel(serviceManager, (ImportProfile?)null)
-        {
-            ProfileName = "---Select Import Profile---"
-        };
+        return new ImportProfileViewModel(serviceManager, null);
     }
 
     /// <summary>
@@ -445,6 +429,74 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>
             return new ViewModelOperationResult(false, $"Unable to delete Import Profile: {e.Message}");
         }
     }
+    
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+    
+    public bool Equals(ImportProfileViewModel? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return 
+            _importProfileId.Equals(other._importProfileId) && 
+            _profileName == other._profileName && 
+            _account.Equals(other._account) && 
+            _headerRow == other._headerRow && 
+            _delimiter == other._delimiter && 
+            _textQualifier == other._textQualifier && 
+            _dateFormat == other._dateFormat && 
+            _numberFormat == other._numberFormat && 
+            _transactionDateColumnName == other._transactionDateColumnName && 
+            _payeeColumnName == other._payeeColumnName && 
+            _memoColumnName == other._memoColumnName && 
+            _amountColumnName == other._amountColumnName && 
+            _additionalSettingCreditValue == other._additionalSettingCreditValue && 
+            _creditColumnName == other._creditColumnName && 
+            _creditColumnIdentifierColumnName == other._creditColumnIdentifierColumnName && 
+            _creditColumnIdentifierValue == other._creditColumnIdentifierValue && 
+            _additionalSettingAmountCleanup == other._additionalSettingAmountCleanup && 
+            _additionalSettingAmountCleanupValue == other._additionalSettingAmountCleanupValue;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((ImportProfileViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(_importProfileId);
+        hashCode.Add(_profileName);
+        hashCode.Add(_account);
+        hashCode.Add(_headerRow);
+        hashCode.Add(_delimiter);
+        hashCode.Add(_textQualifier);
+        hashCode.Add(_dateFormat);
+        hashCode.Add(_numberFormat);
+        hashCode.Add(_transactionDateColumnName);
+        hashCode.Add(_payeeColumnName);
+        hashCode.Add(_memoColumnName);
+        hashCode.Add(_amountColumnName);
+        hashCode.Add((int)_additionalSettingCreditValue);
+        hashCode.Add(_creditColumnName);
+        hashCode.Add(_creditColumnIdentifierColumnName);
+        hashCode.Add(_creditColumnIdentifierValue);
+        hashCode.Add(_additionalSettingAmountCleanup);
+        hashCode.Add(_additionalSettingAmountCleanupValue);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(ImportProfileViewModel? other)
+    {
+        return string.Compare(_profileName, other?.ProfileName, StringComparison.Ordinal);
+    }
+
+    public override string ToString() => ProfileName;
     
     #endregion
 }

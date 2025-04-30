@@ -1,0 +1,276 @@
+﻿@using OpenBudgeteer.Core.Common
+@using System.Globalization
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Blazor.Common.CustomMudFilter
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+@inject IDialogService DialogService
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Recurring Transactions</MudText>
+    </TitleContent>
+    <DialogContent>
+        @if (_massEditEnabled)
+        {
+            <MudStack Row Spacing="1">
+                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SaveAllRecurringTransaction">Save all</MudButton>
+                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelAllRecurringTransaction">Cancel all</MudButton>
+            </MudStack>
+        }
+        else
+        {
+            <MudStack Row Spacing="1">
+                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="StartCreateNewRecurringTransaction">Create Transaction</MudButton>
+                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="EditAllRecurringTransaction">Edit all</MudButton>
+                @if (_selectedRecurringTransactions.Count > 0)
+                {
+                    <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedRecurringTransactions">Delete @_selectedRecurringTransactions.Count Selected</MudButton>
+                }
+            </MudStack>
+        }
+
+        <MudDataGrid
+            T="RecurringTransactionViewModel"
+            Items="@DataContext.Transactions"
+            Dense="true"
+            EditMode="DataGridEditMode.Cell"
+            Filterable="true"
+            FilterMode="DataGridFilterMode.ColumnFilterMenu"
+            FixedHeader="true"
+            Hover="true"
+            MultiSelection="true"
+            ReadOnly="@(!_massEditEnabled)"
+            SortMode="SortMode.Multiple"
+            SelectedItemsChanged="RecurringTransactions_SelectionChanged">
+            <Columns>
+                <SelectColumn T="RecurringTransactionViewModel"/>
+                <PropertyColumn Property="x => x.FirstOccurrenceDate" Title="First Occurrence">
+                    <EditTemplate>
+                        <MudDatePicker Date="@(context.Item.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => FirstOccurrenceDateChanged(time, context.Item))" ShowToolbar="false"></MudDatePicker>
+                    </EditTemplate>
+                    <FilterTemplate>
+                        <MudGrid Spacing="6" Style="width:430px">
+                            <MudItem xs="12">
+                                <MudDateRangePicker
+                                    PickerVariant="PickerVariant.Inline"
+                                    @bind-DateRange="@_dateOnlyMudFilter.DateRange"
+                                    Margin="Margin.Dense"/>
+                            </MudItem>
+                            <MudItem xs="12" Class="d-flex justify-end">
+                                <MudButton OnClick="@(() => _dateOnlyMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => _dateOnlyMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </FilterTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.RecurrenceAmount" CellClass="col-numbers">
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.RecurrenceType">
+                    <EditTemplate>
+                        <MudSelect T="RecurringTransactionRecurrenceType" @bind-Value="context.Item.RecurrenceType">
+                            @foreach (var recurrenceType in Enum.GetValues<RecurringTransactionRecurrenceType>())
+                            {
+                                <MudSelectItem Value="@recurrenceType">@recurrenceType.GetStringValue()</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </EditTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.SelectedAccount" Comparer="@(new MudComparer())">
+                    <EditTemplate>
+                        <MudSelect T="AccountViewModel" @bind-Value="context.Item.SelectedAccount">
+                            @foreach (var account in context.Item.AvailableAccounts)
+                            {
+                                <MudSelectItem Value="@account">@account.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </EditTemplate>
+                    <FilterTemplate>
+                        <MudGrid Spacing="6" Style="width:430px">
+                            <MudItem xs="12">
+                                <MudSelect
+                                    T="AccountViewModel"
+                                    @bind-SelectedValues="_accountMudFilter.SelectedItems"
+                                    MultiSelection="true"
+                                    MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Accounts"))"
+                                    SelectAll="true">
+                                    @foreach (var account in _accountMudFilter.AvailableItems)
+                                    {
+                                        <MudSelectItem Value="account">@account</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" Class="d-flex justify-end">
+                                <MudButton OnClick="@(() => _accountMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => _accountMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </FilterTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.Payee"></PropertyColumn>
+                <PropertyColumn Property="x => x.Memo"></PropertyColumn>
+                <PropertyColumn Property="x => x.Amount" Format="C" Culture="CultureInfo.CurrentCulture" CellClass="col-numbers">
+                    <EditTemplate>
+                        <MudNumericField T="decimal" Format="N2" Culture="CultureInfo.CurrentCulture" @bind-Value="context.Item.Amount"/>
+                    </EditTemplate>
+                </PropertyColumn>
+            </Columns>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public RecurringTransactionHandlerViewModel DataContext { get; set; } = null!;
+
+    bool _massEditEnabled;
+    DateOnlyMudFilter<RecurringTransactionViewModel> _dateOnlyMudFilter = null!;
+    EntityViewModelMudFilter<AccountViewModel, RecurringTransactionViewModel> _accountMudFilter = null!;
+
+    HashSet<RecurringTransactionViewModel> _selectedRecurringTransactions = new();
+
+    void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+    
+    protected override void OnInitialized()
+    {
+        _accountMudFilter = new(new()
+        {
+            FilterFunction = x => _accountMudFilter.FilterItems.Contains(x.SelectedAccount)
+        });
+        _dateOnlyMudFilter = new(new()
+        {
+            FilterFunction = x => 
+                x.FirstOccurrenceDate >= DateOnly.FromDateTime(_dateOnlyMudFilter.DateRange.Start ?? DateTime.MinValue) &&
+                x.FirstOccurrenceDate <= DateOnly.FromDateTime(_dateOnlyMudFilter.DateRange.End ?? DateTime.MaxValue)
+        });
+        _accountMudFilter.AvailableItems = DataContext.Transactions
+            .Select(i => i.SelectedAccount)
+            .Distinct()
+            .OrderBy(i => i.Name)
+            .ToList();
+        _accountMudFilter.ResetFilter();
+        _dateOnlyMudFilter.ResetFilter();
+    }
+    
+    void RecurringTransactions_SelectionChanged(HashSet<RecurringTransactionViewModel> items)
+    {
+        _selectedRecurringTransactions = items;
+    }
+    
+    void FirstOccurrenceDateChanged(DateTime? dateTime, RecurringTransactionViewModel context)
+    {
+        context.FirstOccurrenceDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
+    }
+    
+    async Task StartCreateNewRecurringTransaction()
+    {
+        var reloadRequired = false;
+        while (true)
+        {
+            var createDialogParameters = new DialogParameters<CreateRecurringTransactionDialog>
+            {
+                { x => x.DataContext, DataContext.NewRecurringTransaction }
+            };
+            var createDialog = await DialogService.ShowAsync<CreateRecurringTransactionDialog>(
+                "Create Recurring Transactions", createDialogParameters);
+            var createDialogResult = await createDialog.Result;
+            if (createDialogResult is { Canceled: false })
+            {
+                var createItemResult = DataContext.CreateItem();
+                if (createItemResult.IsSuccessful)
+                {
+                    reloadRequired = true;
+                    if (createDialogResult.Data is CreateDialogResponse.CreateAnother)
+                    {
+                        DataContext.ResetNewTransaction();
+                        continue;
+                    }
+                }
+                else
+                {
+                    var errorDialogParameters = new DialogParameters<ErrorMessageDialog>
+                    {
+                        { x => x.Title, "Create Recurring Transaction" },
+                        { x => x.Message, createItemResult.Message }
+                    };
+                    await DialogService.ShowAsync<ErrorMessageDialog>("Create Recurring Transaction", errorDialogParameters);
+                }
+            }
+
+            break;
+        }
+        if (reloadRequired) await DataContext.LoadDataAsync();
+    }
+    
+    void EditAllRecurringTransaction()
+    {
+        _massEditEnabled = true;
+        DataContext.EditAllTransaction();
+    }
+
+    async void SaveAllRecurringTransaction()
+    {
+        _massEditEnabled = false;
+        await HandleResult(DataContext.SaveAllTransaction());
+    }
+
+    async void CancelAllRecurringTransaction()
+    {
+        _massEditEnabled = false;
+        await HandleResult(await DataContext.CancelAllTransactionAsync());
+        StateHasChanged();
+    }
+    
+    async Task DeleteSelectedRecurringTransactions()
+    {
+        var parameters = new DialogParameters<DeleteConfirmationDialog>
+        {
+            { x => x.Title, "Delete Recurring Transactions" },
+            { x => x.Message, "Do you really want to delete the selected Recurring Transactions?" }
+        };
+        var dialog = await DialogService.ShowAsync<DeleteConfirmationDialog>("Delete Recurring Transactions", parameters);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            var deletionResults = _selectedRecurringTransactions
+                .Select(i => i.DeleteItem())
+                .ToList();
+            if (deletionResults.Any(i => !i.IsSuccessful))
+            {
+                await HandleResult(deletionResults.First(i => !i.IsSuccessful));
+            }
+            else
+            {
+                await HandleResult(deletionResults.First());
+            }
+            _selectedRecurringTransactions.Clear();
+        }
+    }
+
+    async Task HandleResult(ViewModelOperationResult result)
+    {
+        if (!result.IsSuccessful)
+        {
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Recurring Transaction" },
+                { x => x.Message, result.Message }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Recurring Transaction", parameters);
+        }
+        if (result.ViewModelReloadRequired)
+        {
+            await DataContext.LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+}

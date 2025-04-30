@@ -51,10 +51,10 @@ internal class CsvBankTransactionMapping : CsvMapping<ParsedBankTransaction>
     {
         // Mandatory
         MapProperty(
-            identifiedColumns.ToList().IndexOf(importProfile.MemoColumnName!),
+            identifiedColumns.ToList().IndexOf(importProfile.MemoColumnName),
             x => x.Memo);
         MapProperty(
-            identifiedColumns.ToList().IndexOf(importProfile.TransactionDateColumnName!),
+            identifiedColumns.ToList().IndexOf(importProfile.TransactionDateColumnName),
             x => x.TransactionDate, 
             new DateTimeConverter(importProfile.DateFormat));
         

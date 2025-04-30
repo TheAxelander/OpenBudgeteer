@@ -14,7 +14,7 @@ public class BankTransaction : IEntity
 
     public Account Account { get; set; } = null!;
 
-    public DateTime TransactionDate { get; set; }
+    public DateOnly TransactionDate { get; set; }
 
     public string? Payee { get; set; }
 

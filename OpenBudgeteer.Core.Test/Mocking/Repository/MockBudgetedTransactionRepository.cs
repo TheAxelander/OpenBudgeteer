@@ -66,7 +66,7 @@ public class MockBudgetedTransactionRepository : IBudgetedTransactionRepository
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var mockBankTransactionRepository = new MockBankTransactionRepository(_mockDatabase);
         var budgetedTransaction = ById(id);
-        if (budgetedTransaction == null) return budgetedTransaction;
+        if (budgetedTransaction is null) return budgetedTransaction;
         budgetedTransaction.Bucket = mockBucketRepository.ById(budgetedTransaction.BucketId) 
                                      ?? throw new Exception("Bucket doesn't exist");
         budgetedTransaction.Transaction = mockBankTransactionRepository.ById(budgetedTransaction.TransactionId) 
@@ -81,7 +81,7 @@ public class MockBudgetedTransactionRepository : IBudgetedTransactionRepository
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var mockBankTransactionRepository = new MockBankTransactionRepository(_mockDatabase);
         var budgetedTransaction = ById(id);
-        if (budgetedTransaction == null) return budgetedTransaction;
+        if (budgetedTransaction is null) return budgetedTransaction;
         budgetedTransaction.Bucket = mockBucketRepository.ById(budgetedTransaction.BucketId) 
                                      ?? throw new Exception("Bucket doesn't exist");
         budgetedTransaction.Transaction = mockBankTransactionRepository.ById(budgetedTransaction.TransactionId) 

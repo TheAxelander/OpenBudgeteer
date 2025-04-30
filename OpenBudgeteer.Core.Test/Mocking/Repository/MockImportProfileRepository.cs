@@ -43,7 +43,7 @@ public class MockImportProfileRepository : IImportProfileRepository
     {
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var importProfile = ById(id);
-        if (importProfile == null) return importProfile;
+        if (importProfile is null) return importProfile;
         importProfile.Account = mockAccountRepository.ById(importProfile.AccountId) 
                                 ?? throw new Exception("Account doesn't exist");
 

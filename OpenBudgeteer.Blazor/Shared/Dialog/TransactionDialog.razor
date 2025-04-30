@@ -1,0 +1,131 @@
+﻿@using System.Globalization
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Blazor.Common.CustomMudFilter
+@using OpenBudgeteer.Blazor.Common.Services
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+@inject AppSettingService AppSettingService
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudDataGrid
+            T="TransactionViewModel"
+            Items="@DataContext.Transactions"
+            Dense="true"
+            Filterable="true"
+            FilterMode="DataGridFilterMode.ColumnFilterMenu"
+            FixedHeader="true"
+            Hover="true"
+            ReadOnly="true"
+            RowsPerPage="@AppSettingService.CurrentSettings.TransactionPagerSize"
+            SortMode="SortMode.Multiple">
+            <Columns>
+                <PropertyColumn Property="x => x.TransactionDate" Title="Date">
+                    <FilterTemplate>
+                        <MudGrid Spacing="6" Style="width:430px">
+                            <MudItem xs="12">
+                                <MudDateRangePicker
+                                    PickerVariant="PickerVariant.Inline"
+                                    @bind-DateRange="@_dateOnlyMudFilter.DateRange"
+                                    Margin="Margin.Dense"/>
+                            </MudItem>
+                            <MudItem xs="12" Class="d-flex justify-end">
+                                <MudButton OnClick="@(() => _dateOnlyMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => _dateOnlyMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </FilterTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.SelectedAccount" Title="Account" CellStyle="min-width: 150px" Comparer="@(new MudComparer())">
+                    <FilterTemplate>
+                        <MudGrid Spacing="6" Style="width:430px">
+                            <MudItem xs="12">
+                                <MudSelect
+                                    T="AccountViewModel"
+                                    @bind-SelectedValues="_accountMudFilter.SelectedItems"
+                                    MultiSelection="true"
+                                    MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Accounts"))"
+                                    SelectAll="true">
+                                    @foreach (var account in _accountMudFilter.AvailableItems)
+                                    {
+                                        <MudSelectItem Value="account">@account</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" Class="d-flex justify-end">
+                                <MudButton OnClick="@(() => _accountMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                <MudButton Color="@Color.Primary" OnClick="@(() => _accountMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                            </MudItem>
+                        </MudGrid>
+                    </FilterTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.Payee"/>
+                <PropertyColumn Property="x => x.Memo"/>
+                <PropertyColumn Property="x => x.Amount" Format="C" Culture="CultureInfo.CurrentCulture" CellClass="col-numbers"/>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="TransactionViewModel" />
+            </PagerContent>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public TransactionListingViewModel DataContext { get; set; } = null!;
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public bool IsDialogLoading { get; set; }
+
+	[Parameter]
+    public Bucket CurrentBucket { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
+    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
+
+    private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+
+    protected override void OnInitialized()
+    {
+        _accountMudFilter = new(new()
+        {
+            FilterFunction = x => _accountMudFilter.FilterItems.Contains(x.SelectedAccount)
+        });
+        _dateOnlyMudFilter = new(new()
+        {
+            FilterFunction = x => 
+                x.TransactionDate.IsBetween(_dateOnlyMudFilter.DateRange.Start, _dateOnlyMudFilter.DateRange.End)
+        });
+        
+        _accountMudFilter.AvailableItems = DataContext.Transactions
+            .Select(i => i.SelectedAccount)
+            .Distinct()
+            .OrderBy(i => i.Name)
+            .ToList();
+        
+        _accountMudFilter.ResetFilter();
+        _dateOnlyMudFilter.ResetFilter();
+    }
+}

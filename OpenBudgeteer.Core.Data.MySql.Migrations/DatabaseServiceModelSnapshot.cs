@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OpenBudgeteer.Core.Data.Entities;
 
@@ -16,8 +17,10 @@ namespace OpenBudgeteer.Core.Migrations.MySql
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
             modelBuilder.Entity("OpenBudgeteer.Core.Data.Entities.Models.Account", b =>
                 {
@@ -56,8 +59,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<string>("Payee")
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("TransactionDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -79,11 +82,14 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<string>("ColorCode")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsHiddenFromSummaries")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsInactive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<DateTime>("IsInactiveFrom")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("IsInactiveFrom")
+                        .HasColumnType("date");
 
                     b.Property<string>("Name")
                         .HasColumnType("longtext");
@@ -91,8 +97,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<string>("TextColorCode")
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -132,8 +138,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<Guid>("BucketId")
                         .HasColumnType("char(36)");
 
-                    b.Property<DateTime>("MovementDate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("MovementDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -184,14 +190,14 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<decimal>("BucketTypeYParam")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateTime>("BucketTypeZParam")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("BucketTypeZParam")
+                        .HasColumnType("date");
 
                     b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("ValidFrom")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
 
                     b.Property<int>("Version")
                         .HasColumnType("int");
@@ -335,8 +341,8 @@ namespace OpenBudgeteer.Core.Migrations.MySql
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(65, 2)");
 
-                    b.Property<DateTime>("FirstOccurrenceDate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<DateOnly>("FirstOccurrenceDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Memo")
                         .HasColumnType("longtext");

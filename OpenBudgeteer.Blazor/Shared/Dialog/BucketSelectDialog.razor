@@ -1,0 +1,131 @@
+﻿@using System.Drawing
+@using System.Globalization
+@using System.Threading
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Select Bucket</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudFocusTrap DefaultFocus="DefaultFocus.FirstChild">
+            <MudAutocomplete
+                T="BucketViewModel"
+                SearchFunc="BucketQuickSelectSearchFunction"
+                Class="mb-4"
+                Dense="true"
+                Label="Bucket quick select"
+                Margin="Margin.Dense"
+                Variant="Variant.Outlined"
+                ValueChanged="BucketQuickSelectChanged"/>
+        </MudFocusTrap>
+        <MudTable
+            Items="@DataContext.LoadedBuckets"
+            Dense="true"
+            FixedHeader="true"
+            Hover="true"
+            GroupBy="@_groupByBucketGroup"
+            GroupHeaderStyle="background-color:var(--mud-palette-background-gray)">
+            <HeaderContent>
+                <MudTh>Bucket</MudTh>
+                <MudTh Class="col-numbers col-bucket-numbers">Balance</MudTh>
+                <MudTh Class="col-numbers col-bucket-numbers">In</MudTh>
+                <MudTh Class="col-numbers col-bucket-numbers">Activity</MudTh>
+                <MudTh>Details</MudTh>
+                <MudTh/>
+            </HeaderContent>
+            <GroupHeaderTemplate>
+                <MudTh>@((context.Key as BucketGroupViewModel)!.Name)</MudTh>
+                <MudTh Class="col-numbers col-bucket-numbers">@((context.Key as BucketGroupViewModel)!.TotalBalance.ToString("C", CultureInfo.CurrentCulture))</MudTh>
+                <MudTh Class="col-numbers col-bucket-numbers">@((context.Key as BucketGroupViewModel)!.TotalIn == 0 ? string.Empty : (context.Key as BucketGroupViewModel)!.TotalIn.ToString("C", CultureInfo.CurrentCulture))</MudTh>
+                <MudTh Class="col-numbers col-bucket-numbers">@((context.Key as BucketGroupViewModel)!.TotalActivity == 0 ? string.Empty : (context.Key as BucketGroupViewModel)!.TotalActivity.ToString("C", CultureInfo.CurrentCulture))</MudTh>
+                <MudTh/>
+                <MudTh/>
+            </GroupHeaderTemplate>
+            <RowTemplate>
+                <MudTd DataLabel="Bucket">
+                    <MudButton
+                        Size="Size.Small"
+                        Class="mud-width-full bucket-indicator"
+                        Style="@($"background-color: {ColorTranslator.ToHtml(context.Color)}; color: {ColorTranslator.ToHtml(context.TextColor)}")"
+                        OnClick="@(() => ConfirmSelection(context))">
+                        @context.Name
+                    </MudButton>
+                </MudTd>
+                <MudTd DataLabel="Balance" Class="col-numbers">@context.Balance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
+                <MudTd DataLabel="In" Class="col-numbers">@(context.In == 0 ? string.Empty : context.In.ToString("C", CultureInfo.CurrentCulture))</MudTd>
+                <MudTd DataLabel="Activity" Class="col-numbers">@(context.Activity == 0 ? string.Empty : context.Activity.ToString("C", CultureInfo.CurrentCulture))</MudTd>
+                <MudTd DataLabel="Details" colspan="2">
+                    <MudStack Row StretchItems="StretchItems.Start">
+                        @if (context.IsProgressbarVisible)
+                        {
+                            <MudStack Spacing="1">
+                                <MudProgressLinear Color="Color.Info" Size="Size.Large" Rounded Value="context.Progress">
+                                    <MudText Typo="Typo.caption" Color="Color.Dark">
+                                        <b>@context.Progress%</b>
+                                    </MudText>
+                                </MudProgressLinear>
+                                <MudText Typo="Typo.caption" Align="Align.Center">@context.Details</MudText>
+                            </MudStack>
+                        }
+                    </MudStack>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelSelection">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public BucketListingViewModel DataContext { get; set; } = null!;
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public bool IsDialogLoading { get; set; }
+    
+    [Parameter]
+    public EventCallback<BucketViewModel> OnBucketSelectedCallback { get; set; }
+    
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelCallback { get; set; }
+    
+    private readonly TableGroupDefinition<BucketViewModel> _groupByBucketGroup = new()
+    {
+        GroupName = "Bucket Group:",
+        Expandable = true,
+        Selector = x => x.BucketGroupViewModel!
+    };
+    
+    private void CancelSelection() => MudDialog.Close();
+
+    private void ConfirmSelection(BucketViewModel bucket) => MudDialog.Close(DialogResult.Ok(bucket));
+
+    private void BucketQuickSelectChanged(BucketViewModel bucket) => ConfirmSelection(bucket);
+
+    private async Task<IEnumerable<BucketViewModel>> BucketQuickSelectSearchFunction(string? searchString, CancellationToken cancellationToken)
+    {
+        return await Task.Run(() =>
+        {
+            var buckets = DataContext.BucketGroups
+                .SelectMany(i => i.Buckets)
+                .Order()
+                .ToList();
+
+            return string.IsNullOrEmpty(searchString) ? 
+                buckets : 
+                buckets.Where(i => i.Name.Contains(searchString, StringComparison.InvariantCultureIgnoreCase));
+        }, cancellationToken);
+    }
+
+}

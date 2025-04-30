@@ -17,7 +17,7 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         private record BucketActivity
         {
             public Guid BucketId { get; }
-            public DateTime TransactionDate { get; }
+            public DateOnly TransactionDate { get; }
             public decimal Amount  { get; }
 
             public BucketActivity(BudgetedTransaction budgetedTransaction)
@@ -81,18 +81,18 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// Item1: <see cref="DateTime"/> representing the month
         /// Item2: <see cref="decimal"/> representing the balance
         /// </returns>
-        public async Task<List<Tuple<DateTime, decimal>>> LoadBucketMonthBalancesAsync(int months = 24)
+        public async Task<List<Tuple<DateOnly, decimal>>> LoadBucketMonthBalancesAsync(int months = 24)
         {
             return await Task.Run(() =>
             {
-                var result = new List<Tuple<DateTime, decimal>>();
+                var result = new List<Tuple<DateOnly, decimal>>();
                 var startingMonth = _yearMonthViewModel.CurrentMonth.AddMonths((months - 1) * -1);
 
                 var transactions = GetAllBucketActivities(startingMonth);
 
                 // Group Amount values per month
                 var monthBalances = transactions
-                .GroupBy(i => new DateTime(i.TransactionDate.Year, i.TransactionDate.Month, 1))
+                .GroupBy(i => new DateOnly(i.TransactionDate.Year, i.TransactionDate.Month, 1))
                 .Select(i => new
                 {
                     YearMonth = i.Key,
@@ -111,13 +111,13 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
                             month.Month == group.YearMonth.Month)
                         {
                             // Pop group into results
-                            result.Add(new Tuple<DateTime, decimal>(group.YearMonth, group.Balance));
+                            result.Add(new Tuple<DateOnly, decimal>(group.YearMonth, group.Balance));
                             monthBalances.RemoveAt(0);
                             continue;
                         }
                     }
                     // There is a month in between without data, add empty element
-                    result.Add(new Tuple<DateTime, decimal>(month, default));
+                    result.Add(new Tuple<DateOnly, decimal>(month, default));
                 }
 
                 return result;
@@ -134,18 +134,18 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// Item2: <see cref="decimal"/> representing the income
         /// Item3: <see cref="decimal"/> representing the expenses
         /// </returns>
-        public async Task<List<Tuple<DateTime, decimal, decimal>>> LoadBucketMonthInOutAsync(int months = 24)
+        public async Task<List<Tuple<DateOnly, decimal, decimal>>> LoadBucketMonthInOutAsync(int months = 24)
         {
             return await Task.Run(() =>
             {
-                var result = new List<Tuple<DateTime, decimal, decimal>>();
+                var result = new List<Tuple<DateOnly, decimal, decimal>>();
                 var startingMonth = _yearMonthViewModel.CurrentMonth.AddMonths((months - 1) * -1);
 
                 var transactions = GetAllBucketActivities(startingMonth);
 
                 // Group Input and Output values per month
                 var monthBalances = transactions
-                .GroupBy(i => new DateTime(i.TransactionDate.Year, i.TransactionDate.Month, 1))
+                .GroupBy(i => new DateOnly(i.TransactionDate.Year, i.TransactionDate.Month, 1))
                 .Select(i => new
                 {
                     YearMonth = i.Key,
@@ -165,13 +165,13 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
                             month.Month == group.YearMonth.Month)
                         {
                             // Pop group into results
-                            result.Add(new Tuple<DateTime, decimal, decimal>(group.YearMonth, group.Input, group.Output));
+                            result.Add(new Tuple<DateOnly, decimal, decimal>(group.YearMonth, group.Input, group.Output));
                             monthBalances.RemoveAt(0);
                             continue;
                         }
                     }
                     // There is a month in between without data, add empty element
-                    result.Add(new Tuple<DateTime, decimal, decimal>(month, default, default));
+                    result.Add(new Tuple<DateOnly, decimal, decimal>(month, default, default));
                 }
 
                 return result;
@@ -183,17 +183,17 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// </summary>
         /// <param name="startingMonth">Date from which activities should be returned</param>
         /// <returns>List of <see cref="BucketActivity"/></returns>
-        private List<BucketActivity> GetAllBucketActivities(DateTime startingMonth)
+        private List<BucketActivity> GetAllBucketActivities(DateOnly startingMonth)
         {
             // Get all BankTransaction assigned to this Bucket
             var transactions = ServiceManager.BudgetedTransactionService
-                .GetAllFromBucket(BucketId, startingMonth, DateTime.MaxValue)
+                .GetAllFromBucket(BucketId, startingMonth, DateOnly.MaxValue)
                 .Select(i => new BucketActivity(i))
                 .ToList();
 
             // Append Bucket Movements
             transactions.AddRange(ServiceManager.BucketMovementService
-                .GetAllFromBucket(BucketId, startingMonth, DateTime.MaxValue)
+                .GetAllFromBucket(BucketId, startingMonth, DateOnly.MaxValue)
                 .Select(i => new BucketActivity(i))
                 .ToList());
 
@@ -211,33 +211,46 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// Item1: <see cref="DateTime"/> representing the month
         /// Item2: <see cref="decimal"/> representing the balance
         /// </returns>
-        public async Task<List<Tuple<DateTime, decimal>>> LoadBucketBalanceProgressionAsync(int months = 24)
+        public async Task<List<Tuple<DateOnly, decimal>>> LoadBucketBalanceProgressionAsync(int months = 24)
         {
             return await Task.Run(() =>
             {
-                var result = new List<Tuple<DateTime, decimal>>();
-                var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                
+                var result = new List<Tuple<DateOnly, decimal>>();
+                var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+                var transactions = ServiceManager.BudgetedTransactionService
+                    .GetAllFromBucket(BucketId, DateOnly.MinValue, currentMonth)
+                    .GroupBy(i => new { i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month })
+                    .Select(i => new
+                    {
+                        CurrentMonth = new DateOnly(i.Key.Year, i.Key.Month, 1),
+                        Balance = i.Sum(j => j.Amount)
+                    })
+                    .ToList();
+                var bucketMovements = ServiceManager.BucketMovementService
+                    .GetAllFromBucket(BucketId, DateOnly.MinValue, currentMonth)
+                    .GroupBy(i => new { i.MovementDate.Year, i.MovementDate.Month })
+                    .Select(i => new
+                    {
+                        CurrentMonth = new DateOnly(i.Key.Year, i.Key.Month, 1),
+                        Balance = i.Sum(j => j.Amount)
+                    })
+                    .ToList();
+
                 for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
                 {
-                    var month = currentMonth.AddMonths(monthIndex * -1);
-                    //TODO: Consider rewrite for more optimized query
-                    var lastDayOfMonth = month.AddMonths(1).AddDays(-1);
-                    var transactions = ServiceManager.BudgetedTransactionService
-                        .GetAllFromBucket(BucketId, DateTime.MinValue, lastDayOfMonth)
-                        .ToList();
-                        
-                    var bucketMovements = ServiceManager.BucketMovementService
-                        .GetAllFromBucket(BucketId, DateTime.MinValue, lastDayOfMonth)
-                        .ToList();
+                    var currentPeriod = currentMonth.AddMonths(monthIndex * -1);
 
-                    // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
-                    var bucketBalance = 
-                        transactions.Sum(i => i.Amount) +
-                        bucketMovements.Sum(i => i.Amount);
-                    result.Add(new Tuple<DateTime, decimal>(month, bucketBalance));
+                    var sumOfTransactions = transactions
+                        .Where(i => i.CurrentMonth <= currentPeriod)
+                        .Sum(i => i.Balance);
+                    var sumOfMovements = bucketMovements
+                        .Where(i => i.CurrentMonth <= currentPeriod)
+                        .Sum(i => i.Balance);
+                    
+                    result.Add(new Tuple<DateOnly, decimal>(currentPeriod, sumOfTransactions + sumOfMovements));
                 }
-
+                
                 return result;
             });
         }

@@ -21,7 +21,7 @@ public class EFCoreBucketMovementService : EFCoreBaseService<BucketMovement>, IB
         return new GenericBucketMovementService(new BucketMovementRepository(dbContext));
     }
 
-    public IEnumerable<BucketMovement> GetAll(DateTime periodStart, DateTime periodEnd)
+    public IEnumerable<BucketMovement> GetAll(DateOnly periodStart, DateOnly periodEnd)
     {
         try
         {
@@ -38,10 +38,10 @@ public class EFCoreBucketMovementService : EFCoreBaseService<BucketMovement>, IB
 
     public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId)
     {
-        return GetAllFromBucket(bucketId, DateTime.MinValue, DateTime.MaxValue);
+        return GetAllFromBucket(bucketId, DateOnly.MinValue, DateOnly.MaxValue);
     }
 
-    public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId, DateTime periodStart, DateTime periodEnd)
+    public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
     {
         try
         {

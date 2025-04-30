@@ -8,7 +8,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class PartialBucketViewModel : ViewModelBase, ICloneable
+public class PartialBucketViewModel : ViewModelBase, ICloneable, IEquatable<PartialBucketViewModel>, IComparable<PartialBucketViewModel>
 {
     #region Properties & Fields
     
@@ -62,16 +62,6 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
     /// </summary>
     public Color SelectedBucketTextColor => string.IsNullOrEmpty(SelectedBucketTextColorCode) ? Color.Black : Color.FromName(SelectedBucketTextColorCode);
 
-    private string _selectedBucketOutput;
-    /// <summary>
-    /// Helper property to generate an output for the Bucket including the assigned amount
-    /// </summary>
-    public string SelectedBucketOutput
-    {
-        get => _selectedBucketOutput;
-        set => Set(ref _selectedBucketOutput, value);
-    }
-
     private decimal _amount;
     /// <summary>
     /// Money that will be assigned to this Bucket
@@ -81,8 +71,9 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
         get => _amount;
         set
         {
+            var oldValue = _amount;
             Set(ref _amount, value);
-            AmountChanged?.Invoke(this, new AmountChangedArgs(this, value));
+            if (_amount != oldValue) AmountChanged?.Invoke(this, new AmountChangedArgs(this, value));
         }
     }
 
@@ -110,10 +101,9 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
     /// <param name="amount">Amount to be assigned to this Bucket</param>
     protected PartialBucketViewModel(IServiceManager serviceManager, Bucket? bucket, decimal amount) : base(serviceManager)
     {
-        _selectedBucketOutput = string.Empty;
         _amount = amount;
 
-        if (bucket == null)
+        if (bucket is null)
         {
             // Create a "No Selection" Bucket
             var noSelectionBucket = new Bucket()
@@ -148,7 +138,6 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
         _selectedBucketName = viewModel.SelectedBucketName;
         _selectedBucketColorCode = viewModel.SelectedBucketColorCode;
         _selectedBucketTextColorCode = viewModel.SelectedBucketTextColorCode;
-        _selectedBucketOutput = viewModel.SelectedBucketOutput;
         _amount = viewModel.Amount;
     }
 
@@ -181,6 +170,7 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
         return new PartialBucketViewModel(this);
     }
 
+    
     #endregion
     
     #region Modification Handler
@@ -205,5 +195,45 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable
         SelectedBucketTextColorCode = bucketViewModel.TextColorCode;
     }
     
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+
+    public bool Equals(PartialBucketViewModel? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return
+            _selectedBucketId.Equals(other._selectedBucketId) &&
+            _selectedBucketName == other._selectedBucketName &&
+            _selectedBucketColorCode == other._selectedBucketColorCode &&
+            _selectedBucketTextColorCode == other._selectedBucketTextColorCode;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((PartialBucketViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(_selectedBucketId);
+        hashCode.Add(_selectedBucketName);
+        hashCode.Add(_selectedBucketColorCode);
+        hashCode.Add(_selectedBucketTextColorCode);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(PartialBucketViewModel? other)
+    {
+        return string.Compare(_selectedBucketName, other?.SelectedBucketName, StringComparison.Ordinal);
+    }
+
+    public override string ToString() => SelectedBucketName;
+
     #endregion
 }

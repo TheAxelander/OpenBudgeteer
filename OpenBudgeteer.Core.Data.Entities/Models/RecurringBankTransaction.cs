@@ -20,7 +20,7 @@ public class RecurringBankTransaction: IEntity
     [Required]
     public int RecurrenceAmount { get; set; }
     
-    public DateTime FirstOccurrenceDate { get; set; }
+    public DateOnly FirstOccurrenceDate { get; set; }
 
     public string? Payee { get; set; }
 
@@ -37,7 +37,7 @@ public class RecurringBankTransaction: IEntity
     /// <exception cref="Exception">
     /// <see cref="RecurrenceType"/> has a value which is not defined (not between 1-4).
     /// </exception>
-    public DateTime GetNextIterationDate(DateTime currentDate)
+    public DateOnly GetNextIterationDate(DateOnly currentDate)
     {
         switch (RecurrenceType)
         {
@@ -59,7 +59,7 @@ public class RecurringBankTransaction: IEntity
     /// </summary>
     /// <param name="transactionDate">Value for <see cref="BankTransaction.TransactionDate"/></param>
     /// <returns>New <see cref="BankTransaction"/> object with <see cref="BankTransaction.Id"/>=0</returns>
-    public BankTransaction GetAsBankTransaction(DateTime transactionDate)
+    public BankTransaction GetAsBankTransaction(DateOnly transactionDate)
     {
         return new BankTransaction()
         {

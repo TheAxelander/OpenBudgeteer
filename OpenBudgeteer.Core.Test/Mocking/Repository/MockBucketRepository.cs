@@ -115,7 +115,7 @@ public class MockBucketRepository : IBucketRepository
     {
         var mockBucketVersionRepository = new MockBucketVersionRepository(_mockDatabase);
         var bucket = ById(id);
-        if (bucket == null) return bucket;
+        if (bucket is null) return bucket;
         bucket.BucketVersions = new List<BucketVersion>();
         foreach (var bucketVersion in mockBucketVersionRepository
                      .All()
@@ -131,7 +131,7 @@ public class MockBucketRepository : IBucketRepository
     {
         var mockBucketMovementRepository = new MockBucketMovementRepository(_mockDatabase);
         var bucket = ById(id);
-        if (bucket == null) return bucket;
+        if (bucket is null) return bucket;
 
         bucket.BucketMovements = new List<BucketMovement>();
         foreach (var bucketMovement in mockBucketMovementRepository
@@ -148,7 +148,7 @@ public class MockBucketRepository : IBucketRepository
     {
         var mockBudgetedTransactionRepository = new MockBudgetedTransactionRepository(_mockDatabase);
         var bucket = ById(id);
-        if (bucket == null) return bucket;
+        if (bucket is null) return bucket;
 
         bucket.BudgetedTransactions = new List<BudgetedTransaction>();
         foreach (var budgetedTransaction in mockBudgetedTransactionRepository
@@ -168,7 +168,7 @@ public class MockBucketRepository : IBucketRepository
         var mockBucketVersionRepository = new MockBucketVersionRepository(_mockDatabase);
         var mockBudgetedTransactionRepository = new MockBudgetedTransactionRepository(_mockDatabase);
         var bucket = ById(id);
-        if (bucket == null) return bucket;
+        if (bucket is null) return bucket;
         bucket.BucketGroup = mockBucketGroupRepository.ById(bucket.BucketGroupId) 
                              ?? throw new Exception("BucketGroup doesn't exist");
 
@@ -221,7 +221,7 @@ public class MockBucketRepository : IBucketRepository
         {
             var result = 1;
             _mockDatabase.Buckets[entity.Id] = entity;
-            if (entity.BucketVersions == null) return result;
+            if (entity.BucketVersions is null) return result;
             foreach (var bucketVersion in entity.BucketVersions)
             {
                 if (bucketVersion.Id == Guid.Empty)

@@ -94,9 +94,9 @@ public class BucketRepository : IBucketRepository
             .Include(i => i.BucketVersions)
             .Include(i => i.BudgetedTransactions)
             .FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"Bucket with id {id} not found.");
-        if (entity.BucketMovements != null && entity.BucketMovements.Count != 0) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
-        if (entity.BudgetedTransactions != null && entity.BudgetedTransactions.Count != 0) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
+        if (entity is null) throw new Exception($"Bucket with id {id} not found.");
+        if (entity.BucketMovements is not null && entity.BucketMovements.Count != 0) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
+        if (entity.BudgetedTransactions is not null && entity.BudgetedTransactions.Count != 0) throw new Exception($"Cannot delete a Bucket with BudgetedTransactions assigned to it.");
 
         DatabaseContext.Bucket.Remove(entity);
         return DatabaseContext.SaveChanges();

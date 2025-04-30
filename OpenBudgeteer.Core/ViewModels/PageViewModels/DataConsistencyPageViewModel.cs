@@ -38,7 +38,8 @@ public class DataConsistencyPageViewModel : ViewModelBase
             CheckBucketBalanceAsync(),
             CheckBankTransactionIncompleteBucketAssignmentAsync(),
             CheckBudgetedTransactionOutsideOfValidityDateAsync(),
-            CheckNegativeBankTransactionAssignedToIncomeAsync()
+            CheckNegativeBankTransactionAssignedToIncomeAsync(),
+            CheckNonZeroInactiveBucketBalanceAsync()
         };
 
         foreach (var result in await Task.WhenAll(checkTasks))
@@ -137,9 +138,9 @@ public class DataConsistencyPageViewModel : ViewModelBase
             
             // Check on Transactions which have overall no Bucket assignments
             var unassignedTransactions = ServiceManager.BankTransactionService
-                .GetAll(DateTime.MinValue, DateTime.MaxValue)
+                .GetAll(DateOnly.MinValue, DateOnly.MaxValue)
                 .GroupJoin(
-                    ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue),
+                    ServiceManager.BudgetedTransactionService.GetAll(DateOnly.MinValue, DateOnly.MaxValue),
                     transaction => transaction.Id,
                     budgetedTransaction => budgetedTransaction.TransactionId,
                     (bankTransaction, budgetedTransactions) => new
@@ -163,7 +164,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
             // Check on incomplete assignments
             var findings = 
                 // Get all BudgetedTransaction which are not 1:1 budgeted (Missing Assignments or Split Transaction) 
-                ServiceManager.BudgetedTransactionService.GetAll(DateTime.MinValue, DateTime.MaxValue)
+                ServiceManager.BudgetedTransactionService.GetAll(DateOnly.MinValue, DateOnly.MaxValue)
                 .Where(i => i.Transaction.Amount != i.Amount)
                 // Grouping results to summarize potential Split Transaction
                 .GroupBy(i => i.TransactionId,
@@ -237,7 +238,7 @@ public class DataConsistencyPageViewModel : ViewModelBase
                 .Select(bucket => Task.Run(() =>
                 {
                     var invalidTransactions = ServiceManager.BudgetedTransactionService
-                        .GetAllFromBucket(bucket.Id, bucket.IsInactiveFrom, DateTime.MaxValue)
+                        .GetAllFromBucket(bucket.Id, bucket.IsInactiveFrom, DateOnly.MaxValue)
                         .ToList();
 
                     results.Add(invalidTransactions.Any()
@@ -337,6 +338,83 @@ public class DataConsistencyPageViewModel : ViewModelBase
                 checkName,
                 DataConsistencyCheckResult.StatusCode.Warning,
                 "Some Transactions assigned to Income are negative",
+                detailsBuilder));
+        });
+    }
+
+    /// <summary>
+    /// Checks if any inactive <see cref="Bucket"/> has a non-zero Balance
+    /// </summary>
+    /// <returns>Result of Data Consistency Check</returns>
+    public async Task<DataConsistencyCheckResult> CheckNonZeroInactiveBucketBalanceAsync()
+    {
+        return await Task.Run(() =>
+        {
+            const string checkName = "Non-zero inactive Bucket balance";
+            var budgetedTransactions = ServiceManager.BudgetedTransactionService
+                .GetAllNonTransfer() // Shortcut to get also Bucket property
+                .Where(i => i.Bucket!.IsInactive)
+                .GroupBy(i => i.BucketId)
+                .Select(bucketExpenses => new
+                {
+                    BucketId = bucketExpenses.Key,
+                    Name = bucketExpenses.First().Bucket!.Name,
+                    InactiveFrom = bucketExpenses.First().Bucket!.IsInactiveFrom,
+                    Expenses = bucketExpenses.Sum(i => i.Amount)
+                })
+                .ToList();
+            
+            var bucketMovements = ServiceManager.BucketMovementService
+                .GetAll()
+                .GroupBy(i => i.BucketId)
+                .Select(bucketMovements => new
+                {
+                    BucketId = bucketMovements.Key,
+                    Movements = bucketMovements.Sum(i => i.Amount)
+                })
+                .ToList();
+
+            var joinedResults = budgetedTransactions
+                .Join(bucketMovements, i => i.BucketId, j => j.BucketId, (i, j) => new
+                {
+                    BucketId = i.BucketId,
+                    Name = i.Name,
+                    InactiveFrom = i.InactiveFrom,
+                    Expenses = i.Expenses,
+                    Movements = j.Movements,
+                    Balance = i.Expenses + j.Movements
+                })
+                .ToList();
+
+            if (joinedResults.All(i => i.Balance == 0))
+            {
+                return Task.FromResult(new DataConsistencyCheckResult(
+                    checkName,
+                    DataConsistencyCheckResult.StatusCode.Ok,
+                    "All inactive Buckets have a Balance of 0",
+                    new List<string[]>()));
+            }
+            
+            var detailsBuilder = new List<string[]>()
+            {
+                new[] { "Bucket", "Inactive since", "Expenses", "Movements", "Balance" }
+            };
+
+            detailsBuilder.AddRange(joinedResults
+                .Where(i => i.Balance != 0)
+                .Select(i => new[]
+                {
+                    i.Name,
+                    i.InactiveFrom.ToShortDateString(),
+                    i.Expenses.ToString("C", CultureInfo.CurrentCulture),
+                    i.Movements.ToString("C", CultureInfo.CurrentCulture),
+                    i.Balance.ToString("C", CultureInfo.CurrentCulture)
+                })!);
+
+            return Task.FromResult(new DataConsistencyCheckResult(
+                checkName,
+                DataConsistencyCheckResult.StatusCode.Alert,
+                "Some inactive Buckets have Balance which is not 0",
                 detailsBuilder));
         });
     }

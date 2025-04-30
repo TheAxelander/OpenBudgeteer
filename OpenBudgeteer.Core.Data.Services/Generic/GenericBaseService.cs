@@ -18,7 +18,7 @@ public abstract class GenericBaseService<TEntity> : IBaseService<TEntity>
     public virtual TEntity Get(Guid id)
     {
         var result = _baseRepository.ById(id);
-        if (result == null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException();
         return result;
     }
 

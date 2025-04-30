@@ -57,7 +57,7 @@ public class BucketRuleSetDatabaseTest : BaseDatabaseTest<BucketRuleSet>
         var bucketRuleSets = new List<BucketRuleSet>();
         for (var i = 1; i <= 4; i++)
         {
-            var date = DateTime.Now.AddDays(i);
+            var date = DateTime.Today.AddDays(i);
             bucketRuleSets.Add(new()
             {
                 Priority = i,

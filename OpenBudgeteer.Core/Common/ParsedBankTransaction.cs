@@ -14,7 +14,7 @@ public record ParsedBankTransaction
     {
         return new BankTransaction()
         {
-            TransactionDate = TransactionDate,
+            TransactionDate = DateOnly.FromDateTime(TransactionDate),
             Memo = Memo,
             Payee = Payee,
             Amount = Amount

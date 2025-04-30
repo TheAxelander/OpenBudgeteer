@@ -52,7 +52,7 @@ public class MockBankTransactionRepository : IBankTransactionRepository
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var mockBudgetedTransactionRepository = new MockBudgetedTransactionRepository(_mockDatabase);
         var transaction = ById(id);
-        if (transaction == null) return transaction;
+        if (transaction is null) return transaction;
         transaction.Account = mockAccountRepository.ById(transaction.AccountId) 
                               ?? throw new Exception("Account doesn't exist");
         transaction.BudgetedTransactions = new List<BudgetedTransaction>();

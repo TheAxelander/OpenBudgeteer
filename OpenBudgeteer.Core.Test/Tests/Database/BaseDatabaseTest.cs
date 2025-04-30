@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using OpenBudgeteer.Core.Data;
+using OpenBudgeteer.Core.Data.Connection;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -28,7 +29,7 @@ public abstract class BaseDatabaseTest<TEntity> where TEntity : IEntity
                     [ConfigurationKeyConstants.CONNECTION_DATABASE] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_DATABASE) ?? "openbudgeteer_unit_test",
                 }!)
                 .Build();
-            var contextOptions = DbContextOptionsFactory.GetContextOptions(configuration);
+            var contextOptions = new MariaDbConnector(configuration).GetDbContextOptions();
             var dbContext = new DatabaseContext(contextOptions);
             dbContext.Database.Migrate();
             return contextOptions;

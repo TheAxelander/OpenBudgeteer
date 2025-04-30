@@ -59,7 +59,7 @@ public class BankTransactionRepository : IBankTransactionRepository
         var entity = DatabaseContext.BankTransaction
             .Include(i => i.BudgetedTransactions)
             .FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"BankTransaction with id {id} not found.");
+        if (entity is null) throw new Exception($"BankTransaction with id {id} not found.");
 
         DatabaseContext.BankTransaction.Remove(entity);
         return DatabaseContext.SaveChanges();

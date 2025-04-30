@@ -92,7 +92,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public IEnumerable<Bucket> GetActiveBuckets(DateTime validFrom)
+    public IEnumerable<Bucket> GetActiveBuckets(DateOnly validFrom)
     {
         try
         {
@@ -107,7 +107,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
     
-    public BucketVersion GetLatestVersion(Guid bucketId, DateTime yearMonth)
+    public BucketVersion GetLatestVersion(Guid bucketId, DateOnly yearMonth)
     {
         try
         {
@@ -127,7 +127,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public BucketFigures GetFigures(Guid bucketId, DateTime yearMonth)
+    public BucketFigures GetFigures(Guid bucketId, DateOnly yearMonth)
     {
         try
         {
@@ -142,7 +142,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public decimal GetBalance(Guid bucketId, DateTime yearMonth)
+    public decimal GetBalance(Guid bucketId, DateOnly yearMonth)
     {
         try
         {
@@ -157,7 +157,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public BucketFigures GetInAndOut(Guid bucketId, DateTime yearMonth)
+    public BucketFigures GetInAndOut(Guid bucketId, DateOnly yearMonth)
     {
         try
         {
@@ -216,7 +216,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public void Close(Guid id, DateTime yearMonth)
+    public void Close(Guid id, DateOnly yearMonth)
     {
         try
         {
@@ -260,7 +260,7 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         }
     }
 
-    public BucketMovement CreateMovement(Guid bucketId, decimal amount, DateTime movementDate)
+    public BucketMovement CreateMovement(Guid bucketId, decimal amount, DateOnly movementDate)
     {
         try
         {

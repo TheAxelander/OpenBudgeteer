@@ -2,49 +2,21 @@
 
 @using System.Globalization
 
-<div class="d-flex flex-row flex-wrap">
-    <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="CreateNewAccount">New account</button>
-</div>
+<MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => ShowEditAccountDialog(null))">New account</MudButton>
 
-<div class="d-flex flex-wrap">
+<MudElement HtmlTag="div" Class="d-flex flex-wrap no-background">
     @foreach (var account in _dataContext.Accounts)
     {
-        <div class="card card-account me-2 mb-2">
-            <div class="card-body">
-                <h5 class="card-title">@account.Name</h5>
-                <p class="card-text">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</p>
-                <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => DisplayAccountTransactions(account))">Display Transactions</button>
-                <button class="btn btn-sm btn-primary header-action-button" @onclick="@(() => EditAccount(account))">Edit</button>
-                <button class="btn btn-sm btn-danger header-action-button" @onclick="@(() => HandleShowCloseAccountDialog(account))">Close</button>
-            </div>
-        </div>
+        <MudCard Class="card-account me-2 mb-2">
+            <MudCardContent>
+                <MudText Typo="Typo.h5">@account.Name</MudText>
+                <MudText Typo="Typo.body2">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Class="me-2" OnClick="@(() => ShowTransactionListingDialog(account))">Display Transactions</MudButton>
+                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Class="me-2" OnClick="@(() => ShowEditAccountDialog(account))">Edit</MudButton>
+                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => ShowCloseAccountDialog(account))">Close</MudButton>
+            </MudCardActions>
+        </MudCard>
     }
-</div>
-
-<EditAccountDialog
-    Title="@_editAccountDialogTitle"
-    DataContext="@_editAccountDialogDataContext"
-    IsDialogVisible="@_isEditAccountModalDialogVisible"
-    OnSaveClickCallback="@(() => SaveChanges(_editAccountDialogDataContext!))"
-    OnCancelClickCallback="@(CancelChanges)"/>
-
-<TransactionDialog 
-    Title="Account Transactions" 
-    DataContext="@_transactionModalDialogDataContext" 
-    IsDialogVisible="@_isTransactionModalDialogVisible" 
-    IsDialogLoading="@_isTransactionModalDialogDataContextLoading"
-    OnClickCallback="@(() => _isTransactionModalDialogVisible = false)"/>
-
-<DeleteConfirmationDialog
-    Title="Close Account"
-    Message="Do you really want to close this Account?"
-    IsDialogVisible="@_isCloseAccountDialogVisible"
-    OnDeleteClickCallback="CloseAccount"
-    OnCancelClickCallback="CancelCloseAccount"/>
-
-<ErrorMessageDialog 
-    Title="Account" 
-    Message="@_errorModalDialogMessage" 
-    IsDialogVisible="@_isErrorModalDialogVisible"
-    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
-    
+</MudElement>

@@ -13,13 +13,13 @@ internal class DuplicateMatchComparer : IEqualityComparer<BankTransaction>
     {
         if (x is null || y is null) return false;
         return 
-            x.TransactionDate.Date == y.TransactionDate.Date && 
+            x.TransactionDate == y.TransactionDate && 
             x.Amount == y.Amount && 
             (x.Payee == y.Payee || x.Memo == y.Memo);
     }
 
     public int GetHashCode(BankTransaction obj)
     {
-        return new { obj.TransactionDate.Date, obj.Amount }.GetHashCode();
+        return new { obj.TransactionDate, obj.Amount }.GetHashCode();
     }
 }

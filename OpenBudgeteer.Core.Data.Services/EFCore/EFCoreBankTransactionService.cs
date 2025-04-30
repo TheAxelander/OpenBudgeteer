@@ -44,7 +44,7 @@ public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, 
         }
     }
 
-    public IEnumerable<BankTransaction> GetAll(DateTime? periodStart, DateTime? periodEnd, int limit = 0)
+    public IEnumerable<BankTransaction> GetAll(DateOnly? periodStart, DateOnly? periodEnd, int limit = 0)
     {
         try
         {
@@ -64,7 +64,7 @@ public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, 
         return GetFromAccount(accountId, null, null, limit);
     }
 
-    public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, DateTime? periodStart, DateTime? periodEnd, int limit = 0)
+    public IEnumerable<BankTransaction> GetFromAccount(Guid accountId, DateOnly? periodStart, DateOnly? periodEnd, int limit = 0)
     {
         try
         {

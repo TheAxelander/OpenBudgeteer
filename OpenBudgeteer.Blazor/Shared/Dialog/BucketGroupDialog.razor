@@ -1,0 +1,123 @@
+@using System.Collections.ObjectModel
+@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Data.Contracts.Services
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@inject IDialogService DialogService
+@inject IServiceManager ServiceManager
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Manage Bucket Groups</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Row Spacing="1">
+            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => CreateNewBucketGroup(false))">Create on first position</MudButton>
+            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => CreateNewBucketGroup())">Create on last position</MudButton>
+        </MudStack>
+        <MudDataGrid
+            T="BucketGroupViewModel"
+            Items="DataContext"
+            Dense="true"
+            EditMode="DataGridEditMode.Cell"
+            Hover="true"
+            ReadOnly="false"
+            SortMode="SortMode.None"
+            CommittedItemChanges="@BucketGroup_ItemChanged">
+            <Columns>
+                <PropertyColumn Property="x => x.Name" Title="Name"/>
+                <TemplateColumn>
+                    <EditTemplate>
+                        <MudStack Row Justify="Justify.FlexEnd">
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.ArrowUpward" OnClick="@(() => HandleResult(context.Item!.MoveGroup(-1)))"/>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.ArrowDownward" OnClick="@(() => HandleResult(context.Item!.MoveGroup(1)))"/>
+                            <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeleteBucketGroup(context.Item!))"/>
+                        </MudStack>
+                    </EditTemplate>
+                </TemplateColumn>
+            </Columns>
+        </MudDataGrid>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-2">Bucket Groups will be displayed once a Bucket has been assigned to it.</MudAlert>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public ObservableCollection<BucketGroupViewModel> DataContext { get; set; } = null!;
+    
+    private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            DataContext.Clear();
+
+            foreach (var bucketGroup in ServiceManager.BucketGroupService.GetAll())
+            {
+                DataContext.Add(BucketGroupViewModel.CreateFromBucketGroup(ServiceManager, bucketGroup, DateOnly.FromDateTime(DateTime.Today)));
+            }
+        }
+        catch (Exception e)
+        {
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Bucket Group" },
+                { x => x.Message, $"Error during loading: {e.Message}" }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Bucket Group", parameters);
+            MudDialog.Cancel();
+        }
+    }
+    
+    private async Task CreateNewBucketGroup(bool lastPosition = true)
+    {
+        var bucketGroup = BucketGroupViewModel.CreateEmpty(ServiceManager);
+        if (lastPosition) bucketGroup.Position = DataContext.Count + 1;
+        
+        await HandleResult(bucketGroup.CreateGroup());
+    }
+    
+    private async Task DeleteBucketGroup(BucketGroupViewModel bucketGroup)
+    {
+        var parameters = new DialogParameters<DeleteConfirmationDialog>
+        {
+            { x => x.Title, "Delete Bucket Group" },
+            { x => x.Message, "Do you really want to delete this Bucket Group?" }
+        };
+        var dialog = await DialogService.ShowAsync<DeleteConfirmationDialog>("Delete Bucket Group", parameters);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is { Canceled: false })
+        {
+            await HandleResult(bucketGroup.DeleteGroup());
+        }
+    }
+    
+    private async Task HandleResult(ViewModelOperationResult result)
+    {
+        if (!result.IsSuccessful)
+        {
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Bucket Group" },
+                { x => x.Message, result.Message }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Bucket Group", parameters);
+        }
+        if (result.ViewModelReloadRequired)
+        {
+            await LoadDataAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task BucketGroup_ItemChanged(BucketGroupViewModel item)
+    {
+        await HandleResult(item.SaveModification());
+    }
+}

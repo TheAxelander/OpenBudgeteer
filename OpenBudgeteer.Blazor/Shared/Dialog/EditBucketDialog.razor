@@ -1,0 +1,199 @@
+﻿@using System.Drawing
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.Data.Entities.Models
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="4">
+            <MudItem xs="12" sm="6">
+                <MudTextField Label="Name:" @bind-Value="DataContext.Name"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="BucketGroup" Label="Bucket Group:" @bind-Value="DataContext.SelectedBucketGroup" ToStringFunc="@_convertBucketGroup">
+                    @foreach (var bucketGroup in DataContext.AvailableBucketGroups!)
+                    {
+                        <MudSelectItem Value="@bucketGroup">@bucketGroup.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="BucketVersionViewModel.BucketType" Label="Bucket Type:" Value="DataContext.BucketVersion.BucketTypeParameter" ToStringFunc="@_convertBucketType" ValueChanged="BucketType_SelectionChanged">
+                    @foreach (var bucketType in Enum.GetValues(typeof(BucketVersionViewModel.BucketType)))
+                    {
+                        <MudSelectItem Value="@(((BucketVersionViewModel.BucketType)bucketType))">@(((BucketVersionViewModel.BucketType)bucketType).GetStringValue())</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="int" Label="Number of months:" Disabled="@(!_isNumberOfMonthsEnabled)" @bind-Value="DataContext.BucketVersion.BucketTypeIntParameter"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField T="decimal" Format="N2" Label="Amount:" Disabled="@(!_isAmountEnabled)" @bind-Value="DataContext.BucketVersion.BucketTypeDecimalParameter"/>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudDatePicker Label="(First) Target Date:" Disabled="@(!_isTargetDateEnabled)" Date="@(DataContext.BucketVersion.BucketTypeDateParameter.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(time))"/>
+                @if (_isTargetDateEnabled)
+                {
+                    <MudText Typo="Typo.body2">Next applying date: @DataContext.BucketVersion.BucketTypeNextDateParameter.ToShortDateString()</MudText>
+                }
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" Label="Background Color:" @bind-Value="DataContext.ColorCode">
+                    @foreach (var color in DataContext.AvailableColors!)
+                    {
+                        <MudSelectItem Value="@color.Name">@color.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" Label="Text Color:" @bind-Value="DataContext.TextColorCode">
+                    @foreach (var color in DataContext.AvailableColors!)
+                    {
+                        <MudSelectItem Value="@color.Name">@color.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudCheckBox T="bool" Label="Hide assigned Transactions from Summaries and Statistics" @bind-Value="DataContext.IsHiddenFromSummaries">
+                </MudCheckBox>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.subtitle1">Preview:</MudText>
+                <MudPaper 
+                    Class="d-flex align-center justify-center mud-width-full bucket-indicator no-background" 
+                    Style="@($"background-color: {ColorTranslator.ToHtml(DataContext.Color)}; color: {ColorTranslator.ToHtml(DataContext.TextColor)}")">
+                    <MudText>@DataContext.Name</MudText>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField Label="Notes:" @bind-Value="DataContext.BucketVersion.Notes" Lines="5"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true">
+                    @(DataContext.BucketId == Guid.Empty
+                        ? "Bucket will be valid from the currently selected month."
+                        : "Changes will apply from the currently selected month.")
+                </MudAlert>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmSave">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="ConfirmCancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public BucketViewModel DataContext { get; set; } = null!;
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelClickCallback { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
+    
+    private bool _isNumberOfMonthsEnabled = true;
+    private bool _isAmountEnabled = true;
+    private bool _isTargetDateEnabled = true;
+    
+    private readonly Func<BucketGroup, string> _convertBucketGroup = x =>
+    {
+        try
+        {
+            return x.Name ?? string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    };
+    
+    private readonly Func<BucketVersionViewModel.BucketType, string> _convertBucketType = x =>
+    {
+        try
+        {
+            return x.GetStringValue();
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    };
+    
+    private void ConfirmSave() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void ConfirmCancel() => MudDialog.Cancel();
+
+    protected override Task OnParametersSetAsync()
+    {
+        UpdateInputFieldsState();
+        return base.OnParametersSetAsync();
+    }
+
+    void BucketType_SelectionChanged(BucketVersionViewModel.BucketType bucketType)
+    {
+        DataContext.BucketVersion.BucketTypeParameter = bucketType;
+        UpdateInputFieldsState();
+    }
+    
+    void TransactionDateChanged(DateTime? dateTime)
+    {
+        DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
+    }
+
+    void UpdateInputFieldsState()
+    {
+        switch (DataContext.BucketVersion.BucketTypeParameter)
+        {
+            case BucketVersionViewModel.BucketType.StandardBucket:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = false;
+                _isTargetDateEnabled = false;
+                DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.MinValue;
+                break;
+            case BucketVersionViewModel.BucketType.MonthlyExpense:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = true;
+                _isTargetDateEnabled = false;
+                DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.MinValue;
+                break;
+            case BucketVersionViewModel.BucketType.ExpenseEveryXMonths:
+                _isNumberOfMonthsEnabled = true;
+                _isAmountEnabled = true;
+                _isTargetDateEnabled = true;
+                if (DataContext.BucketVersion.BucketTypeDateParameter == DateOnly.MinValue) 
+                    DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(DateTime.Now);
+                break;
+            case BucketVersionViewModel.BucketType.SaveXUntilYDate:
+                _isNumberOfMonthsEnabled = false;
+                _isAmountEnabled = true;
+                _isTargetDateEnabled = true;
+                if (DataContext.BucketVersion.BucketTypeDateParameter == DateOnly.MinValue) 
+                    DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(DateTime.Now);
+                break;
+            default:
+                _isNumberOfMonthsEnabled = true;
+                _isAmountEnabled = true;
+                _isTargetDateEnabled = true;
+                if (DataContext.BucketVersion.BucketTypeDateParameter == DateOnly.MinValue) 
+                    DataContext.BucketVersion.BucketTypeDateParameter = DateOnly.FromDateTime(DateTime.Now);
+                break;
+        }
+    }
+}

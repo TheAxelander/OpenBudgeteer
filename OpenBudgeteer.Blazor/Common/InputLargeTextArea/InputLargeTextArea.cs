@@ -73,7 +73,7 @@ namespace OpenBudgeteer.Blazor.Common.InputLargeTextArea
         }
 
         /// <summary>
-        /// Invoked from the client when the textarea's onchange event occurs.
+        /// Invoked from the client when the textareas onchange event occurs.
         /// </summary>
         /// <param name="length">The updated length of the textarea.</param>
         [JSInvokable]
@@ -81,7 +81,7 @@ namespace OpenBudgeteer.Blazor.Common.InputLargeTextArea
             => OnChange.InvokeAsync(new InputLargeTextAreaChangeEventArgs(this, length));
 
         /// <summary>
-        /// Retrieves the textarea value asyncronously.
+        /// Retrieves the textarea value asynchronously.
         /// </summary>
         /// <param name="maxLength">The maximum length of content to fetch from the textarea.</param>
         /// <param name="cancellationToken">The <see cref="System.Threading.CancellationToken"/> used to relay cancellation of the request.</param>
@@ -112,7 +112,7 @@ namespace OpenBudgeteer.Blazor.Common.InputLargeTextArea
         }
 
         /// <summary>
-        /// Sets the textarea value asyncronously.
+        /// Sets the textarea value asynchronously.
         /// </summary>
         /// <param name="streamWriter">A <see cref="System.IO.StreamWriter"/> used to set the value of the textarea.</param>
         /// <param name="leaveTextAreaEnabled"><see langword="false" /> to disable the textarea while setting new content from the stream, otherwise <see langword="true" /> to allow it to be editable. Defaults to <see langword="false" />.</param>

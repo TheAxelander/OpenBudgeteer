@@ -56,7 +56,7 @@ public class ImportProfileRepository : IImportProfileRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.ImportProfile.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"ImportProfile with id {id} not found.");
+        if (entity is null) throw new Exception($"ImportProfile with id {id} not found.");
 
         DatabaseContext.ImportProfile.Remove(entity);
         return DatabaseContext.SaveChanges();

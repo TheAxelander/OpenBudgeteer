@@ -1,0 +1,129 @@
+@using System.Drawing
+@using System.Globalization
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Core.Data.Contracts.Services
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using OpenBudgeteer.Core.ViewModels.Helper
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+@inject IDialogService DialogService
+@inject IServiceManager ServiceManager
+@inject YearMonthSelectorViewModel YearMonthDataContext
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Create Transaction</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="4">
+                <MudDatePicker Date="@(DataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(time))" ShowToolbar="false"/>
+            </MudItem>
+            <MudItem xs="8">
+                <MudSelect T="AccountViewModel" @bind-Value="DataContext.SelectedAccount">
+                    @foreach (var account in DataContext.AvailableAccounts)
+                    {
+                        <MudSelectItem Value="@account">@account.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12"><MudTextField Label="Payee" @bind-Value="DataContext.Payee"/></MudItem>
+            <MudItem xs="12"><MudTextField Label="Memo" @bind-Value="DataContext.Memo"/></MudItem>
+            <MudItem xs="12"><MudNumericField T="decimal" Format="N2" Label="Amount" @bind-Value="DataContext.Amount"/></MudItem>
+            <MudItem xs="12"><MudText>Buckets</MudText></MudItem>
+            <MudItem xs="12">
+                <MudStack Spacing="1">
+                    @foreach (var bucket in DataContext.Buckets)
+                    {
+                        <MudGrid Spacing="2">
+                            <MudItem xs="8" Class="d-flex align-center">
+                                <MudButton
+                                    Size="Size.Small"
+                                    Class="mud-width-full bucket-indicator"
+                                    Style="@($"background-color: {ColorTranslator.ToHtml(bucket.SelectedBucketColor)}; color: {ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)}")"
+                                    OnClick="@(() => ShowBucketSelectDialog(bucket))">
+                                    @bucket.SelectedBucketName
+                                </MudButton>
+                            </MudItem>
+                            <MudItem xs="3">
+                                <MudNumericField T="decimal" Format="N2" Culture="CultureInfo.CurrentCulture" @bind-Value="@bucket.Amount"/>
+                            </MudItem>
+                            <MudItem xs="1">
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@bucket.DeleteBucket"/>
+                            </MudItem>
+                        </MudGrid>
+                    }
+                    @if (DataContext.Difference != 0)
+                    {
+                        <MudGrid Spacing="2">
+                            <MudItem xs="8" Class="d-flex align-center">
+                                <MudPaper Class="d-flex align-center justify-center mud-width-full bucket-indicator no-background" Style="background-color: deepskyblue;">
+                                    <MudText>Remaining</MudText>
+                                </MudPaper>
+                            </MudItem>
+                            <MudItem xs="3">
+                                <MudText Class="align-center">@DataContext.Difference.ToString("C", CultureInfo.CurrentCulture)</MudText>
+                            </MudItem>
+                            <MudItem xs="1">
+                            </MudItem>
+                        </MudGrid>
+                    }
+                </MudStack>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreate">Create</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreateAnother">Create another</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelDialog">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public TransactionViewModel DataContext { get; set; } = null!;
+    
+    void ConfirmCreate() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.Create));
+    void ConfirmCreateAnother() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.CreateAnother));
+    void CancelDialog() => MudDialog.Cancel();
+    
+    void TransactionDateChanged(DateTime? dateTime)
+    {
+        DataContext.TransactionDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
+    }
+    
+    async Task ShowBucketSelectDialog(PartialBucketViewModel partialBucketViewModel)
+    {
+        var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
+        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        
+        var parameters = new DialogParameters<BucketSelectDialog>
+        {
+            { x => x.DataContext, bucketSelectDialogDataContext }
+        };
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Large,
+            FullWidth = true
+        };
+        var dialog = await DialogService.ShowAsync<BucketSelectDialog>("Select Bucket", parameters, options);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is { Canceled: false, Data: BucketViewModel selectedBucket })
+        {
+            partialBucketViewModel.UpdateSelectedBucket(selectedBucket);
+            if (partialBucketViewModel.Amount == 0)
+            {
+                partialBucketViewModel.Amount = 
+                    DataContext.Amount - 
+                    DataContext.Buckets
+                        .Where(i => i.SelectedBucketId != partialBucketViewModel.SelectedBucketId)
+                        .Sum(i => i.Amount);
+            }
+        }
+      
+        StateHasChanged();
+    }
+}

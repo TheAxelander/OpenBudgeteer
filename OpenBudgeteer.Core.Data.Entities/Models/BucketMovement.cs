@@ -19,5 +19,5 @@ public class BucketMovement : IEntity
     [Column(TypeName = "decimal(65, 2)")]
     public decimal Amount { get; set; }
 
-    public DateTime MovementDate { get; set; }
+    public DateOnly MovementDate { get; set; }
 }

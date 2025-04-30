@@ -53,7 +53,7 @@ public class MockBucketRuleSetRepository : IBucketRuleSetRepository
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var mockMappingRuleRepository = new MockMappingRuleRepository(_mockDatabase);
         var bucketRuleSet = ById(id);
-        if (bucketRuleSet == null) return bucketRuleSet;
+        if (bucketRuleSet is null) return bucketRuleSet;
         bucketRuleSet.TargetBucket = mockBucketRepository.ById(bucketRuleSet.TargetBucketId) 
                                      ?? throw new Exception("Bucket doesn't exist");
 

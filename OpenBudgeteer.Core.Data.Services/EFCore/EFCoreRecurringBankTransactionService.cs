@@ -59,7 +59,7 @@ public class EFCoreRecurringBankTransactionService : EFCoreBaseService<Recurring
         }
     }
 
-    public async Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateTime yearMonth)
+    public async Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateOnly yearMonth)
     {
         try
         {
@@ -74,7 +74,7 @@ public class EFCoreRecurringBankTransactionService : EFCoreBaseService<Recurring
         }
     }
 
-    public async Task<IEnumerable<BankTransaction>> CreatePendingBankTransactionAsync(DateTime yearMonth)
+    public async Task<IEnumerable<BankTransaction>> CreatePendingBankTransactionAsync(DateOnly yearMonth)
     {
         try
         {

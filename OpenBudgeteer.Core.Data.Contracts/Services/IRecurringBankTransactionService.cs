@@ -6,6 +6,6 @@ public interface IRecurringBankTransactionService : IBaseService<RecurringBankTr
 {
     public RecurringBankTransaction GetWithEntities(Guid id);
     public IEnumerable<RecurringBankTransaction> GetAllWithEntities();
-    public Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateTime yearMonth);
-    public Task<IEnumerable<BankTransaction>> CreatePendingBankTransactionAsync(DateTime yearMonth);
+    public Task<IEnumerable<BankTransaction>> GetPendingBankTransactionAsync(DateOnly yearMonth);
+    public Task<IEnumerable<BankTransaction>> CreatePendingBankTransactionAsync(DateOnly yearMonth);
 }

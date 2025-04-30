@@ -20,7 +20,7 @@ public class GenericBucketRuleSetService : GenericBaseService<BucketRuleSet>, IB
     public override BucketRuleSet Get(Guid id)
     {
         var result = _bucketRuleSetRepository.ByIdWithIncludedEntities(id);
-        if (result == null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException();
         return result;
     }
 
@@ -49,7 +49,7 @@ public class GenericBucketRuleSetService : GenericBaseService<BucketRuleSet>, IB
                 .Where(i => i.BucketRuleSetId == entity.Id)
                 .ToList()
                 // Select which of the database IDs are no longer available in entity
-                .Where(i => entity.MappingRules != null && entity.MappingRules
+                .Where(i => entity.MappingRules is not null && entity.MappingRules
                     .All(j => j.Id != i.Id))
                 .Select(i => i.Id)
                 .ToList();

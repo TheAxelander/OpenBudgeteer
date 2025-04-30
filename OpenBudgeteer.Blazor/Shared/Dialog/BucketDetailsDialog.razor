@@ -1,0 +1,262 @@
+﻿@using ApexCharts
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Blazor.ViewModels
+@using System.Globalization
+@using OpenBudgeteer.Blazor.Common.CustomMudFilter
+@using OpenBudgeteer.Blazor.Common.Extensions
+@using OpenBudgeteer.Blazor.Common.Services
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+@inject MudThemeService MudThemeService
+@inject AppSettingService AppSettingService
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTabs Outlined="true">
+            <MudTabPanel Text="Movements">
+                <MudCheckBox T="bool" Value="IncludeBucketMovements" Label="Show Bucket Movements" ValueChanged="IncludeBucketMovementCheckboxChanged"/>
+                <MudDataGrid
+                    T="TransactionViewModel"
+                    Items="@DataContext.BucketMovementsData.Transactions"
+                    Dense="true"
+                    Elevation="0"
+                    Filterable="true"
+                    FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                    FixedHeader="true"
+                    Hover="true"
+                    ReadOnly="true"
+                    RowsPerPage="@AppSettingService.CurrentSettings.TransactionPagerSize">
+                    <Columns>
+                        <PropertyColumn Property="x => x.TransactionDate" Title="Date">
+                            <FilterTemplate>
+                                <MudGrid Spacing="6" Style="width:430px">
+                                    <MudItem xs="12">
+                                        <MudDateRangePicker
+                                            PickerVariant="PickerVariant.Inline"
+                                            @bind-DateRange="@_dateOnlyMudFilter.DateRange"
+                                            Margin="Margin.Dense"/>
+                                    </MudItem>
+                                    <MudItem xs="12" Class="d-flex justify-end">
+                                        <MudButton OnClick="@(() => _dateOnlyMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                        <MudButton Color="@Color.Primary" OnClick="@(() => _dateOnlyMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                                    </MudItem>
+                                </MudGrid>
+                            </FilterTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn Property="x => x.SelectedAccount" Title="Account" CellStyle="min-width: 150px" Comparer="@(new MudComparer())">
+                            <FilterTemplate>
+                                <MudGrid Spacing="6" Style="width:430px">
+                                    <MudItem xs="12">
+                                        <MudSelect
+                                            T="AccountViewModel"
+                                            @bind-SelectedValues="_accountMudFilter.SelectedItems"
+                                            MultiSelection="true"
+                                            MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Accounts"))"
+                                            SelectAll="true">
+                                            @foreach (var account in _accountMudFilter.AvailableItems)
+                                            {
+                                                <MudSelectItem Value="account">@account</MudSelectItem>
+                                            }
+                                        </MudSelect>
+                                    </MudItem>
+                                    <MudItem xs="12" Class="d-flex justify-end">
+                                        <MudButton OnClick="@(() => _accountMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                        <MudButton Color="@Color.Primary" OnClick="@(() => _accountMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                                    </MudItem>
+                                </MudGrid>
+                            </FilterTemplate>
+                        </PropertyColumn>
+                        <PropertyColumn Property="x => x.Payee"/>
+                        <PropertyColumn Property="x => x.Memo"/>
+                        <PropertyColumn Property="x => x.Amount" Format="C" Culture="CultureInfo.CurrentCulture">
+                            <CellTemplate>
+                                @if (context.Item.Buckets.Count <= 1)
+                                {
+                                    <MudText Class="col-numbers">@context.Item.Amount.ToString("C", CultureInfo.CurrentCulture)</MudText>
+                                }
+                                else
+                                {
+                                    <MudText Class="col-numbers">@context.Item.Buckets.Where(b => b.SelectedBucketId == DataContext.BucketId).Sum(b => b.Amount).ToString("C", CultureInfo.CurrentCulture)*</MudText>
+                                }
+                            </CellTemplate>
+                        </PropertyColumn>
+                    </Columns>
+                    <PagerContent>
+                        <MudDataGridPager T="TransactionViewModel" />
+                    </PagerContent>
+                </MudDataGrid>
+            </MudTabPanel>
+            <MudTabPanel Text="Statistics">
+                <MudGrid>
+                    <MudItem md="6" sm="12" Class="p-1 mt-2">
+                        <MudPaper Outlined="true">
+                            <MudText Typo="Typo.h5" Class="report-chart-header">Month Balances</MudText>
+                            <ApexChart 
+                                @ref="_monthBalanceChart" 
+                                TItem="ReportRecord"
+                                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                                <ApexPointSeries
+                                    TItem="ReportRecord"
+                                    Items="DataContext.MonthBalances"
+                                    Name="Balance"
+                                    SeriesType="SeriesType.Bar"
+                                    XValue="i => i.Label"
+                                    YValue="i => i.Value"
+                                    DataPointMutator="ApexHelper.BalanceChartMutator"/>
+                            </ApexChart>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem md="6" sm="12" Class="p-1 mt-2">
+                        <MudPaper Outlined="true">
+                            <MudText Typo="Typo.h5" Class="report-chart-header">Input & Output</MudText>
+                            <ApexChart 
+                                @ref="_monthInputOutputChart" 
+                                TItem="ReportRecord" 
+                                Options="MonthInputOutputChartOptions">
+                                <ApexPointSeries
+                                    TItem="ReportRecord"
+                                    Items="DataContext.MonthInput"
+                                    Name="Input"
+                                    SeriesType="SeriesType.Bar"
+                                    XValue="i => i.Label"
+                                    YValue="i => i.Value"
+                                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                                <ApexPointSeries
+                                    TItem="ReportRecord"
+                                    Items="DataContext.MonthOutput"
+                                    Name="Output"
+                                    SeriesType="SeriesType.Bar"
+                                    XValue="i => i.Label"
+                                    YValue="i => i.Value"
+                                    Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                            </ApexChart>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem sm="12" Class="p-1">
+                        <MudPaper Outlined="true">
+                            <MudText Typo="Typo.h5" Class="report-chart-header">Balance Progression</MudText>
+                            <ApexChart 
+                                @ref="_bucketProgressionChart" 
+                                TItem="ReportRecord" 
+                                Height="300"
+                                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                                <ApexPointSeries
+                                    TItem="ReportRecord"
+                                    Items="DataContext.BucketProgression"
+                                    Name="Balance"
+                                    SeriesType="SeriesType.Area"
+                                    XValue="i => i.Label"
+                                    YValue="i => i.Value"
+                                    Color=@System.Drawing.Color.Green.ToHexString()/>
+                            </ApexChart>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
+            </MudTabPanel>
+        </MudTabs>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public BlazorBucketStatisticsViewModel DataContext { get; set; } = null!;
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public bool IsDialogLoading { get; set; }
+    
+    [Parameter]
+    public bool IncludeBucketMovements { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+    
+    private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
+    private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
+    private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter = null!;
+
+    private ApexChart<ReportRecord>? _monthBalanceChart;
+    private ApexChart<ReportRecord>? _monthInputOutputChart;
+    private ApexChart<ReportRecord>? _bucketProgressionChart;
+    
+    private Theme BaseTheme => new()
+    {
+        Mode = MudThemeService.CurrentThemeSetting.IsDarkMode ? Mode.Dark : Mode.Light, 
+        Palette = PaletteType.Palette1
+    };
+    
+    private ApexChartOptions<ReportRecord> MonthInputOutputChartOptions => new()
+    {
+        Theme = BaseTheme,
+        Legend = new() { Show = false }
+    };
+
+    private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+    
+    protected override void OnInitialized()
+    {
+        _accountMudFilter = new(new()
+        {
+            FilterFunction = x => _accountMudFilter.FilterItems.Contains(x.SelectedAccount)
+        });
+        _dateOnlyMudFilter = new(new()
+        {
+            FilterFunction = x => 
+                x.TransactionDate.IsBetween(_dateOnlyMudFilter.DateRange.Start, _dateOnlyMudFilter.DateRange.End)
+        });
+        _bucketMudFilter = new(new()
+        {
+            FilterFunction = x => x.Buckets.Any(bucket => _bucketMudFilter.FilterItems.Contains(bucket))
+        });
+        
+        ResetFilter();
+    }
+
+    private void ResetFilter()
+    {
+        _accountMudFilter.AvailableItems = DataContext.BucketMovementsData.Transactions
+            .Select(i => i.SelectedAccount)
+            .Distinct()
+            .OrderBy(i => i.Name)
+            .ToList();
+        _bucketMudFilter.AvailableItems = DataContext.BucketMovementsData.Transactions
+            .SelectMany(i => i.Buckets)
+            .DistinctBy(i => i.SelectedBucketId)
+            .OrderBy(i => i.SelectedBucketName)
+            .ToList();
+        
+        _accountMudFilter.ResetFilter();
+        _dateOnlyMudFilter.ResetFilter();
+        _bucketMudFilter.ResetFilter();
+    }
+
+    private async Task IncludeBucketMovementCheckboxChanged(bool obj)
+    {
+        IncludeBucketMovements = obj;
+        await DataContext.LoadBucketMovementsDataAsync(IncludeBucketMovements);
+        ResetFilter();
+        StateHasChanged();
+        
+        var tasks = new List<Task>();
+        if (_monthBalanceChart is not null) tasks.Add(_monthBalanceChart.UpdateSeriesAsync());
+        if (_monthInputOutputChart is not null) tasks.Add(_monthInputOutputChart.UpdateSeriesAsync());
+        if (_bucketProgressionChart is not null) tasks.Add(_bucketProgressionChart.UpdateSeriesAsync());
+        await Task.WhenAll(tasks);
+    }
+}

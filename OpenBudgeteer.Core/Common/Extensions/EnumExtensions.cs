@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace OpenBudgeteer.Core.Common.Extensions
 {
@@ -24,6 +25,17 @@ namespace OpenBudgeteer.Core.Common.Extensions
 
             // Return the first if there was a match.
             return attribs?.Length > 0 ? attribs[0].StringValue : string.Empty;
+        }
+        
+        /// <summary>
+        /// Checks if the passed value within the defined scope of Enum values 
+        /// </summary>
+        /// <param name="value">Value that should be checked</param>
+        /// <param name="values">Defined scope of allowed Enum values</param>
+        /// <returns>Returns true if the passed value is within the defined scope</returns>
+        public static bool In(this Enum value, params Enum[] values)
+        {
+            return values.Contains(value);
         }
     }
 }

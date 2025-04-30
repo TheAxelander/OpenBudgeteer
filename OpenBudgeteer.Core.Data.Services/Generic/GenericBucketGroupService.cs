@@ -19,7 +19,7 @@ public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucke
     public BucketGroup GetWithBuckets(Guid id)
     {
         var result = _bucketGroupRepository.ByIdWithIncludedEntities(id);
-        if (result == null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException();
         return result;
     }
 
@@ -87,8 +87,8 @@ public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucke
     public override void Delete(Guid id)
     {
         var entity = _bucketGroupRepository.ByIdWithIncludedEntities(id);
-        if (entity == null) throw new Exception("BucketGroup not found");
-        if (entity.Buckets != null && entity.Buckets.Any()) throw new Exception("BucketGroup with Buckets cannot be deleted");
+        if (entity is null) throw new Exception("BucketGroup not found");
+        if (entity.Buckets is not null && entity.Buckets.Any()) throw new Exception("BucketGroup with Buckets cannot be deleted");
 
         var oldPosition = entity.Position;
         _bucketGroupRepository.Delete(id);

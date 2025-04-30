@@ -1,0 +1,42 @@
+﻿@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="4">
+            <MudItem xs="12">
+                <MudTextField Label="Name:" @bind-Value="DataContext.Name"/>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmSave">Save</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="ConfirmCancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public AccountViewModel DataContext { get; set; } = null!;
+
+    [Parameter]
+    public bool IsDialogVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnCancelClickCallback { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
+    
+    private void ConfirmSave() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void ConfirmCancel() => MudDialog.Cancel();
+}

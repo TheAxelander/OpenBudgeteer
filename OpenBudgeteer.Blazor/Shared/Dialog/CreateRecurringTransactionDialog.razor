@@ -1,0 +1,80 @@
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Create Recurring Transaction</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid Spacing="2">
+            <MudItem xs="4">
+                <MudDatePicker Date="@(DataContext.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => FirstOccurrenceDateChanged(time))" ShowToolbar="false"/>
+            </MudItem>
+            <MudItem xs="8">
+                <MudSelect T="AccountViewModel" @bind-Value="DataContext.SelectedAccount" ToStringFunc="@_convertAccount">
+                    @foreach (var account in DataContext.AvailableAccounts)
+                    {
+                        <MudSelectItem Value="@account">@account.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="4">
+                <MudNumericField T="int" Label="Recurrence" @bind-Value="DataContext.RecurrenceAmount"/>
+            </MudItem>
+            <MudItem xs="8" Class="align-self-end">
+                <MudSelect T="RecurringTransactionRecurrenceType" @bind-Value="DataContext.RecurrenceType">
+                    @foreach (var filter in Enum.GetValues<RecurringTransactionRecurrenceType>())
+                    {
+                        <MudSelectItem Value="@filter">@filter.GetStringValue()</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField Label="Payee" @bind-Value="DataContext.Payee"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField Label="Memo" @bind-Value="DataContext.Memo"/>
+            </MudItem>
+            <MudItem xs="12">
+                <MudNumericField T="decimal" Label="Amount" @bind-Value="DataContext.Amount"/>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreate">Create</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreateAnother">Create another</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelDialog">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public RecurringTransactionViewModel DataContext { get; set; } = null!;
+    
+    private readonly Func<AccountViewModel, string> _convertAccount = x =>
+    {
+        try
+        {
+            return x.Name;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    };
+    
+    void ConfirmCreate() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.Create));
+    void ConfirmCreateAnother() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.CreateAnother));
+    void CancelDialog() => MudDialog.Cancel();
+    
+    void FirstOccurrenceDateChanged(DateTime? dateTime)
+    {
+        DataContext.FirstOccurrenceDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
+    }
+}

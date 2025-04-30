@@ -54,7 +54,7 @@ public class DemoDataGenerator
         dbContext.SaveChanges();
         
         // Create Buckets
-        var firstOfThisMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+        var firstOfThisMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
         var firstOfPreviousMonth = firstOfThisMonth.AddMonths(-1);
         var bucketRent = new Bucket()
         {
@@ -125,7 +125,7 @@ public class DemoDataGenerator
             BucketType = 2,
             BucketTypeXParam = 1,
             BucketTypeYParam = 400,
-            BucketTypeZParam = DateTime.MinValue,
+            BucketTypeZParam = DateOnly.MinValue,
             ValidFrom = bucketRent.ValidFrom,
             Version = 1
         };
@@ -147,7 +147,7 @@ public class DemoDataGenerator
             BucketType = 2,
             BucketTypeXParam = 1,
             BucketTypeYParam = 300,
-            BucketTypeZParam = DateTime.MinValue,
+            BucketTypeZParam = DateOnly.MinValue,
             ValidFrom = bucketGroceries.ValidFrom,
             Version = 1
         };
@@ -158,7 +158,7 @@ public class DemoDataGenerator
             BucketType = 2,
             BucketTypeXParam = 1,
             BucketTypeYParam = 100,
-            BucketTypeZParam = DateTime.MinValue,
+            BucketTypeZParam = DateOnly.MinValue,
             ValidFrom = bucketCarFuel.ValidFrom,
             Version = 1
         };
@@ -180,7 +180,7 @@ public class DemoDataGenerator
             BucketType = 1,
             BucketTypeXParam = 0,
             BucketTypeYParam = 0,
-            BucketTypeZParam = DateTime.MinValue,
+            BucketTypeZParam = DateOnly.MinValue,
             ValidFrom = bucketReserves.ValidFrom,
             Version = 1
         };
@@ -195,7 +195,7 @@ public class DemoDataGenerator
         var transactionOpeningCheckingAccount = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Opening Transaction",
             Amount = new decimal(1500.35)
@@ -203,7 +203,7 @@ public class DemoDataGenerator
         var transactionSalary = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 28).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 28).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Salary",
             Amount = new decimal(2300.57)
@@ -211,7 +211,7 @@ public class DemoDataGenerator
         var transactionRent1 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 10).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 10).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Rent",
             Amount = -400
@@ -219,7 +219,7 @@ public class DemoDataGenerator
         var transactionRent2 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 10),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 10),
             AccountId = accountChecking.Id,
             Memo = "Rent",
             Amount = -400
@@ -227,7 +227,7 @@ public class DemoDataGenerator
         var transactionGroceries1 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 4).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 4).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Supermarket",
             Amount = new decimal(-23.87)
@@ -235,7 +235,7 @@ public class DemoDataGenerator
         var transactionGroceries2 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 11).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 11).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Supermarket",
             Amount = new decimal(-40.34)
@@ -243,7 +243,7 @@ public class DemoDataGenerator
         var transactionGroceries3 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 2),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 2),
             AccountId = accountChecking.Id,
             Memo = "Supermarket",
             Amount = new decimal(-10.50)
@@ -251,7 +251,7 @@ public class DemoDataGenerator
         var transactionSplit = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 25).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 25).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Weekend shopping",
             Amount = new decimal(-170.51)
@@ -259,7 +259,7 @@ public class DemoDataGenerator
         var transactionTransfer1 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 29).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 29).AddMonths(-1),
             AccountId = accountChecking.Id,
             Memo = "Bank Transfer",
             Amount = -1500
@@ -267,7 +267,7 @@ public class DemoDataGenerator
         var transactionTransfer2 = new BankTransaction()
         {
             Id = Guid.Empty,
-            TransactionDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 29).AddMonths(-1),
+            TransactionDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 29).AddMonths(-1),
             AccountId = accountSavings.Id,
             Memo = "Bank Transfer",
             Amount = 1500
@@ -348,7 +348,7 @@ public class DemoDataGenerator
         var movementReserves = new BucketMovement()
         {
             Id = Guid.Empty,
-            MovementDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 28).AddMonths(-1),
+            MovementDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 28).AddMonths(-1),
             BucketId = bucketReserves.Id,
             Amount = 1000
         };

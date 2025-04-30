@@ -60,7 +60,7 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
         var entity = DatabaseContext.BucketRuleSet
             .Include(i => i.MappingRules)
             .FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"BucketRuleSet with id {id} not found.");
+        if (entity is null) throw new Exception($"BucketRuleSet with id {id} not found.");
 
         DatabaseContext.BucketRuleSet.Remove(entity);
         return DatabaseContext.SaveChanges();

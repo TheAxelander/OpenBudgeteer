@@ -54,47 +54,12 @@ public class TransactionPageViewModel : TransactionListingViewModel
         set => Set(ref _proposeBucketsPercentage, value);
     }
     
-    private TransactionFilter _currentFilter;
-    /// <summary>
-    /// Sets the current filter for the ViewModel
-    /// </summary>
-    public TransactionFilter CurrentFilter
-    {
-        get => _currentFilter;
-        set
-        {
-            if (Set(ref _currentFilter, value))
-                NotifyPropertyChanged(nameof(Transactions));
-        } 
-    }
-
     /// <summary>
     /// Collection of loaded Transactions
     /// </summary>
     public override ObservableCollection<TransactionViewModel> Transactions
     {
-        get
-        {
-            switch (CurrentFilter)
-            {
-                case TransactionFilter.HideMapped:
-                    return new ObservableCollection<TransactionViewModel>(
-                        _transactions.Where(i => 
-                            i.Buckets.First().SelectedBucketId == Guid.Empty ||
-                            i.InModification));
-                case TransactionFilter.OnlyMapped:
-                    return new ObservableCollection<TransactionViewModel>(
-                        _transactions.Where(i => 
-                            i.Buckets.First().SelectedBucketId != Guid.Empty ||
-                            i.InModification));
-                case TransactionFilter.InModification:
-                    return new ObservableCollection<TransactionViewModel>(
-                        _transactions.Where(i => i.InModification));
-                case TransactionFilter.NoFilter:
-                default:
-                    return _transactions;
-            }
-        }
+        get => _transactions;
         protected set => Set(ref _transactions, value);
     }
     
@@ -128,7 +93,7 @@ public class TransactionPageViewModel : TransactionListingViewModel
     {
         try
         {
-            if (NewTransaction == null) throw new Exception("New Transaction has not been initialized");
+            if (NewTransaction is null) throw new Exception("New Transaction has not been initialized");
             var result = NewTransaction.CreateOrUpdateTransaction();
             if (!result.IsSuccessful) return result;
             ResetNewTransaction();
@@ -150,7 +115,7 @@ public class TransactionPageViewModel : TransactionListingViewModel
             // Use previous entered date
             NewTransaction?.TransactionDate ?? (
             // Alternative use current Date or current selected month
-            _yearMonthViewModel.IsTodayInCurrentMonth ? DateTime.Now : _yearMonthViewModel.CurrentMonth);
+            _yearMonthViewModel.IsTodayInCurrentMonth ? DateOnly.FromDateTime(DateTime.Today) : _yearMonthViewModel.CurrentMonth);
         NewTransaction = TransactionViewModel.CreateEmpty(ServiceManager);
         NewTransaction.TransactionDate = lastEnteredDate;
     }
@@ -164,8 +129,6 @@ public class TransactionPageViewModel : TransactionListingViewModel
         {
             transaction.StartModification();
         }
-
-        CurrentFilter = TransactionFilter.InModification;
     }
     
     /// <summary>
@@ -181,7 +144,6 @@ public class TransactionPageViewModel : TransactionListingViewModel
                 var result = transaction.CreateOrUpdateTransaction();
                 if (!result.IsSuccessful) throw new Exception(result.Message);
             }
-            CurrentFilter = TransactionFilter.NoFilter;
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
@@ -189,24 +151,13 @@ public class TransactionPageViewModel : TransactionListingViewModel
             return new ViewModelOperationResult(false, e.Message);
         }
     }
-    
-    /// <summary>
-    /// Cancels update process for all Transactions. Reloads ViewModel to restore data.
-    /// </summary>
-    /// <returns>Object which contains information and results of this method</returns>
-    public async Task<ViewModelOperationResult> CancelAllTransactionAsync()
-    {
-        CurrentFilter = TransactionFilter.NoFilter;
-        return await LoadDataAsync();
-    }
-    
+
     /// <summary>
     /// Starts process to propose the right <see cref="Bucket"/> for all Transactions
     /// </summary>
     /// <remarks>Sets all Transactions into Modification Mode in case they have a "No Selection" Bucket</remarks>
     public async Task ProposeBuckets()
     {
-        CurrentFilter = TransactionFilter.InModification;
         var unassignedTransactions = _transactions
             .Where(i => i.Buckets.First().SelectedBucketId == Guid.Empty)
             .ToList();

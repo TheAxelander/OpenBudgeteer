@@ -5,7 +5,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class AccountViewModel : BaseEntityViewModel<Account>
+public class AccountViewModel : BaseEntityViewModel<Account>, IEquatable<AccountViewModel>, IComparable<AccountViewModel>
 {
     #region Properties & Fields
 
@@ -75,7 +75,7 @@ public class AccountViewModel : BaseEntityViewModel<Account>
     /// <param name="account">Account instance</param>
     protected AccountViewModel(IServiceManager serviceManager, Account? account) : base(serviceManager)
     {
-        if (account == null)
+        if (account is null)
         {
             AccountId = Guid.Empty;
             _name = "New Account";
@@ -188,5 +188,49 @@ public class AccountViewModel : BaseEntityViewModel<Account>
         }
     }
     
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+    
+    public bool Equals(AccountViewModel? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return 
+            AccountId.Equals(other.AccountId) && 
+            _name == other._name && 
+            _isActive == other._isActive && 
+            _balance == other._balance && 
+            _in == other._in && 
+            _out == other._out;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((AccountViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(AccountId);
+        hashCode.Add(_name);
+        hashCode.Add(_isActive);
+        hashCode.Add(_balance);
+        hashCode.Add(_in);
+        hashCode.Add(_out);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(AccountViewModel? other)
+    {
+        return string.Compare(_name, other?.Name, StringComparison.Ordinal);
+    }
+
+    public override string ToString() => Name;
+
     #endregion
 }

@@ -62,7 +62,7 @@ public class BucketVersionDatabaseTest : BaseDatabaseTest<BucketVersion>
         var bucketVersions = new List<BucketVersion>();
         for (var i = 1; i <= 4; i++)
         {
-            var date = DateTime.Now.AddDays(i);
+            var date = DateTime.Today.AddDays(i);
             bucketVersions.Add(new()
             {
                 BucketId = i < 4 ? _incomeBucket.Id : _transferBucket.Id,
@@ -70,9 +70,9 @@ public class BucketVersionDatabaseTest : BaseDatabaseTest<BucketVersion>
                 BucketType = i,
                 BucketTypeXParam = i,
                 BucketTypeYParam = i,
-                BucketTypeZParam = new DateTime(date.Year, date.Month, date.Day),
+                BucketTypeZParam = new DateOnly(date.Year, date.Month, date.Day),
                 Notes = $"Notes {i}",
-                ValidFrom = new DateTime(date.Year, date.Month, date.Day)
+                ValidFrom = new DateOnly(date.Year, date.Month, date.Day)
             });
         }
         

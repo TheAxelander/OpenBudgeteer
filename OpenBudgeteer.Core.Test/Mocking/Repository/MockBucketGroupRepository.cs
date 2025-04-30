@@ -48,7 +48,7 @@ public class MockBucketGroupRepository : IBucketGroupRepository
     {
         var mockBucketRepository = new MockBucketRepository(_mockDatabase);
         var bucketGroup = ById(id);
-        if (bucketGroup == null) return bucketGroup;
+        if (bucketGroup is null) return bucketGroup;
         bucketGroup.Buckets = new List<Bucket>();
         foreach (var bucket in mockBucketRepository
                      .All()

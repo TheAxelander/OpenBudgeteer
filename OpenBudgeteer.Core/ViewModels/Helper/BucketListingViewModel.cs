@@ -21,6 +21,25 @@ public class BucketListingViewModel : ViewModelBase
         get => _bucketGroups;
         protected set => Set(ref _bucketGroups, value);
     }
+    
+    /// <summary>
+    /// Collection of all Buckets
+    /// </summary>
+    public ObservableCollection<BucketViewModel> LoadedBuckets
+    {
+        get 
+        {
+            var result = new ObservableCollection<BucketViewModel>();
+            foreach (var buckets in BucketGroups.Select(i => i.Buckets))
+            {
+                foreach (var bucket in buckets)
+                {
+                    result.Add(bucket);
+                }
+            }
+            return result;
+        }
+    }
 
     protected readonly YearMonthSelectorViewModel YearMonthViewModel;
     
@@ -73,6 +92,7 @@ public class BucketListingViewModel : ViewModelBase
 
                 foreach (var bucket in await Task.WhenAll(bucketItemTasks))
                 {
+                    bucket.BucketGroupViewModel = newBucketGroup; // Adding this reference for MudBlazor Data Grid Grouping
                     newBucketGroup.Buckets.Add(bucket);
                 }
                 newBucketGroup.TotalBalance = newBucketGroup.Buckets.Sum(i => i.Balance);

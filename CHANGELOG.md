@@ -1,3 +1,54 @@
+## 1.10 (2025-xx-xx)
+
+### :gear: Features & Enhancements
+
+* Migrated UI to MudBlazor [#287](https://github.com/TheAxelander/OpenBudgeteer/issues/287)
+  * Transaction Page:
+    * Transaction creation is now happening is a separate dialog 
+    * Mass Deletion of Transactions
+    * There are only two modes available: Display Mode and Edit Mode
+      * Without any selection, all Transactions will be edited
+      * If certain Transactions are selected, only those will be considered in Edit Mode. Thanks [Lucaber](https://github.com/Lucaber)
+    * It's no longer possible to change the Amount assigment if no Bucket is selected (displaying the `No Selection` Bucket)
+    * Bucket split is happening automatically based on total assigned Amount
+    * Rework buttons for Recurring Transaction due to sizing issues
+  * Bucket Page:
+    * Bucket Groups are now managed in a separate Dialog
+    * Bucket Groups will only be displayed once a Bucket has been assigned to it (technical limitation)
+    * Bucket creation now possible via a separate Button (no longer via Bucket Group entry)
+    * For Bucket coloring, a preview is now displayed instead of showing color changes inside the DropDown menus (technical limitation)
+  * Import Page:
+    * New Wizard-like UI for handling the Import process
+    * Column mapping is now restored from the Import Profile in case the Header Row index had to be changed
+  * Misc:
+    * Various table views are now sortable and filterable
+    * Quick selection for Buckets [#193](https://github.com/TheAxelander/OpenBudgeteer/issues/193)
+    * Adding tooltips on some UI Elements
+    * Handling of Color themes changed, that also means Bootswatch themes are no longer compatible
+    * New UI to display unexpected Exceptions
+    * Reworked Reconnect message which is now displayed in the App Header
+* Budget & Bank Balance calculation are now based on total values instead of individual month
+* Improved database connection handling and logging on application start
+* Add Info Page for database connection details and 3rd party software licenses
+* Add Settings Page to set UI colors (replacement for Bootswatch themes)
+* Coloring amounts on Bucket Page [#300](https://github.com/TheAxelander/OpenBudgeteer/pull/300) [#293](https://github.com/TheAxelander/OpenBudgeteer/issues/293) Thanks [YannisAm](https://github.com/YannisAm)
+* Add option to hide Buckets from certain statistics and reports [#314](https://github.com/TheAxelander/OpenBudgeteer/pull/314) Thanks [Lucaber](https://github.com/Lucaber)
+* It's now possible to use a `.env` file to set environment variables, please check documentation for further details
+
+### :x: Removed
+
+* Support for Bootswatch themes
+
+### :warning: Important notice
+
+* Requires now a Redis container, please check documentation for further details
+* API: Replace Swagger with Scalar (accessible via endpoint `/api`). Only API Version `1.1` will be provided. 
+* Switched License from MIT to GNU Affero General Public License v3.0
+
+### :warning: Known issues
+
+* Cursor jumping around in table view filters for specific cultures (e.g. `de-DE`), see [here](https://github.com/MudBlazor/MudBlazor/issues/8186#issuecomment-1949353592) for more details
+
 ## 1.9.1 (2025-01-11)
 
 ### :beetle: Bug Fixes

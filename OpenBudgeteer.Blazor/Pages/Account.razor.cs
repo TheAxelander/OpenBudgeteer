@@ -1,4 +1,7 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using OpenBudgeteer.Blazor.Shared.Dialog;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
@@ -9,81 +12,73 @@ namespace OpenBudgeteer.Blazor.Pages;
 
 public partial class Account : ComponentBase
 {
+    [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
 
     private AccountPageViewModel _dataContext = null!;
-    private TransactionListingViewModel? _transactionModalDialogDataContext;
 
-    private bool _isEditAccountModalDialogVisible;
-    private string _editAccountDialogTitle = string.Empty;
-    private AccountViewModel? _editAccountDialogDataContext;
-
-    private bool _isTransactionModalDialogVisible;
-    private bool _isTransactionModalDialogDataContextLoading;
-    
-    private bool _isCloseAccountDialogVisible;
-    private AccountViewModel? _accountToBeClosed;
-
-    private bool _isErrorModalDialogVisible;
-    private string _errorModalDialogMessage = string.Empty;
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _dataContext = new AccountPageViewModel(ServiceManager);
-        HandleResult(_dataContext.LoadData());
+        await HandleResult(_dataContext.LoadData());
     }
 
-    private void CreateNewAccount()
+    private async Task ShowEditAccountDialog(AccountViewModel? account)
     {
-        _editAccountDialogTitle = "New Account";
-        _editAccountDialogDataContext = AccountViewModel.CreateEmpty(ServiceManager);
-        _isEditAccountModalDialogVisible = true;
+        var dialogTitle = "Edit Account";
+        if (account is null)
+        {
+            account = AccountViewModel.CreateEmpty(ServiceManager);
+            dialogTitle = "New Account";
+        }
+        
+        var parameters = new DialogParameters<EditAccountDialog>
+        {
+            { x => x.Title, dialogTitle },
+            { x => x.DataContext, account }
+        };
+        var options = new DialogOptions()
+        {
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+        var dialog = await DialogService.ShowAsync<EditAccountDialog>(dialogTitle, parameters, options);
+        var dialogResult = await dialog.Result;
+        if (dialogResult is { Canceled: false })
+        {
+            await HandleResult(account.CreateOrUpdateAccount());
+        }
+        else
+        {
+            await HandleResult(_dataContext.LoadData());
+        }
     }
 
-    private void EditAccount(AccountViewModel account)
+    private async Task ShowCloseAccountDialog(AccountViewModel account)
     {
-        _editAccountDialogTitle = "Edit Account";
-        _editAccountDialogDataContext = account;
-        _isEditAccountModalDialogVisible = true;
-    }
-
-
-    private void SaveChanges(AccountViewModel account)
-    {
-        _isEditAccountModalDialogVisible = false;
-        HandleResult(account.CreateOrUpdateAccount());
-    }
-
-    private void CancelChanges()
-    {
-        _isEditAccountModalDialogVisible = false;
-        HandleResult(_dataContext.LoadData());
+        var parameters = new DialogParameters<DeleteConfirmationDialog>
+        {
+            { x => x.Title, "Close Account" },
+            { x => x.Message, "Do you really want to close this Account? Ensure that the balance is 0." }
+        };
+        var dialog = await DialogService.ShowAsync<DeleteConfirmationDialog>("Close Account", parameters);
+        var result = await dialog.Result;
+        if (result is { Canceled: false })
+        {
+            await HandleResult(account.CloseAccount());
+        }
     }
     
-    private void HandleShowCloseAccountDialog(AccountViewModel account)
-    {
-        _accountToBeClosed = account;
-        _isCloseAccountDialogVisible = true;
-    }
-    
-    private void CancelCloseAccount()
-    {
-        _isCloseAccountDialogVisible = false;
-        _accountToBeClosed = null;
-    }
-
-    private void CloseAccount()
-    {
-        _isCloseAccountDialogVisible = false;
-        HandleResult(_accountToBeClosed!.CloseAccount());
-    }
-
-    private void HandleResult(ViewModelOperationResult result)
+    private async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)
         {
-            _errorModalDialogMessage = result.Message;
-            _isErrorModalDialogVisible = true;
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Account" },
+                { x => x.Message, result.Message }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Account", parameters);
         }
         if (result.ViewModelReloadRequired)
         {
@@ -92,15 +87,20 @@ public partial class Account : ComponentBase
         }
     }
 
-    private async void DisplayAccountTransactions(AccountViewModel account)
+    private async Task ShowTransactionListingDialog(AccountViewModel account)
     {
-        _isTransactionModalDialogVisible = true;
-        _isTransactionModalDialogDataContextLoading = true;
-
-        _transactionModalDialogDataContext = new TransactionListingViewModel(ServiceManager);
-        HandleResult(await _transactionModalDialogDataContext.LoadDataAsync(account.AccountId));
-
-        _isTransactionModalDialogDataContextLoading = false;
-        StateHasChanged();
+        var transactionDialogDataContext = new TransactionListingViewModel(ServiceManager);
+        await HandleResult(await transactionDialogDataContext.LoadDataAsync(account.AccountId));
+        var parameters = new DialogParameters<TransactionDialog>
+        {
+            { x => x.Title, "Account Transactions" },
+            { x => x.DataContext, transactionDialogDataContext }
+        };
+        var options = new DialogOptions()
+        {
+            FullWidth = true,
+            MaxWidth = MaxWidth.Large
+        };
+        await DialogService.ShowAsync<TransactionDialog>("Account", parameters, options);
     }
 }

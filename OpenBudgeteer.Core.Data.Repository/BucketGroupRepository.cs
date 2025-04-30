@@ -59,8 +59,8 @@ public class BucketGroupRepository : IBucketGroupRepository
         var entity = DatabaseContext.BucketGroup
             .Include(i => i.Buckets)
             .FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"BucketGroup with id {id} not found.");
-        if (entity.Buckets != null && entity.Buckets.Count != 0) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
+        if (entity is null) throw new Exception($"BucketGroup with id {id} not found.");
+        if (entity.Buckets is not null && entity.Buckets.Count != 0) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 
         DatabaseContext.BucketGroup.Remove(entity);
         return DatabaseContext.SaveChanges();

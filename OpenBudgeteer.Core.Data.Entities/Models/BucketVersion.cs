@@ -27,10 +27,10 @@ public class BucketVersion : IEntity
     [Column(TypeName = "decimal(65, 2)")]
     public decimal BucketTypeYParam { get; set; }
 
-    public DateTime BucketTypeZParam { get; set; }
+    public DateOnly BucketTypeZParam { get; set; }
 
     public string? Notes { get; set; }
 
     [Required]
-    public DateTime ValidFrom { get; set; }
+    public DateOnly ValidFrom { get; set; }
 }

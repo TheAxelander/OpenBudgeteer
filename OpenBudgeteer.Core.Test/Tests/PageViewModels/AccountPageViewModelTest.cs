@@ -69,7 +69,7 @@ public class AccountPageViewModelTest
             serviceManager.BankTransactionService.Create(new BankTransaction()
             {
                 AccountId = testAccount.Id,
-                TransactionDate = DateTime.Now,
+                TransactionDate = DateOnly.FromDateTime(DateTime.Today),
                 Amount = transactionAmount
             });
         }

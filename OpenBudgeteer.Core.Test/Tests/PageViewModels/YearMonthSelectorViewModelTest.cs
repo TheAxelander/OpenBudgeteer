@@ -25,9 +25,9 @@ public class YearMonthSelectorViewModelTest
         var serviceManager = new MockServiceManager(new MockDatabase());
         var viewModel = new YearMonthSelectorViewModel(serviceManager);
 
-        Assert.Equal(DateTime.Now.Year, viewModel.SelectedYear);
-        Assert.Equal(DateTime.Now.Month, viewModel.SelectedMonth);
-        Assert.Equal(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1), viewModel.CurrentMonth);
+        Assert.Equal(DateTime.Today.Year, viewModel.SelectedYear);
+        Assert.Equal(DateTime.Today.Month, viewModel.SelectedMonth);
+        Assert.Equal(new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1), viewModel.CurrentMonth);
 
         // Test Months
         Assert.Equal(12, viewModel.Months.Count);

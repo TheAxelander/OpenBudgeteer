@@ -26,17 +26,17 @@ public abstract class ReportPageViewModel : ViewModelBase
         /// <summary>
         /// Collection of the results for the report
         /// </summary>
-        public readonly List<Tuple<DateTime, decimal>> MonthlyResults;
+        public readonly List<Tuple<DateOnly, decimal>> MonthlyResults;
 
         /// <summary>
         /// Basic constructor
         /// </summary>
         /// <param name="bucketName">Name of the <see cref="Bucket"/></param>
         /// <param name="monthlyResults">Query results with expenses per month</param>
-        public MonthlyBucketExpensesReportResult(string bucketName, IEnumerable<Tuple<DateTime, decimal>> monthlyResults)
+        public MonthlyBucketExpensesReportResult(string bucketName, IEnumerable<Tuple<DateOnly, decimal>> monthlyResults)
         {
             BucketName = bucketName;
-            MonthlyResults = new List<Tuple<DateTime, decimal>>();
+            MonthlyResults = new List<Tuple<DateOnly, decimal>>();
             foreach (var monthlyResult in monthlyResults)
             {
                 MonthlyResults.Add(monthlyResult);
@@ -59,20 +59,20 @@ public abstract class ReportPageViewModel : ViewModelBase
     /// <param name="months">Number of months that should be loaded</param>
     /// <returns>
     /// Collection of <see cref="Tuple"/> containing
-    /// Item1: <see cref="DateTime"/> representing the month
+    /// Item1: <see cref="DateOnly"/> representing the month
     /// Item2: <see cref="decimal"/> representing the balance
     /// </returns>
-    protected async Task<List<Tuple<DateTime, decimal>>> LoadMonthBalancesAsync(int months = 24)
+    protected async Task<List<Tuple<DateOnly, decimal>>> LoadMonthBalancesAsync(int months = 24)
     {
         return await Task.Run(() =>
         {
-            var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
 
-            var transactions = ServiceManager.BankTransactionService
-                .GetAll(currentMonth.AddMonths((months - 1) * -1), DateTime.MaxValue)
+            var transactions = ServiceManager.BudgetedTransactionService
+                .GetAllForReporting(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
                 .ToList();
             var monthBalances = transactions
-                .GroupBy(i => new DateTime(i.TransactionDate.Year, i.TransactionDate.Month, 1))
+                .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
                 .Select(i => new
                 {
                     YearMonth = i.Key,
@@ -81,7 +81,7 @@ public abstract class ReportPageViewModel : ViewModelBase
                 .OrderBy(i => i.YearMonth);
 
             return monthBalances
-                .Select(group => new Tuple<DateTime, decimal>(group.YearMonth, group.Balance))
+                .Select(group => new Tuple<DateOnly, decimal>(group.YearMonth, group.Balance))
                 .ToList();
         });
     }
@@ -92,23 +92,23 @@ public abstract class ReportPageViewModel : ViewModelBase
     /// <param name="months">Number of months that should be loaded</param>
     /// <returns>
     /// Collection of <see cref="Tuple"/> containing
-    /// Item1: <see cref="DateTime"/> representing the month
+    /// Item1: <see cref="DateOnly"/> representing the month
     /// Item2: <see cref="decimal"/> representing the income
     /// Item3: <see cref="decimal"/> representing the expenses
     /// </returns>
-    protected async Task<List<Tuple<DateTime, decimal, decimal>>> LoadMonthIncomeExpensesAsync(int months = 24)
+    protected async Task<List<Tuple<DateOnly, decimal, decimal>>> LoadMonthIncomeExpensesAsync(int months = 24)
     {
         return await Task.Run(() =>
         {
-            var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
 
             // Get all Transactions which are not marked as "Transfer"
             var transactions = ServiceManager.BudgetedTransactionService
-                .GetAllNonTransfer(currentMonth.AddMonths((months - 1) * -1), DateTime.MaxValue)
+                .GetAllForReporting(currentMonth.AddMonths((months - 1) * -1), DateOnly.MaxValue)
                 .ToList();
 
             var monthIncomeExpenses = transactions
-                .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
+                .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
                 .Select(i => new
                 {
                     YearMonth = i.Key,
@@ -118,7 +118,7 @@ public abstract class ReportPageViewModel : ViewModelBase
                 .OrderBy(i => i.YearMonth);
 
             return monthIncomeExpenses
-                .Select(group => new Tuple<DateTime, decimal, decimal>(group.YearMonth, group.Income, group.Expenses))
+                .Select(group => new Tuple<DateOnly, decimal, decimal>(group.YearMonth, group.Income, group.Expenses))
                 .ToList();
         });
     }
@@ -129,23 +129,23 @@ public abstract class ReportPageViewModel : ViewModelBase
     /// <param name="years">Number of years that should be loaded</param>
     /// <returns> 
     /// Collection of <see cref="Tuple"/> containing
-    /// Item1: <see cref="DateTime"/> representing the year
+    /// Item1: <see cref="DateOnly"/> representing the year
     /// Item2: <see cref="decimal"/> representing the income
     /// Item3: <see cref="decimal"/> representing the expenses
     /// </returns>
-    protected async Task<List<Tuple<DateTime, decimal, decimal>>> LoadYearIncomeExpensesAsync(int years = 5)
+    protected async Task<List<Tuple<DateOnly, decimal, decimal>>> LoadYearIncomeExpensesAsync(int years = 5)
     {
         return await Task.Run(() =>
         {
-            var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
 
             // Get all Transactions which are not marked as "Transfer"
             var transactions = ServiceManager.BudgetedTransactionService
-                    .GetAllNonTransfer(currentMonth.AddYears((years - 1) * -1), DateTime.MaxValue)
-                    .ToList();
+                .GetAllForReporting(currentMonth.AddYears((years - 1) * -1), DateOnly.MaxValue)
+                .ToList();
 
             var yearIncomeExpenses = transactions
-                .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, 1, 1))
+                .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, 1, 1))
                 .Select(i => new
                 {
                     Year = i.Key,
@@ -155,7 +155,7 @@ public abstract class ReportPageViewModel : ViewModelBase
                 .OrderBy(i => i.Year);
 
             return yearIncomeExpenses
-                .Select(group => new Tuple<DateTime, decimal, decimal>(group.Year, group.Income, group.Expenses))
+                .Select(group => new Tuple<DateOnly, decimal, decimal>(group.Year, group.Income, group.Expenses))
                 .ToList();
         });
     }
@@ -167,26 +167,26 @@ public abstract class ReportPageViewModel : ViewModelBase
     /// <param name="months">Number of months that should be loaded</param>
     /// <returns>
     /// Collection of <see cref="Tuple"/> containing
-    /// Item1: <see cref="DateTime"/> representing the month
+    /// Item1: <see cref="DateOnly"/> representing the month
     /// Item2: <see cref="decimal"/> representing the balance
     /// </returns>
-    protected async Task<List<Tuple<DateTime, decimal>>> LoadBankBalancesAsync(int months = 24)
+    protected async Task<List<Tuple<DateOnly, decimal>>> LoadBankBalancesAsync(int months = 24)
     {
         return await Task.Run(() =>
         {
-            var result = new List<Tuple<DateTime, decimal>>();
-            var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            var result = new List<Tuple<DateOnly, decimal>>();
+            var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
 
             for (int monthIndex = months - 1; monthIndex >= 0; monthIndex--)
             {
                 var month = currentMonth.AddMonths(monthIndex * -1);
                 var lastDayOfMonth = month.AddMonths(1).AddDays(-1);
                 var bankTransactions = ServiceManager.BankTransactionService
-                    .GetAll(DateTime.MinValue, lastDayOfMonth)
+                    .GetAll(DateOnly.MinValue, lastDayOfMonth)
                     .ToList();
                 // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57)
                 var bankBalance = bankTransactions.Sum(i => i.Amount);
-                result.Add(new Tuple<DateTime, decimal>(month, bankBalance));
+                result.Add(new Tuple<DateOnly, decimal>(month, bankBalance));
             }
 
             return result;
@@ -204,14 +204,15 @@ public abstract class ReportPageViewModel : ViewModelBase
     {
         return await Task.Run(() =>
         {
-            var currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(1);
+            var currentMonth = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(1);
             var result = new List<MonthlyBucketExpensesReportResult>();
 
             foreach (var bucket in ServiceManager.BucketService
-                         .GetActiveBuckets(DateTime.Now)
+                         .GetActiveBuckets(DateOnly.FromDateTime(DateTime.Today))
                          .Where(i => 
                              i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001") &&
-                             i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002")))
+                             i.Id != Guid.Parse("00000000-0000-0000-0000-000000000002") &&
+                             !i.IsHiddenFromSummaries))
             {
                 // Check on right Bucket Type
                 var latestVersion = bucket.BucketVersions!
@@ -221,12 +222,12 @@ public abstract class ReportPageViewModel : ViewModelBase
                 
                 // Get Transactions for the current Bucket and the last x months
                 var queryScope = ServiceManager.BudgetedTransactionService
-                    .GetAllFromBucket(bucket.Id, currentMonth.AddMonths((month - 1) * -1), DateTime.MaxValue)
+                    .GetAllFromBucket(bucket.Id, currentMonth.AddMonths((month - 1) * -1), DateOnly.MaxValue)
                     .ToList();
                 // Query split required due to incompatibility of decimal Sum operation on sqlite (see issue 57) 
                 var queryResults = queryScope    
                     // Group the results per YearMonth
-                    .GroupBy(i => new DateTime(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
+                    .GroupBy(i => new DateOnly(i.Transaction.TransactionDate.Year, i.Transaction.TransactionDate.Month, 1))
                     // Create a new Grouped Object
                     .Select(i => new
                     {
@@ -238,19 +239,19 @@ public abstract class ReportPageViewModel : ViewModelBase
 
                 // Collect results
                 if (queryResults.Count == 0) continue; // No data available. Nothing to add
-                var monthlyResults = new List<Tuple<DateTime, decimal>>();
+                var monthlyResults = new List<Tuple<DateOnly, decimal>>();
                 var reportInsertMonth = queryResults.First().YearMonth;
                 foreach (var queryResult in queryResults)
                 {
                     // Create empty MonthlyResults in case no data for specific months are available
                     while (queryResult.YearMonth != reportInsertMonth)
                     {
-                        monthlyResults.Add(new Tuple<DateTime, decimal>(
+                        monthlyResults.Add(new Tuple<DateOnly, decimal>(
                             reportInsertMonth,
                             0));
                         reportInsertMonth = reportInsertMonth.AddMonths(1);
                     }
-                    monthlyResults.Add(new Tuple<DateTime, decimal>(
+                    monthlyResults.Add(new Tuple<DateOnly, decimal>(
                         queryResult.YearMonth,
                         queryResult.Balance));
                     reportInsertMonth = reportInsertMonth.AddMonths(1);

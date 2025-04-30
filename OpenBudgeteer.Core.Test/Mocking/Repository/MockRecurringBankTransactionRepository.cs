@@ -43,7 +43,7 @@ public class MockRecurringBankTransactionRepository : IRecurringBankTransactionR
     {
         var mockAccountRepository = new MockAccountRepository(_mockDatabase);
         var recurringBankTransaction = ById(id);
-        if (recurringBankTransaction == null) return recurringBankTransaction;
+        if (recurringBankTransaction is null) return recurringBankTransaction;
         recurringBankTransaction.Account = mockAccountRepository.ById(recurringBankTransaction.AccountId) 
                                 ?? throw new Exception("Account doesn't exist");
 

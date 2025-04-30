@@ -1,197 +1,101 @@
 ﻿@page "/rules"
-
 @using System.Drawing
+@using OpenBudgeteer.Blazor.Common
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
 
-<div class="d-flex flex-row flex-wrap">
-    @if (_massEditEnabled)
+<MudStack Row Spacing="2" Class="mb-2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="() => ShowEditRuleSetDialog(null)">Create Rule</MudButton>
+    @if (_selectedRuleSets.Count > 0)
     {
-        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@SaveAllRules">Save all</button>
-        <button class="btn btn-sm btn-danger me-2 mb-2" @onclick="@CancelAllRules">Cancel all</button>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedRuleSets">Delete @_selectedRuleSets.Count Selected</MudButton>
     }
-    else
-    {
-        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@StartCreateMappingRuleSet">Create Rule</button>
-        <button class="btn btn-sm btn-primary me-2 mb-2" @onclick="@EditAllRules">Edit all</button>
-    }
-</div>
+</MudStack>
 
-@if (_newMappingRuleSetIsEnabled)
-{
-	<table class="table table-sm">
-        <thead>
-        <tr>
-            <th class="d-none d-sm-table-cell" style="text-align: right; width:80px">Priority</th>
-            <th class="d-none d-sm-table-cell" style="width:150px">Rule Name</th>
-            <th class="d-none d-lg-table-cell" style="width:200px">Target Bucket</th>
-            <th class="d-none d-sm-table-cell">Mapping Rules</th>
-            <th class="d-none d-sm-table-cell" style="width:1px" />
-        </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm number-input" type="number" @bind="_dataContext.NewRuleSet!.Priority" /></td>
-                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm" type="text" @bind="_dataContext.NewRuleSet.Name" /></td>
-                <td class="d-none d-lg-table-cell">
-                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucketColor); color: @ColorTranslator.ToHtml(_dataContext.NewRuleSet.TargetBucketTextColor)" @onclick="() => HandleShowSelectBucketDialog(_dataContext.NewRuleSet)">
-                        @_dataContext.NewRuleSet.TargetBucketName
-                    </button>
-                </td>
-                <td class="d-none d-sm-table-cell">
-                    <table class="table table-borderless" style="margin-bottom: auto;">
-                        <tbody>
-                            @foreach (var mappingRule in _dataContext.NewRuleSet.MappingRules)
+<MudDataGrid
+    T="RuleSetViewModel"
+    Items="@_dataContext.RuleSets"
+    Dense="true"
+    EditMode="DataGridEditMode.Form"
+    Filterable="true"
+    FilterMode="DataGridFilterMode.ColumnFilterMenu"
+    FixedHeader="true"
+    Hover="true"
+    MultiSelection="true"
+    ReadOnly="true"
+    SortMode="SortMode.Multiple"
+    SelectedItemsChanged="RuleSet_SelectionChanged">
+    <Columns>
+        <SelectColumn T="RuleSetViewModel" />
+        <PropertyColumn Property="x => x.Priority"/>
+        <PropertyColumn Property="x => x.Name"/>
+        <PropertyColumn Property="x => x.TargetBucket.Name" Title="Target Bucket">
+            <CellTemplate>
+                <MudPaper
+                    Class="d-flex align-center justify-center mud-width-full bucket-indicator no-background"
+                    Style="@($"background-color: {ColorTranslator.ToHtml(context.Item.TargetBucket.Color)}; color: {ColorTranslator.ToHtml(context.Item.TargetBucket.TextColor)}")">
+                    <MudText>@context.Item.TargetBucket.Name</MudText>
+                </MudPaper>
+            </CellTemplate>
+            <FilterTemplate>
+                <MudGrid Spacing="6" Style="width:430px">
+                    <MudItem xs="12">
+                        <MudSelect
+                            T="BucketViewModel"
+                            @bind-SelectedValues="_bucketMudFilter.SelectedItems"
+                            MultiSelection="true"
+                            MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Buckets"))"
+                            SelectAll="true">
+                            @foreach (var partialBucket in _bucketMudFilter.AvailableItems)
                             {
-                                <tr>
-                                    <td style="width: 120px">
-                                        <select class="form-select form-select-sm"
-                                                @bind:get="mappingRule.ComparisonField.ToString()"
-                                                @bind:set="(value) => { ComparisionField_SelectionChanged(value, mappingRule); }">
-                                            @foreach (var comparisionField in Enum.GetValues<MappingRuleComparisonField>())
-                                            {
-                                                <option value="@comparisionField">@comparisionField.GetStringValue()</option>
-                                            }
-                                        </select>
-                                    </td>
-                                    <td style="width: 160px">
-                                        <select class="form-select form-select-sm"
-                                                @bind:get="mappingRule.ComparisonType.ToString()"
-                                                @bind:set="(value) => { ComparisionType_SelectionChanged(value, mappingRule); }">
-                                            @foreach (var comparisionType in Enum.GetValues<MappingRuleComparisonType>())
-                                            {
-                                                <option value="@comparisionType">@comparisionType.GetStringValue()</option>
-                                            }
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisonValue" />
-                                    </td>
-                                    <td class="col-buttons" style="width: 1px">
-                                        <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => _dataContext.NewRuleSet.AddEmptyMappingRule())"></button>
-                                        <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => _dataContext.NewRuleSet.DeleteMappingRule(mappingRule))"></button>
-                                    </td>
-                                </tr>
+                                <MudSelectItem Value="partialBucket">@partialBucket</MudSelectItem>
                             }
-                        </tbody>
-                    </table>
-                </td>
-                <td class="d-none d-sm-table-cell col-buttons">
-                    <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(() => HandleResult(_dataContext.CreateNewRuleSet()))"></button>
-                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@CancelNewBucketRule"></button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-}
-
-<table class="table table-sm table-hover">
-    <thead>
-    <tr>
-        <th class="d-none d-sm-table-cell" style="text-align: right; width:80px">Priority</th>
-        <th class="d-none d-sm-table-cell" style="width:150px">Rule Name</th>
-        <th class="d-none d-lg-table-cell" style="width:200px">Target Bucket</th>
-        <th class="d-none d-sm-table-cell">Mapping Rules</th>
-        <th class="d-none d-sm-table-cell" style="width:1px" />
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var ruleSet in _dataContext.RuleSets)
-    {
-        @if (ruleSet.InModification)
-        {
-            <tr>
-                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm number-input" type="number" @bind="ruleSet.Priority" /></td>
-                <td class="d-none d-sm-table-cell"><input class="form-control form-control-sm" type="text" @bind="ruleSet.Name" /></td>
-                <td class="d-none d-lg-table-cell">
-                    <button class="btn btn-sm btn-bucket" style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor); color: @ColorTranslator.ToHtml(ruleSet.TargetBucketTextColor)" @onclick="() => HandleShowSelectBucketDialog(ruleSet)">
-                        @ruleSet.TargetBucketName
-                    </button>
-                </td>
-                <td class="d-none d-sm-table-cell">
-                    <table class="table table-borderless" style="margin-bottom: auto;">
-                        <tbody>
-                        @foreach (var mappingRule in ruleSet.MappingRules)
-                        {
-                            <tr>
-                                <td style="width: 120px">
-                                    <select class="form-select form-select-sm"
-                                            @bind:get="mappingRule.ComparisonField.ToString()"
-                                            @bind:set="(value) => { ComparisionField_SelectionChanged(value, mappingRule); }">
-                                        @foreach (var comparisionField in Enum.GetValues<MappingRuleComparisonField>())
-                                        {
-                                            <option value="@comparisionField">@comparisionField.GetStringValue()</option>
-                                        }
-                                    </select>
-                                </td>
-                                <td style="width: 160px">
-                                    <select class="form-select form-select-sm"
-                                            @bind:get="mappingRule.ComparisonType.ToString()"
-                                            @bind:set="(value) => { ComparisionType_SelectionChanged(value, mappingRule); }">
-                                        @foreach (var comparisionType in Enum.GetValues<MappingRuleComparisonType>())
-                                        {
-                                            <option value="@comparisionType">@comparisionType.GetStringValue()</option>
-                                        }
-                                    </select>
-                                </td>
-                                <td>
-                                    <input class="form-control form-control-sm" type="text" @bind="mappingRule.ComparisonValue" />
-                                </td>
-                                <td class="col-buttons" style="width: 1px">
-                                    <button class="btn btn-sm btn-primary bi bi-plus-lg" @onclick="@(() => ruleSet.AddEmptyMappingRule())"></button>
-                                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.DeleteMappingRule(mappingRule))"></button>
-                                </td>
-                            </tr>
-                        }
-                        </tbody>
-                    </table>
-                </td>
-                <td class="d-none d-sm-table-cell col-buttons">
-                    <button class="btn btn-sm btn-primary bi bi-check-lg" @onclick="@(async () => await HandleResult(_dataContext.SaveRuleSetItem(ruleSet)))"></button>
-                    <button class="btn btn-sm btn-danger bi bi-x-lg" @onclick="@(() => ruleSet.CancelModification())"></button>
-                </td>
-            </tr>
-        }
-        else
-        {
-            <tr>
-                <td class="d-none d-sm-table-cell col-numbers">@ruleSet.Priority</td>
-                <td class="d-none d-sm-table-cell">@ruleSet.Name</td>
-                <td class="d-none d-lg-table-cell"><div style="background-color: @ColorTranslator.ToHtml(ruleSet.TargetBucketColor); color: @ColorTranslator.ToHtml(ruleSet.TargetBucketTextColor); border-radius: 25px; padding: 5px 10px">@ruleSet.TargetBucketName</div></td>
-                <td class="d-none d-sm-table-cell">
-                    <ul>
-                        @foreach (var mappingRule in ruleSet.MappingRules)
-                        {
-                            <li>@mappingRule.RuleOutput</li>
-                        }
-                    </ul>
-                </td>
-                <td class="d-none d-sm-table-cell col-buttons">
-                    <button class="btn btn-sm btn-primary bi bi-pencil" @onclick="@ruleSet.StartModification"></button>
-                    <button class="btn btn-sm btn-danger bi bi-trash3" @onclick="@(() => HandleShowDeleteRuleSetDialog(ruleSet))"></button>
-                </td>
-            </tr>
-        }
-    }
-    </tbody>
-</table>
-
-<BucketSelectDialog
-    DataContext="@_bucketSelectDialogDataContext"
-    IsDialogVisible="@_isBucketSelectDialogVisible"
-    IsDialogLoading="@_isBucketSelectDialogLoading"
-    OnBucketSelectedCallback="UpdateSelectedBucket"
-    OnCancelCallback="@(() => _isBucketSelectDialogVisible = false)"/>
-
-<DeleteConfirmationDialog 
-    Title="Delete Rule" 
-    Message="Do you really want to delete this Rule?" 
-    IsDialogVisible="@_isDeleteRuleSetDialogVisible"
-    OnDeleteClickCallback="DeleteRule"
-    OnCancelClickCallback="CancelDeleteRule"/>
-
-<ErrorMessageDialog 
-    Title="Rules" 
-    Message="@_errorModalDialogMessage" 
-    IsDialogVisible="@_isErrorModalDialogVisible"
-    OnClickCallback="@(() => _isErrorModalDialogVisible = false)"/>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end">
+                        <MudButton OnClick="@(() => _bucketMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                        <MudButton Color="@Color.Primary" OnClick="@(() => _bucketMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </FilterTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.MappingRules" Title="Mapping Rules" Comparer="@(new MudComparer())">
+            <CellTemplate>
+                <MudStack Spacing="0">
+                    @foreach (var mappingRule in context.Item.MappingRules)
+                    {
+                        <MudText>@mappingRule.ToString()</MudText>
+                    }
+                </MudStack>
+            </CellTemplate>
+            <FilterTemplate>
+                <MudGrid Spacing="6" Style="width:430px">
+                    <MudItem xs="12">
+                        <MudSelect T="MappingRuleComparisonField" @bind-Value="_mappingRuleMudFilter.SelectedComparisonField" Label="Comparision Field">
+                            @foreach (var comparisonField in _mappingRuleMudFilter.AvailableComparisonFields)
+                            {
+                                <MudSelectItem Value="comparisonField">@comparisonField</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_mappingRuleMudFilter.ComparisionValue" Label="Comparison Value"/>
+                    </MudItem>
+                    <MudItem xs="12" Class="d-flex justify-end">
+                        <MudButton OnClick="@(() => _mappingRuleMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                        <MudButton Color="@Color.Primary" OnClick="@(() => _mappingRuleMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </FilterTemplate>
+        </PropertyColumn>
+        <TemplateColumn>
+            <CellTemplate>
+                <MudStack AlignItems="AlignItems.End">
+                    <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="() => ShowEditRuleSetDialog(context.Item)"/>
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>

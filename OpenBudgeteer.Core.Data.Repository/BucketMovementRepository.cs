@@ -55,7 +55,7 @@ public class BucketMovementRepository : IBucketMovementRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.BucketMovement.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"BucketMovement with id {id} not found.");
+        if (entity is null) throw new Exception($"BucketMovement with id {id} not found.");
 
         DatabaseContext.BucketMovement.Remove(entity);
         return DatabaseContext.SaveChanges();

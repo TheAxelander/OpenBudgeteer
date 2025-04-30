@@ -4,12 +4,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.Helper;
 
 public class RecurringTransactionHandlerViewModel : ViewModelBase
 {
+    private RecurringTransactionViewModel? _newRecurringTransaction;
+    /// <summary>
+    /// Helper property to handle creation of a new <see cref="RecurringBankTransaction"/>
+    /// </summary>
+    public RecurringTransactionViewModel? NewRecurringTransaction
+    {
+        get => _newRecurringTransaction;
+        set => Set(ref _newRecurringTransaction, value);
+    }
+    
     private ObservableCollection<RecurringTransactionViewModel> _transactions;
     /// <summary>
     /// Collection of loaded Recurring Transactions
@@ -27,6 +38,7 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
     public RecurringTransactionHandlerViewModel(IServiceManager serviceManager) : base(serviceManager)
     {
         _transactions = new ObservableCollection<RecurringTransactionViewModel>();
+        ResetNewTransaction();
     }
     
     /// <summary>
@@ -63,6 +75,40 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Starts creation process based on <see cref="NewRecurringTransaction"/>
+    /// </summary>
+    /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public ViewModelOperationResult CreateItem()
+    {
+        try
+        {
+            if (_newRecurringTransaction is null) throw new Exception("New Recurring Transaction has not been initialized");
+            var result = _newRecurringTransaction.CreateOrUpdateTransaction();
+            if (!result.IsSuccessful) return result;
+            ResetNewTransaction();
+    
+            return new ViewModelOperationResult(true, true);
+        }
+        catch (Exception e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
+    }
+    
+    /// <summary>
+    /// Helper method to reset values of <see cref="NewRecurringTransaction"/>
+    /// </summary>
+    public void ResetNewTransaction()
+    {
+        // Use previous entered date
+        var lastEnteredDate = _newRecurringTransaction?.FirstOccurrenceDate ?? DateOnly.FromDateTime(DateTime.Today);
+        
+        _newRecurringTransaction = RecurringTransactionViewModel.CreateEmpty(ServiceManager);
+        _newRecurringTransaction.FirstOccurrenceDate = lastEnteredDate;
+    }
+    
     /// <summary>
     /// Creates a new <see cref="RecurringTransactionViewModel"/> which can be modified directly
     /// </summary>

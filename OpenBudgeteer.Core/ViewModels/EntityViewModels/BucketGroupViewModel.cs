@@ -6,7 +6,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
+public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable<BucketGroupViewModel>, IComparable<BucketGroupViewModel>
 {
     #region Properties & Fields
     
@@ -110,7 +110,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
         private set => Set(ref _inModification, value);
     }
     
-    private readonly DateTime _currentMonth;
+    private readonly DateOnly _currentMonth;
     private BucketGroupViewModel? _oldBucketGroup;
 
     #endregion
@@ -123,14 +123,14 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucketGroup">BucketGroup instance</param>
     /// <param name="currentMonth">YearMonth that should be used</param>
-    protected BucketGroupViewModel(IServiceManager serviceManager, BucketGroup? bucketGroup, DateTime currentMonth) 
+    protected BucketGroupViewModel(IServiceManager serviceManager, BucketGroup? bucketGroup, DateOnly currentMonth) 
         : base(serviceManager)
     {
         Buckets = new ObservableCollection<BucketViewModel>();
         _inModification = false;
         _currentMonth = currentMonth;
 
-        if (bucketGroup == null)
+        if (bucketGroup is null)
         {
             BucketGroupId = Guid.Empty;
             _name = "New Bucket Group";
@@ -167,7 +167,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucketGroup">BucketGroup instance</param>
     /// <param name="currentMonth">YearMonth that should be used</param>
-    public static BucketGroupViewModel CreateFromBucketGroup(IServiceManager serviceManager, BucketGroup bucketGroup, DateTime currentMonth)
+    public static BucketGroupViewModel CreateFromBucketGroup(IServiceManager serviceManager, BucketGroup bucketGroup, DateOnly currentMonth)
     {
         return new BucketGroupViewModel(serviceManager, bucketGroup, currentMonth);
     }
@@ -178,7 +178,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
     /// <param name="serviceManager">Reference to API based services</param>
     public static BucketGroupViewModel CreateEmpty(IServiceManager serviceManager)
     {
-        return new BucketGroupViewModel(serviceManager, null, DateTime.Now);
+        return new BucketGroupViewModel(serviceManager, null, DateOnly.FromDateTime(DateTime.Today));
     }
 
     /// <summary>
@@ -207,7 +207,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
     /// </summary>
     public void CancelModification()
     {
-        if (_oldBucketGroup == null) return;
+        if (_oldBucketGroup is null) return;
         Name = _oldBucketGroup.Name;
         Position = _oldBucketGroup.Position;
         InModification = false;
@@ -304,7 +304,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
     {
         try
         {
-            ServiceManager.BucketGroupService.Move(ConvertToDto().Id, positions);
+            ServiceManager.BucketGroupService.Move(BucketGroupId, positions);
             return new ViewModelOperationResult(true, true);
         }
         catch (Exception e)
@@ -313,13 +313,51 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>
         }
     }
     
-    // TODO Move to BucketViewModel
-    public BucketViewModel CreateBucket()
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+
+    public bool Equals(BucketGroupViewModel? other)
     {
-        var newBucket = BucketViewModel.CreateEmpty(ServiceManager, ConvertToDto().Id, _currentMonth);
-        Buckets.Add(newBucket);
-        return newBucket;
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return 
+            BucketGroupId.Equals(other.BucketGroupId) && 
+            _name == other._name && 
+            _position == other._position && 
+            _totalBalance == other._totalBalance && 
+            _totalWant == other._totalWant && 
+            _totalIn == other._totalIn && 
+            _totalActivity == other._totalActivity;
     }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((BucketGroupViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(BucketGroupId);
+        hashCode.Add(_name);
+        hashCode.Add(_position);
+        hashCode.Add(_totalBalance);
+        hashCode.Add(_totalWant);
+        hashCode.Add(_totalIn);
+        hashCode.Add(_totalActivity);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(BucketGroupViewModel? other)
+    {
+        return string.Compare(_name, other?.Name, StringComparison.Ordinal);
+    }
+    
+    public override string ToString() => Name;
     
     #endregion
 }

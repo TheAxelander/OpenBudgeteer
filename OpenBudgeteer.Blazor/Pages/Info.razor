@@ -1,0 +1,58 @@
+@page "/info"
+
+<MudGrid Spacing="2">
+    <MudItem sm="12" md="6">
+        <MudText Typo="Typo.h5" Class="mb-2">Database connection details</MudText>
+        <MudSimpleTable 
+            Dense="true"
+            FixedHeader="true"
+            Hover="true">
+            <tbody>
+            <tr>
+                <td>Provider:</td>
+                <td>@DatabaseConnector.Provider</td>
+            </tr>
+            <tr>
+                <td>Server:</td>
+                <td>@DatabaseConnector.Server</td>
+            </tr>
+            <tr>
+                <td>Database name:</td>
+                <td>@DatabaseConnector.Database</td>
+            </tr>
+            <tr>
+                <td>Database user:</td>
+                <td>@DatabaseConnector.Username</td>
+            </tr>
+            </tbody>
+        </MudSimpleTable>
+    </MudItem>
+    <MudItem sm="12" md="6">
+        <MudText Typo="Typo.h5" Class="mb-2">3rd party software & media</MudText>
+        <MudTable
+            Items="Software"
+            Dense="true"
+            FixedHeader="true"
+            Hover="true">
+            <HeaderContent>
+                <MudTh>Software & Media</MudTh>
+                <MudTh>License</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Software">
+                    @if (string.IsNullOrEmpty(context.Url))
+                    {
+                        <MudText>@context.Name</MudText>
+                    }
+                    else
+                    {
+                        <MudLink Href="@context.Url">@context.Name</MudLink>
+                    }
+                </MudTd>
+                <MudTd DataLabel="License">
+                    <MudLink Href="@context.LicenseUrl">@context.License</MudLink>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudItem>
+</MudGrid>

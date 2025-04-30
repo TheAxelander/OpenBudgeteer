@@ -1,21 +1,29 @@
-<div class="row">
-    <div class="col-md-auto no-gutters">
-        <img src="@ImageUrl" alt=""/>
-    </div>
-    <div class="col" style="text-align: center">
-        <span class="tile-header">@Title</span>
-        <hr class="my-1"/>
-        <span>@Amount</span>
-    </div>
-</div>
+@using System.Globalization
+<MudStack Row StretchItems="StretchItems.End">
+    <MudImage Src="@ImageUrl" ObjectFit="ObjectFit.ScaleDown" ObjectPosition="ObjectPosition.Center"/>
+    <MudPaper Class="no-background" Elevation="0">
+        <MudText Align="Align.Center" Style="font-weight: bold">@Title</MudText>
+        <MudDivider Class="my-1"/>
+        <MudText Align="Align.Center" Style="@GetAmountColor(Amount, Title)">@Amount?.ToString("C", CultureInfo.CurrentCulture)</MudText>
+    </MudPaper>
+</MudStack>
 
 @code {
     [Parameter] 
     public string? ImageUrl { get; set; }
-    
+
     [Parameter] 
     public string? Title { get; set; }
-    
+
     [Parameter] 
-    public string? Amount { get; set; }
+    public decimal? Amount { get; set; }
+
+    // Determines the color style for the balance text based on its value.
+    private string GetAmountColor(decimal? balance, string? title)
+    {
+        if (balance == 0) return string.Empty;
+        if (title is "Pending Want") return balance > 0 ? "color: orange;" : string.Empty;
+
+        return balance < 0 ? "color: red;" : "color: green;";
+    }
 }

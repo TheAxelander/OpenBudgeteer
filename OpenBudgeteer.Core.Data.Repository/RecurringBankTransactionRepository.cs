@@ -56,7 +56,7 @@ public class RecurringBankTransactionRepository : IRecurringBankTransactionRepos
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.RecurringBankTransaction.FirstOrDefault(i => i.Id == id);
-        if (entity == null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
+        if (entity is null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
 
         DatabaseContext.RecurringBankTransaction.Remove(entity);
         return DatabaseContext.SaveChanges();

@@ -5,7 +5,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
-public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
+public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>, IEquatable<BucketVersionViewModel>, IComparable<BucketVersionViewModel>
 {
     #region Properties & Fields
 
@@ -51,11 +51,11 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         set => Set(ref _bucketId, value);
     }
     
-    private DateTime _validFrom;
+    private DateOnly _validFrom;
     /// <summary>
     /// Date from which this BucketVersion applies
     /// </summary>
-    public DateTime ValidFrom 
+    public DateOnly ValidFrom 
     { 
         get => _validFrom;
         set => Set(ref _validFrom, value);
@@ -100,11 +100,11 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         }
     }
 
-    private DateTime _bucketTypeDateParameter;
+    private DateOnly _bucketTypeDateParameter;
     /// <summary>
     /// Date based parameter of the Bucket type
     /// </summary>
-    public DateTime BucketTypeDateParameter
+    public DateOnly BucketTypeDateParameter
     {
         get => _bucketTypeDateParameter;
         set
@@ -117,11 +117,11 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         }
     }
     
-    private DateTime _bucketTypeNextDateParameter;
+    private DateOnly _bucketTypeNextDateParameter;
     /// <summary>
     /// Date based parameter of the Bucket type (calculating to the next applying date)
     /// </summary>
-    public DateTime BucketTypeNextDateParameter
+    public DateOnly BucketTypeNextDateParameter
     {
         get => _bucketTypeNextDateParameter; 
         set => Set(ref _bucketTypeNextDateParameter, value);
@@ -169,7 +169,7 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
     /// <param name="bucketVersion">BucketVersion instance</param>
     protected BucketVersionViewModel(IServiceManager serviceManager, BucketVersion? bucketVersion) : base(serviceManager)
     {
-        if (bucketVersion == null)
+        if (bucketVersion is null)
         {
             BucketVersionId = Guid.Empty;
             _version = 0;
@@ -178,8 +178,8 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
             _bucketTypeParameter = BucketType.StandardBucket;
             _bucketTypeIntParameter = 0;
             _bucketTypeDecimalParameter = 0;
-            _bucketTypeDateParameter = DateTime.MinValue;
-            _bucketTypeNextDateParameter = DateTime.MinValue;
+            _bucketTypeDateParameter = DateOnly.MinValue;
+            _bucketTypeNextDateParameter = DateOnly.MinValue;
             _notes = string.Empty;
         }
         else
@@ -221,7 +221,7 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucket">Bucket instance</param>
     /// <param name="yearMonth">Current month</param>
-    public static BucketVersionViewModel CreateFromBucket(IServiceManager serviceManager, Bucket bucket, DateTime yearMonth)
+    public static BucketVersionViewModel CreateFromBucket(IServiceManager serviceManager, Bucket bucket, DateOnly yearMonth)
     {
         var bucketVersion = serviceManager.BucketService.GetLatestVersion(bucket.Id, yearMonth);
         return new BucketVersionViewModel(serviceManager, bucketVersion);
@@ -268,5 +268,57 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>
         };
     }
     
+    #endregion
+
+    #region IEquatable & IComparable Implementation
+
+    public bool Equals(BucketVersionViewModel? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return 
+            _bucketVersionId.Equals(other._bucketVersionId) && 
+            _version == other._version && 
+            _bucketId.Equals(other._bucketId) && 
+            _validFrom.Equals(other._validFrom) && 
+            _bucketTypeParameter == other._bucketTypeParameter && 
+            _bucketTypeIntParameter == other._bucketTypeIntParameter && 
+            _bucketTypeDecimalParameter == other._bucketTypeDecimalParameter && 
+            _bucketTypeDateParameter.Equals(other._bucketTypeDateParameter) && 
+            _bucketTypeNextDateParameter.Equals(other._bucketTypeNextDateParameter) && 
+            _notes == other._notes;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null) return false;
+        if (ReferenceEquals(this, obj)) return true;
+        if (obj.GetType() != GetType()) return false;
+        return Equals((BucketVersionViewModel)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        var hashCode = new HashCode();
+        hashCode.Add(_bucketVersionId);
+        hashCode.Add(_version);
+        hashCode.Add(_bucketId);
+        hashCode.Add(_validFrom);
+        hashCode.Add((int)_bucketTypeParameter);
+        hashCode.Add(_bucketTypeIntParameter);
+        hashCode.Add(_bucketTypeDecimalParameter);
+        hashCode.Add(_bucketTypeDateParameter);
+        hashCode.Add(_bucketTypeNextDateParameter);
+        hashCode.Add(_notes);
+        return hashCode.ToHashCode();
+    }
+    
+    public int CompareTo(BucketVersionViewModel? other)
+    {
+        return _version.CompareTo(other?.Version);
+    }
+
+    public override string ToString() => Version.ToString();
+
     #endregion
 }
