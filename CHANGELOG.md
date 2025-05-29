@@ -1,3 +1,9 @@
+## 1.11 (2025-xx-xx)
+
+### :gear: Features & Enhancements
+
+* Distribute Budget clears also now negative Bucket Balances [#325](https://github.com/TheAxelander/OpenBudgeteer/issues/325)
+
 ## 1.10 (2025-04-30)
 
 ### :gear: Features & Enhancements

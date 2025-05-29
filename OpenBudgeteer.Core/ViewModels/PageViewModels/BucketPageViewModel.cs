@@ -146,7 +146,8 @@ public class BucketPageViewModel : BucketListingViewModel
     }
 
     /// <summary>
-    /// Put money into all Buckets according to their Want. Saves the results to the database.
+    /// Put money into all Buckets according to their Want. After that clear all negative Bucket Balances.
+    /// Saves the results to the database.
     /// </summary>
     /// <remarks>Doesn't consider any available Budget figures.</remarks>
     /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
@@ -163,6 +164,8 @@ public class BucketPageViewModel : BucketListingViewModel
             {
                 buckets.AddRange(bucketGroup.Buckets);
             }
+            
+            // Clear Want
             foreach (var bucket in buckets.Where(i => i.Want > 0))
             {
                 bucket.InOut = bucket.Want;
@@ -173,6 +176,20 @@ public class BucketPageViewModel : BucketListingViewModel
             }
 
             //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
+            
+            // Clear negative Bucket Balance (only continue if no error has occured yet)
+            if (successful)
+            {
+                foreach (var bucket in buckets.Where(i => i.Balance < 0))
+                {
+                    bucket.InOut = bucket.Balance * -1;
+                    var result = bucket.HandleInOutInput();
+                    if (result.IsSuccessful) continue;
+                    successful = false;
+                    message = result.Message;
+                }
+            }
+            
             return successful
                 ? new ViewModelOperationResult(true, true)
                 : new ViewModelOperationResult(false, $"For one or more Buckets the budget could not be distributed: {message}");
