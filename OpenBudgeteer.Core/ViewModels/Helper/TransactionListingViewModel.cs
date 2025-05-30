@@ -2,9 +2,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.Helper;
@@ -23,13 +25,16 @@ public class TransactionListingViewModel : ViewModelBase
     
     private readonly YearMonthSelectorViewModel _yearMonthViewModel;
 
-    public TransactionListingViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public TransactionListingViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(TransactionListingViewModel)))
     {
         _transactions = new ObservableCollection<TransactionViewModel>();
         _yearMonthViewModel = new YearMonthSelectorViewModel(serviceManager);
     }
     
-    public TransactionListingViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel) : this(serviceManager)
+    public TransactionListingViewModel(
+        IServiceManager serviceManager, 
+        YearMonthSelectorViewModel yearMonthViewModel) : this(serviceManager)
     {
         _yearMonthViewModel = yearMonthViewModel;
     }
@@ -64,9 +69,14 @@ public class TransactionListingViewModel : ViewModelBase
 
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -108,9 +118,14 @@ public class TransactionListingViewModel : ViewModelBase
 
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -136,9 +151,14 @@ public class TransactionListingViewModel : ViewModelBase
 
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 }

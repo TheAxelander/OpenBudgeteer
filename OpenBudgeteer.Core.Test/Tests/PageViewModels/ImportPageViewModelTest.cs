@@ -34,34 +34,27 @@ public class ImportPageViewModelTest
         };
     }
 
-    public static IEnumerable<object[]> TestData_LoadData_CheckAvailableProfiles
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadData_CheckAvailableProfiles =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Amount",
-                        CreditColumnName = "Credit",
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Amount",
+                CreditColumnName = "Credit",
 
-                        Delimiter = ';',
-                        TextQualifier = '"',
-                        DateFormat = "dd.MM.yyyy",
-                        NumberFormat = "de-DE",
-                        HeaderRow = 2
-                    }
-                }
-            };
-        }
-    }
+                Delimiter = ';',
+                TextQualifier = '"',
+                DateFormat = "dd.MM.yyyy",
+                NumberFormat = "de-DE",
+                HeaderRow = 2
+            }
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadData_CheckAvailableProfiles))]
@@ -96,36 +89,29 @@ public class ImportPageViewModelTest
         Assert.Equal(importProfile.HeaderRow, loadedImportProfile.HeaderRow);
     }
 
-    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckSelectedImportProfileHeaders
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckSelectedImportProfileHeaders =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Amount (EUR)",
-                        CreditColumnName = "Credit",
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Amount (EUR)",
+                CreditColumnName = "Credit",
 
-                        Delimiter = ';',
-                        TextQualifier = '"',
-                        DateFormat = "dd.MM.yyyy",
-                        NumberFormat = "de-DE",
-                        HeaderRow = 11
-                    },
-                    "./Resources/TestImportFile1.txt",
-                    new List<string> {"Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
-                }
-            };
-        }
-    }
+                Delimiter = ';',
+                TextQualifier = '"',
+                DateFormat = "dd.MM.yyyy",
+                NumberFormat = "de-DE",
+                HeaderRow = 11
+            },
+            "./Resources/TestImportFile1.txt",
+            new List<string> {"Accounting Date", "Date", "Type", "Payee", "Memo", "IBAN", "Amount (EUR)"}
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadProfileAsync_CheckSelectedImportProfileHeaders))]
@@ -156,35 +142,28 @@ public class ImportPageViewModelTest
         }
     }
 
-    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateData
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateData =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Amount (EUR)",
-                        CreditColumnName = string.Empty,
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Amount (EUR)",
+                CreditColumnName = string.Empty,
 
-                        Delimiter = ';',
-                        TextQualifier = '"',
-                        DateFormat = "dd.MM.yyyy",
-                        NumberFormat = "de-DE",
-                        HeaderRow = 11
-                    },
-                    "./Resources/TestImportFile1.txt"
-                }
-            };
-        }
-    }
+                Delimiter = ';',
+                TextQualifier = '"',
+                DateFormat = "dd.MM.yyyy",
+                NumberFormat = "de-DE",
+                HeaderRow = 11
+            },
+            "./Resources/TestImportFile1.txt"
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadProfileAsync_CheckValidateData))]
@@ -242,37 +221,30 @@ public class ImportPageViewModelTest
         Assert.Equal(new decimal(-6.34), checkRecord.Amount);
     }
 
-    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithCreditColumn
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithCreditColumn =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Debit (EUR)",
-                        CreditColumnName = "Credit (EUR)",
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Debit (EUR)",
+                CreditColumnName = "Credit (EUR)",
 
-                        AdditionalSettingCreditValue = 1,
+                AdditionalSettingCreditValue = 1,
                         
-                        Delimiter = ';',
-                        TextQualifier = '"',
-                        DateFormat = "dd.MM.yyyy",
-                        NumberFormat = "de-DE",
-                        HeaderRow = 11
-                    },
-                    "./Resources/TestImportFile2.txt"
-                }
-            };
-        }
-    }
+                Delimiter = ';',
+                TextQualifier = '"',
+                DateFormat = "dd.MM.yyyy",
+                NumberFormat = "de-DE",
+                HeaderRow = 11
+            },
+            "./Resources/TestImportFile2.txt"
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadProfileAsync_CheckValidateDataWithCreditColumn))]
@@ -332,35 +304,28 @@ public class ImportPageViewModelTest
         Assert.Equal(new decimal(-6.34), checkRecord.Amount);
     }
 
-    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithInvalidRecords
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithInvalidRecords =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Amount (EUR)",
-                        CreditColumnName = string.Empty,
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Amount (EUR)",
+                CreditColumnName = string.Empty,
 
-                        Delimiter = ';',
-                        TextQualifier = '"',
-                        DateFormat = "dd.MM.yyyy",
-                        NumberFormat = "de-DE",
-                        HeaderRow = 11
-                    },
-                    "./Resources/TestImportFile3.txt"
-                }
-            };
-        }
-    }
+                Delimiter = ';',
+                TextQualifier = '"',
+                DateFormat = "dd.MM.yyyy",
+                NumberFormat = "de-DE",
+                HeaderRow = 11
+            },
+            "./Resources/TestImportFile3.txt"
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadProfileAsync_CheckValidateDataWithInvalidRecords))]
@@ -404,36 +369,29 @@ public class ImportPageViewModelTest
         Assert.Equal(new decimal(43), checkRecord.Amount);
     }
 
-    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithDuplicates
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithDuplicates =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Amount (EUR)",
-                        CreditColumnName = string.Empty,
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Amount (EUR)",
+                CreditColumnName = string.Empty,
 
-                        Delimiter = ';',
-                        TextQualifier = '"',
-                        DateFormat = "dd.MM.yyyy",
-                        NumberFormat = "de-DE",
-                        HeaderRow = 11
-                    },
-                    "./Resources/TestImportFile3.txt",
-                    "./Resources/TestImportFile1.txt"
-                }
-            };
-        }
-    }
+                Delimiter = ';',
+                TextQualifier = '"',
+                DateFormat = "dd.MM.yyyy",
+                NumberFormat = "de-DE",
+                HeaderRow = 11
+            },
+            "./Resources/TestImportFile3.txt",
+            "./Resources/TestImportFile1.txt"
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadProfileAsync_CheckValidateDataWithDuplicates))]
@@ -493,35 +451,28 @@ public class ImportPageViewModelTest
         Assert.Equal(5, serviceManager.BankTransactionService.GetAll().ToList().Count);
     }
 
-    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithDifferentSettings
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_LoadProfileAsync_CheckValidateDataWithDifferentSettings =>
+    [
+        [
+            new ImportProfile()
             {
-                new object[]
-                {
-                    new ImportProfile()
-                    {
-                        ProfileName = "Test Profile",
+                ProfileName = "Test Profile",
 
-                        TransactionDateColumnName = "Date",
-                        PayeeColumnName = "Payee",
-                        MemoColumnName = "Memo",
-                        AmountColumnName = "Amount (USD)",
-                        CreditColumnName = string.Empty,
+                TransactionDateColumnName = "Date",
+                PayeeColumnName = "Payee",
+                MemoColumnName = "Memo",
+                AmountColumnName = "Amount (USD)",
+                CreditColumnName = string.Empty,
 
-                        Delimiter = ',',
-                        TextQualifier = '\'',
-                        DateFormat = "yyyy-MM-dd",
-                        NumberFormat = "en-US",
-                        HeaderRow = 11
-                    },
-                    "./Resources/TestImportFile4.txt"
-                }
-            };
-        }
-    }
+                Delimiter = ',',
+                TextQualifier = '\'',
+                DateFormat = "yyyy-MM-dd",
+                NumberFormat = "en-US",
+                HeaderRow = 11
+            },
+            "./Resources/TestImportFile4.txt"
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_LoadProfileAsync_CheckValidateDataWithDifferentSettings))]

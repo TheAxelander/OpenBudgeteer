@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 
 namespace OpenBudgeteer.Core.ViewModels;
@@ -8,10 +9,12 @@ namespace OpenBudgeteer.Core.ViewModels;
 public abstract class ViewModelBase : INotifyPropertyChanged
 {
     protected readonly IServiceManager ServiceManager;
+    protected readonly ILogger Logger;
 
-    protected ViewModelBase(IServiceManager serviceManager)
+    protected ViewModelBase(IServiceManager serviceManager, ILogger logger)
     {
         ServiceManager = serviceManager;
+        Logger = logger;
     }
     
     public event PropertyChangedEventHandler? PropertyChanged;

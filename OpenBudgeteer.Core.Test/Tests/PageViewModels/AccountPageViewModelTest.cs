@@ -39,18 +39,12 @@ public class AccountPageViewModelTest
         Assert.Equal("Test Account2", testItem2.Name);
     }
     
-    public static IEnumerable<object[]> TestData_LoadData_CheckTransactionCalculations
-    {
-        get
-        {
-            return new[]
-            {
-                new object[] {new List<decimal> {12.34m, -12.34m, 12.34m}, 12.34m, 24.68m, -12.34m},
-                new object[] {new List<decimal> {0}, 0, 0, 0}
-            };
-        }
-    }
-    
+    public static IEnumerable<object[]> TestData_LoadData_CheckTransactionCalculations =>
+    [
+        [new List<decimal> {12.34m, -12.34m, 12.34m}, 12.34m, 24.68m, -12.34m],
+        [new List<decimal> {0}, 0, 0, 0]
+    ];
+
     [Theory]
     [MemberData(nameof(TestData_LoadData_CheckTransactionCalculations))]
     public void LoadData_CheckTransactionCalculations(

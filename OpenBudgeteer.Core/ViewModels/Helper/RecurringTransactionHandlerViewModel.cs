@@ -2,9 +2,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.Helper;
@@ -35,7 +37,8 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
     /// Basic Constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
-    public RecurringTransactionHandlerViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public RecurringTransactionHandlerViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(RecurringTransactionHandlerViewModel)))
     {
         _transactions = new ObservableCollection<RecurringTransactionViewModel>();
         ResetNewTransaction();
@@ -69,9 +72,14 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
 
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -84,16 +92,21 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
     {
         try
         {
-            if (_newRecurringTransaction is null) throw new Exception("New Recurring Transaction has not been initialized");
+            if (_newRecurringTransaction is null) return new ViewModelOperationResult(false, "New Recurring Transaction has not been initialized");
             var result = _newRecurringTransaction.CreateOrUpdateTransaction();
             if (!result.IsSuccessful) return result;
             ResetNewTransaction();
     
             return new ViewModelOperationResult(true, true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -145,9 +158,14 @@ public class RecurringTransactionHandlerViewModel : ViewModelBase
             }
             return new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 

@@ -1,7 +1,9 @@
 using System;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -225,7 +227,8 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="importProfile">ImportProfile instance</param>
-    protected ImportProfileViewModel(IServiceManager serviceManager, ImportProfile? importProfile) : base(serviceManager)
+    protected ImportProfileViewModel(IServiceManager serviceManager, ImportProfile? importProfile) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(ImportProfileViewModel)))
     {
         if (importProfile is null)
         {
@@ -277,7 +280,7 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected ImportProfileViewModel(ImportProfileViewModel viewModel) : base(viewModel.ServiceManager)
+    protected ImportProfileViewModel(ImportProfileViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         _importProfileId = viewModel.ImportProfileId;
         _profileName = viewModel.ProfileName;
@@ -375,9 +378,6 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
     {
         try
         {
-            if (string.IsNullOrEmpty(ProfileName)) 
-                throw new Exception("Profile Name must not be empty.");
-
             ImportProfileId = Guid.Empty;
             var importProfileDto = ConvertToDto();
             ServiceManager.ImportProfileService.Create(importProfileDto);
@@ -385,9 +385,14 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
             
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to create Import Profile: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -399,16 +404,17 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
     {
         try
         {
-            if (string.IsNullOrEmpty(ProfileName)) 
-                throw new Exception("Profile Name must not be empty.");
-
             ServiceManager.ImportProfileService.Update(ConvertToDto());
-            
             return new ViewModelOperationResult(true);
+        }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to save Import Profile: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -424,9 +430,14 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
 
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to delete Import Profile: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     

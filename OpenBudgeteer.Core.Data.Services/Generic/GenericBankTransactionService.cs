@@ -21,7 +21,7 @@ public class GenericBankTransactionService : GenericBaseService<BankTransaction>
     public BankTransaction GetWithEntities(Guid id)
     {
         var result = _bankTransactionRepository.ByIdWithIncludedEntities(id);
-        if (result is null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException("Unable to find Bank Transaction with the given id.");
         return result;
     }
     

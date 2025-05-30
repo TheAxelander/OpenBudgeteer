@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -9,11 +10,15 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreImportProfileService : EFCoreBaseService<ImportProfile>, IImportProfileService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreImportProfileService> _logger;
 
-    public EFCoreImportProfileService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreImportProfileService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreImportProfileService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericImportProfileService CreateBaseService(DatabaseContext dbContext)

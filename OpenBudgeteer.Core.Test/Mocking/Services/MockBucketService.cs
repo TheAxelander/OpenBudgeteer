@@ -1,4 +1,3 @@
-using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Services.Generic;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
 

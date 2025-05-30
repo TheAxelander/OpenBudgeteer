@@ -9,14 +9,16 @@ namespace OpenBudgeteer.Blazor.ViewModels
 {
     public class BlazorBucketStatisticsViewModel : BucketDetailsViewModel
     {
-        public List<ReportRecord> MonthBalances { get; private set; } = new();
-        public List<ReportRecord> MonthInput { get; private set; } = new();
-        public List<ReportRecord> MonthOutput { get; private set; } = new();
-        public List<ReportRecord> BucketProgression { get; private set; } = new();
+        public List<ReportRecord> MonthBalances { get; } = new();
+        public List<ReportRecord> MonthInput { get; } = new();
+        public List<ReportRecord> MonthOutput { get; } = new();
+        public List<ReportRecord> BucketProgression { get; } = new();
         
-        
-        public BlazorBucketStatisticsViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel,
-            Guid bucketId) : base(serviceManager, yearMonthViewModel, bucketId)
+        public BlazorBucketStatisticsViewModel(
+            IServiceManager serviceManager, 
+            YearMonthSelectorViewModel yearMonthViewModel,
+            Guid bucketId) 
+            : base(serviceManager, yearMonthViewModel, bucketId)
         {
         }
 

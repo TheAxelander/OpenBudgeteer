@@ -2,38 +2,49 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using OpenBudgeteer.Core.Data;
-using OpenBudgeteer.Core.Data.Connection;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using Xunit;
 
 namespace OpenBudgeteer.Core.Test.Tests.Database;
 
 public abstract class BaseDatabaseTest<TEntity> where TEntity : IEntity
 {
-    protected static DbContextOptions<DatabaseContext> MariaDbContextOptions
+    // protected static DbContextOptions MariaDbContextOptions
+    // {
+    //     get
+    //     {
+    //         var configuration = new ConfigurationBuilder()
+    //             .AddInMemoryCollection(new Dictionary<string, string>
+    //             {
+    //                 [ConfigurationKeyConstants.CONNECTION_PROVIDER] = "mariadb",
+    //                 [ConfigurationKeyConstants.CONNECTION_SERVER] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_SERVER) ?? "192.168.178.153",
+    //                 [ConfigurationKeyConstants.CONNECTION_PORT] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_PORT) ?? "3306",
+    //                 [ConfigurationKeyConstants.CONNECTION_USER] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_USER) ?? "openbudgeteer_unit_test",
+    //                 [ConfigurationKeyConstants.CONNECTION_PASSWORD] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_PASSWORD) ?? "openbudgeteer_unit_test",
+    //                 [ConfigurationKeyConstants.CONNECTION_DATABASE] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_DATABASE) ?? "openbudgeteer_unit_test",
+    //             }!)
+    //             .Build();
+    //         var dbContextOptionsBuilder = new DbContextOptionsBuilder();
+    //         var contextOptions = new MariaDbConnector(configuration, dbContextOptionsBuilder).BuildDbConnection();
+    //         var dbContext = new DatabaseContext(contextOptions);
+    //         dbContext.Database.Migrate();
+    //         return contextOptions;
+    //     }
+    // }
+    
+    protected static DatabaseContext GetInMemoryContext()
     {
-        get
-        {
-            var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string>
-                {
-                    [ConfigurationKeyConstants.CONNECTION_PROVIDER] = "mariadb",
-                    [ConfigurationKeyConstants.CONNECTION_SERVER] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_SERVER) ?? "192.168.178.153",
-                    [ConfigurationKeyConstants.CONNECTION_PORT] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_PORT) ?? "3306",
-                    [ConfigurationKeyConstants.CONNECTION_USER] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_USER) ?? "openbudgeteer_unit_test",
-                    [ConfigurationKeyConstants.CONNECTION_PASSWORD] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_PASSWORD) ?? "openbudgeteer_unit_test",
-                    [ConfigurationKeyConstants.CONNECTION_DATABASE] = Environment.GetEnvironmentVariable(ConfigurationKeyConstants.CONNECTION_DATABASE) ?? "openbudgeteer_unit_test",
-                }!)
-                .Build();
-            var contextOptions = new MariaDbConnector(configuration).GetDbContextOptions();
-            var dbContext = new DatabaseContext(contextOptions);
-            dbContext.Database.Migrate();
-            return contextOptions;
-        }
+        var options = new DbContextOptionsBuilder<DatabaseContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        var context = new DatabaseContext(options);
+
+        // Optional: Seed data here
+        context.Database.EnsureCreated();
+
+        return context;
     }
     
     protected abstract void CompareEntities(TEntity expected, TEntity actual);

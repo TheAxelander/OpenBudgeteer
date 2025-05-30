@@ -4,6 +4,7 @@ using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Initialization;
 using OpenBudgeteer.Core.Data.Services.EFCore;
 using Scalar.AspNetCore;
 
@@ -13,13 +14,22 @@ builder.Services.AddOpenApi("v1.1", options =>
 {
     options.AddDocumentTransformer<CustomDocumentTransformer>();
 });
+builder.Services.AddLogging(x => x
+#if DEBUG
+    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information)
+#endif
+    .AddConsole());
 builder.Services.AddDatabase(builder.Configuration);
 builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => 
-    new EFCoreServiceManager(x.GetRequiredService<DbContextOptions<DatabaseContext>>()));
+    new EFCoreServiceManager(
+        x.GetRequiredService<IDbContextFactory<DatabaseContext>>(),
+        x.GetRequiredService<ILoggerFactory>()));
 
 var app = builder.Build();
 
-var serviceManager = new EFCoreServiceManager(app.Services.GetRequiredService<DbContextOptions<DatabaseContext>>());
+var serviceManager = new EFCoreServiceManager(
+    app.Services.GetRequiredService<IDbContextFactory<DatabaseContext>>(),
+    app.Services.GetRequiredService<ILoggerFactory>());
 
 #region AccountService
 

@@ -1,6 +1,5 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
-using OpenBudgeteer.Core.Data.Entities;
 
 namespace OpenBudgeteer.Core.Data.Connection;
 
@@ -19,7 +18,7 @@ public interface IDatabaseConnector<out T> where T : DbConnectionStringBuilder
 
     public T BuildConnectionString();
     public T BuildRootConnectionString();
-    public DbContextOptions<DatabaseContext> GetDbContextOptions();
+    public DbContextOptions BuildDbConnection(DbContextOptionsBuilder dbContextOptionsBuilder);
     
     public bool IsDatabaseOnline(int maxAttempts = MAXIMUM_ATTEMPTS_TO_CONNECT);
     public bool IsDatabaseAccessible(bool useRoot = false);

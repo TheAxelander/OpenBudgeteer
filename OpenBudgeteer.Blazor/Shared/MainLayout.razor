@@ -2,7 +2,7 @@
 @using Microsoft.EntityFrameworkCore
 @using OpenBudgeteer.Blazor.Common.Services
 @using OpenBudgeteer.Core.Data.Entities
-@inject DbContextOptions<DatabaseContext> DbContextOptions
+@inject IDbContextFactory<DatabaseContext> DbContextFactory
 @inject MudThemeService MudThemeService
 
 <MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
@@ -69,7 +69,7 @@
 @code {
 
     private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white"; 
-    private string CurrentDatabase => new DatabaseContext(DbContextOptions).Database.GetDbConnection().Database;
+    private string CurrentDatabase => DbContextFactory.CreateDbContext().Database.GetDbConnection().Database;
     private bool _drawerOpen = true;
     
     private ErrorBoundary? _errorBoundary;

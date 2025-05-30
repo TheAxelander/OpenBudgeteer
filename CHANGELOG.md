@@ -3,6 +3,7 @@
 ### :gear: Features & Enhancements
 
 * Distribute Budget clears also now negative Bucket Balances [#325](https://github.com/TheAxelander/OpenBudgeteer/issues/325)
+* Rework logging and improved User experience for error messages 
 
 ## 1.10 (2025-04-30)
 

@@ -20,7 +20,7 @@ public class GenericBucketRuleSetService : GenericBaseService<BucketRuleSet>, IB
     public override BucketRuleSet Get(Guid id)
     {
         var result = _bucketRuleSetRepository.ByIdWithIncludedEntities(id);
-        if (result is null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException("Unable to find Rule Set with the given id.");
         return result;
     }
 
@@ -57,7 +57,7 @@ public class GenericBucketRuleSetService : GenericBaseService<BucketRuleSet>, IB
         {
             var result = _mappingRuleRepository.DeleteRange(deletedIds);
             if (result != deletedIds.Count) 
-                throw new Exception("Unable to delete old MappingRules of that BucketRuleSet");
+                throw new EntityUpdateException("Unable to delete old Mapping Rules of that Rule Set");
         }
             
         // Update BucketRuleSet including MappingRules

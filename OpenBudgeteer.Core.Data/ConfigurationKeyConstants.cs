@@ -23,4 +23,7 @@ public static class ConfigurationKeyConstants
     public const string PROVIDER_MARIADB = "MARIADB";
     public const string PROVIDER_POSTGRES = "POSTGRES";
     public const string PROVIDER_POSTGRESQL = "POSTGRESQL";
+
+    public const string LOGLEVEL_DEFAULT_JSON = "Logging:LogLevel:Default";
+    public const string LOGLEVEL_DEFAULT_ENV = "Logging__LogLevel__Default";
 }

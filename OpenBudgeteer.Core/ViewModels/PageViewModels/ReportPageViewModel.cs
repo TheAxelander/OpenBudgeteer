@@ -48,7 +48,8 @@ public abstract class ReportPageViewModel : ViewModelBase
     /// Basic constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
-    protected ReportPageViewModel(IServiceManager serviceManager) : base(serviceManager)
+    protected ReportPageViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(ReportPageViewModel)))
     {
     }
     

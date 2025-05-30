@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
-using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
 using OpenBudgeteer.Core.Test.Common;
@@ -20,17 +19,11 @@ public class AccountDatabaseTest : BaseDatabaseTest<Account>
         Assert.Equal(expected.IsActive, actual.IsActive);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
-    {
-        get
-        {
-            return new[]
-            {
-                new object[] { new MockAccountRepository(new MockDatabase()) },
-                new object[] { new AccountRepository(new DatabaseContext(MariaDbContextOptions)) }
-            };
-        }
-    }
+    public static IEnumerable<object[]> TestData_Repository =>
+    [
+        [new MockAccountRepository(new MockDatabase())],
+        [new AccountRepository(GetInMemoryContext())]
+    ];
 
     private List<Account> SetupTestData(IAccountRepository accountRepository)
     {

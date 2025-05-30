@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -94,8 +96,10 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>, IEquatable<R
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="bucketRuleSet">RuleSet instance</param>
-    protected RuleSetViewModel(IServiceManager serviceManager, IEnumerable<Bucket> availableBuckets, 
-        BucketRuleSet? bucketRuleSet) : base(serviceManager)
+    protected RuleSetViewModel(
+        IServiceManager serviceManager, 
+        IEnumerable<Bucket> availableBuckets, 
+        BucketRuleSet? bucketRuleSet) : base(serviceManager, serviceManager.CreateLogger(typeof(RuleSetViewModel)))
     {
         _mappingRules = new ObservableCollection<MappingRuleViewModel>();
         
@@ -145,7 +149,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>, IEquatable<R
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected RuleSetViewModel(RuleSetViewModel viewModel) : base(viewModel.ServiceManager)
+    protected RuleSetViewModel(RuleSetViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         // Handle RuleSet
         BucketRuleSetId = viewModel.BucketRuleSetId;
@@ -187,7 +191,7 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>, IEquatable<R
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="bucketRuleSet">RuleSet instance</param>
-    public static RuleSetViewModel CreateFromRuleSet(IServiceManager serviceManager,IEnumerable<Bucket> availableBuckets, 
+    public static RuleSetViewModel CreateFromRuleSet(IServiceManager serviceManager, IEnumerable<Bucket> availableBuckets, 
         BucketRuleSet? bucketRuleSet)
     {
         return new RuleSetViewModel(serviceManager, availableBuckets, bucketRuleSet);
@@ -298,9 +302,14 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>, IEquatable<R
 
             return new ViewModelOperationResult(true, true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -327,9 +336,14 @@ public class RuleSetViewModel : BaseEntityViewModel<BucketRuleSet>, IEquatable<R
             ServiceManager.BucketRuleSetService.Delete(BucketRuleSetId);
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     

@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.Helper;
@@ -50,8 +52,10 @@ public class BucketListingViewModel : ViewModelBase
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
-    public BucketListingViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel? yearMonthViewModel) 
-        : base(serviceManager)
+    public BucketListingViewModel(
+        IServiceManager serviceManager, 
+        YearMonthSelectorViewModel? yearMonthViewModel) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(BucketListingViewModel)))
     {
         _bucketGroups = new ObservableCollection<BucketGroupViewModel>();
         YearMonthViewModel = yearMonthViewModel ?? new YearMonthSelectorViewModel(serviceManager);
@@ -103,9 +107,14 @@ public class BucketListingViewModel : ViewModelBase
             }
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 

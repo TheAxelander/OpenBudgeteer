@@ -5,9 +5,11 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -246,7 +248,8 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucket">Bucket instance</param>
     /// <param name="yearMonth">Current month, required for calculating various values</param>
-    protected BucketViewModel(IServiceManager serviceManager, Bucket? bucket, DateOnly yearMonth) : base(serviceManager)
+    protected BucketViewModel(IServiceManager serviceManager, Bucket? bucket, DateOnly yearMonth) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(BucketViewModel)))
     {
         _details = string.Empty;
         _currentYearMonth = new DateOnly(yearMonth.Year, yearMonth.Month, 1);
@@ -326,7 +329,7 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected BucketViewModel(BucketViewModel viewModel) : base(viewModel.ServiceManager)
+    protected BucketViewModel(BucketViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         BucketId = viewModel.BucketId;
         _name = viewModel.Name;
@@ -667,9 +670,14 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
             }
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during database update: {e.Message}", true);
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.", true);
         }
     }
     
@@ -679,37 +687,30 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
     /// <returns>Object which contains information and results of this method</returns>
     private ViewModelOperationResult ValidateData()
     {
-        try
+        // Check if target amount is positive
+        if (BucketVersion.BucketTypeDecimalParameter < 0)
         {
-            // Check if target amount is positive
-            if (BucketVersion.BucketTypeDecimalParameter < 0)
-            {
-                throw new Exception("Target amount must be positive");
-            }
+            return new ViewModelOperationResult(false, "Target amount must be positive");
+        }
 
-            // Check if target amount is 0 to prevent DivideByZeroException 
-            if ((BucketVersion.BucketTypeParameter is 
-                    BucketVersionViewModel.BucketType.MonthlyExpense or 
-                    BucketVersionViewModel.BucketType.ExpenseEveryXMonths or 
-                    BucketVersionViewModel.BucketType.SaveXUntilYDate) && 
-                BucketVersion.BucketTypeDecimalParameter <= 0)
-            {
-                throw new Exception("Target amount must not be 0 for this Bucket Type.");
-            }
-            
-            // Check if number of months is not 0
-            if ((BucketVersion.BucketTypeParameter == BucketVersionViewModel.BucketType.ExpenseEveryXMonths) && 
-                BucketVersion.BucketTypeIntParameter <= 0)
-            {
-                throw new Exception("Number of months must be positive for this Bucket Type.");
-            }
-            
-            return new ViewModelOperationResult(true);
-        }
-        catch (Exception e)
+        // Check if target amount is 0 to prevent DivideByZeroException 
+        if ((BucketVersion.BucketTypeParameter is 
+                BucketVersionViewModel.BucketType.MonthlyExpense or 
+                BucketVersionViewModel.BucketType.ExpenseEveryXMonths or 
+                BucketVersionViewModel.BucketType.SaveXUntilYDate) && 
+            BucketVersion.BucketTypeDecimalParameter <= 0)
         {
-            return new ViewModelOperationResult(false, e.Message);
+            return new ViewModelOperationResult(false, "Target amount must not be 0 for this Bucket Type.");
         }
+        
+        // Check if number of months is not 0
+        if (BucketVersion.BucketTypeParameter == BucketVersionViewModel.BucketType.ExpenseEveryXMonths && 
+            BucketVersion.BucketTypeIntParameter <= 0)
+        {
+            return new ViewModelOperationResult(false, "Number of months must be positive for this Bucket Type.");
+        }
+        
+        return new ViewModelOperationResult(true);
     }
     
     /// <summary>
@@ -728,9 +729,14 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
             ServiceManager.BucketService.Close(BucketId, _currentYearMonth);
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -757,9 +763,14 @@ public class BucketViewModel : BaseEntityViewModel<Bucket>, IEquatable<BucketVie
             CalculateValues();
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 

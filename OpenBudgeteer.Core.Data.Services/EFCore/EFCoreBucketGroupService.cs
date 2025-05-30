@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,11 +11,15 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreBucketGroupService : EFCoreBaseService<BucketGroup>, IBucketGroupService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreBucketGroupService> _logger;
     
-    public EFCoreBucketGroupService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreBucketGroupService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreBucketGroupService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericBucketGroupService CreateBaseService(DatabaseContext dbContext)
@@ -26,19 +31,18 @@ public class EFCoreBucketGroupService : EFCoreBaseService<BucketGroup>, IBucketG
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetWithBuckets(id);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"{typeof(BucketGroup)} not found in database");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -46,14 +50,18 @@ public class EFCoreBucketGroupService : EFCoreBaseService<BucketGroup>, IBucketG
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllFull();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -61,20 +69,24 @@ public class EFCoreBucketGroupService : EFCoreBaseService<BucketGroup>, IBucketG
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetSystemBucketGroups();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
     public BucketGroup Move(Guid bucketGroupId, int positions)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var baseService = CreateBaseService(dbContext);
         try
@@ -83,11 +95,16 @@ public class EFCoreBucketGroupService : EFCoreBaseService<BucketGroup>, IBucketG
             transaction.Commit();
             return results;
         }
+        catch (EntityUpdateException e)
+        {
+            transaction.Rollback();
+            throw new ServiceException($"Unable to move Bucket Group: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Error during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 }

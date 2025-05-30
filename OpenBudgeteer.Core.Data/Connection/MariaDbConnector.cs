@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
-using OpenBudgeteer.Core.Data.Entities;
 
 namespace OpenBudgeteer.Core.Data.Connection;
 
@@ -55,16 +54,15 @@ public partial class MariaDbConnector : BaseDatabaseConnector<MySqlConnectionStr
         };
     }
 
-    protected override DbContextOptionsBuilder<DatabaseContext> BuildDbContextOptions()
+    public override DbContextOptions BuildDbConnection(DbContextOptionsBuilder dbContextOptionsBuilder)
     {
-        var builder = new DbContextOptionsBuilder<DatabaseContext>();
         var connectionStringBuilder = BuildConnectionString();
-        
         var serverVersion = ServerVersion.AutoDetect(connectionStringBuilder.ConnectionString);
-        return builder.UseMySql(
+        dbContextOptionsBuilder.UseMySql(
             connectionStringBuilder.ConnectionString,
             serverVersion,
             b => b.MigrationsAssembly("OpenBudgeteer.Core.Data.MySql.Migrations"));
+        return dbContextOptionsBuilder.Options;
     }
 
     public override bool IsDatabaseAccessible(bool useRoot = false)

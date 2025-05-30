@@ -2,11 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
-using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.Helper;
 
@@ -75,7 +76,9 @@ public class TransactionPageViewModel : TransactionListingViewModel
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
-    public TransactionPageViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel) 
+    public TransactionPageViewModel(
+        IServiceManager serviceManager, 
+        YearMonthSelectorViewModel yearMonthViewModel) 
         : base(serviceManager, yearMonthViewModel)
     {
         _yearMonthViewModel = yearMonthViewModel;
@@ -93,16 +96,21 @@ public class TransactionPageViewModel : TransactionListingViewModel
     {
         try
         {
-            if (NewTransaction is null) throw new Exception("New Transaction has not been initialized");
+            if (NewTransaction is null) return new ViewModelOperationResult(false, "New Transaction has not been initialized");
             var result = NewTransaction.CreateOrUpdateTransaction();
             if (!result.IsSuccessful) return result;
             ResetNewTransaction();
         
             return new ViewModelOperationResult(true, true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
    
@@ -142,13 +150,18 @@ public class TransactionPageViewModel : TransactionListingViewModel
             foreach (var transaction in _transactions.Where(i => i.InModification))
             {
                 var result = transaction.CreateOrUpdateTransaction();
-                if (!result.IsSuccessful) throw new Exception(result.Message);
+                if (!result.IsSuccessful) return new ViewModelOperationResult(false, result.Message);
             }
             return new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -196,9 +209,14 @@ public class TransactionPageViewModel : TransactionListingViewModel
                 ? new ViewModelOperationResult(true, true)
                 : new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 }

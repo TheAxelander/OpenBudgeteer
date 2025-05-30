@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 
@@ -6,20 +7,44 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreServiceManager : IServiceManager
 {
-    public IAccountService AccountService => new EFCoreAccountService(_dbContextOptions);
-    public IBankTransactionService BankTransactionService => new EFCoreBankTransactionService(_dbContextOptions);
-    public IBucketGroupService BucketGroupService => new EFCoreBucketGroupService(_dbContextOptions);
-    public IBucketMovementService BucketMovementService => new EFCoreBucketMovementService(_dbContextOptions);
-    public IBucketService BucketService => new EFCoreBucketService(_dbContextOptions);
-    public IBucketRuleSetService BucketRuleSetService => new EFCoreBucketRuleSetService(_dbContextOptions);
-    public IBudgetedTransactionService BudgetedTransactionService => new EFCoreBudgetedTransactionService(_dbContextOptions);
-    public IImportProfileService ImportProfileService => new EFCoreImportProfileService(_dbContextOptions);
-    public IRecurringBankTransactionService RecurringBankTransactionService => new EFCoreRecurringBankTransactionService(_dbContextOptions);
+    public IAccountService AccountService => 
+        new EFCoreAccountService(_dbContextFactory, new Logger<EFCoreAccountService>(_loggerFactory));
     
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    public IBankTransactionService BankTransactionService => 
+        new EFCoreBankTransactionService(_dbContextFactory, new Logger<EFCoreBankTransactionService>(_loggerFactory));
     
-    public EFCoreServiceManager(DbContextOptions<DatabaseContext> dbContextOptions)
+    public IBucketGroupService BucketGroupService => 
+        new EFCoreBucketGroupService(_dbContextFactory, new Logger<EFCoreBucketGroupService>(_loggerFactory));
+    
+    public IBucketMovementService BucketMovementService => 
+        new EFCoreBucketMovementService(_dbContextFactory, new Logger<EFCoreBucketMovementService>(_loggerFactory));
+    
+    public IBucketService BucketService => 
+        new EFCoreBucketService(_dbContextFactory, new Logger<EFCoreBucketService>(_loggerFactory));
+    
+    public IBucketRuleSetService BucketRuleSetService => 
+        new EFCoreBucketRuleSetService(_dbContextFactory, new Logger<EFCoreBucketRuleSetService>(_loggerFactory));
+    
+    public IBudgetedTransactionService BudgetedTransactionService => 
+        new EFCoreBudgetedTransactionService(_dbContextFactory, new Logger<EFCoreBudgetedTransactionService>(_loggerFactory));
+    
+    public IImportProfileService ImportProfileService => 
+        new EFCoreImportProfileService(_dbContextFactory, new Logger<EFCoreImportProfileService>(_loggerFactory));
+    
+    public IRecurringBankTransactionService RecurringBankTransactionService => 
+        new EFCoreRecurringBankTransactionService(_dbContextFactory, new Logger<EFCoreRecurringBankTransactionService>(_loggerFactory));
+
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILoggerFactory _loggerFactory;
+    
+    public EFCoreServiceManager(IDbContextFactory<DatabaseContext> dbContextFactory, ILoggerFactory loggerFactory)
     {
-        _dbContextOptions = dbContextOptions;
+        _loggerFactory = loggerFactory;
+        _dbContextFactory = dbContextFactory;
+    }
+
+    public ILogger CreateLogger(Type type)
+    {
+        return _loggerFactory.CreateLogger(type);
     }
 }

@@ -21,7 +21,7 @@ public class GenericRecurringBankTransactionService : GenericBaseService<Recurri
     public RecurringBankTransaction GetWithEntities(Guid id)
     {
         var result = _recurringBankTransactionRepository.ByIdWithIncludedEntities(id);
-        if (result is null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException($"Unable to find Recurring Bank Transaction with the given id.");
         return result;
     }
     

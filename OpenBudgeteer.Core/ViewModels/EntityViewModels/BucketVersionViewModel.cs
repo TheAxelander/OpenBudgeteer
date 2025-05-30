@@ -167,7 +167,8 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>, IEquat
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucketVersion">BucketVersion instance</param>
-    protected BucketVersionViewModel(IServiceManager serviceManager, BucketVersion? bucketVersion) : base(serviceManager)
+    protected BucketVersionViewModel(IServiceManager serviceManager, BucketVersion? bucketVersion) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(BucketVersionViewModel)))
     {
         if (bucketVersion is null)
         {
@@ -201,7 +202,7 @@ public class BucketVersionViewModel : BaseEntityViewModel<BucketVersion>, IEquat
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected BucketVersionViewModel(BucketVersionViewModel viewModel) : base(viewModel.ServiceManager)
+    protected BucketVersionViewModel(BucketVersionViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         BucketVersionId = viewModel.BucketVersionId;
         _version = viewModel.Version;
