@@ -3,6 +3,8 @@
 ### :gear: Features & Enhancements
 
 * Distribute Budget clears also now negative Bucket Balances [#325](https://github.com/TheAxelander/OpenBudgeteer/issues/325)
+* New Charts for Buckets and Bucket Groups [#179](https://github.com/TheAxelander/OpenBudgeteer/issues/179) [#247](https://github.com/TheAxelander/OpenBudgeteer/issues/247)
+* Rework charts on Report Page into separate Tab Views
 * Rework logging and improved User experience for error messages 
 
 ## 1.10 (2025-04-30)

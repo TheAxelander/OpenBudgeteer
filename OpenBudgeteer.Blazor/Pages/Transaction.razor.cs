@@ -229,7 +229,7 @@ public partial class Transaction : ComponentBase
     private async Task ShowBucketSelectDialog(TransactionViewModel transactionViewModel, PartialBucketViewModel partialBucketViewModel)
     {
         var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
-        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        await HandleResult(await bucketSelectDialogDataContext.LoadDataForSelectionScreenAsync());
         
         var parameters = new DialogParameters<BucketSelectDialog>
         {

@@ -9,10 +9,10 @@ namespace OpenBudgeteer.Blazor.ViewModels
 {
     public class BlazorBucketStatisticsViewModel : BucketDetailsViewModel
     {
-        public List<ReportRecord> MonthBalances { get; } = new();
-        public List<ReportRecord> MonthInput { get; } = new();
-        public List<ReportRecord> MonthOutput { get; } = new();
-        public List<ReportRecord> BucketProgression { get; } = new();
+        public List<ApexRecord> MonthBalances { get; } = [];
+        public List<ApexRecord> MonthInput { get; } = [];
+        public List<ApexRecord> MonthOutput { get; } = [];
+        public List<ApexRecord> BucketProgression { get; } = [];
         
         public BlazorBucketStatisticsViewModel(
             IServiceManager serviceManager, 
@@ -39,7 +39,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
             MonthBalances.Clear();
             foreach (var (month, balance) in await LoadBucketMonthBalancesAsync(12))
             {
-                MonthBalances.Add(new ReportRecord(month.ToString("yyyy-MM"), balance));
+                MonthBalances.Add(new ApexRecord(month.ToString("yyyy-MM"), balance));
             }
         }
 
@@ -49,8 +49,8 @@ namespace OpenBudgeteer.Blazor.ViewModels
             MonthOutput.Clear();
             foreach (var (month, input, output) in await LoadBucketMonthInOutAsync(12))
             {
-                MonthInput.Add(new ReportRecord(month.ToString("yyyy-MM"), input));
-                MonthOutput.Add(new ReportRecord(month.ToString("yyyy-MM"), output));
+                MonthInput.Add(new ApexRecord(month.ToString("yyyy-MM"), input));
+                MonthOutput.Add(new ApexRecord(month.ToString("yyyy-MM"), output));
             }
         }
 
@@ -59,7 +59,7 @@ namespace OpenBudgeteer.Blazor.ViewModels
             BucketProgression.Clear();
             foreach (var (month, balance) in await LoadBucketBalanceProgressionAsync())
             {
-                BucketProgression.Add(new ReportRecord(month.ToString("yyyy-MM"), balance));
+                BucketProgression.Add(new ApexRecord(month.ToString("yyyy-MM"), balance));
             }
         }
     }

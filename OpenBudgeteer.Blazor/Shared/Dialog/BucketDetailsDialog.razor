@@ -98,10 +98,10 @@
                             <MudText Typo="Typo.h5" Class="report-chart-header">Month Balances</MudText>
                             <ApexChart 
                                 @ref="_monthBalanceChart" 
-                                TItem="ReportRecord"
-                                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                                TItem="ApexRecord"
+                                Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })">
                                 <ApexPointSeries
-                                    TItem="ReportRecord"
+                                    TItem="ApexRecord"
                                     Items="DataContext.MonthBalances"
                                     Name="Balance"
                                     SeriesType="SeriesType.Bar"
@@ -116,10 +116,10 @@
                             <MudText Typo="Typo.h5" Class="report-chart-header">Input & Output</MudText>
                             <ApexChart 
                                 @ref="_monthInputOutputChart" 
-                                TItem="ReportRecord" 
+                                TItem="ApexRecord" 
                                 Options="MonthInputOutputChartOptions">
                                 <ApexPointSeries
-                                    TItem="ReportRecord"
+                                    TItem="ApexRecord"
                                     Items="DataContext.MonthInput"
                                     Name="Input"
                                     SeriesType="SeriesType.Bar"
@@ -127,7 +127,7 @@
                                     YValue="i => i.Value"
                                     Color=@System.Drawing.Color.Green.ToHexString()/>
                                 <ApexPointSeries
-                                    TItem="ReportRecord"
+                                    TItem="ApexRecord"
                                     Items="DataContext.MonthOutput"
                                     Name="Output"
                                     SeriesType="SeriesType.Bar"
@@ -142,11 +142,11 @@
                             <MudText Typo="Typo.h5" Class="report-chart-header">Balance Progression</MudText>
                             <ApexChart 
                                 @ref="_bucketProgressionChart" 
-                                TItem="ReportRecord" 
+                                TItem="ApexRecord" 
                                 Height="300"
-                                Options="@(new ApexChartOptions<ReportRecord> { Theme = BaseTheme })">
+                                Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })">
                                 <ApexPointSeries
-                                    TItem="ReportRecord"
+                                    TItem="ApexRecord"
                                     Items="DataContext.BucketProgression"
                                     Name="Balance"
                                     SeriesType="SeriesType.Area"
@@ -191,9 +191,9 @@
     private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
     private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter = null!;
 
-    private ApexChart<ReportRecord>? _monthBalanceChart;
-    private ApexChart<ReportRecord>? _monthInputOutputChart;
-    private ApexChart<ReportRecord>? _bucketProgressionChart;
+    private ApexChart<ApexRecord>? _monthBalanceChart;
+    private ApexChart<ApexRecord>? _monthInputOutputChart;
+    private ApexChart<ApexRecord>? _bucketProgressionChart;
     
     private Theme BaseTheme => new()
     {
@@ -201,7 +201,7 @@
         Palette = PaletteType.Palette1
     };
     
-    private ApexChartOptions<ReportRecord> MonthInputOutputChartOptions => new()
+    private ApexChartOptions<ApexRecord> MonthInputOutputChartOptions => new()
     {
         Theme = BaseTheme,
         Legend = new() { Show = false }

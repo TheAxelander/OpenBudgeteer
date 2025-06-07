@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.ViewModels.EntityViewModels;
+using OpenBudgeteer.Core.ViewModels.Helper;
 
 namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
 
@@ -14,35 +16,23 @@ namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
 public abstract class ReportPageViewModel : ViewModelBase
 {
     /// <summary>
-    /// Helper class for Reports showing monthly Bucket expenses
+    /// Helper record for Reports showing monthly Bucket expenses
     /// </summary>
-    protected record MonthlyBucketExpensesReportResult
-    {
-        /// <summary>
-        /// Name of the Bucket
-        /// </summary>
-        public readonly string BucketName;
+    /// <param name="BucketName">Name of the Bucket</param>
+    /// <param name="MonthlyResults">Collection of the results for the report</param>
+    protected record MonthlyBucketExpensesReportResult(
+        string BucketName,
+        List<Tuple<DateOnly, decimal>> MonthlyResults);
 
-        /// <summary>
-        /// Collection of the results for the report
-        /// </summary>
-        public readonly List<Tuple<DateOnly, decimal>> MonthlyResults;
-
-        /// <summary>
-        /// Basic constructor
-        /// </summary>
-        /// <param name="bucketName">Name of the <see cref="Bucket"/></param>
-        /// <param name="monthlyResults">Query results with expenses per month</param>
-        public MonthlyBucketExpensesReportResult(string bucketName, IEnumerable<Tuple<DateOnly, decimal>> monthlyResults)
-        {
-            BucketName = bucketName;
-            MonthlyResults = new List<Tuple<DateOnly, decimal>>();
-            foreach (var monthlyResult in monthlyResults)
-            {
-                MonthlyResults.Add(monthlyResult);
-            }
-        }
-    }
+    protected record BucketReportResult(
+        List<Tuple<string, decimal>> BalancesPerBucketGroup,
+        List<Tuple<string, decimal>> BalancesPerBucket,
+        List<Tuple<string, decimal>> InPerBucketGroup,
+        List<Tuple<string, decimal>> InPerBucket,
+        List<Tuple<string, decimal>> ActivityPerBucketGroup,
+        List<Tuple<string, decimal>> ActivityPerBucket,
+        List<Tuple<string, List<Tuple<string, decimal>>>> BudgetConsumptionPerBucket
+        );
     
     /// <summary>
     /// Basic constructor
@@ -262,5 +252,84 @@ public abstract class ReportPageViewModel : ViewModelBase
 
             return result;
         });
+    }
+
+    /// <summary>
+    /// Collect and return a few statistics of Buckets using a <see cref="BucketListingViewModel"/>
+    /// </summary>
+    /// <returns>
+    /// Collection of various Bucket statistics
+    /// </returns>
+    protected async Task<BucketReportResult> LoadBucketStatisticsAsync()
+    {
+        var listingViewModel = new BucketListingViewModel(ServiceManager, null);
+        await listingViewModel.LoadDataForReportingAsync();
+        
+        var balancesPerBucketGroup = listingViewModel.BucketGroups
+            .Where(i => i.TotalBalance > 0)
+            .Select(i => new Tuple<string, decimal>(i.Name, i.TotalBalance))
+            .ToList();
+        
+        var balancesPerBucket = listingViewModel.BucketGroups
+            .SelectMany(i => i.Buckets)
+            .Where(i => i.Balance > 0)
+            .Select(i => new Tuple<string, decimal>(i.Name, i.Balance))
+            .ToList();
+        
+        var inPerBucketGroup = listingViewModel.BucketGroups
+            .Where(i => i.TotalIn > 0)
+            .Select(i => new Tuple<string, decimal>(i.Name, i.TotalIn))
+            .ToList();
+        
+        var inPerBucket = listingViewModel.BucketGroups
+            .SelectMany(i => i.Buckets)
+            .Where(i => i.In > 0)
+            .Select(i => new Tuple<string, decimal>(i.Name, i.In))
+            .ToList();
+        
+        var activityPerBucketGroup = listingViewModel.BucketGroups
+            .Where(i => i.TotalActivity < 0)
+            .Select(i => new Tuple<string, decimal>(i.Name, i.TotalActivity))
+            .ToList();
+        
+        var activityPerBucket = listingViewModel.BucketGroups
+            .SelectMany(i => i.Buckets)
+            .Where(i => i.Activity < 0)
+            .Select(i => new Tuple<string, decimal>(i.Name, i.Activity))
+            .ToList();
+
+        var budgetConsumptionPerBucket = listingViewModel.BucketGroups
+            .Select(i => new Tuple<string, List<Tuple<string, decimal>>>(
+                i.Name,
+                i.Buckets
+                    .Where(bucket => 
+                        bucket.BucketVersion.BucketTypeParameter is 
+                            BucketVersionViewModel.BucketType.StandardBucket or 
+                            BucketVersionViewModel.BucketType.MonthlyExpense) // Include only meaningful Bucket Types
+                    .Select(bucket => new Tuple<string, decimal>(
+                        bucket.Name,
+                        CalculateBudgetConsumption(bucket)))
+                    .ToList()
+                ))
+            .Where(i => i.Item2.Count != 0) // Exclude BucketGroups which don't have any meaningful Bucket Types
+            .ToList();
+        
+        return new BucketReportResult(
+            balancesPerBucketGroup, 
+            balancesPerBucket,
+            inPerBucketGroup, 
+            inPerBucket, 
+            activityPerBucketGroup, 
+            activityPerBucket,
+            budgetConsumptionPerBucket);
+
+        decimal CalculateBudgetConsumption(BucketViewModel bucket)
+        {
+            return bucket.Balance == 0 ?
+                // No money left, default to 0% available Budget
+                0 :
+                // Combine Balance and Activity to "restore" initial Budget, then calculate consumption in % 
+                bucket.Balance / (bucket.Balance + bucket.Activity * -1) * 100;
+        }
     }
 }

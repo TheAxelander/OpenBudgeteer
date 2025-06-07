@@ -1,4 +1,5 @@
 @using System.Drawing
+@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.Data.Contracts.Services
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
@@ -84,7 +85,7 @@
     private async Task ShowBucketSelectDialog()
     {
         var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, null);
-        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        await HandleResult(await bucketSelectDialogDataContext.LoadDataForSelectionScreenAsync());
         
         var parameters = new DialogParameters<BucketSelectDialog>
         {
@@ -103,5 +104,18 @@
         }
       
         StateHasChanged();
+    }
+    
+    async Task HandleResult(ViewModelOperationResult result)
+    {
+        if (!result.IsSuccessful)
+        {
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Edit Rule Set" },
+                { x => x.Message, result.Message }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Edit Rule Set", parameters);
+        }
     }
 }

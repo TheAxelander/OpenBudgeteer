@@ -150,7 +150,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
                 input += bucketMovement.Amount;
         }
 
-        return new BucketFigures{ Balance = balance, Input = input, Output = output };
+        return new BucketFigures(balance, input, output);
     }
 
     public decimal GetBalance(Guid bucketId, DateOnly yearMonth)
@@ -206,7 +206,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
                 input += bucketMovement.Amount;
         }
 
-        return new BucketFigures{ Balance = null, Input = input, Output = output };
+        return new BucketFigures(null, input, output);
     }
 
     public override Bucket Create(Bucket entity)

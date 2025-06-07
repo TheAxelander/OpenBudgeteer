@@ -1,6 +1,7 @@
 @using System.Drawing
 @using System.Globalization
 @using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Core.Common
 @using OpenBudgeteer.Core.Data.Contracts.Services
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using OpenBudgeteer.Core.ViewModels.Helper
@@ -98,7 +99,7 @@
     async Task ShowBucketSelectDialog(PartialBucketViewModel partialBucketViewModel)
     {
         var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
-        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        await HandleResult(await bucketSelectDialogDataContext.LoadDataForSelectionScreenAsync());
         
         var parameters = new DialogParameters<BucketSelectDialog>
         {
@@ -125,5 +126,18 @@
         }
       
         StateHasChanged();
+    }
+    
+    async Task HandleResult(ViewModelOperationResult result)
+    {
+        if (!result.IsSuccessful)
+        {
+            var parameters = new DialogParameters<ErrorMessageDialog>
+            {
+                { x => x.Title, "Create Transaction" },
+                { x => x.Message, result.Message }
+            };
+            await DialogService.ShowAsync<ErrorMessageDialog>("Create Transaction", parameters);
+        }
     }
 }

@@ -60,14 +60,57 @@ public class BucketListingViewModel : ViewModelBase
         _bucketGroups = new ObservableCollection<BucketGroupViewModel>();
         YearMonthViewModel = yearMonthViewModel ?? new YearMonthSelectorViewModel(serviceManager);
     }
+    
+    /// <summary>
+    /// Initialize ViewModel and load data from database.
+    /// Use Case: Buckets will be displayed for modification purposes.
+    /// </summary>
+    /// <remarks>
+    /// Includes inactive Buckets. Excludes default Buckets.
+    /// </remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataForModificationAsync()
+    {
+        return await LoadDataAsync();
+    }
+
+    /// <summary>
+    /// Initialize ViewModel and load data from database.
+    /// Use Case: Buckets will be displayed for selection purposes (display only).
+    /// </summary>
+    /// <remarks>
+    /// Excludes inactive Buckets. Includes default Buckets.
+    /// </remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataForSelectionScreenAsync()
+    {
+        return await LoadDataAsync(excludeInactive: true, includeDefaults: true);
+    }
+
+    /// <summary>
+    /// Initialize ViewModel and load data from database.
+    /// Use Case: Bucket data will be displayed for reporting purposes.
+    /// </summary>
+    /// <remarks>
+    /// Excludes inactive Buckets. Excludes default Buckets. Excludes Buckets that are marked to be hidden from reports
+    /// </remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataForReportingAsync()
+    {
+        return await LoadDataAsync(excludeInactive: true, forReporting: true);
+    }
 
     /// <summary>
     /// Initialize ViewModel and load data from database
     /// </summary>
     /// <param name="excludeInactive">Exclude Buckets which are marked as inactive</param>
     /// <param name="includeDefaults">Include system default Buckets like Transfer and Income</param>
+    /// <param name="forReporting">Should data be used for reporting purposes</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public virtual async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false, bool includeDefaults = false)
+    protected async Task<ViewModelOperationResult> LoadDataAsync(
+        bool excludeInactive = false,
+        bool includeDefaults = false,
+        bool forReporting = false)
     {
         try
         {
@@ -88,6 +131,7 @@ public class BucketListingViewModel : ViewModelBase
                     if (excludeInactive && bucket.IsInactive) continue; // Skip as inactive Buckets should be excluded
                     if (bucket.ValidFrom > YearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
                     if (bucket.IsInactive && bucket.IsInactiveFrom <= YearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
+                    if (forReporting && bucket.IsHiddenFromSummaries) continue; // Data planned to be used for reporting but Bucket is marked to be hidden for such cases
                     var newBucketItemTask = includeDefaults
                         ? BucketViewModel.CreateForListingAsync(ServiceManager, bucket, YearMonthViewModel.CurrentMonth) // Including defaults, hence no modifications expected
                         : BucketViewModel.CreateForModificationAsync(ServiceManager, bucketGroups, bucket, YearMonthViewModel.CurrentMonth);

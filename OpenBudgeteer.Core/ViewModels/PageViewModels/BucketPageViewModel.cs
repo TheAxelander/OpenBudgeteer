@@ -119,14 +119,12 @@ public class BucketPageViewModel : BucketListingViewModel
     /// <summary>
     /// Initialize ViewModel and load data from database
     /// </summary>
-    /// <param name="excludeInactive">Exclude Buckets which are marked as inactive</param>
-    /// <param name="includeDefaults">Include system default Buckets like Transfer and Income</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public override async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false, bool includeDefaults = false)
+    public async Task<ViewModelOperationResult> LoadDataAsync()
     {
         try
         {
-            var baseResult = await base.LoadDataAsync(excludeInactive, includeDefaults);
+            var baseResult = await base.LoadDataAsync();
             if (!baseResult.IsSuccessful) return new ViewModelOperationResult(false, baseResult.Message);
             var result = UpdateBalanceFigures();
             if (!result.IsSuccessful) return new ViewModelOperationResult(false, result.Message);
