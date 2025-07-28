@@ -325,11 +325,11 @@ public abstract class ReportPageViewModel : ViewModelBase
 
         decimal CalculateBudgetConsumption(BucketViewModel bucket)
         {
-            return bucket.Balance == 0 ?
-                // No money left, default to 0% available Budget
-                0 :
-                // Combine Balance and Activity to "restore" initial Budget, then calculate consumption in % 
-                bucket.Balance / (bucket.Balance + bucket.Activity * -1) * 100;
+            if (bucket.Balance == 0) return 0; // No money left, default to 0% available Budget
+            if (bucket.Balance + bucket.Activity * -1 == 0) return 0; // Cover edge case (e.g. Data defect), to prevent zero division (see #328) 
+            
+            // Combine Balance and Activity to "restore" initial Budget, then calculate consumption in % 
+            return bucket.Balance / (bucket.Balance + bucket.Activity * -1) * 100;
         }
     }
 }
