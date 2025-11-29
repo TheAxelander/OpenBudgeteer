@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,7 +31,7 @@ public abstract class ReportPageViewModel : ViewModelBase
         List<Tuple<string, decimal>> InPerBucket,
         List<Tuple<string, decimal>> ActivityPerBucketGroup,
         List<Tuple<string, decimal>> ActivityPerBucket,
-        List<Tuple<string, List<Tuple<string, decimal>>>> BudgetConsumptionPerBucket
+        List<Tuple<string, List<Tuple<string, decimal>>>> RemainingBudgetPerBucket
         );
     
     /// <summary>
@@ -257,12 +257,13 @@ public abstract class ReportPageViewModel : ViewModelBase
     /// <summary>
     /// Collect and return a few statistics of Buckets using a <see cref="BucketListingViewModel"/>
     /// </summary>
+    /// <param name="yearMonth">Optional, if figures should be calculated up until a specific month from the past</param>
     /// <returns>
     /// Collection of various Bucket statistics
     /// </returns>
-    protected async Task<BucketReportResult> LoadBucketStatisticsAsync()
+    protected async Task<BucketReportResult> LoadBucketStatisticsAsync(YearMonthSelectorViewModel? yearMonth = null)
     {
-        var listingViewModel = new BucketListingViewModel(ServiceManager, null);
+        var listingViewModel = new BucketListingViewModel(ServiceManager, yearMonth);
         await listingViewModel.LoadDataForReportingAsync();
         
         var balancesPerBucketGroup = listingViewModel.BucketGroups
@@ -298,37 +299,39 @@ public abstract class ReportPageViewModel : ViewModelBase
             .Select(i => new Tuple<string, decimal>(i.Name, i.Activity))
             .ToList();
 
-        var budgetConsumptionPerBucket = listingViewModel.BucketGroups
+        var remainingBudgetPerBucket = listingViewModel.BucketGroups
             .Select(i => new Tuple<string, List<Tuple<string, decimal>>>(
                 i.Name,
                 i.Buckets
-                    .Where(bucket => 
-                        bucket.BucketVersion.BucketTypeParameter is 
-                            BucketVersionViewModel.BucketType.StandardBucket or 
+                    .Where(bucket =>
+                        bucket.BucketVersion.BucketTypeParameter is
+                            BucketVersionViewModel.BucketType.StandardBucket or
                             BucketVersionViewModel.BucketType.MonthlyExpense) // Include only meaningful Bucket Types
+                    .Where(bucket =>
+                        bucket is not { Balance: 0, Activity: 0, In: 0 }) // Exclude Buckets which are "unused"
                     .Select(bucket => new Tuple<string, decimal>(
                         bucket.Name,
-                        CalculateBudgetConsumption(bucket)))
+                        CalculateRemainingBudgetPercentage(bucket)))
                     .ToList()
                 ))
-            .Where(i => i.Item2.Count != 0) // Exclude BucketGroups which don't have any meaningful Bucket Types
+            .Where(i => i.Item2.Count != 0) // Exclude BucketGroups which don't have anything meaningful
             .ToList();
         
         return new BucketReportResult(
-            balancesPerBucketGroup, 
+            balancesPerBucketGroup,
             balancesPerBucket,
-            inPerBucketGroup, 
-            inPerBucket, 
-            activityPerBucketGroup, 
+            inPerBucketGroup,
+            inPerBucket,
+            activityPerBucketGroup,
             activityPerBucket,
-            budgetConsumptionPerBucket);
+            remainingBudgetPerBucket);
 
-        decimal CalculateBudgetConsumption(BucketViewModel bucket)
+        decimal CalculateRemainingBudgetPercentage(BucketViewModel bucket)
         {
-            if (bucket.Balance == 0) return 0; // No money left, default to 0% available Budget
-            if (bucket.Balance + bucket.Activity * -1 == 0) return 0; // Cover edge case (e.g. Data defect), to prevent zero division (see #328) 
-            
-            // Combine Balance and Activity to "restore" initial Budget, then calculate consumption in % 
+            if (bucket.Balance == 0) return 0; // No money left, 0% remaining
+            if (bucket.Balance + bucket.Activity * -1 == 0) return 0; // Cover edge case (e.g. Data defect), to prevent zero division (see #328)
+
+            // Calculate remaining budget as percentage of starting balance (including carryovers)
             return bucket.Balance / (bucket.Balance + bucket.Activity * -1) * 100;
         }
     }

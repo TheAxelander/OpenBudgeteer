@@ -5,32 +5,38 @@ using System.Threading.Tasks;
 using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.ViewModels.Helper;
 using OpenBudgeteer.Core.ViewModels.PageViewModels;
 
 namespace OpenBudgeteer.Blazor.ViewModels;
 
 public class ApexReportViewModel : ReportPageViewModel
 {
-    public List<ApexRecord> MonthBalances { get; private set; } = [];
-    public List<ApexRecord> BankBalances { get; private set; } = [];
-    public List<ApexRecord> MonthIncome { get; private set; } = [];
-    public List<ApexRecord> MonthExpenses { get; private set; } = [];
-    public List<ApexRecord> YearIncome { get; private set; } = [];
-    public List<ApexRecord> YearExpenses { get; private set; } = [];
-    public List<ApexRecord> BalanceDistributionBucketGroup { get; private set; } = [];
-    public List<ApexRecord> BalanceDistributionBucket { get; private set; } = [];
-    public List<ApexRecord> InDistributionBucketGroup { get; private set; } = [];
-    public List<ApexRecord> InDistributionBucket { get; private set; } = [];
-    public List<ApexRecord> ActivityDistributionBucketGroup { get; private set; } = [];
-    public List<ApexRecord> ActivityDistributionBucket { get; private set; } = [];
-    public List<BucketGroupApexRecord> BucketGroupsBucketBudgets { get; private set; } = [];
-    public List<Tuple<string, List<ApexRecord>>> MonthBucketExpenses { get; private set; } = [];
+    public List<ApexRecord> MonthBalances { get; } = [];
+    public List<ApexRecord> BankBalances { get; } = [];
+    public List<ApexRecord> MonthIncome { get; } = [];
+    public List<ApexRecord> MonthExpenses { get; } = [];
+    public List<ApexRecord> YearIncome { get; } = [];
+    public List<ApexRecord> YearExpenses { get; } = [];
+    public List<ApexRecord> BalanceDistributionBucketGroup { get; } = [];
+    public List<ApexRecord> BalanceDistributionBucket { get; } = [];
+    public List<ApexRecord> InDistributionBucketGroup { get; } = [];
+    public List<ApexRecord> InDistributionBucket { get; } = [];
+    public List<ApexRecord> ActivityDistributionBucketGroup { get; } = [];
+    public List<ApexRecord> ActivityDistributionBucket { get; } = [];
+    public List<BucketGroupApexRecord> BucketGroupsBucketBudgets { get; } = [];
+    public List<Tuple<string, List<ApexRecord>>> MonthBucketExpenses { get; } = [];
     
     private readonly AppSettingService _appSettingService;
+    private readonly YearMonthSelectorViewModel _yearMonthViewModel;
     
-    public ApexReportViewModel(IServiceManager serviceManager, AppSettingService appSettingService) : base(serviceManager)
+    public ApexReportViewModel(
+        IServiceManager serviceManager, 
+        AppSettingService appSettingService, 
+        YearMonthSelectorViewModel yearMonthViewModel) : base(serviceManager)
     {
         _appSettingService = appSettingService;
+        _yearMonthViewModel = yearMonthViewModel;
     }
     
     public async Task LoadDataAsync()
@@ -45,6 +51,11 @@ public class ApexReportViewModel : ReportPageViewModel
             LoadBucketReportsAsync()
         };
         await Task.WhenAll(loadTasks);
+    }
+
+    public async Task ReloadBucketReportsAsync()
+    {
+        await LoadBucketReportsAsync();
     }
     
     private async Task LoadMonthBalancesReportAsync(int months)
@@ -109,7 +120,7 @@ public class ApexReportViewModel : ReportPageViewModel
         ActivityDistributionBucket.Clear();
         BucketGroupsBucketBudgets.Clear();
 
-        var bucketReportResult = await LoadBucketStatisticsAsync();
+        var bucketReportResult = await LoadBucketStatisticsAsync(_yearMonthViewModel);
 
         BalanceDistributionBucketGroup.AddRange(bucketReportResult.BalancesPerBucketGroup
             .Select(i => new ApexRecord(i.Item1, i.Item2)));
@@ -124,10 +135,10 @@ public class ApexReportViewModel : ReportPageViewModel
         ActivityDistributionBucket.AddRange(bucketReportResult.ActivityPerBucket
             .Select(i => new ApexRecord(i.Item1, i.Item2 * -1)));
 
-        foreach (var (bucketGroup, buckets) in bucketReportResult.BudgetConsumptionPerBucket)
+        foreach (var (bucketGroup, buckets) in bucketReportResult.RemainingBudgetPerBucket)
         {
             BucketGroupsBucketBudgets.Add(new(
-                bucketGroup, 
+                bucketGroup,
                 buckets
                     .Select(i => new BucketApexRecord(i.Item1, ConvertToGaugeItemSource(i)))
                     .ToList()

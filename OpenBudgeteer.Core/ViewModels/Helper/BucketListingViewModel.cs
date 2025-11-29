@@ -92,12 +92,12 @@ public class BucketListingViewModel : ViewModelBase
     /// Use Case: Bucket data will be displayed for reporting purposes.
     /// </summary>
     /// <remarks>
-    /// Excludes inactive Buckets. Excludes default Buckets. Excludes Buckets that are marked to be hidden from reports
+    /// Include inactive Buckets. Excludes default Buckets. Excludes Buckets that are marked to be hidden from reports
     /// </remarks>
     /// <returns>Object which contains information and results of this method</returns>
     public async Task<ViewModelOperationResult> LoadDataForReportingAsync()
     {
-        return await LoadDataAsync(excludeInactive: true, forReporting: true);
+        return await LoadDataAsync(forReporting: true);
     }
 
     /// <summary>

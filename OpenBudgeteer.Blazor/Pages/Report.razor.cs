@@ -8,12 +8,14 @@ using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Blazor.ViewModels;
 using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.ViewModels.Helper;
 
 namespace OpenBudgeteer.Blazor.Pages;
 
 public partial class Report : ComponentBase
 {
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
+    [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
     [Inject] private AppSettingService AppSettingService { get; set; } = null!;
     
@@ -33,10 +35,10 @@ public partial class Report : ComponentBase
     {
         set => _monthBucketExpensesCharts.Add(value);
     }
-    private List<ApexChart<ApexRecord>> _bucketBudgetConsumptionCharts = new();
-    private ApexChart<ApexRecord> InjectBucketBudgetConsumptionChart
+    private List<ApexChart<ApexRecord>> _bucketRemainingBudgetCharts = new();
+    private ApexChart<ApexRecord> InjectBucketRemainingBudgetChart
     {
-        set => _bucketBudgetConsumptionCharts.Add(value);
+        set => _bucketRemainingBudgetCharts.Add(value);
     }
 
     private ApexChartOptions<ApexRecord> GaugeChartOptions => new()
@@ -116,31 +118,51 @@ public partial class Report : ComponentBase
         Show = false
     };
 
-    private ApexReportViewModel _apexContext = null!;
+    private ApexReportViewModel _dataContext = null!;
     private List<Tuple<string, List<ApexRecord>>> _monthBucketExpensesConfigsLeft = null!;
     private List<Tuple<string, List<ApexRecord>>> _monthBucketExpensesConfigsRight = null!;
 
     protected override async Task OnInitializedAsync()
     {
+        _bucketRemainingBudgetCharts = new();
+        _monthBucketExpensesCharts = new();
         _monthBucketExpensesConfigsLeft = new List<Tuple<string, List<ApexRecord>>>();
         _monthBucketExpensesConfigsRight = new List<Tuple<string, List<ApexRecord>>>();
-        _monthBucketExpensesCharts = new();
-        _bucketBudgetConsumptionCharts = new();
     
-        _apexContext = new ApexReportViewModel(ServiceManager, AppSettingService);
+        _dataContext = new ApexReportViewModel(ServiceManager, AppSettingService, YearMonthDataContext);
+        await _dataContext.LoadDataAsync();
         
-        await _apexContext.LoadDataAsync();
-        var halfIndex = _apexContext.MonthBucketExpenses.Count / 2;
-        _monthBucketExpensesConfigsLeft.AddRange(_apexContext.MonthBucketExpenses.GetRange(0,halfIndex));
-        _monthBucketExpensesConfigsRight.AddRange(_apexContext.MonthBucketExpenses.GetRange(halfIndex,_apexContext.MonthBucketExpenses.Count - halfIndex));
+        // Monthly Bucket Expenses Tab
+        var halfIndex = _dataContext.MonthBucketExpenses.Count / 2;
+        _monthBucketExpensesConfigsLeft.AddRange(_dataContext.MonthBucketExpenses.GetRange(0,halfIndex));
+        _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpenses.GetRange(halfIndex,_dataContext.MonthBucketExpenses.Count - halfIndex));
         
         StateHasChanged();
         
+        YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) => 
+        {
+            await _dataContext.ReloadBucketReportsAsync();
+            StateHasChanged();
+            
+            // Handle Chart reload as ViewModel data have been reloaded now
+            await RefreshChartsAsync();
+        };
+        
+        // Handle Chart reload as ViewModel data have been loaded now
+        await RefreshChartsAsync();
+    }
+
+    private async Task RefreshChartsAsync()
+    {
         var tasks = new List<Task>();
+        
+        // General Tab
         if (_monthBalanceChart is not null) tasks.Add(_monthBalanceChart.UpdateSeriesAsync());
         if (_bankBalanceChart is not null) tasks.Add(_bankBalanceChart.UpdateSeriesAsync());
         if (_monthIncomeExpensesChart is not null) tasks.Add(_monthIncomeExpensesChart.UpdateSeriesAsync());
         if (_yearIncomeExpensesChart is not null) tasks.Add(_yearIncomeExpensesChart.UpdateSeriesAsync());
+        
+        // Buckets Tab
         if (_balanceDistributionBucketGroupChart is not null) tasks.Add(UpdatePieChartAsync(_balanceDistributionBucketGroupChart));
         if (_balanceDistributionBucketChart is not null) tasks.Add(UpdatePieChartAsync(_balanceDistributionBucketChart));
         if (_inDistributionBucketGroupChart is not null) tasks.Add(UpdatePieChartAsync(_inDistributionBucketGroupChart));
@@ -148,12 +170,16 @@ public partial class Report : ComponentBase
         if (_activityDistributionBucketGroupChart is not null) tasks.Add(UpdatePieChartAsync(_activityDistributionBucketGroupChart));
         if (_activityDistributionBucketChart is not null) tasks.Add(UpdatePieChartAsync(_activityDistributionBucketChart));
         
+        // Bucket Budgets Tab
+        tasks.AddRange(_bucketRemainingBudgetCharts
+            .Select(UpdatePieChartAsync));
+        
+        // Monthly Bucket Expenses Tab
         tasks.AddRange(_monthBucketExpensesCharts
             .Select(monthBucketExpensesChart => monthBucketExpensesChart.UpdateSeriesAsync()));
-        tasks.AddRange(_bucketBudgetConsumptionCharts
-            .Select(UpdatePieChartAsync));
-
+        
         await Task.WhenAll(tasks);
+        
         return;
         
         async Task UpdatePieChartAsync(ApexChart<ApexRecord> chart)
