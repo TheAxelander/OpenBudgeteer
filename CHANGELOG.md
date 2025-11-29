@@ -7,6 +7,10 @@
 * Rework charts on Report Page into separate Tab Views
 * Rework logging and improved User experience for error messages 
 
+### :beetle: Bug Fixes
+
+* Import Page: Re-enable Payee as optional mapping [#331](https://github.com/TheAxelander/OpenBudgeteer/issues/331)
+
 ## 1.10 (2025-04-30)
 
 ### :gear: Features & Enhancements

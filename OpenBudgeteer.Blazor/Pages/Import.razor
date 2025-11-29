@@ -98,6 +98,7 @@
                 </MudItem>
                 <MudItem xs="6" sm="3">
                     <MudSelect T="string" Label="Payee (optional):" @bind-Value="_dataContext.ModifiedImportProfile.PayeeColumnName">
+                        <MudSelectItem Value="@string.Empty">(empty)</MudSelectItem>
                         @foreach (var column in _dataContext.IdentifiedColumns)
                         {
                             <MudSelectItem Value="@column">@column</MudSelectItem>
