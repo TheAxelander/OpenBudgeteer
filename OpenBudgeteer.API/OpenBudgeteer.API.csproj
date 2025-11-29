@@ -23,8 +23,8 @@
     <ItemGroup>
       <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
       <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
-      <PackageReference Include="Scalar.AspNetCore" Version="2.1.13" />
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />
+      <PackageReference Include="Scalar.AspNetCore" Version="2.11.0" />
     </ItemGroup>
 
 </Project>

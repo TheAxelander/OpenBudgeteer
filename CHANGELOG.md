@@ -11,6 +11,10 @@
 
 * Import Page: Re-enable Payee as optional mapping [#331](https://github.com/TheAxelander/OpenBudgeteer/issues/331)
 
+### :hammer: Maintenance
+
+* Upgrade various dependencies, e.g. EF Core [#321](https://github.com/TheAxelander/OpenBudgeteer/issues/321) and MudBlazor
+
 ## 1.10 (2025-04-30)
 
 ### :gear: Features & Enhancements

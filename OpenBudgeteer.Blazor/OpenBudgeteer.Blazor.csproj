@@ -11,16 +11,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazor-ApexCharts" Version="6.0.1" />
+    <PackageReference Include="Blazor-ApexCharts" Version="6.0.2" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.3">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="MudBlazor" Version="8.5.1" />
-    <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.11" />
+    <PackageReference Include="MudBlazor" Version="8.15.0" />
+    <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
   </ItemGroup>
 
   <ItemGroup>
