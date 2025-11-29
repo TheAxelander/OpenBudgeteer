@@ -2,14 +2,21 @@
 
 ### :gear: Features & Enhancements
 
-* Distribute Budget clears also now negative Bucket Balances [#325](https://github.com/TheAxelander/OpenBudgeteer/issues/325)
-* New Charts for Buckets and Bucket Groups [#179](https://github.com/TheAxelander/OpenBudgeteer/issues/179) [#274](https://github.com/TheAxelander/OpenBudgeteer/issues/274)
-* Rework charts on Report Page into separate Tab Views
-* Rework logging and improved User experience for error messages 
+* Transaction Page:
+  * Add Dialog for creating Transfer transaction [#194](https://github.com/TheAxelander/OpenBudgeteer/issues/194)
+  * (Re-)Introduce Button groups to cluster similar actions 
+* Bucket Page:
+  * Distribute Budget clears also now negative Bucket Balances [#325](https://github.com/TheAxelander/OpenBudgeteer/issues/325)
+* Report Page:
+  * New Charts for Buckets and Bucket Groups [#179](https://github.com/TheAxelander/OpenBudgeteer/issues/179) [#274](https://github.com/TheAxelander/OpenBudgeteer/issues/274)
+  * Rework charts on Report Page into separate Tab Views
+* Misc:
+  * Rework logging and improved User experience for error messages
 
 ### :beetle: Bug Fixes
 
-* Import Page: Re-enable Payee as optional mapping [#331](https://github.com/TheAxelander/OpenBudgeteer/issues/331)
+* Import Page: 
+  * Re-enable Payee as optional mapping [#331](https://github.com/TheAxelander/OpenBudgeteer/issues/331)
 
 ### :hammer: Maintenance
 

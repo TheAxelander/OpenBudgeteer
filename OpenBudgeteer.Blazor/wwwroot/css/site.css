@@ -41,6 +41,11 @@
     text-align: center;
 }
 
+/* required for MudButton in a MudButtonGroup */
+.restore-size-small {
+    padding: 4px 10px!important; /* original padding for Size="Size.Small" */
+}
+
 #components-reconnect-modal {
     display: none;
 }

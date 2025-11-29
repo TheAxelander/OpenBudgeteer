@@ -545,12 +545,22 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// Executes several data consistency checks (e.g. Bucket assignment, pending amount etc.) to see if changes
     /// can be stored in the database 
     /// </summary>
-    /// <param name="skipBucketAssignment">Exclude checks on Bucket assignment</param>
     /// <returns>Object which contains information and results of this method</returns>
-    private ViewModelOperationResult PerformConsistencyCheck(out bool skipBucketAssignment)
+    public ViewModelOperationResult PerformConsistencyCheck()
+    {
+        return PerformConsistencyCheck(out _);
+    }
+
+    /// <summary>
+    /// Executes several data consistency checks (e.g. Bucket assignment, pending amount etc.) to see if changes
+    /// can be stored in the database 
+    /// </summary>
+    /// <param name="hasNoSelectionBucket">Will be set to true if Transaction has a "No Selection" Bucket assigned</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    private ViewModelOperationResult PerformConsistencyCheck(out bool hasNoSelectionBucket)
     {
         decimal assignedAmount = 0;
-        skipBucketAssignment = false;
+        hasNoSelectionBucket = false;
 
         // Consistency and Validity Checks
         if (SelectedAccount.AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
@@ -566,7 +576,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
                 {
                     // Imported Transaction where Bucket assignment is pending
                     // Allow Transaction Update but Skip DB Updates for Bucket assignment
-                    skipBucketAssignment = true;
+                    hasNoSelectionBucket = true;
                 }
                 else
                 {

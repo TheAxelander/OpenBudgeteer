@@ -1,0 +1,86 @@
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+
+<MudDialog Class="dialog-background">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Create Transfer Transactions</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="8">
+            <MudGrid Spacing="2">
+                <MudItem xs="12"><MudText Typo="Typo.subtitle1">Sending</MudText></MudItem>
+                <MudItem xs="4">
+                    <MudDatePicker Date="@(SenderDataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(SenderDataContext, time))" ShowToolbar="false"/>
+                </MudItem>
+                <MudItem xs="8">
+                    <MudSelect T="AccountViewModel" @bind-Value="SenderDataContext.SelectedAccount">
+                        @foreach (var account in SenderDataContext.AvailableAccounts)
+                        {
+                            <MudSelectItem Value="@account">@account.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12"><MudTextField Label="Payee" @bind-Value="SenderDataContext.Payee"/></MudItem>
+                <MudItem xs="12"><MudTextField Label="Memo" @bind-Value="SenderDataContext.Memo"/></MudItem>
+            </MudGrid>
+            <MudGrid Spacing="2">
+                <MudItem xs="12"><MudText Typo="Typo.subtitle1">Receiving</MudText></MudItem>
+                <MudItem xs="4">
+                    <MudDatePicker Date="@(ReceiverDataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(ReceiverDataContext, time))" ShowToolbar="false"/>
+                </MudItem>
+                <MudItem xs="8">
+                    <MudSelect T="AccountViewModel" @bind-Value="ReceiverDataContext.SelectedAccount">
+                        @foreach (var account in ReceiverDataContext.AvailableAccounts)
+                        {
+                            <MudSelectItem Value="@account">@account.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12"><MudTextField Label="Payee" @bind-Value="ReceiverDataContext.Payee"/></MudItem>
+                <MudItem xs="12"><MudTextField Label="Memo" @bind-Value="ReceiverDataContext.Memo"/></MudItem>
+            </MudGrid>
+            <MudGrid Spacing="2">
+                <MudItem xs="12"><MudText Typo="Typo.subtitle1">Exchanging amount</MudText></MudItem>
+                <MudItem xs="12"><MudNumericField T="decimal" Format="N2" Label="Amount" @bind-Value="Amount"/></MudItem>
+            </MudGrid>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreate">Create</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreateAnother">Create another</MudButton>
+        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelDialog">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public TransactionViewModel SenderDataContext { get; set; } = null!;
+    
+    [Parameter]
+    public TransactionViewModel ReceiverDataContext { get; set; } = null!;
+
+    private decimal _amount;
+    public decimal Amount
+    {
+        get => _amount;
+        set
+        {
+            if (value == _amount) return;
+            _amount = value;
+            SenderDataContext.Amount = _amount * -1;
+            ReceiverDataContext.Amount = _amount;
+        }
+    }
+    
+    void ConfirmCreate() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.Create));
+    void ConfirmCreateAnother() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.CreateAnother));
+    void CancelDialog() => MudDialog.Cancel();
+    
+    void TransactionDateChanged(TransactionViewModel transaction, DateTime? dateTime)
+    {
+        transaction.TransactionDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
+    }
+}

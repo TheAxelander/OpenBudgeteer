@@ -14,15 +14,24 @@
     }
     else
     {
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowCreateTransactionDialog">Create Transaction</MudButton>
+        <MudButtonGroup Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">
+            <MudButton Class="restore-size-small" OnClick="ShowCreateTransactionDialog">Create Transaction</MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                <MudMenuItem OnClick="ShowCreateTransferDialog">Create Transfer</MudMenuItem>
+            </MudMenu>
+        </MudButtonGroup>
         <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SwitchToEditMode">Edit @(_selectedTransactions.Count == 0 ? "all" : $"{_selectedTransactions.Count} Selected")</MudButton>
         @if (_selectedTransactions.Count > 0)
         {
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedTransactions">Delete @_selectedTransactions.Count Selected</MudButton>
         }
         <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ProposeBucketsAsync">Propose Buckets</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="AddRecurringTransactions">Add Recurring Transactions</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowRecurringTransactionDialog">Manage Recurring Transactions</MudButton>
+        <MudButtonGroup Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">
+            <MudButton Class="restore-size-small" OnClick="AddRecurringTransactions">Add Recurring Transactions</MudButton>
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                <MudMenuItem OnClick="ShowRecurringTransactionDialog">Manage Recurring Transactions</MudMenuItem>
+            </MudMenu>
+        </MudButtonGroup>
         <MudSpacer/>
         <MudTooltip RootClass="d-flex align-center">
             <ChildContent>

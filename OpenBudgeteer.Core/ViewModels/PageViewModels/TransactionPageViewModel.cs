@@ -15,16 +15,6 @@ namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
 
 public class TransactionPageViewModel : TransactionListingViewModel
 {
-    private TransactionViewModel? _newTransaction;
-    /// <summary>
-    /// Helper property to handle creation of a new <see cref="BankTransaction"/>
-    /// </summary>
-    public TransactionViewModel? NewTransaction
-    {
-        get => _newTransaction;
-        set => Set(ref _newTransaction, value);
-    }
-    
     private int _proposeBucketsCount;
     /// <summary>
     /// Helper property for Progress Dialog during Bucket proposal process
@@ -83,25 +73,20 @@ public class TransactionPageViewModel : TransactionListingViewModel
     {
         _yearMonthViewModel = yearMonthViewModel;
         _transactions = new ObservableCollection<TransactionViewModel>();
-        ResetNewTransaction();
         //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
     }
     
     /// <summary>
-    /// Starts creation process based on <see cref="NewTransaction"/>
+    /// Creates the passed <see cref="TransactionViewModel"/> in the database
     /// </summary>
     /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult CreateItem()
+    public ViewModelOperationResult CreateItem(TransactionViewModel transaction)
     {
         try
         {
-            if (NewTransaction is null) return new ViewModelOperationResult(false, "New Transaction has not been initialized");
-            var result = NewTransaction.CreateOrUpdateTransaction();
-            if (!result.IsSuccessful) return result;
-            ResetNewTransaction();
-        
-            return new ViewModelOperationResult(true, true);
+            var result = transaction.CreateOrUpdateTransaction();
+            return !result.IsSuccessful ? result : new ViewModelOperationResult(true, true);
         }
         catch (ServiceException e)
         {
@@ -114,20 +99,6 @@ public class TransactionPageViewModel : TransactionListingViewModel
         }
     }
    
-    /// <summary>
-    /// Helper method to reset values of <see cref="NewTransaction"/>
-    /// </summary>
-    public void ResetNewTransaction()
-    {
-        var lastEnteredDate = 
-            // Use previous entered date
-            NewTransaction?.TransactionDate ?? (
-            // Alternative use current Date or current selected month
-            _yearMonthViewModel.IsTodayInCurrentMonth ? DateOnly.FromDateTime(DateTime.Today) : _yearMonthViewModel.CurrentMonth);
-        NewTransaction = TransactionViewModel.CreateEmpty(ServiceManager);
-        NewTransaction.TransactionDate = lastEnteredDate;
-    }
-    
     /// <summary>
     /// Helper method to start modification process for all Transactions based on current Filter
     /// </summary>
