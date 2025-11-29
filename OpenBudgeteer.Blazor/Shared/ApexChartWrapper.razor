@@ -1,0 +1,65 @@
+@using ApexCharts
+@using OpenBudgeteer.Blazor.Common
+@typeparam TItem where TItem : ApexRecord
+
+<ApexChart @ref="_chart" TItem="TItem" Title="@Title" Height="@Height" Options="@Options">
+    @ChildContent
+</ApexChart>
+
+@code {
+    private ApexChart<TItem>? _chart;
+
+    [Parameter]
+    public string? Title { get; set; }
+
+    [Parameter]
+    public string? Height { get; set; }
+
+    [Parameter]
+    public ApexChartOptions<TItem> Options { get; set; } = null!;
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] 
+    public SeriesType ChartType { get; set; } = SeriesType.Bar;
+
+    /// <summary>
+    /// Refreshes the chart based on the RefreshType
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        if (_chart is null) return;
+
+        try
+        {
+            switch (ChartType)
+            {
+                case SeriesType.RadialBar:
+                    // UpdateOptionsAsync required so that labels are properly updated
+                    // See: https://github.com/apexcharts/Blazor-ApexCharts/issues/351
+                    await _chart.UpdateOptionsAsync(true, true, false);
+                    await _chart.RenderAsync(); // Required so that correct color palette is used
+                    break;
+                case SeriesType.Area:
+                case SeriesType.Bar:
+                case SeriesType.Donut:
+                case SeriesType.Heatmap:
+                case SeriesType.Line:
+                case SeriesType.Pie:
+                case SeriesType.PolarArea:
+                case SeriesType.Radar:
+                case SeriesType.Scatter:
+                case SeriesType.Treemap:
+                case SeriesType.RangeArea:
+                default:
+                    await _chart.UpdateSeriesAsync();
+                    break;
+            }
+        }
+        catch (NullReferenceException)
+        {
+            // Chart might be in disposed state during re-render, ignore
+        }
+    }
+}

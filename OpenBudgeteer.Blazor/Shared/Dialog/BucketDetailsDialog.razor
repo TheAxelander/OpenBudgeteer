@@ -96,10 +96,11 @@
                     <MudItem md="6" sm="12" Class="p-1 mt-2">
                         <MudPaper Outlined="true">
                             <MudText Typo="Typo.h5" Class="report-chart-header">Month Balances</MudText>
-                            <ApexChart 
-                                @ref="_monthBalanceChart" 
+                            <ApexChartWrapper 
+                                @ref="AddChartRef" 
                                 TItem="ApexRecord"
-                                Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })">
+                                Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })"
+                                ChartType="SeriesType.Bar">
                                 <ApexPointSeries
                                     TItem="ApexRecord"
                                     Items="DataContext.MonthBalances"
@@ -108,16 +109,17 @@
                                     XValue="i => i.Label"
                                     YValue="i => i.Value"
                                     DataPointMutator="ApexHelper.BalanceChartMutator"/>
-                            </ApexChart>
+                            </ApexChartWrapper>
                         </MudPaper>
                     </MudItem>
                     <MudItem md="6" sm="12" Class="p-1 mt-2">
                         <MudPaper Outlined="true">
                             <MudText Typo="Typo.h5" Class="report-chart-header">Input & Output</MudText>
-                            <ApexChart 
-                                @ref="_monthInputOutputChart" 
+                            <ApexChartWrapper 
+                                @ref="AddChartRef" 
                                 TItem="ApexRecord" 
-                                Options="MonthInputOutputChartOptions">
+                                Options="MonthInputOutputChartOptions"
+                                ChartType="SeriesType.Bar">
                                 <ApexPointSeries
                                     TItem="ApexRecord"
                                     Items="DataContext.MonthInput"
@@ -134,17 +136,18 @@
                                     XValue="i => i.Label"
                                     YValue="i => i.Value"
                                     Color=@System.Drawing.Color.DarkRed.ToHexString()/>
-                            </ApexChart>
+                            </ApexChartWrapper>
                         </MudPaper>
                     </MudItem>
                     <MudItem sm="12" Class="p-1">
                         <MudPaper Outlined="true">
                             <MudText Typo="Typo.h5" Class="report-chart-header">Balance Progression</MudText>
-                            <ApexChart 
-                                @ref="_bucketProgressionChart" 
+                            <ApexChartWrapper 
+                                @ref="AddChartRef" 
                                 TItem="ApexRecord" 
                                 Height="300"
-                                Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })">
+                                Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })"
+                                ChartType="SeriesType.Area">
                                 <ApexPointSeries
                                     TItem="ApexRecord"
                                     Items="DataContext.BucketProgression"
@@ -153,7 +156,7 @@
                                     XValue="i => i.Label"
                                     YValue="i => i.Value"
                                     Color=@System.Drawing.Color.Green.ToHexString()/>
-                            </ApexChart>
+                            </ApexChartWrapper>
                         </MudPaper>
                     </MudItem>
                 </MudGrid>
@@ -191,9 +194,11 @@
     private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
     private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter = null!;
 
-    private ApexChart<ApexRecord>? _monthBalanceChart;
-    private ApexChart<ApexRecord>? _monthInputOutputChart;
-    private ApexChart<ApexRecord>? _bucketProgressionChart;
+    private List<ApexChartWrapper<ApexRecord>> _charts = new();
+    private ApexChartWrapper<ApexRecord> AddChartRef
+    {
+        set => _charts.Add(value);
+    }
     
     private Theme BaseTheme => new()
     {
@@ -254,9 +259,7 @@
         StateHasChanged();
         
         var tasks = new List<Task>();
-        if (_monthBalanceChart is not null) tasks.Add(_monthBalanceChart.UpdateSeriesAsync());
-        if (_monthInputOutputChart is not null) tasks.Add(_monthInputOutputChart.UpdateSeriesAsync());
-        if (_bucketProgressionChart is not null) tasks.Add(_bucketProgressionChart.UpdateSeriesAsync());
+        tasks.AddRange(_charts.Select(wrapper => wrapper.RefreshAsync()));
         await Task.WhenAll(tasks);
     }
 }

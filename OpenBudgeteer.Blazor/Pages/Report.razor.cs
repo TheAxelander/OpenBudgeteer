@@ -6,6 +6,7 @@ using ApexCharts;
 using Microsoft.AspNetCore.Components;
 using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Blazor.Common.Services;
+using OpenBudgeteer.Blazor.Shared;
 using OpenBudgeteer.Blazor.ViewModels;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.Helper;
@@ -19,26 +20,28 @@ public partial class Report : ComponentBase
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
     [Inject] private AppSettingService AppSettingService { get; set; } = null!;
     
-    private ApexChart<ApexRecord>? _monthBalanceChart;
-    private ApexChart<ApexRecord>? _bankBalanceChart;
-    private ApexChart<ApexRecord>? _monthIncomeExpensesChart;
-    private ApexChart<ApexRecord>? _yearIncomeExpensesChart;
-    private ApexChart<ApexRecord>? _balanceDistributionBucketGroupChart;
-    private ApexChart<ApexRecord>? _balanceDistributionBucketChart;
-    private ApexChart<ApexRecord>? _inDistributionBucketGroupChart;
-    private ApexChart<ApexRecord>? _inDistributionBucketChart;
-    private ApexChart<ApexRecord>? _activityDistributionBucketGroupChart;
-    private ApexChart<ApexRecord>? _activityDistributionBucketChart;
-    
-    private List<ApexChart<ApexRecord>> _monthBucketExpensesCharts = new();
-    private ApexChart<ApexRecord> InjectMonthBucketExpensesChart
+    private List<ApexChartWrapper<ApexRecord>> _generalCharts = new();
+    private ApexChartWrapper<ApexRecord> AddGeneralChartRef
     {
-        set => _monthBucketExpensesCharts.Add(value);
+        set => _generalCharts.Add(value);
     }
-    private List<ApexChart<ApexRecord>> _bucketRemainingBudgetCharts = new();
-    private ApexChart<ApexRecord> InjectBucketRemainingBudgetChart
+    
+    private List<ApexChartWrapper<ApexRecord>> _bucketsCharts = new();
+    private ApexChartWrapper<ApexRecord> AddBucketChartRef
+    {
+        set => _bucketsCharts.Add(value);
+    }
+
+    private List<ApexChartWrapper<ApexRecord>> _bucketRemainingBudgetCharts = new();
+    private ApexChartWrapper<ApexRecord> AddBucketBudgetChartRef
     {
         set => _bucketRemainingBudgetCharts.Add(value);
+    }
+
+    private List<ApexChartWrapper<ApexRecord>> _monthBucketExpensesCharts = new();
+    private ApexChartWrapper<ApexRecord> AddMonthlyBucketExpensesChartRef
+    {
+        set => _monthBucketExpensesCharts.Add(value);
     }
 
     private ApexChartOptions<ApexRecord> GaugeChartOptions => new()
@@ -139,13 +142,29 @@ public partial class Report : ComponentBase
         
         StateHasChanged();
         
-        YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) => 
+        YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) =>
         {
+            /*
+             * Clear chart lists before reloading to prevent stale references
+             *
+             * Currently I'm not clearing these list as this lead to situations where "reused" charts were no longer
+             * being updated. Rely on try/catch part in UpdatePieChartAsync() and 
+             */
+            //_bucketRemainingBudgetCharts.Clear();
+            //_monthBucketExpensesCharts.Clear();
+
             await _dataContext.ReloadBucketReportsAsync();
             StateHasChanged();
-            
-            // Handle Chart reload as ViewModel data have been reloaded now
-            await RefreshChartsAsync();
+
+            /*
+             * First wait for render to complete (100ms) then refresh charts. This was so far the most stable combination.
+             * 
+             * Why InvokeAsync:
+             * Chart operations like UpdateSeriesAsync() and RenderAsync() use JavaScript interop and modify UI state, 
+             * which must run on Blazor's rendering thread.
+             */
+            await Task.Delay(100);
+            await InvokeAsync(async () => await RefreshChartsAsync());
         };
         
         // Handle Chart reload as ViewModel data have been loaded now
@@ -155,39 +174,10 @@ public partial class Report : ComponentBase
     private async Task RefreshChartsAsync()
     {
         var tasks = new List<Task>();
-        
-        // General Tab
-        if (_monthBalanceChart is not null) tasks.Add(_monthBalanceChart.UpdateSeriesAsync());
-        if (_bankBalanceChart is not null) tasks.Add(_bankBalanceChart.UpdateSeriesAsync());
-        if (_monthIncomeExpensesChart is not null) tasks.Add(_monthIncomeExpensesChart.UpdateSeriesAsync());
-        if (_yearIncomeExpensesChart is not null) tasks.Add(_yearIncomeExpensesChart.UpdateSeriesAsync());
-        
-        // Buckets Tab
-        if (_balanceDistributionBucketGroupChart is not null) tasks.Add(UpdatePieChartAsync(_balanceDistributionBucketGroupChart));
-        if (_balanceDistributionBucketChart is not null) tasks.Add(UpdatePieChartAsync(_balanceDistributionBucketChart));
-        if (_inDistributionBucketGroupChart is not null) tasks.Add(UpdatePieChartAsync(_inDistributionBucketGroupChart));
-        if (_inDistributionBucketChart is not null) tasks.Add(UpdatePieChartAsync(_inDistributionBucketChart));
-        if (_activityDistributionBucketGroupChart is not null) tasks.Add(UpdatePieChartAsync(_activityDistributionBucketGroupChart));
-        if (_activityDistributionBucketChart is not null) tasks.Add(UpdatePieChartAsync(_activityDistributionBucketChart));
-        
-        // Bucket Budgets Tab
-        tasks.AddRange(_bucketRemainingBudgetCharts
-            .Select(UpdatePieChartAsync));
-        
-        // Monthly Bucket Expenses Tab
-        tasks.AddRange(_monthBucketExpensesCharts
-            .Select(monthBucketExpensesChart => monthBucketExpensesChart.UpdateSeriesAsync()));
-        
+        tasks.AddRange(_generalCharts.Select(wrapper => wrapper.RefreshAsync()));
+        tasks.AddRange(_bucketsCharts.Select(wrapper => wrapper.RefreshAsync()));
+        tasks.AddRange(_bucketRemainingBudgetCharts.Select(wrapper => wrapper.RefreshAsync()));
+        tasks.AddRange(_monthBucketExpensesCharts.Select(wrapper => wrapper.RefreshAsync()));
         await Task.WhenAll(tasks);
-        
-        return;
-        
-        async Task UpdatePieChartAsync(ApexChart<ApexRecord> chart)
-        {
-            // UpdateOptionsAsync required here so that labels are properly updated
-            // See: https://github.com/apexcharts/Blazor-ApexCharts/issues/351
-            await chart.UpdateOptionsAsync(true, true, false);
-            await chart.RenderAsync(); // Required so that correct color palette is used
-        }
     }
 }
