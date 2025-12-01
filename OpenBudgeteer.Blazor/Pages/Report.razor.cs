@@ -106,12 +106,11 @@ public partial class Report : ComponentBase
         RadialBar = new()
         {
             StartAngle = -90, EndAngle = 90, 
+            Track = new() { StartAngle = -90, EndAngle = 90 },
             DataLabels = new()
             {
-                Total = new()
-                {
-                    FontSize = "18px"
-                }
+                Name = new() { Show = false },
+                Value = new() { FontSize = "22px", Show = true }
             }
         }
     };
