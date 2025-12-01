@@ -1,0 +1,10 @@
+@* Nothing here, just a helper to redirect to Login Page *@
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo($"/login?returnUrl={Uri.EscapeDataString(Navigation.Uri)}");
+    }
+}

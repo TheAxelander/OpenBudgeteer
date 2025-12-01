@@ -1,9 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @using Microsoft.EntityFrameworkCore
-@using OpenBudgeteer.Blazor.Common.Services
+@using Microsoft.Extensions.Configuration
+@using OpenBudgeteer.Core.Data
 @using OpenBudgeteer.Core.Data.Entities
 @inject IDbContextFactory<DatabaseContext> DbContextFactory
 @inject MudThemeService MudThemeService
+@inject IConfiguration Configuration
 
 <MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
 <MudPopoverProvider/>
@@ -31,6 +33,22 @@
         <MudSpacer/>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer" Target="_blank"/>
         <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Color="Color.Inherit" Href="https://theaxelander.github.io/" Target="_blank"/>
+        @if (Configuration.GetValue(ConfigurationKeyConstants.APPSETTINGS_AUTH_ENABLED, false))
+        {
+            <AuthorizeView>
+                <Authorized>
+                    <MudTooltip Text="Logout">
+                        <form method="post" action="/auth/logout" style="display: inline;">
+                            <MudIconButton
+                                Icon="@Icons.Material.Filled.Logout"
+                                Color="Color.Inherit"
+                                ButtonType="ButtonType.Submit"/>
+                        </form>
+                    </MudTooltip>
+                    <MudText Class="ms-2">@context.User.Identity?.Name</MudText>
+                </Authorized>
+            </AuthorizeView>
+        }
         <MudText Class="ms-2">@CurrentDatabase</MudText>
         <MudText Class="ms-3 d-none d-md-block">Version: 1.11.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</MudText>
     </MudAppBar>

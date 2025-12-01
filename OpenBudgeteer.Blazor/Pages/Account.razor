@@ -1,5 +1,5 @@
 ﻿@page "/account"
-
+@attribute [Authorize]
 @using System.Globalization
 
 <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => ShowEditAccountDialog(null))">New account</MudButton>

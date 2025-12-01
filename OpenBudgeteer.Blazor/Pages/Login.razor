@@ -1,0 +1,48 @@
+@page "/login"
+@layout LoginLayout
+@attribute [AllowAnonymous]
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="min-height: 100vh;">
+    <MudPaper Elevation="4" Class="pa-8" Width="400px">
+        <form method="post" action="/auth/login">
+            <MudStack Spacing="4">
+                <MudStack Spacing="2" AlignItems="AlignItems.Center" Class="mb-2">
+                    <MudImage Src="favicon.ico" Height="60" Class="rounded-circle pa-2" Style=@($"background-color: {AppIconBackground};")/>
+                    <MudText Typo="Typo.h4">OpenBudgeteer</MudText>
+                </MudStack>
+
+                @if (!string.IsNullOrEmpty(Error))
+                {
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">
+                        @GetErrorMessage()
+                    </MudAlert>
+                }
+
+                <MudTextField T="string"
+                    Name="username"
+                    Label="Username"
+                    Variant="Variant.Outlined"
+                    Required="true"
+                    AutoFocus="true"/>
+
+                <MudTextField T="string"
+                    Name="password"
+                    Label="Password"
+                    Variant="Variant.Outlined"
+                    InputType="InputType.Password"
+                    Required="true"/>
+
+                <input type="hidden" name="returnUrl" value="@(ReturnUrl ?? "/")" />
+
+                <MudButton
+                    ButtonType="ButtonType.Submit"
+                    Variant="Variant.Filled"
+                    Color="Color.Primary"
+                    FullWidth="true"
+                    Size="Size.Large">
+                    Sign In
+                </MudButton>
+            </MudStack>
+        </form>
+    </MudPaper>
+</MudContainer>

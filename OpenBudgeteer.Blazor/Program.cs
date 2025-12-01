@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 using OpenBudgeteer.Blazor;
+using OpenBudgeteer.Blazor.Common.Endpoints;
 using OpenBudgeteer.Blazor.Common.Extensions;
 using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Core.Data;
@@ -25,6 +26,8 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 builder.Services.AddSingleton<IConfiguration>(configuration);
+
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddLocalization();
 builder.Services.AddRazorPages();
 builder.Services.AddRazorComponents()
@@ -38,7 +41,8 @@ builder.Services.AddLogging(x => x
 builder.Services.AddMudServices();
 builder.Services.AddDatabase(configuration); // Check, establish and register database connection
 builder.Services.AddHostedService<DatabaseMigratorService>(); // Run database migrations
-builder.Services.AddRedis(configuration); // Check, establish and register Redis database connection 
+builder.Services.AddRedis(configuration); // Check, establish and register Redis database connection
+builder.Services.AddAuthenticationServices(configuration); // Add authentication support
 builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x => 
     new EFCoreServiceManager(
         x.GetRequiredService<IDbContextFactory<DatabaseContext>>(),
@@ -64,7 +68,19 @@ app.UseStaticFiles();
         
 app.UseRequestLocalization(configuration.GetValue<string>(ConfigurationKeyConstants.APPSETTINGS_CULTURE, "en-US"));
 
+// Add authentication middleware (required, otherwise [Authorize] attributes will break)
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
+
+// Map authentication endpoints
+var authEnabled = configuration.GetValue(ConfigurationKeyConstants.APPSETTINGS_AUTH_ENABLED, false);
+if (authEnabled)
+{
+    app.MapAuthenticationEndpoints();
+}
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

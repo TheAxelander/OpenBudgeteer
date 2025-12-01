@@ -11,6 +11,7 @@
   * New Charts for Buckets and Bucket Groups [#179](https://github.com/TheAxelander/OpenBudgeteer/issues/179) [#274](https://github.com/TheAxelander/OpenBudgeteer/issues/274)
   * Rework charts on Report Page into separate Tab Views
 * Misc:
+  * Add Authentication for Web App [#9](https://github.com/TheAxelander/OpenBudgeteer/issues/9)
   * Rework logging and improved User experience for error messages
 
 ### :beetle: Bug Fixes
