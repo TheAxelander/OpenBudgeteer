@@ -2,35 +2,41 @@
 @attribute [Authorize]
 
 <MudStack Spacing="4">
-@foreach (var result in _dataContext.DataConsistencyChecks)
-{
-    <MudCard>
-        <MudCardContent>
-            <MudAlert Severity="@GetSeverity(result.Status)" Dense="true">@result.Message</MudAlert>
-            @if (result.Details.Count > 0)
-            {
-                <MudTable
-                    Items="@result.Details.Skip(1)"
-                    Dense="true"
-                    FixedHeader="true"
-                    Hover="true">
-                    <HeaderContent>
-                        @for (int i = 0; i < result.Details.First().Length; i++)
-                        {
-                            var headerItem = i;
-                            <MudTh>@result.Details.First()[headerItem]</MudTh>
-                        }
-                    </HeaderContent>
-                    <RowTemplate>
-                        @for (int i = 0; i < context.Length; i++)
-                        {
-                            var col = i;
-                            <MudTd>@context[col]</MudTd>
-                        }
-                    </RowTemplate>
-                </MudTable>
-            }
-        </MudCardContent>
-    </MudCard>
-}
+    @foreach (var result in _dataContext.DataConsistencyChecks)
+    {
+        <MudCard>
+            <MudCardContent>
+
+                <!-- Result Message -->
+                <MudAlert Dense="true"
+                          Severity="@GetSeverity(result.Status)">
+                    @result.Message
+                </MudAlert>
+
+                <!-- Details Table -->
+                @if (result.Details.Count > 0)
+                {
+                    <MudTable Items="@result.Details.Skip(1)"
+                              Dense="true"
+                              FixedHeader="true"
+                              Hover="true">
+                        <HeaderContent>
+                            @for (var i = 0; i < result.Details.First().Length; i++)
+                            {
+                                var headerItem = i;
+                                <MudTh>@result.Details.First()[headerItem]</MudTh>
+                            }
+                        </HeaderContent>
+                        <RowTemplate>
+                            @for (var i = 0; i < context.Length; i++)
+                            {
+                                var col = i;
+                                <MudTd>@context[col]</MudTd>
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudCardContent>
+        </MudCard>
+    }
 </MudStack>

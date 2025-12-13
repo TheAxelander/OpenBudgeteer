@@ -17,53 +17,90 @@
     </TitleContent>
     <DialogContent>
         <MudGrid Spacing="2">
+
+            <!-- Date -->
             <MudItem xs="4">
-                <MudDatePicker Date="@(DataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(time))" ShowToolbar="false"/>
+                <MudDatePicker DateChanged="@(time => TransactionDateChanged(time))"
+                               Date="@(DataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))"
+                               ShowToolbar="false"/>
             </MudItem>
+
+            <!-- Account -->
             <MudItem xs="8">
-                <MudSelect T="AccountViewModel" @bind-Value="DataContext.SelectedAccount">
+                <MudSelect T="AccountViewModel"
+                           @bind-Value="DataContext.SelectedAccount">
                     @foreach (var account in DataContext.AvailableAccounts)
                     {
                         <MudSelectItem Value="@account">@account.Name</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12"><MudTextField Label="Payee" @bind-Value="DataContext.Payee"/></MudItem>
-            <MudItem xs="12"><MudTextField Label="Memo" @bind-Value="DataContext.Memo"/></MudItem>
-            <MudItem xs="12"><MudNumericField T="decimal" Format="N2" Label="Amount" @bind-Value="DataContext.Amount"/></MudItem>
-            <MudItem xs="12"><MudText>Buckets</MudText></MudItem>
+
+            <!-- Payee -->
+            <MudItem xs="12">
+                <MudTextField @bind-Value="DataContext.Payee"
+                              Label="Payee"/>
+            </MudItem>
+
+            <!-- Memo -->
+            <MudItem xs="12">
+                <MudTextField @bind-Value="DataContext.Memo"
+                              Label="Memo"/>
+            </MudItem>
+
+            <!-- Amount -->
+            <MudItem xs="12">
+                <MudNumericField T="decimal"
+                                 @bind-Value="DataContext.Amount"
+                                 Format="N2"
+                                 Label="Amount"/>
+            </MudItem>
+
+            <!-- Buckets -->
+            <MudItem xs="12">
+                <MudText>Buckets</MudText>
+            </MudItem>
             <MudItem xs="12">
                 <MudStack Spacing="1">
                     @foreach (var bucket in DataContext.Buckets)
                     {
                         <MudGrid Spacing="2">
-                            <MudItem xs="8" Class="d-flex align-center">
-                                <MudButton
-                                    Size="Size.Small"
-                                    Class="mud-width-full bucket-indicator"
-                                    Style="@($"background-color: {ColorTranslator.ToHtml(bucket.SelectedBucketColor)}; color: {ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)}")"
-                                    OnClick="@(() => ShowBucketSelectDialog(bucket))">
+                            <MudItem Class="d-flex align-center"
+                                     xs="8">
+                                <MudButton OnClick="@(() => ShowBucketSelectDialog(bucket))"
+                                           Class="mud-width-full bucket-indicator"
+                                           Size="Size.Small"
+                                           Style="@($"background-color: {ColorTranslator.ToHtml(bucket.SelectedBucketColor)}; color: {ColorTranslator.ToHtml(bucket.SelectedBucketTextColor)}")">
                                     @bucket.SelectedBucketName
                                 </MudButton>
                             </MudItem>
                             <MudItem xs="3">
-                                <MudNumericField T="decimal" Format="N2" Culture="CultureInfo.CurrentCulture" @bind-Value="@bucket.Amount"/>
+                                <MudNumericField T="decimal"
+                                                 @bind-Value="@bucket.Amount"
+                                                 Culture="CultureInfo.CurrentCulture"
+                                                 Format="N2"/>
                             </MudItem>
                             <MudItem xs="1">
-                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@bucket.DeleteBucket"/>
+                                <MudIconButton OnClick="@bucket.DeleteBucket"
+                                               Icon="@Icons.Material.Outlined.Delete"
+                                               Size="@Size.Small"/>
                             </MudItem>
                         </MudGrid>
                     }
                     @if (DataContext.Difference != 0)
                     {
                         <MudGrid Spacing="2">
-                            <MudItem xs="8" Class="d-flex align-center">
-                                <MudPaper Class="d-flex align-center justify-center mud-width-full bucket-indicator no-background" Style="background-color: deepskyblue;">
+                            <MudItem Class="d-flex align-center"
+                                     xs="8">
+                                <MudPaper Class="d-flex align-center justify-center mud-width-full bucket-indicator no-background"
+                                          Style="background-color: deepskyblue;">
                                     <MudText>Remaining</MudText>
                                 </MudPaper>
                             </MudItem>
                             <MudItem xs="3">
-                                <MudText Class="align-center">@DataContext.Difference.ToString("C", CultureInfo.CurrentCulture)</MudText>
+                                <MudText Class="align-center">
+                                    @DataContext.Difference.ToString("C", CultureInfo.CurrentCulture)
+                                </MudText>
                             </MudItem>
                             <MudItem xs="1">
                             </MudItem>
@@ -71,36 +108,52 @@
                     }
                 </MudStack>
             </MudItem>
+
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreate">Create</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreateAnother">Create another</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelDialog">Cancel</MudButton>
+        <MudButton OnClick="ConfirmCreate"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Create
+        </MudButton>
+        <MudButton OnClick="ConfirmCreateAnother"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Create another
+        </MudButton>
+        <MudButton OnClick="CancelDialog"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Cancel
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public TransactionViewModel DataContext { get; set; } = null!;
-    
+
     void ConfirmCreate() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.Create));
     void ConfirmCreateAnother() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.CreateAnother));
     void CancelDialog() => MudDialog.Cancel();
-    
+
     void TransactionDateChanged(DateTime? dateTime)
     {
         DataContext.TransactionDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
     }
-    
+
     async Task ShowBucketSelectDialog(PartialBucketViewModel partialBucketViewModel)
     {
         var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
         await HandleResult(await bucketSelectDialogDataContext.LoadDataForSelectionScreenAsync());
-        
+
         var parameters = new DialogParameters<BucketSelectDialog>
         {
             { x => x.DataContext, bucketSelectDialogDataContext }
@@ -117,17 +170,17 @@
             partialBucketViewModel.UpdateSelectedBucket(selectedBucket);
             if (partialBucketViewModel.Amount == 0)
             {
-                partialBucketViewModel.Amount = 
-                    DataContext.Amount - 
+                partialBucketViewModel.Amount =
+                    DataContext.Amount -
                     DataContext.Buckets
                         .Where(i => i.SelectedBucketId != partialBucketViewModel.SelectedBucketId)
                         .Sum(i => i.Amount);
             }
         }
-      
+
         StateHasChanged();
     }
-    
+
     async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)

@@ -7,20 +7,31 @@
     <DialogContent>
         <MudGrid Spacing="4">
             <MudItem xs="12">
-                <MudTextField Label="Name:" @bind-Value="DataContext.Name"/>
+                <MudTextField @bind-Value="DataContext.Name"
+                              Label="Name:"/>
             </MudItem>
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmSave">Save</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="ConfirmCancel">Cancel</MudButton>
+        <MudButton OnClick="ConfirmSave"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Save
+        </MudButton>
+        <MudButton OnClick="ConfirmCancel"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Cancel
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public string Title { get; set; } = string.Empty;
 
@@ -35,7 +46,7 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnSaveClickCallback { get; set; }
-    
+
     private void ConfirmSave() => MudDialog.Close(DialogResult.Ok(true));
 
     private void ConfirmCancel() => MudDialog.Cancel();

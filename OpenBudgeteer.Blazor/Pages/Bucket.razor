@@ -6,89 +6,128 @@
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
 
+<!-- Bucket Stats -->
 <MudGrid Class="mb-2">
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/refund.png"
-            Title="Income"
-            Amount="@_dataContext.Income"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.Income"
+                            ImageUrl="css/icons8/refund.png"
+                            Title="Income"/>
     </MudItem>
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/cash-in-hand.png"
-            Title="Expenses"
-            Amount="@_dataContext.Expenses"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.Expenses"
+                            ImageUrl="css/icons8/cash-in-hand.png"
+                            Title="Expenses"/>
     </MudItem>
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/exchange.png"
-            Title="Month Balance"
-            Amount="@_dataContext.MonthBalance"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.MonthBalance"
+                            ImageUrl="css/icons8/exchange.png"
+                            Title="Month Balance"/>
     </MudItem>
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/merchant-account.png"
-            Title="Bank Balance"
-            Amount="@_dataContext.BankBalance"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.BankBalance"
+                            ImageUrl="css/icons8/merchant-account.png"
+                            Title="Bank Balance"/>
     </MudItem>
 </MudGrid>
-<MudDivider Class="my-4" />
+<MudDivider Class="my-4"/>
 <MudGrid Class="mb-4">
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/banknotes.png"
-            Title="Budget"
-            Amount="@_dataContext.Budget"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.Budget"
+                            ImageUrl="css/icons8/banknotes.png"
+                            Title="Budget"/>
     </MudItem>
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/receive-cash.png"
-            Title="Pending Want"
-            Amount="@_dataContext.PendingWant"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.PendingWant"
+                            ImageUrl="css/icons8/receive-cash.png"
+                            Title="Pending Want"/>
     </MudItem>
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/money-bag-euro.png"
-            Title="Remaining Budget"
-            Amount="@_dataContext.RemainingBudget"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.RemainingBudget"
+                            ImageUrl="css/icons8/money-bag-euro.png"
+                            Title="Remaining Budget"/>
     </MudItem>
-    <MudItem xs="3" Class="d-none d-lg-block">
-        <BucketStatsElement
-            ImageUrl="css/icons8/high-priority.png"
-            Title="Negative Bucket Balance"
-            Amount="@_dataContext.NegativeBucketBalance"/>
+    <MudItem xs="3"
+             Class="d-none d-lg-block">
+        <BucketStatsElement Amount="@_dataContext.NegativeBucketBalance"
+                            ImageUrl="css/icons8/high-priority.png"
+                            Title="Negative Bucket Balance"/>
     </MudItem>
 </MudGrid>
 
-<MudStack Row Spacing="2" Class="mb-4" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ShowBucketGroupDialog">Manage Bucket Groups</MudButton>
-    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="@(_dataContext.BucketGroups.Count == 0)" OnClick="ShowEditBucketDialog">Create Bucket</MudButton>
-    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="@(_dataContext.LoadedBuckets.Count == 0)" OnClick="DistributeBudget">Distribute Budget</MudButton>
-    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@((_) => _bucketTableRef?.CollapseAllGroups())">Collapse All</MudButton>
-    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@((_) => _bucketTableRef?.ExpandAllGroups())">Expand All</MudButton>
+<!-- Action Buttons -->
+<MudStack AlignItems="AlignItems.Center"
+          Class="mb-4"
+          Row
+          Spacing="2"
+          Wrap="Wrap.Wrap">
+    <MudButton OnClick="ShowBucketGroupDialog"
+               Color="Color.Primary"
+               Size="Size.Small"
+               Variant="Variant.Filled">
+        Manage Bucket Groups
+    </MudButton>
+    <MudButton OnClick="ShowEditBucketDialog"
+               Color="Color.Primary"
+               Disabled="@(_dataContext.BucketGroups.Count == 0)"
+               Size="Size.Small"
+               Variant="Variant.Filled">
+        Create Bucket
+    </MudButton>
+    <MudButton OnClick="DistributeBudget"
+               Color="Color.Primary"
+               Disabled="@(_dataContext.LoadedBuckets.Count == 0)"
+               Size="Size.Small"
+               Variant="Variant.Filled">
+        Distribute Budget
+    </MudButton>
+    <MudButton OnClick="@(_ => _bucketTableRef?.CollapseAllGroups())"
+               Color="Color.Primary"
+               Size="Size.Small"
+               Variant="Variant.Filled">
+        Collapse All
+    </MudButton>
+    <MudButton OnClick="@(_ => _bucketTableRef?.ExpandAllGroups())"
+               Color="Color.Primary"
+               Size="Size.Small"
+               Variant="Variant.Filled">
+        Expand All
+    </MudButton>
     <MudSpacer/>
     <MudTooltip RootClass="d-flex align-center">
         <ChildContent>
             <MudIcon Icon="@Icons.Material.Outlined.Info"/>
         </ChildContent>
         <TooltipContent>
-            <MudText Typo="Typo.body2" Style="font-weight: bold">Press Shift + move the mouse wheel</MudText>
-            <MudText Typo="Typo.body2" Style="font-weight: bold">to scroll horizontally in below table</MudText>
+            <MudText Typo="Typo.body2"
+                     Style="font-weight: bold">
+                Press Shift + move the mouse wheel
+            </MudText>
+            <MudText Typo="Typo.body2"
+                     Style="font-weight: bold">
+                to scroll horizontally in below table
+            </MudText>
         </TooltipContent>
     </MudTooltip>
     <YearMonthSelector DataContext="YearMonthDataContext"/>
 </MudStack>
 
-<MudTable
-    Items="@_dataContext.LoadedBuckets"
-    Breakpoint="Breakpoint.None"
-    Dense="true"
-    FixedHeader="true"
-    HorizontalScrollbar="true"
-    Hover="true"
-    GroupBy="@_groupByBucketGroup"
-    GroupHeaderStyle="background-color:var(--mud-palette-background-gray)"
-    @ref="_bucketTableRef">
+<!-- Bucket Table -->
+<MudTable @ref="_bucketTableRef"
+          Items="@_dataContext.LoadedBuckets"
+          Breakpoint="Breakpoint.None"
+          Dense="true"
+          FixedHeader="true"
+          GroupBy="@_groupByBucketGroup"
+          GroupHeaderStyle="background-color:var(--mud-palette-background-gray)"
+          HorizontalScrollbar="true"
+          Hover="true">
     <HeaderContent>
         <MudTh>Bucket</MudTh>
         <MudTh Class="col-numbers col-bucket-numbers">Balance</MudTh>
@@ -110,10 +149,11 @@
         <MudTh/>
     </GroupHeaderTemplate>
     <RowTemplate>
+
+        <!-- Bucket Label -->
         <MudTd DataLabel="Bucket">
-            <MudText
-                Class="px-3 bucket-indicator"
-                Style="@($"background-color: {ColorTranslator.ToHtml(context.Color)}; color: {ColorTranslator.ToHtml(context.TextColor)}")">
+            <MudText Class="px-3 bucket-indicator"
+                     Style="@($"background-color: {ColorTranslator.ToHtml(context.Color)}; color: {ColorTranslator.ToHtml(context.TextColor)}")">
                 @if (context.IsInactive)
                 {
                     @($"{context.Name} (Inactive from: {context.IsInactiveFrom.ToShortDateString()})")
@@ -124,31 +164,77 @@
                 }
             </MudText>
         </MudTd>
-        <MudTd DataLabel="Balance" Class="col-numbers" Style="@GetBalanceColor(context.Balance)">@context.Balance.ToString("C", CultureInfo.CurrentCulture)</MudTd>
-        <MudTd DataLabel="InOut">
-            <MudNumericField T="decimal" Format="N2" Culture="CultureInfo.CurrentCulture" @bind-Value="@context.InOut" OnKeyUp="@(args => InOut_Changed(context, args))"/>
+
+        <!-- Balance -->
+        <MudTd Class="col-numbers"
+               DataLabel="Balance"
+               Style="@GetBalanceColor(context.Balance)">
+            @context.Balance.ToString("C", CultureInfo.CurrentCulture)
         </MudTd>
-        <MudTd DataLabel="Want" Class="col-numbers">@(context.Want == 0 ? string.Empty : context.Want.ToString("C", CultureInfo.CurrentCulture))</MudTd>
-        <MudTd DataLabel="In" Class="col-numbers">@(context.In == 0 ? string.Empty : context.In.ToString("C", CultureInfo.CurrentCulture))</MudTd>
-        <MudTd DataLabel="Activity" Class="col-numbers">@(context.Activity == 0 ? string.Empty : context.Activity.ToString("C", CultureInfo.CurrentCulture))</MudTd>
+
+        <!-- In/Out Input -->
+        <MudTd DataLabel="InOut">
+            <MudNumericField T="decimal"
+                             @bind-Value="@context.InOut"
+                             OnKeyUp="@(args => InOut_Changed(context, args))"
+                             Culture="CultureInfo.CurrentCulture"
+                             Format="N2"/>
+        </MudTd>
+
+        <!-- Want -->
+        <MudTd Class="col-numbers"
+               DataLabel="Want">
+            @(context.Want == 0 ? string.Empty : context.Want.ToString("C", CultureInfo.CurrentCulture))
+        </MudTd>
+
+        <!-- In -->
+        <MudTd Class="col-numbers"
+               DataLabel="In">
+            @(context.In == 0 ? string.Empty : context.In.ToString("C", CultureInfo.CurrentCulture))
+        </MudTd>
+
+        <!-- Activity -->
+        <MudTd Class="col-numbers"
+               DataLabel="Activity">
+            @(context.Activity == 0 ? string.Empty : context.Activity.ToString("C", CultureInfo.CurrentCulture))
+        </MudTd>
+
+        <!-- Details -->
         <MudTd DataLabel="Details">
             @if (context.IsProgressbarVisible)
             {
                 <MudStack Spacing="1">
-                    <MudProgressLinear Color="Color.Info" Size="Size.Large" Rounded Value="context.Progress">
-                        <MudText Typo="Typo.caption" Color="Color.Dark">
+                    <MudProgressLinear Color="Color.Info"
+                                       Rounded
+                                       Size="Size.Large"
+                                       Value="context.Progress">
+                        <MudText Color="Color.Dark"
+                                 Typo="Typo.caption">
                             <b>@context.Progress%</b>
                         </MudText>
                     </MudProgressLinear>
-                    <MudText Typo="Typo.caption" Align="Align.Center">@context.Details</MudText>
+                    <MudText Align="Align.Center"
+                             Typo="Typo.caption">
+                        @context.Details
+                    </MudText>
                 </MudStack>
             }
         </MudTd>
+
+        <!-- Action Buttons for Bucket -->
         <MudTd DataLabel="Buttons">
-            <MudStack Row Justify="Justify.FlexEnd">
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.FormatListBulleted" OnClick="@(() => DisplayBucketDetails(context))"/>
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => ShowEditBucketDialog(context))"/>
-                <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => CloseBucket(context))"/>
+            <MudStack Justify="Justify.FlexEnd"
+                      Row>
+                <MudIconButton OnClick="@(() => DisplayBucketDetails(context))"
+                               Icon="@Icons.Material.Filled.FormatListBulleted"
+                               Size="@Size.Small"/>
+                <MudIconButton OnClick="@(() => ShowEditBucketDialog(context))"
+                               Icon="@Icons.Material.Filled.Edit"
+                               Size="@Size.Small"/>
+                <MudIconButton OnClick="@(() => CloseBucket(context))"
+                               Color="Color.Error"
+                               Icon="@Icons.Material.Filled.Delete"
+                               Size="@Size.Small"/>
             </MudStack>
         </MudTd>
     </RowTemplate>

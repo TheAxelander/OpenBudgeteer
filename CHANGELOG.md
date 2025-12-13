@@ -4,7 +4,7 @@
 
 * Transaction Page:
   * Add Dialog for creating Transfer transaction [#194](https://github.com/TheAxelander/OpenBudgeteer/issues/194)
-  * (Re-)Introduce Button groups to cluster similar actions 
+  * (Re-)Introduce Button groups to cluster similar actions
 * Bucket Page:
   * Distribute Budget clears also now negative Bucket Balances [#325](https://github.com/TheAxelander/OpenBudgeteer/issues/325)
 * Report Page:
@@ -16,8 +16,10 @@
 
 ### :beetle: Bug Fixes
 
-* Import Page: 
+* Import Page:
   * Re-enable Payee as optional mapping [#331](https://github.com/TheAxelander/OpenBudgeteer/issues/331)
+* Recurring Transaction Dialog:
+  * Fix table header title
 
 ### :hammer: Maintenance
 
@@ -29,7 +31,7 @@
 
 * Migrated UI to MudBlazor [#287](https://github.com/TheAxelander/OpenBudgeteer/issues/287)
   * Transaction Page:
-    * Transaction creation is now happening is a separate dialog 
+    * Transaction creation is now happening is a separate dialog
     * Mass Deletion of Transactions
     * There are only two modes available: Display Mode and Edit Mode
       * Without any selection, all Transactions will be edited
@@ -67,7 +69,7 @@
 ### :warning: Important notice
 
 * Requires now a Redis container, please check documentation for further details
-* API: Replace Swagger with Scalar (accessible via endpoint `/api`). Only API Version `1.1` will be provided. 
+* API: Replace Swagger with Scalar (accessible via endpoint `/api`). Only API Version `1.1` will be provided.
 * Switched License from MIT to GNU Affero General Public License v3.0
 
 ### :warning: Known issues
@@ -97,7 +99,7 @@
 ### :hammer: Maintenance
 
 * Rework Unit Tests and Code cleanup after dropping Sqlite support [#239](https://github.com/TheAxelander/OpenBudgeteer/issues/239) [#246](https://github.com/TheAxelander/OpenBudgeteer/issues/246)
-* New API Version `1.1` with new Endpoint `/withoutSystemBuckets` 
+* New API Version `1.1` with new Endpoint `/withoutSystemBuckets`
 
 ### :beetle: Bug Fixes
 
@@ -212,7 +214,7 @@
 ## 1.6.2 (2023-01-11)
 
 * [Fixed] Due to implemented fix for [#114](https://github.com/TheAxelander/OpenBudgeteer/issues/114) Column mapping on Import Page was not working properly [#121](https://github.com/TheAxelander/OpenBudgeteer/issues/121) [#122](https://github.com/TheAxelander/OpenBudgeteer/issues/122)
- 
+
 ## 1.6.1 (2022-12-31)
 
 * [Changed] Slight visual changes for Mapping Rule modification
@@ -233,7 +235,7 @@
 * [Changed] Bucket Page: Want, In and Activity figures also now on Bucket Group level [#99](https://github.com/TheAxelander/OpenBudgeteer/issues/99)
 * [Changed] Updated Bootstrap to v5.1.3
 * [Changed] Replaced Open Iconic icons with Bootstrap Icons
-* [Changed] Made Icons8 images offline available 
+* [Changed] Made Icons8 images offline available
 * [Changed] Redesign of Import Page
 * [Changed] On Import Page automatic data validation after selecting an Import Profile has been disabled for now to prevent hickups on large files
 * [Fixed] App Startup will now wait for availability of MySql database [#50](https://github.com/TheAxelander/OpenBudgeteer/issues/50)
@@ -390,7 +392,7 @@
 
 * [Add] Colors for Buckets
 * [Add] Button to distribute Budget on Buckets with Want
-* [Changed] Input fields for numbers and dates are now properly handled 
+* [Changed] Input fields for numbers and dates are now properly handled
 * [Fixed] Want calculation for Bucket Type "Monthly expense"
 
 ## 0.7 (2020-06-30)

@@ -10,47 +10,93 @@
         <MudText Typo="Typo.h6">Manage Bucket Groups</MudText>
     </TitleContent>
     <DialogContent>
-        <MudStack Row Spacing="1">
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => CreateNewBucketGroup(false))">Create on first position</MudButton>
-            <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => CreateNewBucketGroup())">Create on last position</MudButton>
+
+        <!-- Action Buttons -->
+        <MudStack Row
+                  Spacing="1">
+            <MudButton OnClick="@(() => CreateNewBucketGroup(false))"
+                       Class="me-2 mb-2"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Create on first position
+            </MudButton>
+            <MudButton OnClick="@(() => CreateNewBucketGroup())"
+                       Class="me-2 mb-2"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Create on last position
+            </MudButton>
         </MudStack>
-        <MudDataGrid
-            T="BucketGroupViewModel"
-            Items="DataContext"
-            Dense="true"
-            EditMode="DataGridEditMode.Cell"
-            Hover="true"
-            ReadOnly="false"
-            SortMode="SortMode.None"
-            CommittedItemChanges="@BucketGroup_ItemChanged">
+
+        <!-- Group listing -->
+        <MudDataGrid T="BucketGroupViewModel"
+                     CommittedItemChanges="@BucketGroup_ItemChanged"
+                     Dense="true"
+                     EditMode="DataGridEditMode.Cell"
+                     Hover="true"
+                     Items="DataContext"
+                     ReadOnly="false"
+                     SortMode="SortMode.None">
             <Columns>
-                <PropertyColumn Property="x => x.Name" Title="Name"/>
+
+                <!-- Name -->
+                <PropertyColumn Property="x => x.Name"
+                                Title="Name"/>
+
+                <!-- Bucket Group Action Buttons -->
                 <TemplateColumn>
                     <EditTemplate>
-                        <MudStack Row Justify="Justify.FlexEnd">
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.ArrowUpward" OnClick="@(() => HandleResult(context.Item!.MoveGroup(-1)))"/>
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.ArrowDownward" OnClick="@(() => HandleResult(context.Item!.MoveGroup(1)))"/>
-                            <MudIconButton Color="Color.Error" Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeleteBucketGroup(context.Item!))"/>
+                        <MudStack Justify="Justify.FlexEnd"
+                                  Row>
+                            <MudIconButton OnClick="@(() => HandleResult(context.Item!.MoveGroup(-1)))"
+                                           Icon="@Icons.Material.Filled.ArrowUpward"
+                                           Size="@Size.Small"/>
+                            <MudIconButton OnClick="@(() => HandleResult(context.Item!.MoveGroup(1)))"
+                                           Icon="@Icons.Material.Filled.ArrowDownward"
+                                           Size="@Size.Small"/>
+                            <MudIconButton OnClick="@(() => DeleteBucketGroup(context.Item!))"
+                                           Color="Color.Error"
+                                           Icon="@Icons.Material.Filled.Delete"
+                                           Size="@Size.Small"/>
                         </MudStack>
                     </EditTemplate>
                 </TemplateColumn>
+
             </Columns>
         </MudDataGrid>
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-2">Bucket Groups will be displayed once a Bucket has been assigned to it.</MudAlert>
+
+        <!-- Explanation -->
+        <MudAlert Class="mt-2"
+                  Dense="true"
+                  Severity="Severity.Info"
+                  Variant="Variant.Outlined">
+            Bucket Groups will be displayed once a Bucket has been assigned to it.
+        </MudAlert>
+
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+        <MudButton OnClick="CloseDialog"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Close
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public ObservableCollection<BucketGroupViewModel> DataContext { get; set; } = null!;
-    
-    private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void CloseDialog()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
 
     private async Task LoadDataAsync()
     {
@@ -74,15 +120,15 @@
             MudDialog.Cancel();
         }
     }
-    
+
     private async Task CreateNewBucketGroup(bool lastPosition = true)
     {
         var bucketGroup = BucketGroupViewModel.CreateEmpty(ServiceManager);
         if (lastPosition) bucketGroup.Position = DataContext.Count + 1;
-        
+
         await HandleResult(bucketGroup.CreateGroup());
     }
-    
+
     private async Task DeleteBucketGroup(BucketGroupViewModel bucketGroup)
     {
         var parameters = new DialogParameters<DeleteConfirmationDialog>
@@ -97,7 +143,7 @@
             await HandleResult(bucketGroup.DeleteGroup());
         }
     }
-    
+
     private async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)

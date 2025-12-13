@@ -7,58 +7,127 @@
     </TitleContent>
     <DialogContent>
         <MudStack Spacing="8">
+
+            <!-- Sending -->
             <MudGrid Spacing="2">
-                <MudItem xs="12"><MudText Typo="Typo.subtitle1">Sending</MudText></MudItem>
-                <MudItem xs="4">
-                    <MudDatePicker Date="@(SenderDataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(SenderDataContext, time))" ShowToolbar="false"/>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Sending</MudText>
                 </MudItem>
+
+                <!-- Date -->
+                <MudItem xs="4">
+                    <MudDatePicker DateChanged="@(time => TransactionDateChanged(SenderDataContext, time))"
+                                   Date="@(SenderDataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))"
+                                   ShowToolbar="false"/>
+                </MudItem>
+
+                <!-- Account -->
                 <MudItem xs="8">
-                    <MudSelect T="AccountViewModel" @bind-Value="SenderDataContext.SelectedAccount">
+                    <MudSelect T="AccountViewModel"
+                               @bind-Value="SenderDataContext.SelectedAccount">
                         @foreach (var account in SenderDataContext.AvailableAccounts)
                         {
                             <MudSelectItem Value="@account">@account.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12"><MudTextField Label="Payee" @bind-Value="SenderDataContext.Payee"/></MudItem>
-                <MudItem xs="12"><MudTextField Label="Memo" @bind-Value="SenderDataContext.Memo"/></MudItem>
-            </MudGrid>
-            <MudGrid Spacing="2">
-                <MudItem xs="12"><MudText Typo="Typo.subtitle1">Receiving</MudText></MudItem>
-                <MudItem xs="4">
-                    <MudDatePicker Date="@(ReceiverDataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => TransactionDateChanged(ReceiverDataContext, time))" ShowToolbar="false"/>
+
+                <!-- Payee -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="SenderDataContext.Payee"
+                                  Label="Payee"/>
                 </MudItem>
+
+                <!-- Memo -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="SenderDataContext.Memo"
+                                  Label="Memo"/>
+                </MudItem>
+
+            </MudGrid>
+
+            <!-- Receiving -->
+            <MudGrid Spacing="2">
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Receiving</MudText>
+                </MudItem>
+
+                <!-- Date -->
+                <MudItem xs="4">
+                    <MudDatePicker DateChanged="@(time => TransactionDateChanged(ReceiverDataContext, time))"
+                                   Date="@(ReceiverDataContext.TransactionDate.ToDateTime(TimeOnly.MinValue))"
+                                   ShowToolbar="false"/>
+                </MudItem>
+
+                <!-- Account -->
                 <MudItem xs="8">
-                    <MudSelect T="AccountViewModel" @bind-Value="ReceiverDataContext.SelectedAccount">
+                    <MudSelect T="AccountViewModel"
+                               @bind-Value="ReceiverDataContext.SelectedAccount">
                         @foreach (var account in ReceiverDataContext.AvailableAccounts)
                         {
                             <MudSelectItem Value="@account">@account.Name</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12"><MudTextField Label="Payee" @bind-Value="ReceiverDataContext.Payee"/></MudItem>
-                <MudItem xs="12"><MudTextField Label="Memo" @bind-Value="ReceiverDataContext.Memo"/></MudItem>
+
+                <!-- Payee -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="ReceiverDataContext.Payee"
+                                  Label="Payee"/>
+                </MudItem>
+
+                <!-- Memo -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="ReceiverDataContext.Memo"
+                                  Label="Memo"/>
+                </MudItem>
+
             </MudGrid>
+
+            <!-- Exchanging amount -->
             <MudGrid Spacing="2">
-                <MudItem xs="12"><MudText Typo="Typo.subtitle1">Exchanging amount</MudText></MudItem>
-                <MudItem xs="12"><MudNumericField T="decimal" Format="N2" Label="Amount" @bind-Value="Amount"/></MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1">Exchanging amount</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField T="decimal"
+                                     @bind-Value="Amount"
+                                     Format="N2"
+                                     Label="Amount"/>
+                </MudItem>
             </MudGrid>
+
         </MudStack>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreate">Create</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreateAnother">Create another</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelDialog">Cancel</MudButton>
+        <MudButton OnClick="ConfirmCreate"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Create
+        </MudButton>
+        <MudButton OnClick="ConfirmCreateAnother"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Create another
+        </MudButton>
+        <MudButton OnClick="CancelDialog"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Cancel
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public TransactionViewModel SenderDataContext { get; set; } = null!;
-    
+
     [Parameter]
     public TransactionViewModel ReceiverDataContext { get; set; } = null!;
 
@@ -74,11 +143,11 @@
             ReceiverDataContext.Amount = _amount;
         }
     }
-    
+
     void ConfirmCreate() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.Create));
     void ConfirmCreateAnother() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.CreateAnother));
     void CancelDialog() => MudDialog.Cancel();
-    
+
     void TransactionDateChanged(TransactionViewModel transaction, DateTime? dateTime)
     {
         transaction.TransactionDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);

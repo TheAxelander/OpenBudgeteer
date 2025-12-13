@@ -7,42 +7,74 @@
 @inject MudThemeService MudThemeService
 @inject IConfiguration Configuration
 
-<MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
+<MudThemeProvider IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"
+                  Theme="MudThemeService.CurrentThemeSetting.CurrentTheme"/>
 <MudPopoverProvider/>
-<MudDialogProvider BackdropClick="false" CloseOnEscapeKey="false"/>
+<MudDialogProvider BackdropClick="false"
+                   CloseOnEscapeKey="false"/>
 <MudSnackbarProvider/>
 
 <MudLayout>
+
+    <!-- Top Bar -->
     <MudAppBar>
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
-        <MudImage Src="favicon.ico" Height="40" Class="ms-1 me-3 pa-1 rounded-circle" Style=@($"background-color: {AppIconBackground};")/>
+
+        <!-- Left side-->
+        <MudIconButton OnClick="DrawerToggle"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       Icon="@Icons.Material.Filled.Menu"/>
+        <MudImage Class="ms-1 me-3 pa-1 rounded-circle"
+                  Height="40"
+                  Src="favicon.ico"
+                  Style=@($"background-color: {AppIconBackground};")/>
         <MudText>OpenBudgeteer</MudText>
+
+        <!-- Blazor reconnect dialog  -->
         <MudSpacer/>
         <div id="components-reconnect-modal">
-            <MudAlert Severity="Severity.Warning" Dense="true" Variant="Variant.Outlined" NoIcon="true">
-                <MudStack Row Spacing="4">
-                    <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Warning"/>
-                    <MudText>Connection lost. Current reconnect attempt:
+            <MudAlert Dense="true"
+                      NoIcon="true"
+                      Severity="Severity.Warning"
+                      Variant="Variant.Outlined">
+                <MudStack Row
+                          Spacing="4">
+                    <MudIcon Color="Color.Warning"
+                             Icon="@Icons.Material.Filled.WarningAmber"/>
+                    <MudText>
+                        Connection lost. Current reconnect attempt:
                         <span id="components-reconnect-current-attempt"></span> /
                         <span id="components-reconnect-max-retries"></span>
                     </MudText>
-                    <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>
+                    <MudProgressCircular Color="Color.Primary"
+                                         Indeterminate="true"
+                                         Size="Size.Small"/>
                 </MudStack>
             </MudAlert>
         </div>
         <MudSpacer/>
-        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer" Target="_blank"/>
-        <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Color="Color.Inherit" Href="https://theaxelander.github.io/" Target="_blank"/>
+
+        <!-- Right side  -->
+        @*TODO Add divider*@
+        <MudIconButton Color="Color.Inherit"
+                       Href="https://github.com/TheAxelander/OpenBudgeteer"
+                       Icon="@Icons.Custom.Brands.GitHub"
+                       Target="_blank"/>
+        <MudIconButton Color="Color.Inherit"
+                       Href="https://theaxelander.github.io/"
+                       Icon="@Icons.Material.Filled.MenuBook"
+                       Target="_blank"/>
         @if (Configuration.GetValue(ConfigurationKeyConstants.APPSETTINGS_AUTH_ENABLED, false))
         {
             <AuthorizeView>
                 <Authorized>
                     <MudTooltip Text="Logout">
-                        <form method="post" action="/auth/logout" style="display: inline;">
-                            <MudIconButton
-                                Icon="@Icons.Material.Filled.Logout"
-                                Color="Color.Inherit"
-                                ButtonType="ButtonType.Submit"/>
+                        <form action="/auth/logout"
+                              method="post"
+                              style="display: inline;">
+                            <MudIconButton ButtonType="ButtonType.Submit"
+                                           Color="Color.Inherit"
+                                           Icon="@Icons.Material.Filled.Logout"/>
                         </form>
                     </MudTooltip>
                     <MudText Class="ms-2">@context.User.Identity?.Name</MudText>
@@ -50,21 +82,41 @@
             </AuthorizeView>
         }
         <MudText Class="ms-2">@CurrentDatabase</MudText>
-        <MudText Class="ms-3 d-none d-md-block">Version: 1.11.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</MudText>
+        <MudText Class="ms-3 d-none d-md-block">Version: 1.11.0
+            (
+            <a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md"
+               target="_blank">Change Log</a>)
+        </MudText>
     </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Docked">
+
+    <!-- Navigation Menu -->
+    <MudDrawer @bind-Open="@_drawerOpen"
+               ClipMode="DrawerClipMode.Docked">
         <NavMenu/>
     </MudDrawer>
+
+    <!-- Main content -->
     <MudMainContent>
         <ErrorBoundary @ref="_errorBoundary">
+
+            <!-- Main content -->
             <ChildContent>
-                <MudContainer MaxWidth="MaxWidth.False" Class="pt-6 pb-6">@Body</MudContainer>
+                <MudContainer Class="pt-6 pb-6"
+                              MaxWidth="MaxWidth.False">
+                    @Body
+                </MudContainer>
             </ChildContent>
+
+            <!-- Error content -->
             <ErrorContent Context="exception">
-                <MudContainer MaxWidth="MaxWidth.False" Class="pt-6 pb-6">
+                <MudContainer Class="pt-6 pb-6"
+                              MaxWidth="MaxWidth.False">
                     <MudStack Spacing="4">
-                        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" OnClick="() => _errorMessageExpanded = !_errorMessageExpanded">
-                            An unexpected error occured. Feel free to create an issue on GitHub and include below report.
+                        <MudAlert OnClick="() => _errorMessageExpanded = !_errorMessageExpanded"
+                                  Severity="Severity.Error"
+                                  Variant="Variant.Outlined">
+                            An unexpected error occured. Feel free to create an issue on GitHub and include below
+                            report.
                         </MudAlert>
                         <MudDivider/>
                         <MudExpansionPanels>
@@ -73,7 +125,11 @@
                                     <MudText Typo="Typo.h5">Error Message</MudText>
                                     <MudText>@exception.Message</MudText>
                                     <MudText Typo="Typo.h5">Stack Trace</MudText>
-                                    <MudTextField T="string" Text="@exception.StackTrace" ReadOnly="true" Variant="Variant.Outlined" AutoGrow />
+                                    <MudTextField T="string"
+                                                  AutoGrow
+                                                  ReadOnly="true"
+                                                  Text="@exception.StackTrace"
+                                                  Variant="Variant.Outlined"/>
                                 </MudStack>
                             </MudExpansionPanel>
                         </MudExpansionPanels>
@@ -85,11 +141,10 @@
 </MudLayout>
 
 @code {
-
-    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white"; 
+    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white";
     private string CurrentDatabase => DbContextFactory.CreateDbContext().Database.GetDbConnection().Database;
     private bool _drawerOpen = true;
-    
+
     private ErrorBoundary? _errorBoundary;
     bool _errorMessageExpanded;
 

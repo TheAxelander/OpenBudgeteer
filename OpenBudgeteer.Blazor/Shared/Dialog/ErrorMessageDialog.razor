@@ -6,14 +6,19 @@
         <MudText Style="white-space: pre-line">@Message</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+        <MudButton OnClick="CloseDialog"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Close
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public string Title { get; set; } = string.Empty;
 
@@ -25,6 +30,6 @@
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
-    
+
     private void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
 }
