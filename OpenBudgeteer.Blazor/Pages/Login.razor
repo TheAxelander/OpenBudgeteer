@@ -39,15 +39,15 @@
                 <MudTextField T="string"
                               AutoFocus="true"
                               Label="Username"
-                              Name="username"
                               Required="true"
+                              UserAttributes="@(new Dictionary<string, object> { { "name", "username" } })"
                               Variant="Variant.Outlined"/>
 
                 <MudTextField T="string"
                               InputType="InputType.Password"
                               Label="Password"
-                              Name="password"
                               Required="true"
+                              UserAttributes="@(new Dictionary<string, object> { { "name", "password" } })"
                               Variant="Variant.Outlined"/>
 
                 <input type="hidden"
