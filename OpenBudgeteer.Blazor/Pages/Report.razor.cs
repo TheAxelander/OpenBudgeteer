@@ -20,7 +20,7 @@ public partial class Report : ComponentBase
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
     [Inject] private AppSettingService AppSettingService { get; set; } = null!;
     
-    private List<ApexChartWrapper<ApexRecord>> _generalCharts = new();
+    private readonly List<ApexChartWrapper<ApexRecord>> _generalCharts = new();
     private ApexChartWrapper<ApexRecord> AddGeneralChartRef
     {
         set => _generalCharts.Add(value);
