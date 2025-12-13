@@ -26,7 +26,7 @@ public partial class Report : ComponentBase
         set => _generalCharts.Add(value);
     }
     
-    private List<ApexChartWrapper<ApexRecord>> _bucketsCharts = new();
+    private readonly List<ApexChartWrapper<ApexRecord>> _bucketsCharts = new();
     private ApexChartWrapper<ApexRecord> AddBucketChartRef
     {
         set => _bucketsCharts.Add(value);
