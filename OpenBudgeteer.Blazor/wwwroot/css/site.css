@@ -61,3 +61,10 @@
 .apexcharts-svg {
     background: transparent!important;
 }
+
+/* For some reason this setting is not available in MudBlazor CSS
+   Required for MudIcon divider in MainLayout AppBar*/
+.mud-surface-text {
+    color:var(--mud-palette-surface) !important;
+    --mud-ripple-color: var(--mud-palette-surface) !important
+}

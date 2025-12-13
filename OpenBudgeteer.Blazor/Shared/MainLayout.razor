@@ -55,7 +55,6 @@
         <MudSpacer/>
 
         <!-- Right side  -->
-        @*TODO Add divider*@
         <MudIconButton Color="Color.Inherit"
                        Href="https://github.com/TheAxelander/OpenBudgeteer"
                        Icon="@Icons.Custom.Brands.GitHub"
@@ -77,15 +76,25 @@
                                            Icon="@Icons.Material.Filled.Logout"/>
                         </form>
                     </MudTooltip>
+                    <MudIcon Class="ms-2"
+                             Color="Color.Surface"
+                             Icon="@Icons.Material.Filled.HorizontalRule"
+                             Style="rotate: 90deg"/>
                     <MudText Class="ms-2">@context.User.Identity?.Name</MudText>
                 </Authorized>
             </AuthorizeView>
         }
+        <MudIcon Class="ms-2"
+                 Color="Color.Surface"
+                 Icon="@Icons.Material.Filled.HorizontalRule"
+                 Style="rotate: 90deg"/>
         <MudText Class="ms-2">@CurrentDatabase</MudText>
-        <MudText Class="ms-3 d-none d-md-block">Version: 1.11.0
-            (
-            <a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md"
-               target="_blank">Change Log</a>)
+        <MudIcon Class="ms-2"
+                 Color="Color.Surface"
+                 Icon="@Icons.Material.Filled.HorizontalRule"
+                 Style="rotate: 90deg"/>
+        <MudText Class="ms-2 d-none d-md-block">
+            Version: 1.11.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
         </MudText>
     </MudAppBar>
 
