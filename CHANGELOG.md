@@ -1,4 +1,4 @@
-## 1.11 (2025-xx-xx)
+## 1.11 (2025-12-17)
 
 ### :gear: Features & Enhancements
 
