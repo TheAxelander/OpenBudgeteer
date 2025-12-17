@@ -1,0 +1,328 @@
+@page "/report"
+@using ApexCharts
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Blazor.Common.Extensions
+@using Align = MudBlazor.Align
+
+<MudTabs Elevation="2" Rounded PanelClass="pa-4">
+    <MudTabPanel Text="General">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Month Balances</MudText>
+                    <ApexChartWrapper
+                        @ref="AddGeneralChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })"
+                        ChartType="SeriesType.Bar">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.MonthBalances"
+                            Name="Balance"
+                            SeriesType="SeriesType.Bar"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            DataPointMutator="ApexHelper.BalanceChartMutator"/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Bank Balances</MudText>
+                    <ApexChartWrapper
+                        @ref="AddGeneralChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })"
+                        ChartType="SeriesType.Area">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.BankBalances"
+                            Name="Balance"
+                            SeriesType="SeriesType.Area"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            Color=@System.Drawing.Color.Green.ToHexString()/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Income & Expenses per Month</MudText>
+                    <ApexChartWrapper
+                        @ref="AddGeneralChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend })"
+                        ChartType="SeriesType.Bar">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.MonthIncome"
+                            Name="Income"
+                            SeriesType="SeriesType.Bar"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            Color=@System.Drawing.Color.Green.ToHexString()/>
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.MonthExpenses"
+                            Name="Expenses"
+                            SeriesType="SeriesType.Bar"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Income & Expenses per Year</MudText>
+                    <ApexChartWrapper
+                        @ref="AddGeneralChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend })"
+                        ChartType="SeriesType.Bar">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.YearIncome"
+                            Name="Income"
+                            SeriesType="SeriesType.Bar"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            Color=@System.Drawing.Color.Green.ToHexString()/>
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.YearExpenses"
+                            Name="Expenses"
+                            SeriesType="SeriesType.Bar"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudTabPanel>
+    <MudTabPanel Text="Buckets">
+        <MudGrid>
+            <MudItem xs="12">
+                <MudStack Row Spacing="2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                    <MudSpacer/>
+                    <YearMonthSelector DataContext="YearMonthDataContext"/>
+                </MudStack>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Balance per Bucket Group</MudText>
+                    <ApexChartWrapper
+                        @ref="AddBucketChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend, PlotOptions = DonutPlot })"
+                        ChartType="SeriesType.Donut">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.BalanceDistributionBucketGroup"
+                            Name="Balance"
+                            SeriesType="SeriesType.Donut"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            OrderByDescending="i => i.Y"
+                            ShowDataLabels/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Balance per Bucket</MudText>
+                    <ApexChartWrapper
+                        @ref="AddBucketChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend, PlotOptions = DonutPlot })"
+                        ChartType="SeriesType.Donut">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.BalanceDistributionBucket"
+                            Name="Balance"
+                            SeriesType="SeriesType.Donut"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            OrderByDescending="i => i.Y"
+                            ShowDataLabels/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">In per Bucket Group</MudText>
+                    <ApexChartWrapper
+                        @ref="AddBucketChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend, PlotOptions = DonutPlot })"
+                        ChartType="SeriesType.Donut">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.InDistributionBucketGroup"
+                            Name="In"
+                            SeriesType="SeriesType.Donut"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            OrderByDescending="i => i.Y"
+                            ShowDataLabels/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">In per Bucket</MudText>
+                    <ApexChartWrapper
+                        @ref="AddBucketChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend, PlotOptions = DonutPlot })"
+                        ChartType="SeriesType.Donut">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.InDistributionBucket"
+                            Name="In"
+                            SeriesType="SeriesType.Donut"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            OrderByDescending="i => i.Y"
+                            ShowDataLabels/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Activity per Bucket Group</MudText>
+                    <ApexChartWrapper
+                        @ref="AddBucketChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend, PlotOptions = DonutPlot })"
+                        ChartType="SeriesType.Donut">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.ActivityDistributionBucketGroup"
+                            Name="Activity"
+                            SeriesType="SeriesType.Donut"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            OrderByDescending="i => i.Y"
+                            ShowDataLabels/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Activity per Bucket</MudText>
+                    <ApexChartWrapper
+                        @ref="AddBucketChartRef"
+                        TItem="ApexRecord"
+                        Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme, Legend = NoLegend, PlotOptions = DonutPlot })"
+                        ChartType="SeriesType.Donut">
+                        <ApexPointSeries
+                            TItem="ApexRecord"
+                            Items="_dataContext.ActivityDistributionBucket"
+                            Name="Activity"
+                            SeriesType="SeriesType.Donut"
+                            XValue="i => i.Label"
+                            YValue="i => i.Value"
+                            OrderByDescending="i => i.Y"
+                            ShowDataLabels/>
+                    </ApexChartWrapper>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudTabPanel>
+    <MudTabPanel Text="Remaining Budgets">
+        <MudStack Row Spacing="2" Class="mb-4" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+            <MudSpacer/>
+            <YearMonthSelector DataContext="YearMonthDataContext"/>
+        </MudStack>
+        <MudExpansionPanels>
+            @foreach (var bucketGroup in _dataContext.BucketGroupsBucketBudgets)
+            {
+                <MudExpansionPanel Text="@bucketGroup.Name">
+                    <MudGrid Class="mt-n5"> @*Default is "mt-n6" but hides top border of below MudPaper*@
+                        @foreach (var bucketReportRecord in bucketGroup.Buckets)
+                        {
+                            <MudItem xs="12" sm="4">
+                                <MudPaper Elevation="2" Class="pt-2 px-2 overflow-hidden" Height="270px">
+                                    <ApexChartWrapper
+                                        @ref="AddBucketBudgetChartRef"
+                                        Title="@bucketReportRecord.Name"
+                                        TItem="ApexRecord"
+                                        Options="GaugeChartOptions"
+                                        ChartType="SeriesType.RadialBar">
+                                        <ApexPointSeries
+                                            TItem="ApexRecord"
+                                            Items="@bucketReportRecord.Records"
+                                            SeriesType="SeriesType.RadialBar"
+                                            XValue="i => i.Label"
+                                            YValue="i => i.Value"/>
+                                    </ApexChartWrapper>
+                                </MudPaper>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+            <MudStack>
+                <MudText Typo="Typo.body2">This overview shows only meaningful Buckets:</MudText>
+                <MudText Typo="Typo.body2">- Bucket Type: Standard Bucket or Monthly Expense</MudText>
+                <MudText Typo="Typo.body2">- Buckets with zero Balance, Activity and In are excluded (assumed as "unused")</MudText>
+            </MudStack>
+        </MudAlert>
+    </MudTabPanel>
+    <MudTabPanel Text="Monthly Bucket Expenses">
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Bucket Monthly Expenses</MudText>
+                    @foreach (var chart in _monthBucketExpensesConfigsLeft)
+                    {
+                        <ApexChartWrapper
+                            @ref="AddMonthlyBucketExpensesChartRef"
+                            TItem="ApexRecord"
+                            Title="@chart.Item1"
+                            Height="150"
+                            Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })"
+                            ChartType="SeriesType.Bar">
+                            <ApexPointSeries
+                                TItem="ApexRecord"
+                                Items="chart.Item2"
+                                Name="Expenses"
+                                SeriesType="SeriesType.Bar"
+                                XValue="i => i.Label"
+                                YValue="i => i.Value"
+                                Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                        </ApexChartWrapper>
+                    }
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudPaper Elevation="2" Class="pt-2 px-2">
+                    <MudText Typo="Typo.h5" Align="Align.Center">Bucket Monthly Expenses</MudText>
+                    @foreach (var chart in _monthBucketExpensesConfigsRight)
+                    {
+                        <ApexChartWrapper
+                            @ref="AddMonthlyBucketExpensesChartRef"
+                            TItem="ApexRecord"
+                            Title="@chart.Item1"
+                            Height="150"
+                            Options="@(new ApexChartOptions<ApexRecord> { Theme = BaseTheme })"
+                            ChartType="SeriesType.Bar">
+                            <ApexPointSeries
+                                TItem="ApexRecord"
+                                Items="chart.Item2"
+                                Name="Expenses"
+                                SeriesType="SeriesType.Bar"
+                                XValue="i => i.Label"
+                                YValue="i => i.Value"
+                                Color=@System.Drawing.Color.DarkRed.ToHexString()/>
+                        </ApexChartWrapper>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudTabPanel>
+</MudTabs>

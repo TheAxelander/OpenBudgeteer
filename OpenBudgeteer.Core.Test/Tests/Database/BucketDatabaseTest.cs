@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -51,12 +52,13 @@ public class BucketDatabaseTest : BaseDatabaseTest<Bucket>
         }
     }
 
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -64,8 +66,12 @@ public class BucketDatabaseTest : BaseDatabaseTest<Bucket>
                     new MockBucketGroupRepository(mockDb)
                 ],
                 [
-                    new BucketRepository(dbContext),
-                    new BucketGroupRepository(dbContext)
+                    new EFCoreBucketRepository(dbContext),
+                    new EFCoreBucketGroupRepository(dbContext)
+                ],
+                [
+                    new DuckDbBucketRepository(duckDbConnection),
+                    new DuckDbBucketGroupRepository(duckDbConnection)
                 ]
             ];
         }
@@ -100,7 +106,7 @@ public class BucketDatabaseTest : BaseDatabaseTest<Bucket>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IBucketRepository bucketRepository,
         IBucketGroupRepository bucketGroupRepository)
@@ -113,7 +119,7 @@ public class BucketDatabaseTest : BaseDatabaseTest<Bucket>
     }
 
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IBucketRepository bucketRepository,
         IBucketGroupRepository bucketGroupRepository)
@@ -145,7 +151,7 @@ public class BucketDatabaseTest : BaseDatabaseTest<Bucket>
     }
 
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IBucketRepository bucketRepository,
         IBucketGroupRepository bucketGroupRepository)

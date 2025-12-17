@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -19,10 +20,11 @@ public class BucketGroupDatabaseTest : BaseDatabaseTest<BucketGroup>
         Assert.Equal(expected.Position, actual.Position);
     }
     
-    public static IEnumerable<object[]> TestData_Repository =>
+    public static IEnumerable<object[]> TestDataRepository =>
     [
         [new MockBucketGroupRepository(new MockDatabase())],
-        [new BucketGroupRepository(GetInMemoryContext())]
+        [new EFCoreBucketGroupRepository(GetEFCoreInMemoryContext())],
+        [new DuckDbBucketGroupRepository(GetDuckDbInMemoryConnection())]
     ];
 
     private List<BucketGroup> SetupTestData(IBucketGroupRepository bucketGroupRepository)
@@ -43,7 +45,7 @@ public class BucketGroupDatabaseTest : BaseDatabaseTest<BucketGroup>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(IBucketGroupRepository baseRepository)
     {
         var bucketGroups = SetupTestData(baseRepository);
@@ -53,7 +55,7 @@ public class BucketGroupDatabaseTest : BaseDatabaseTest<BucketGroup>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(IBucketGroupRepository baseRepository)
     {
         var bucketGroups = SetupTestData(baseRepository);
@@ -74,7 +76,7 @@ public class BucketGroupDatabaseTest : BaseDatabaseTest<BucketGroup>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(IBucketGroupRepository baseRepository)
     {
         var bucketGroups = SetupTestData(baseRepository);

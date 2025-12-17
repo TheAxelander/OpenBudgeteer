@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -6,78 +7,148 @@ using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.Data.Services.Generic;
 
-public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucketGroupService
+public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<BucketGroup, TDatabase>, IBucketGroupService
+    where TDatabase : class, IDisposable
 {
-    private readonly IBucketGroupRepository _bucketGroupRepository;
+    private readonly ILogger _logger;
     
-    public GenericBucketGroupService(
-        IBucketGroupRepository bucketGroupRepository) : base(bucketGroupRepository)
+    public GenericBucketGroupService(ILogger logger) : base(logger)
     {
-        _bucketGroupRepository = bucketGroupRepository;
+        _logger = logger;
     }
+    
+    protected abstract override IBucketGroupRepository CreateBaseRepository(TDatabase dbConnection);
 
-    public BucketGroup GetWithBuckets(Guid id)
+    public virtual BucketGroup GetWithBuckets(Guid id)
     {
-        var result = _bucketGroupRepository.ByIdWithIncludedEntities(id);
-        if (result is null) throw new EntityNotFoundException($"Unable to find Bucket Group with the given id.");
-        return result;
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            var result = bucketGroupRepository.ByIdWithIncludedEntities(id);
+            if (result is null) throw new EntityNotFoundException($"Unable to find Bucket Group with the given id.");
+            return result;
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
     public override IEnumerable<BucketGroup> GetAll()
     {
-        return _bucketGroupRepository
-            .AllWithIncludedEntities()
-            .Where(i => i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001"))
-            .OrderBy(i => i.Position)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            return bucketGroupRepository
+                .AllWithIncludedEntities()
+                .Where(i => i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                .OrderBy(i => i.Position)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
-    public IEnumerable<BucketGroup> GetAllFull()
+    public virtual IEnumerable<BucketGroup> GetAllFull()
     {
-        return _bucketGroupRepository
-            .AllWithIncludedEntities()
-            .OrderBy(i => i.Position)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            return bucketGroupRepository
+                .AllWithIncludedEntities()
+                .OrderBy(i => i.Position)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
     
-    public IEnumerable<BucketGroup> GetSystemBucketGroups()
+    public virtual IEnumerable<BucketGroup> GetSystemBucketGroups()
     {
-        return _bucketGroupRepository
-            .AllWithIncludedEntities()
-            .Where(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001"))
-            .OrderBy(i => i.Position) //In case in future there are multiple groups
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            return bucketGroupRepository
+                .AllWithIncludedEntities()
+                .Where(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                .OrderBy(i => i.Position) //In case in future there are multiple groups
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
     public override BucketGroup Create(BucketGroup entity)
     {
-        if (entity.Name == string.Empty) throw new EntityUpdateException("Bucket Group Name cannot be empty");
-        
-        var allGroups = GetAll().ToList();
-        var lastNewPosition = allGroups.Count + 1;
-            
-        if (entity.Position > 0)
+        try
         {
-            // Update positions of existing BucketGroups based on requested position
-            // As GetAll excludes System Groups no check on 0 position required
-            foreach (var bucketGroup in allGroups.Where(i => i.Position >= entity.Position)) 
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            
+            if (entity.Name == string.Empty) throw new EntityUpdateException("Bucket Group Name cannot be empty");
+            var allGroups = GetAll().ToList();
+            var lastNewPosition = allGroups.Count + 1;
+            
+            if (entity.Position > 0)
             {
-                bucketGroup.Position++;
-                _bucketGroupRepository.Update(bucketGroup);
+                // Update positions of existing BucketGroups based on requested position
+                // As GetAll excludes System Groups no check on 0 position required
+                foreach (var bucketGroup in allGroups.Where(i => i.Position >= entity.Position)) 
+                {
+                    bucketGroup.Position++;
+                    bucketGroupRepository.Update(bucketGroup);
+                }
+                
+                // Fix a potential too large position number
+                if (entity.Position > lastNewPosition) entity.Position = lastNewPosition;
+            } 
+            else
+            {
+                entity.Position = lastNewPosition;
             }
-                
-            // Fix a potential too large position number
-            if (entity.Position > lastNewPosition) entity.Position = lastNewPosition;
-                
-            _bucketGroupRepository.Create(entity);
-        } 
-        else
-        {
-            entity.Position = lastNewPosition;
-            _bucketGroupRepository.Create(entity);
+            bucketGroupRepository.Create(entity);
+
+            return entity;
         }
-            
-        return entity;
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to create Bucket Group in database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
+        }
     }
 
     public override BucketGroup Update(BucketGroup entity)
@@ -88,22 +159,61 @@ public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucke
 
     public override void Delete(Guid id)
     {
-        var entity = _bucketGroupRepository.ByIdWithIncludedEntities(id);
-        if (entity is null) throw new EntityUpdateException("Bucket Group not found");
-        if (entity.Buckets is not null && entity.Buckets.Any()) throw new EntityUpdateException("Bucket Group with Buckets cannot be deleted");
-
-        var oldPosition = entity.Position;
-        _bucketGroupRepository.Delete(id);
-            
-        // Update Positions of other Bucket Groups
-        foreach (var bucketGroup in GetAll().Where(i => i.Position > oldPosition))
+        try
         {
-            bucketGroup.Position--;
-            _bucketGroupRepository.Update(bucketGroup);
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            var entity = bucketGroupRepository.ByIdWithIncludedEntities(id);
+            if (entity is null) throw new EntityUpdateException("Bucket Group not found");
+            if (entity.Buckets is not null && entity.Buckets.Any()) throw new EntityUpdateException("Bucket Group with Buckets cannot be deleted");
+
+            var oldPosition = entity.Position;
+            bucketGroupRepository.Delete(id);
+            
+            // Update Positions of other Bucket Groups
+            foreach (var bucketGroup in GetAll().Where(i => i.Position > oldPosition))
+            {
+                bucketGroup.Position--;
+                bucketGroupRepository.Update(bucketGroup);
+            }
+        }
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to delete Bucket Group in database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
-    public BucketGroup Move(Guid bucketGroupId, int positions)
+    public virtual BucketGroup Move(Guid bucketGroupId, int positions)
+    {
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketGroupRepository = CreateBaseRepository(dbConnection);
+            var (bucketGroup, updatedBucketGroups) = HandleMovement(bucketGroupId, positions);
+            
+            if (updatedBucketGroups.Any()) bucketGroupRepository.UpdateRange(updatedBucketGroups);
+            return bucketGroup;
+        }
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to move Bucket Group: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Helper method so that it can be wrapped around a DB-transaction in inherited classes
+    /// </summary>
+    protected Tuple<BucketGroup, List<BucketGroup>> HandleMovement(Guid bucketGroupId, int positions)
     {
         // Create in an interim list to handle position updates
         var existingBucketGroups = new ObservableCollection<BucketGroup>();
@@ -114,14 +224,14 @@ public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucke
         
         // Re-use existing reference in interim list of passed Bucket Group (see #282) 
         var bucketGroup = existingBucketGroups.First(i => i.Id == bucketGroupId);
-        if (positions == 0) return bucketGroup;
+        if (positions == 0) return new(bucketGroup, new());
 
         // Calculate new target position
         var bucketGroupCount = existingBucketGroups.Count();
         var targetPosition = bucketGroup.Position + positions;
         if (targetPosition < 1) targetPosition = 1;
         if (targetPosition > bucketGroupCount) targetPosition = bucketGroupCount;
-        if (targetPosition == bucketGroup.Position) return bucketGroup; // Group is already at the end or top. No further action
+        if (targetPosition == bucketGroup.Position) return new(bucketGroup, new()); // Group is already at the end or top. No further action
 
         // Move Group in interim list
         existingBucketGroups.Move(bucketGroup.Position - 1, targetPosition - 1);
@@ -131,10 +241,9 @@ public class GenericBucketGroupService : GenericBaseService<BucketGroup>, IBucke
         foreach (var group in existingBucketGroups)
         {
             group.Position = newPosition;
-            _bucketGroupRepository.Update(group);
             newPosition++;
         }
-
-        return bucketGroup;
+        
+        return new(bucketGroup, existingBucketGroups.ToList());
     }
 }

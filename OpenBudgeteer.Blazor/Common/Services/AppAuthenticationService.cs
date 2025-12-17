@@ -44,7 +44,7 @@ public class AppAuthenticationService
                 return false;
             }
 
-            var hasher = new PasswordHasher<string>(); 
+            var hasher = new PasswordHasher<string>();
             var passwordHash = await GetPasswordHashAsync();
             var result = hasher.VerifyHashedPassword(username, passwordHash, password);
 
@@ -93,7 +93,7 @@ public class AppAuthenticationService
         try
         {
             var sessionKey = $"{SESSION_KEY_PREFIX}:{sessionId}";
-            return await _redisService.KeyExistsAsync(sessionKey);
+            return await _redisService.ContainsKeyAsync(sessionKey);
         }
         catch (Exception e)
         {
@@ -119,7 +119,7 @@ public class AppAuthenticationService
     private async Task<string> GetPasswordHashAsync()
     {
         // Check if hash exists in Redis
-        var existingHash = await _redisService.GetStringValueAsync(PASSWORD_HASH_KEY);
+        var existingHash = await _redisService.GetStringValueAsync(PASSWORD_HASH_KEY, string.Empty);
         if (!string.IsNullOrEmpty(existingHash)) return existingHash;
 
         // Hash user and password from .env and store in Redis

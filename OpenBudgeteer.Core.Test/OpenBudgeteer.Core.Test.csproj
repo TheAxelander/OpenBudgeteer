@@ -37,6 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="DuckDB.NET.Data.Full" Version="1.1.3" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.11" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.11" />
       <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.11" />
@@ -54,6 +55,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\OpenBudgeteer.Core\OpenBudgeteer.Core.csproj" />
+      <ProjectReference Include="..\OpenBudgeteer.Core.Data.DuckDb.Migrations\OpenBudgeteer.Core.Data.DuckDb.Migrations.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Core.Data.MySql.Migrations\OpenBudgeteer.Core.Data.MySql.Migrations.csproj" />
       <ProjectReference Include="..\OpenBudgeteer.Core.Data\OpenBudgeteer.Core.Data.csproj" />
     </ItemGroup>

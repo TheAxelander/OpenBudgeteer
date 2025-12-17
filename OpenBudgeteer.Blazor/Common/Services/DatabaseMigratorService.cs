@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Initialization;
 
@@ -12,8 +13,6 @@ public class DatabaseMigratorService : IHostedService
 {
     private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
     private readonly IConfiguration _configuration;
-    
-    private const string APPSETTINGS_DEMO_DATA = "APPSETTINGS_DEMO_DATA";
 
     public DatabaseMigratorService(IDbContextFactory<DatabaseContext> dbContextFactory, IConfiguration configuration)
     {
@@ -26,7 +25,7 @@ public class DatabaseMigratorService : IHostedService
         await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         await context.Database.MigrateAsync(cancellationToken: cancellationToken);
 
-        var initializeWithDemoData = _configuration.GetValue<bool>(APPSETTINGS_DEMO_DATA);
+        var initializeWithDemoData = _configuration.GetValue<bool>(ConfigurationKeyConstants.APPSETTINGS_DEMO_DATA);
         if (initializeWithDemoData) new DemoDataGenerator(_dbContextFactory).GenerateDemoData();
     }
 

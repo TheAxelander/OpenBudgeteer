@@ -1,0 +1,292 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Linq;
+using Dapper;
+using OpenBudgeteer.Core.Data.Contracts.Repositories;
+using OpenBudgeteer.Core.Data.Entities.Models;
+
+namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
+
+public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactionRepository
+{
+    private readonly DbConnection _connection;
+
+    public DuckDbRecurringBankTransactionRepository(DbConnection connection)
+    {
+        _connection = connection;
+    }
+
+    public IQueryable<RecurringBankTransaction> All()
+    {
+        var sql = @"SELECT 
+                        TransactionId AS Id, 
+                        AccountId, 
+                        RecurrenceType, 
+                        RecurrenceAmount, 
+                        FirstOccurrenceDate, 
+                        Payee, 
+                        Memo, 
+                        Amount
+                    FROM RecurringBankTransaction";
+        return _connection.Query<RecurringBankTransaction>(sql).AsQueryable();
+    }
+
+    public IQueryable<RecurringBankTransaction> AllWithIncludedEntities()
+    {
+        var sql = @"SELECT
+                        rbt.TransactionId AS Id,
+                        rbt.AccountId,
+                        rbt.RecurrenceType,
+                        rbt.RecurrenceAmount,
+                        rbt.FirstOccurrenceDate,
+                        rbt.Payee,
+                        rbt.Memo,
+                        rbt.Amount,
+                        a.AccountId AS Id,
+                        a.Name,
+                        a.IsActive
+                    FROM RecurringBankTransaction rbt
+                    INNER JOIN Account a ON rbt.AccountId = a.AccountId";
+
+        var result = _connection.Query<RecurringBankTransaction, Account, RecurringBankTransaction>(
+            sql,
+            (transaction, account) =>
+            {
+                transaction.Account = account;
+                return transaction;
+            },
+            splitOn: "Id");
+
+        return result.AsQueryable();
+    }
+
+    public RecurringBankTransaction? ById(Guid id)
+    {
+        var sql = @"SELECT 
+                        TransactionId AS Id, 
+                        AccountId, 
+                        RecurrenceType, 
+                        RecurrenceAmount, 
+                        FirstOccurrenceDate, 
+                        Payee, 
+                        Memo, 
+                        Amount
+                    FROM RecurringBankTransaction
+                    WHERE TransactionId = $1";
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var p1 = cmd.CreateParameter();
+        p1.Value = id.ToString();
+        cmd.Parameters.Add(p1);
+
+        using var reader = cmd.ExecuteReader();
+        if (reader.Read())
+        {
+            return new RecurringBankTransaction
+            {
+                Id = Guid.Parse(reader.GetString(0)),
+                AccountId = Guid.Parse(reader.GetString(1)),
+                RecurrenceType = reader.GetInt32(2),
+                RecurrenceAmount = reader.GetInt32(3),
+                FirstOccurrenceDate = DateOnly.FromDateTime(reader.GetDateTime(4)),
+                Payee = reader.IsDBNull(5) ? null : reader.GetString(5),
+                Memo = reader.IsDBNull(6) ? null : reader.GetString(6),
+                Amount = reader.GetDecimal(7)
+            };
+        }
+        return null;
+    }
+
+    public RecurringBankTransaction? ByIdWithIncludedEntities(Guid id)
+    {
+        var sql = @"SELECT
+                        rbt.TransactionId AS Id,
+                        rbt.AccountId,
+                        rbt.RecurrenceType,
+                        rbt.RecurrenceAmount,
+                        rbt.FirstOccurrenceDate,
+                        rbt.Payee,
+                        rbt.Memo,
+                        rbt.Amount,
+                        a.AccountId AS Id,
+                        a.Name,
+                        a.IsActive
+                    FROM RecurringBankTransaction rbt
+                    INNER JOIN Account a ON rbt.AccountId = a.AccountId
+                    WHERE rbt.TransactionId = $1";
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var p1 = cmd.CreateParameter();
+        p1.Value = id.ToString();
+        cmd.Parameters.Add(p1);
+
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read()) return null;
+        var transaction = new RecurringBankTransaction
+        {
+            Id = Guid.Parse(reader.GetString(0)),
+            AccountId = Guid.Parse(reader.GetString(1)),
+            RecurrenceType = reader.GetInt32(2),
+            RecurrenceAmount = reader.GetInt32(3),
+            FirstOccurrenceDate = DateOnly.FromDateTime(reader.GetDateTime(4)),
+            Payee = reader.IsDBNull(5) ? null : reader.GetString(5),
+            Memo = reader.IsDBNull(6) ? null : reader.GetString(6),
+            Amount = reader.GetDecimal(7),
+            Account = new Account
+            {
+                Id = Guid.Parse(reader.GetString(8)),
+                Name = reader.IsDBNull(9) ? null : reader.GetString(9),
+                IsActive = reader.GetInt32(10)
+            }
+        };
+        return transaction;
+    }
+
+    public int Create(RecurringBankTransaction entity)
+    {
+        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+
+        var sql = @"INSERT INTO RecurringBankTransaction (
+                        TransactionId, 
+                        AccountId, 
+                        RecurrenceType, 
+                        RecurrenceAmount, 
+                        FirstOccurrenceDate, 
+                        Payee, 
+                        Memo, 
+                        Amount)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var p1 = cmd.CreateParameter();
+        p1.Value = entity.Id.ToString();
+        cmd.Parameters.Add(p1);
+
+        var p2 = cmd.CreateParameter();
+        p2.Value = entity.AccountId.ToString();
+        cmd.Parameters.Add(p2);
+
+        var p3 = cmd.CreateParameter();
+        p3.Value = entity.RecurrenceType;
+        cmd.Parameters.Add(p3);
+
+        var p4 = cmd.CreateParameter();
+        p4.Value = entity.RecurrenceAmount;
+        cmd.Parameters.Add(p4);
+
+        var p5 = cmd.CreateParameter();
+        p5.Value = entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue);
+        cmd.Parameters.Add(p5);
+
+        var p6 = cmd.CreateParameter();
+        p6.Value = (object?)entity.Payee ?? DBNull.Value;
+        cmd.Parameters.Add(p6);
+
+        var p7 = cmd.CreateParameter();
+        p7.Value = (object?)entity.Memo ?? DBNull.Value;
+        cmd.Parameters.Add(p7);
+
+        var p8 = cmd.CreateParameter();
+        p8.Value = entity.Amount;
+        cmd.Parameters.Add(p8);
+
+        return cmd.ExecuteNonQuery();
+    }
+
+    public int CreateRange(IEnumerable<RecurringBankTransaction> entities)
+    {
+        return entities.Sum(Create);
+    }
+
+    public int Update(RecurringBankTransaction entity)
+    {
+        var sql = @"UPDATE RecurringBankTransaction
+                    SET 
+                        AccountId = $1, 
+                        RecurrenceType = $2, 
+                        RecurrenceAmount = $3, 
+                        FirstOccurrenceDate = $4, 
+                        Payee = $5, 
+                        Memo = $6, 
+                        Amount = $7
+                    WHERE TransactionId = $8";
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var p1 = cmd.CreateParameter();
+        p1.Value = entity.AccountId.ToString();
+        cmd.Parameters.Add(p1);
+
+        var p2 = cmd.CreateParameter();
+        p2.Value = entity.RecurrenceType;
+        cmd.Parameters.Add(p2);
+
+        var p3 = cmd.CreateParameter();
+        p3.Value = entity.RecurrenceAmount;
+        cmd.Parameters.Add(p3);
+
+        var p4 = cmd.CreateParameter();
+        p4.Value = entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue);
+        cmd.Parameters.Add(p4);
+
+        var p5 = cmd.CreateParameter();
+        p5.Value = (object?)entity.Payee ?? DBNull.Value;
+        cmd.Parameters.Add(p5);
+
+        var p6 = cmd.CreateParameter();
+        p6.Value = (object?)entity.Memo ?? DBNull.Value;
+        cmd.Parameters.Add(p6);
+
+        var p7 = cmd.CreateParameter();
+        p7.Value = entity.Amount;
+        cmd.Parameters.Add(p7);
+
+        var p8 = cmd.CreateParameter();
+        p8.Value = entity.Id.ToString();
+        cmd.Parameters.Add(p8);
+
+        return cmd.ExecuteNonQuery();
+    }
+
+    public int UpdateRange(IEnumerable<RecurringBankTransaction> entities)
+    {
+        return entities.Sum(Update);
+    }
+
+    public int Delete(Guid id)
+    {
+        // Consistency checks
+        var entity = ById(id);
+        if (entity is null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
+        
+        var sql = @"DELETE FROM RecurringBankTransaction WHERE TransactionId = $1";
+
+        using var cmd = _connection.CreateCommand();
+        cmd.CommandText = sql;
+
+        var p1 = cmd.CreateParameter();
+        p1.Value = id.ToString();
+        cmd.Parameters.Add(p1);
+
+        return cmd.ExecuteNonQuery();
+    }
+
+    public int DeleteRange(IEnumerable<Guid> ids)
+    {
+        // Consistency checks
+        var scope = ids.ToList();
+        var entities = scope.Select(ById).ToList();
+        if (entities.Count == 0) throw new Exception($"No RecurringBankTransactions found with passed IDs.");
+        
+        return scope.Sum(Delete);
+    }
+}

@@ -1,0 +1,88 @@
+@using OpenBudgeteer.Photino.Services
+@inherits LayoutComponentBase
+@inject PhotinoMudThemeService MudThemeService
+
+<MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
+<MudPopoverProvider/>
+<MudDialogProvider BackdropClick="false" CloseOnEscapeKey="false"/>
+<MudSnackbarProvider/>
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="DrawerToggle"/>
+        <MudImage Src="favicon.ico" Height="40" Class="ms-1 me-3 pa-1 rounded-circle" Style=@($"background-color: {AppIconBackground};")/>
+        <MudText>OpenBudgeteer</MudText>
+        <MudSpacer/>
+        <div id="components-reconnect-modal">
+            <MudAlert Severity="Severity.Warning" Dense="true" Variant="Variant.Outlined" NoIcon="true">
+                <MudStack Row Spacing="4">
+                    <MudIcon Icon="@Icons.Material.Filled.WarningAmber" Color="Color.Warning"/>
+                    <MudText>Connection lost. Current reconnect attempt:
+                        <span id="components-reconnect-current-attempt"></span> /
+                        <span id="components-reconnect-max-retries"></span>
+                    </MudText>
+                    <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>
+                </MudStack>
+            </MudAlert>
+        </div>
+        <MudSpacer/>
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer" Target="_blank"/>
+        <MudIconButton Icon="@Icons.Material.Filled.MenuBook" Color="Color.Inherit" Href="https://theaxelander.github.io/" Target="_blank"/>
+        @*<MudText Class="ms-2">@CurrentDatabase</MudText>*@
+        <MudText Class="ms-3 d-none d-md-block">Version: 1.11.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)</MudText>
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Docked">
+        <OpenBudgeteer.Blazor.Shared.NavMenu/>
+    </MudDrawer>
+    <MudMainContent>
+        <ErrorBoundary @ref="_errorBoundary">
+            <ChildContent>
+                <MudContainer MaxWidth="MaxWidth.False" Class="pt-6 pb-6">@Body</MudContainer>
+            </ChildContent>
+            <ErrorContent Context="exception">
+                <MudContainer MaxWidth="MaxWidth.False" Class="pt-6 pb-6">
+                    <MudStack Spacing="4">
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" OnClick="() => _errorMessageExpanded = !_errorMessageExpanded">
+                            An unexpected error occured. Feel free to create an issue on GitHub and include below report.
+                        </MudAlert>
+                        <MudDivider/>
+                        <MudExpansionPanels>
+                            <MudExpansionPanel Text="Detailed Report">
+                                <MudStack Spacing="4">
+                                    <MudText Typo="Typo.h5">Error Message</MudText>
+                                    <MudText>@exception.Message</MudText>
+                                    <MudText Typo="Typo.h5">Stack Trace</MudText>
+                                    <MudTextField T="string" Text="@exception.StackTrace" ReadOnly="true" Variant="Variant.Outlined" AutoGrow />
+                                </MudStack>
+                            </MudExpansionPanel>
+                        </MudExpansionPanels>
+                    </MudStack>
+                </MudContainer>
+            </ErrorContent>
+        </ErrorBoundary>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white";
+    //private string CurrentDatabase => DbContextFactory.CreateDbContext().Database.GetDbConnection().Database;
+    private bool _drawerOpen = true;
+
+    private ErrorBoundary? _errorBoundary;
+    bool _errorMessageExpanded;
+
+    protected override void OnInitialized()
+    {
+        MudThemeService.ThemeChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+    }
+
+    protected override void OnParametersSet()
+    {
+        _errorBoundary?.Recover();
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

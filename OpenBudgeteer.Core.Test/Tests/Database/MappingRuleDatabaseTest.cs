@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -26,12 +27,13 @@ public class MappingRuleDatabaseTest : BaseDatabaseTest<MappingRule>
         Assert.Equal(expected.ComparisonValue, actual.ComparisonValue);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -41,10 +43,16 @@ public class MappingRuleDatabaseTest : BaseDatabaseTest<MappingRule>
                     new MockBucketGroupRepository(mockDb)
                 ],
                 [
-                    new MappingRuleRepository(dbContext),
-                    new BucketRuleSetRepository(dbContext),
-                    new BucketRepository(dbContext),
-                    new BucketGroupRepository(dbContext)
+                    new EFCoreMappingRuleRepository(dbContext),
+                    new EFCoreBucketRuleSetRepository(dbContext),
+                    new EFCoreBucketRepository(dbContext),
+                    new EFCoreBucketGroupRepository(dbContext)
+                ],
+                [
+                    new DuckDbMappingRuleRepository(duckDbConnection),
+                    new DuckDbBucketRuleSetRepository(duckDbConnection),
+                    new DuckDbBucketRepository(duckDbConnection),
+                    new DuckDbBucketGroupRepository(duckDbConnection)
                 ]
             ];
         }
@@ -88,7 +96,7 @@ public class MappingRuleDatabaseTest : BaseDatabaseTest<MappingRule>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IMappingRuleRepository mappingRuleRepository,
         IBucketRuleSetRepository bucketRuleSetRepository,
@@ -106,7 +114,7 @@ public class MappingRuleDatabaseTest : BaseDatabaseTest<MappingRule>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IMappingRuleRepository mappingRuleRepository,
         IBucketRuleSetRepository bucketRuleSetRepository,
@@ -139,7 +147,7 @@ public class MappingRuleDatabaseTest : BaseDatabaseTest<MappingRule>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IMappingRuleRepository mappingRuleRepository,
         IBucketRuleSetRepository bucketRuleSetRepository,

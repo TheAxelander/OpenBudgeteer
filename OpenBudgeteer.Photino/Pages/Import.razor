@@ -1,0 +1,399 @@
+﻿@page "/import"
+@using OpenBudgeteer.Core.ViewModels.EntityViewModels
+@using System.Globalization
+@using OpenBudgeteer.Blazor.Common
+@using OpenBudgeteer.Blazor.Common.InputLargeTextArea
+@using OpenBudgeteer.Core.Common
+@using OpenBudgeteer.Core.Common.Extensions
+@using OpenBudgeteer.Core.ViewModels.PageViewModels
+@using TinyCsvParser.Mapping
+
+<MudStepper @ref="_stepper" NonLinear ShowResetButton Ripple @bind-ActiveIndex="_stepperIndex" OnPreviewInteraction="OnPreviewInteraction">
+    <ChildContent>
+        <MudStep Title="Step 1" SecondaryText="Select File" Completed="@_maxStepLevel.In(MaxStepLevel.Step2, MaxStepLevel.Step3, MaxStepLevel.Step4)">
+            <MudFileUpload T="IBrowserFile" @ref="_fileUpload" FilesChanged="UploadFile">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">Open File</MudButton>
+                    @if (_selectedFileName is not null)
+                    {
+                        <MudChip T="string" Class="ms-2" Color="Color.Dark" Text="@_selectedFileName"/>
+                    }
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudStep>
+        <MudStep
+            Title="Step 2"
+            SecondaryText="Select Import Profile"
+            Completed="@_maxStepLevel.In(MaxStepLevel.Step3, MaxStepLevel.Step4)"
+            Disabled="@_maxStepLevel.In(MaxStepLevel.Step1)">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudStack Row Spacing="2">
+                        @if (_maxStepLevel == MaxStepLevel.Step4)
+                        {
+                            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="CreateProfile">Create Profile</MudButton>
+                            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SaveProfile">Save Profile</MudButton>
+                        }
+                        @if (_dataContext.SelectedImportProfile is not null)
+                        {
+                            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteProfile">Delete Profile</MudButton>
+                        }
+                    </MudStack>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudSelect T="ImportProfileViewModel" Label="Import Profile:" @bind-Value="_dataContext.SelectedImportProfile" @bind-Value:after="SelectedImportProfile_SelectionChanged">
+                        @foreach (var importProfile in _dataContext.AvailableImportProfiles)
+                        {
+                            <MudSelectItem T="ImportProfileViewModel" Value="@importProfile">@importProfile.ProfileName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudTextField Label="Profile Name:" @bind-Value="_dataContext.ModifiedImportProfile.ProfileName"/>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudSelect T="AccountViewModel" Label="Target Account:" @bind-Value="_dataContext.ModifiedImportProfile.Account">
+                        @foreach (var account in _dataContext.AvailableAccounts)
+                        {
+                            <MudSelectItem Value="@account">@account.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudTextField Label="Delimiter:" MaxLength="1" @bind-Value="DelimiterHelper"/>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudTextField Label="Date format:" HelperText="e.g. yyyy-MM-dd, dd.MM.yyyy, MM/dd/yyyy" @bind-Value="_dataContext.ModifiedImportProfile.DateFormat"/>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudTextField Label="Text qualifier:" MaxLength="1" @bind-Value="TextQualifierHelper"/>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudTextField Label="Number format:" HelperText="Use BCP 47 language tag like en-US or de-DE" @bind-Value="_dataContext.ModifiedImportProfile.NumberFormat"/>
+                </MudItem>
+                <MudItem xs="6" sm="4">
+                    <MudStack Row AlignItems="AlignItems.End">
+                        <MudNumericField T="int" Label="Header Row:" @bind-Value="_dataContext.ModifiedImportProfile.HeaderRow"/>
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="LoadHeaders">Load Header</MudButton>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </MudStep>
+        <MudStep
+            Title="Step 3"
+            SecondaryText="Modify Column Mapping"
+            Completed="@_maxStepLevel.In(MaxStepLevel.Step4)"
+            Disabled="@_maxStepLevel.In(MaxStepLevel.Step1, MaxStepLevel.Step2)">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Column Mapping:</MudText>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudSelect T="string" Label="Transaction Date:" @bind-Value="_dataContext.ModifiedImportProfile.TransactionDateColumnName">
+                        @foreach (var column in _dataContext.IdentifiedColumns)
+                        {
+                            <MudSelectItem Value="@column">@column</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudSelect T="string" Label="Payee (optional):" @bind-Value="_dataContext.ModifiedImportProfile.PayeeColumnName">
+                        <MudSelectItem Value="@string.Empty">(empty)</MudSelectItem>
+                        @foreach (var column in _dataContext.IdentifiedColumns)
+                        {
+                            <MudSelectItem Value="@column">@column</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudSelect T="string" Label="Memo:" @bind-Value="_dataContext.ModifiedImportProfile.MemoColumnName">
+                        @foreach (var column in _dataContext.IdentifiedColumns)
+                        {
+                            <MudSelectItem Value="@column">@column</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6" sm="3">
+                    <MudSelect T="string" Label="Amount / Debit:" @bind-Value="_dataContext.ModifiedImportProfile.AmountColumnName">
+                        @foreach (var column in _dataContext.IdentifiedColumns)
+                        {
+                            <MudSelectItem Value="@column">@column</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.h6">Additional Mapping Settings:</MudText>
+                    <MudRadioGroup @bind-Value="_dataContext.ModifiedImportProfile.AdditionalSettingCreditValue">
+                        <MudStack Spacing="0">
+                            <MudRadio Value="@ImportProfileViewModel.AdditionalSettingsForCreditValues.NoSettings">No special settings for Debit and Credit</MudRadio>
+                            <MudRadio Value="@ImportProfileViewModel.AdditionalSettingsForCreditValues.CreditInSeparateColumns">Credit values are in separate columns</MudRadio>
+                            <MudRadio Value="@ImportProfileViewModel.AdditionalSettingsForCreditValues.DebitCreditAlwaysPositive">Debit and Credit values are in the same column but always positive</MudRadio>
+                        </MudStack>
+                    </MudRadioGroup>
+                </MudItem>
+                @switch (_dataContext.ModifiedImportProfile.AdditionalSettingCreditValue)
+                {
+                    case ImportProfileViewModel.AdditionalSettingsForCreditValues.CreditInSeparateColumns:
+                        <MudItem xs="12" sm="3">
+                            <MudSelect T="string" Label="Credit:" @bind-Value="_dataContext.ModifiedImportProfile.CreditColumnName">
+                                @foreach (var column in _dataContext.IdentifiedColumns)
+                                {
+                                    <MudSelectItem Value="@column">@column</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        break;
+                    case ImportProfileViewModel.AdditionalSettingsForCreditValues.DebitCreditAlwaysPositive:
+                        <MudItem xs="12" sm="3">
+                            <MudSelect T="string" Label="Column to identify Credit records:" @bind-Value="_dataContext.ModifiedImportProfile.CreditColumnIdentifierColumnName">
+                                @foreach (var column in _dataContext.IdentifiedColumns)
+                                {
+                                    <MudSelectItem Value="@column">@column</MudSelectItem>
+                                }
+                            </MudSelect>
+                            <MudTextField Label="Column value to identify Credit records:" @bind-Value="_dataContext.ModifiedImportProfile.CreditColumnIdentifierValue"/>
+                        </MudItem>
+                        break;
+                    case ImportProfileViewModel.AdditionalSettingsForCreditValues.NoSettings:
+                    default:
+                        break;
+                }
+                <MudItem xs="12">
+                    <MudDivider/>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudCheckBox Label="Amount contains additional characters (e.g. currency symbols)" @bind-Value="_dataContext.ModifiedImportProfile.AdditionalSettingAmountCleanup"/>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    @if (_dataContext.ModifiedImportProfile.AdditionalSettingAmountCleanup)
+                    {
+                        <MudTextField Label="Characters / Substring to be removed:" @bind-Value="_dataContext.ModifiedImportProfile.AdditionalSettingAmountCleanupValue"/>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudStep>
+        <MudStep
+            Title="Step 4"
+            SecondaryText="Validate and Import Data"
+            Disabled="@_maxStepLevel.In(MaxStepLevel.Step1, MaxStepLevel.Step2, MaxStepLevel.Step3)">
+            <MudStack Row Spacing="2" Class="mb-2">
+                @if (!_isValidationRunning)
+                {
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="_isImportRunning" OnClick="ValidateDataAsync">Validate Data</MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="true"><MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>Validating...</MudButton>
+                }
+
+                @if (_dataContext.ValidRecords > 0 && !_isValidationRunning)
+                {
+                    @if (!_isImportRunning)
+                    {
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="() => ImportDataAsync(false)">Import Data</MudButton>
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="() => ImportDataAsync(true)">Import Data (without Duplicates)</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Disabled="true"><MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true"/>Importing...</MudButton>
+                    }
+                }
+            </MudStack>
+            <MudStack Spacing="1" Class="mb-2">
+                <MudText Typo="Typo.body1">Total Records: @_dataContext.TotalRecords</MudText>
+                <MudText Typo="Typo.body1">Valid Records: @_dataContext.ValidRecords</MudText>
+                <MudText Typo="Typo.body1">Records with errors: @_dataContext.RecordsWithErrors</MudText>
+                <MudText Typo="Typo.body1">Potential Duplicates: @_dataContext.PotentialDuplicates</MudText>
+                @if (_validationErrorMessage != string.Empty)
+                {
+                    <MudText Typo="Typo.body1" Color="Color.Error">Error message: @_validationErrorMessage</MudText>
+                }
+            </MudStack>
+            <MudStack Spacing="4">
+                @if (_dataContext.ParsedRecords.Any(i => i.IsValid))
+                {
+                    <MudText Typo="Typo.h5">Preview (Valid Records)</MudText>
+                    <MudDataGrid
+                        T="CsvMappingResult<ParsedBankTransaction>"
+                        Items="_dataContext.ParsedRecords.Where(i => i.IsValid)"
+                        Dense="true"
+                        Filterable="true"
+                        FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                        Hover="true"
+                        ReadOnly="true"
+                        SortMode="SortMode.Multiple">
+                        <Columns>
+                            <PropertyColumn Property="x => x.Result.TransactionDate" Title="Date">
+                                <CellTemplate>
+                                    <MudText>@context.Item.Result.TransactionDate.ToShortDateString()</MudText>
+                                </CellTemplate>
+                                <FilterTemplate>
+                                    <MudGrid Spacing="6" Style="width:430px">
+                                        <MudItem xs="12">
+                                            <MudDateRangePicker
+                                                PickerVariant="PickerVariant.Inline"
+                                                @bind-DateRange="@_validRecordsDateOnlyMudFilter.DateRange"
+                                                Margin="Margin.Dense"/>
+                                        </MudItem>
+                                        <MudItem xs="12" Class="d-flex justify-end">
+                                            <MudButton OnClick="@(() => _validRecordsDateOnlyMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                            <MudButton Color="@Color.Primary" OnClick="@(() => _validRecordsDateOnlyMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                                        </MudItem>
+                                    </MudGrid>
+                                </FilterTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.Result.Payee"/>
+                            <PropertyColumn Property="x => x.Result.Memo"/>
+                            <PropertyColumn Property="x => x.Result.Amount" Format="C" Culture="CultureInfo.CurrentCulture" CellClass="col-numbers"/>
+                        </Columns>
+                    </MudDataGrid>
+                }
+
+                @if (_dataContext.ParsedRecords.Any(i => !i.IsValid))
+                {
+                    <MudText Typo="Typo.h5">Records with error</MudText>
+                    <MudDataGrid
+                        T="CsvMappingResult<ParsedBankTransaction>"
+                        Items="_dataContext.ParsedRecords.Where(i => !i.IsValid)"
+                        Dense="true"
+                        Filterable="true"
+                        FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                        Hover="true"
+                        ReadOnly="true"
+                        SortMode="SortMode.Multiple">
+                        <Columns>
+                            <PropertyColumn Property="x => x.RowIndex" Title="Row" CellClass="col-numbers" CellStyle="width:50px" Filterable="false"/>
+                            <PropertyColumn Property="x => x.Error" Title="Details" Comparer="@(new MudComparer())">
+                                <CellTemplate>
+                                    <MudStack>
+                                        <MudText>@context.Item.Error.Value</MudText>
+                                        <MudText>@context.Item.Error.UnmappedRow</MudText>
+                                    </MudStack>
+                                </CellTemplate>
+                                <FilterTemplate>
+                                    <MudGrid Spacing="6" Style="width:430px">
+                                        <MudItem xs="12">
+                                            <MudSelect
+                                                T="EquatableCsvMappingError"
+                                                @bind-SelectedValues="_errorRecordsMudFilter.SelectedItems"
+                                                MultiSelection="true"
+                                                MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Errors"))"
+                                                SelectAll="true">
+                                                @foreach (var csvMappingError in _errorRecordsMudFilter.AvailableItems)
+                                                {
+                                                    <MudSelectItem Value="csvMappingError">@csvMappingError.Value</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </MudItem>
+                                        <MudItem xs="12" Class="d-flex justify-end">
+                                            <MudButton OnClick="@(() => _errorRecordsMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                            <MudButton Color="@Color.Primary" OnClick="@(() => _errorRecordsMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                                        </MudItem>
+                                    </MudGrid>
+                                </FilterTemplate>
+                            </PropertyColumn>
+                        </Columns>
+                    </MudDataGrid>
+                }
+
+                @if (_dataContext.Duplicates.Any())
+                {
+                    <MudText Typo="Typo.h5">Potential Duplicates</MudText>
+                    <MudDataGrid
+                        T="ImportPageViewModel.Duplicate"
+                        Items="_dataContext.Duplicates"
+                        Dense="true"
+                        Filterable="true"
+                        FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                        Hover="true"
+                        ReadOnly="true"
+                        SortMode="SortMode.Multiple">
+                        <Columns>
+                            <PropertyColumn Property="x => x.ParsedBankTransaction.Result.TransactionDate" Title="Date">
+                                <CellTemplate>
+                                    <MudStack>
+                                        <MudText>@context.Item.ParsedBankTransaction.Result.TransactionDate.ToShortDateString()</MudText>
+                                        @foreach (var bankTransaction in context.Item.Duplicates)
+                                        {
+                                            <MudText>@bankTransaction.TransactionDate.ToShortDateString()</MudText>
+                                        }
+                                    </MudStack>
+                                </CellTemplate>
+                                <FilterTemplate>
+                                    <MudGrid Spacing="6" Style="width:430px">
+                                        <MudItem xs="12">
+                                            <MudDateRangePicker
+                                                PickerVariant="PickerVariant.Inline"
+                                                @bind-DateRange="@_duplicateRecordsDateOnlyMudFilter.DateRange"
+                                                Margin="Margin.Dense"/>
+                                        </MudItem>
+                                        <MudItem xs="12" Class="d-flex justify-end">
+                                            <MudButton OnClick="@(() => _duplicateRecordsDateOnlyMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
+                                            <MudButton Color="@Color.Primary" OnClick="@(() => _duplicateRecordsDateOnlyMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                                        </MudItem>
+                                    </MudGrid>
+                                </FilterTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.ParsedBankTransaction.Result.Payee">
+                                <CellTemplate>
+                                    <MudStack>
+                                        <MudText>@context.Item.ParsedBankTransaction.Result.Payee</MudText>
+                                        @foreach (var bankTransaction in context.Item.Duplicates)
+                                        {
+                                            <MudText>@bankTransaction.Payee</MudText>
+                                        }
+                                    </MudStack>
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.ParsedBankTransaction.Result.Memo">
+                                <CellTemplate>
+                                    <MudStack>
+                                        <MudText>@context.Item.ParsedBankTransaction.Result.Memo</MudText>
+                                        @foreach (var bankTransaction in context.Item.Duplicates)
+                                        {
+                                            <MudText>@bankTransaction.Memo</MudText>
+                                        }
+                                    </MudStack>
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.ParsedBankTransaction.Result.Amount">
+                                <CellTemplate>
+                                    <MudStack>
+                                        <MudText Class="col-numbers">@context.Item.ParsedBankTransaction.Result.Amount.ToString("C", CultureInfo.CurrentCulture)</MudText>
+                                        @foreach (var bankTransaction in context.Item.Duplicates)
+                                        {
+                                            <MudText Class="col-numbers">@bankTransaction.Amount.ToString("C", CultureInfo.CurrentCulture)</MudText>
+                                        }
+                                    </MudStack>
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <TemplateColumn>
+                                <CellTemplate>
+                                    <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="() => _dataContext.ExcludeDuplicateRecord(context.Item)">Exclude</MudButton>
+                                </CellTemplate>
+                            </TemplateColumn>
+                        </Columns>
+                    </MudDataGrid>
+                }
+            </MudStack>
+        </MudStep>
+    </ChildContent>
+    <ActionContent>
+        <MudButton StartIcon="@Icons.Material.Filled.FirstPage" Color="Color.Primary" OnClick="@ClearFormAsync">Reset</MudButton>
+        @if (_stepperIndex > 0)
+        {
+            <MudButton StartIcon="@Icons.Material.Filled.NavigateBefore" Color="Color.Primary" OnClick="() => context.PreviousStepAsync()">Previous</MudButton>
+        }
+        <MudSpacer />
+        @if ((_stepperIndex == 0 && _maxStepLevel.In(MaxStepLevel.Step2, MaxStepLevel.Step3, MaxStepLevel.Step4)) ||
+             (_stepperIndex == 1 && _maxStepLevel.In(MaxStepLevel.Step3, MaxStepLevel.Step4)) ||
+             (_stepperIndex == 2 && _maxStepLevel.In(MaxStepLevel.Step4)))
+        {
+            <MudButton StartIcon="@Icons.Material.Filled.NavigateNext" Color="Color.Primary" OnClick="() => context.NextStepAsync()">Next</MudButton>
+        }
+    </ActionContent>
+</MudStepper>
+<MudStack Spacing="4">
+    <MudText Typo="Typo.h5">File Content:</MudText>
+    <InputLargeTextArea class="mud-width-full no-wrap" rows="30" id="largeTextArea" @ref="_previewTextArea" OnChange="PreviewTextAreaChangedAsync" />
+</MudStack>

@@ -5,6 +5,7 @@ using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Blazor.Shared.Dialog;
 using OpenBudgeteer.Blazor.ViewModels;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 
 namespace OpenBudgeteer.Blazor.Pages;
@@ -14,8 +15,8 @@ public partial class Settings : ComponentBase
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
-    [Inject] private AppSettingService AppSettingService { get; set; } = null!;
-    
+    [Inject] private IAppSettingService AppSettingService { get; set; } = null!;
+
     private SettingsPageViewModel _dataContext = null!;
     private bool _showAll;
 
@@ -24,7 +25,7 @@ public partial class Settings : ComponentBase
         _dataContext = new SettingsPageViewModel(ServiceManager, MudThemeService, AppSettingService);
         await RestoreThemeAsync();
     }
-    
+
     private async Task HandleResult(ViewModelOperationResult result)
     {
         if (!result.IsSuccessful)
@@ -54,7 +55,7 @@ public partial class Settings : ComponentBase
         await HandleResult(await _dataContext.LoadDataAsync());
         StateHasChanged();
     }
-    
+
     private async Task RestoreDefaultThemeAsync()
     {
         await _dataContext.RestoreDefaultThemeAsync();
@@ -66,7 +67,7 @@ public partial class Settings : ComponentBase
         await HandleResult(await _dataContext.ApplySettingsAsync());
         StateHasChanged();
     }
-    
+
     private async Task RestoreSettingsAsync()
     {
         await HandleResult(await _dataContext.LoadDataAsync());

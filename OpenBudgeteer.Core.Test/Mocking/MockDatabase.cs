@@ -4,7 +4,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Test.Mocking;
 
-public class MockDatabase
+public class MockDatabase : IDisposable
 {
     public Dictionary<Guid, Account> Accounts { get; } = new();
     public Dictionary<Guid, BankTransaction> BankTransactions { get; } = new();
@@ -32,4 +32,6 @@ public class MockDatabase
         MappingRules.Clear();
         RecurringBankTransactions.Clear();
     }
+
+    public void Dispose() { }
 }

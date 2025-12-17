@@ -1,118 +1,220 @@
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.Data.Services.Generic;
 
-public class GenericBudgetedTransactionService : GenericBaseService<BudgetedTransaction>, IBudgetedTransactionService
+public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBaseService<BudgetedTransaction, TDatabase>, IBudgetedTransactionService
+    where TDatabase : class, IDisposable
 {
-    private readonly IBudgetedTransactionRepository _budgetedTransactionRepository;
+    private readonly ILogger _logger;
     
-    public GenericBudgetedTransactionService(
-        IBudgetedTransactionRepository budgetedTransactionRepository) : base(budgetedTransactionRepository)
+    public GenericBudgetedTransactionService(ILogger logger) : base(logger)
     {
-        _budgetedTransactionRepository = budgetedTransactionRepository;
+        _logger = logger;
     }
+    
+    protected abstract override IBudgetedTransactionRepository CreateBaseRepository(TDatabase dbConnection);
 
-    public IEnumerable<BudgetedTransaction> GetAll(DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAll(DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
     
-    public IEnumerable<BudgetedTransaction> GetAllForReporting(DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAllForReporting(DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd &&
-                !i.Bucket!.IsHiddenFromSummaries)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd &&
+                    !i.Bucket!.IsHiddenFromSummaries)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
     
-    public IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId)
+    public virtual IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId)
     {
         return GetAllFromTransaction(transactionId, DateOnly.MinValue, DateOnly.MaxValue);
     }
     
-    public IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId, DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId, DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd &&
-                i.TransactionId == transactionId)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd &&
+                    i.TransactionId == transactionId)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
-    public IEnumerable<BudgetedTransaction> GetAllFromBucket(Guid bucketId)
+    public virtual IEnumerable<BudgetedTransaction> GetAllFromBucket(Guid bucketId)
     {
         return GetAllFromBucket(bucketId, DateOnly.MinValue, DateOnly.MaxValue);
     }
     
-    public IEnumerable<BudgetedTransaction> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd && 
-                i.BucketId == bucketId)
-            .OrderByDescending(i => i.Transaction.TransactionDate)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd && 
+                    i.BucketId == bucketId)
+                .OrderByDescending(i => i.Transaction.TransactionDate)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
     
-    public IEnumerable<BudgetedTransaction> GetAllNonTransfer()
+    public virtual IEnumerable<BudgetedTransaction> GetAllNonTransfer()
     {
         return GetAllNonTransfer(DateOnly.MinValue, DateOnly.MaxValue);
     }
 
-    public IEnumerable<BudgetedTransaction> GetAllNonTransfer(DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAllNonTransfer(DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd &&
-                i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002"))
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd &&
+                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
-    public IEnumerable<BudgetedTransaction> GetAllTransfer()
+    public virtual IEnumerable<BudgetedTransaction> GetAllTransfer()
     {
         return GetAllTransfer(DateOnly.MinValue, DateOnly.MaxValue);
     }
 
-    public IEnumerable<BudgetedTransaction> GetAllTransfer(DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAllTransfer(DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd &&
-                i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002"))
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd &&
+                    i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
-    public IEnumerable<BudgetedTransaction> GetAllIncome()
+    public virtual IEnumerable<BudgetedTransaction> GetAllIncome()
     {
         return GetAllIncome(DateOnly.MinValue, DateOnly.MaxValue);
     }
 
-    public IEnumerable<BudgetedTransaction> GetAllIncome(DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BudgetedTransaction> GetAllIncome(DateOnly periodStart, DateOnly periodEnd)
     {
-        return _budgetedTransactionRepository
-            .AllWithTransactions()
-            .Where(i =>
-                i.Transaction.TransactionDate >= periodStart &&
-                i.Transaction.TransactionDate <= periodEnd &&
-                i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001"))
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var baseRepository = CreateBaseRepository(dbConnection);
+            return baseRepository
+                .AllWithTransactions()
+                .Where(i =>
+                    i.Transaction.TransactionDate >= periodStart &&
+                    i.Transaction.TransactionDate <= periodEnd &&
+                    i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 }

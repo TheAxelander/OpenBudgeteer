@@ -99,7 +99,7 @@ public class HomePageViewModel : ViewModelBase
         _highestExpenses = new ();
     }
 
-    public ViewModelOperationResult LoadData(int topTransactionsAmount)
+    public ViewModelOperationResult LoadData(int topTransactionsAmount = 10)
     {
         try
         {

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using MudBlazor;
 using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Core.Common;
+using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels;
 
@@ -21,9 +22,9 @@ public class SettingsPageViewModel : ViewModelBase
         {
             Set(ref _currentTheme, value);
             CurrentPalette = UseDarkTheme ? value.PaletteDark : value.PaletteLight;
-        } 
+        }
     }
-    
+
     private Palette _currentPalette;
     /// <summary>
     /// Instance of the currently used Color Palette
@@ -33,7 +34,7 @@ public class SettingsPageViewModel : ViewModelBase
         get => _currentPalette;
         private set => Set(ref _currentPalette, value);
     }
-    
+
     private bool _useDarkTheme;
     /// <summary>
     /// Identifies if the Dark Theme and Palette should be used
@@ -50,7 +51,7 @@ public class SettingsPageViewModel : ViewModelBase
 
     private int _homePageTopCount;
     /// <summary>
-    /// Sets how many records should be displayed on Home Page for Hightest Incomes and Highest Expenses 
+    /// Sets how many records should be displayed on Home Page for Hightest Incomes and Highest Expenses
     /// </summary>
     public int HomePageTopCount
     {
@@ -97,7 +98,7 @@ public class SettingsPageViewModel : ViewModelBase
         get => _reportPageMonthIncomeExpensesCount;
         set => Set(ref _reportPageMonthIncomeExpensesCount, value);
     }
-    
+
     private int _reportPageYearIncomeExpensesCount;
     /// <summary>
     /// Sets for how many years data in the Year Income & Expenses Chart should be shown
@@ -107,7 +108,7 @@ public class SettingsPageViewModel : ViewModelBase
         get => _reportPageYearIncomeExpensesCount;
         set => Set(ref _reportPageYearIncomeExpensesCount, value);
     }
-    
+
     private int _reportPageMonthBucketExpensesCount;
     /// <summary>
     /// Sets for how many months data in the Month Bucket Expenses Charts should be shown
@@ -117,18 +118,18 @@ public class SettingsPageViewModel : ViewModelBase
         get => _reportPageMonthBucketExpensesCount;
         set => Set(ref _reportPageMonthBucketExpensesCount, value);
     }
-    
+
     private readonly MudThemeService _mudThemeService;
-    private readonly AppSettingService _settingService;
+    private readonly IAppSettingService _appSettingService;
 
     public SettingsPageViewModel(
-        IServiceManager serviceManager, 
-        MudThemeService mudThemeService, 
-        AppSettingService settingService) 
+        IServiceManager serviceManager,
+        MudThemeService mudThemeService,
+        IAppSettingService appSettingService)
         : base(serviceManager, serviceManager.CreateLogger(typeof(SettingsPageViewModel)))
     {
         _mudThemeService = mudThemeService;
-        _settingService = settingService;
+        _appSettingService = appSettingService;
         _currentTheme = new MudTheme();
         _currentPalette = CurrentTheme.PaletteLight;
     }
@@ -145,9 +146,9 @@ public class SettingsPageViewModel : ViewModelBase
             CurrentTheme = themeSetting.CurrentTheme;
             UseDarkTheme = themeSetting.IsDarkMode;
             CurrentPalette = UseDarkTheme ? CurrentTheme.PaletteDark : CurrentTheme.PaletteLight;
-            
+
             // Other settings
-            var otherSettings = await _settingService.GetSettingsAsync();
+            var otherSettings = await _appSettingService.GetSettingsAsync();
             HomePageTopCount = otherSettings.HomePageTopCount;
             TransactionPageSize = otherSettings.TransactionPagerSize;
             ReportPageMonthBalanceCount = otherSettings.ReportCounts.MonthBalance;
@@ -197,7 +198,7 @@ public class SettingsPageViewModel : ViewModelBase
     {
         try
         {
-            await _settingService.ApplySettingsAsync(new(
+            await _appSettingService.ApplySettingsAsync(new(
                 HomePageTopCount,
                 TransactionPageSize,
                 new (

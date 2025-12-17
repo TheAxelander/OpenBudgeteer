@@ -8,6 +8,7 @@ using OpenBudgeteer.Blazor.Common;
 using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Blazor.Shared;
 using OpenBudgeteer.Blazor.ViewModels;
+using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.Helper;
 
@@ -18,14 +19,14 @@ public partial class Report : ComponentBase
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
     [Inject] private MudThemeService MudThemeService { get; set; } = null!;
-    [Inject] private AppSettingService AppSettingService { get; set; } = null!;
-    
+    [Inject] private IAppSettingService AppSettingService { get; set; } = null!;
+
     private readonly List<ApexChartWrapper<ApexRecord>> _generalCharts = new();
     private ApexChartWrapper<ApexRecord> AddGeneralChartRef
     {
         set => _generalCharts.Add(value);
     }
-    
+
     private readonly List<ApexChartWrapper<ApexRecord>> _bucketsCharts = new();
     private ApexChartWrapper<ApexRecord> AddBucketChartRef
     {
@@ -52,10 +53,10 @@ public partial class Report : ComponentBase
         Legend = NoLegend,
         PlotOptions = GaugePlot
     };
-    
+
     private Theme BaseTheme => new()
     {
-        Mode = MudThemeService.CurrentThemeSetting.IsDarkMode ? Mode.Dark : Mode.Light, 
+        Mode = MudThemeService.CurrentThemeSetting.IsDarkMode ? Mode.Dark : Mode.Light,
         Palette = PaletteType.Palette1
     };
 
@@ -105,7 +106,7 @@ public partial class Report : ComponentBase
     {
         RadialBar = new()
         {
-            StartAngle = -90, EndAngle = 90, 
+            StartAngle = -90, EndAngle = 90,
             Track = new() { StartAngle = -90, EndAngle = 90 },
             DataLabels = new()
             {
@@ -130,24 +131,24 @@ public partial class Report : ComponentBase
         _monthBucketExpensesCharts = new();
         _monthBucketExpensesConfigsLeft = new List<Tuple<string, List<ApexRecord>>>();
         _monthBucketExpensesConfigsRight = new List<Tuple<string, List<ApexRecord>>>();
-    
+
         _dataContext = new ApexReportViewModel(ServiceManager, AppSettingService, YearMonthDataContext);
         await _dataContext.LoadDataAsync();
-        
+
         // Monthly Bucket Expenses Tab
         var halfIndex = _dataContext.MonthBucketExpenses.Count / 2;
         _monthBucketExpensesConfigsLeft.AddRange(_dataContext.MonthBucketExpenses.GetRange(0,halfIndex));
         _monthBucketExpensesConfigsRight.AddRange(_dataContext.MonthBucketExpenses.GetRange(halfIndex,_dataContext.MonthBucketExpenses.Count - halfIndex));
-        
+
         StateHasChanged();
-        
+
         YearMonthDataContext.SelectedYearMonthChanged += async (sender, args) =>
         {
             /*
              * Clear chart lists before reloading to prevent stale references
              *
              * Currently I'm not clearing these list as this lead to situations where "reused" charts were no longer
-             * being updated. Rely on try/catch part in UpdatePieChartAsync() and 
+             * being updated. Rely on try/catch part in UpdatePieChartAsync() and
              */
             //_bucketRemainingBudgetCharts.Clear();
             //_monthBucketExpensesCharts.Clear();
@@ -157,15 +158,15 @@ public partial class Report : ComponentBase
 
             /*
              * First wait for render to complete (100ms) then refresh charts. This was so far the most stable combination.
-             * 
+             *
              * Why InvokeAsync:
-             * Chart operations like UpdateSeriesAsync() and RenderAsync() use JavaScript interop and modify UI state, 
+             * Chart operations like UpdateSeriesAsync() and RenderAsync() use JavaScript interop and modify UI state,
              * which must run on Blazor's rendering thread.
              */
             await Task.Delay(100);
             await InvokeAsync(async () => await RefreshChartsAsync());
         };
-        
+
         // Handle Chart reload as ViewModel data have been loaded now
         await RefreshChartsAsync();
     }

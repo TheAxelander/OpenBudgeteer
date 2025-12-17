@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -37,12 +38,13 @@ public class ImportProfileDatabaseTest : BaseDatabaseTest<ImportProfile>
         Assert.Equal(expected.AdditionalSettingAmountCleanupValue, actual.AdditionalSettingAmountCleanupValue);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -50,8 +52,12 @@ public class ImportProfileDatabaseTest : BaseDatabaseTest<ImportProfile>
                     new MockAccountRepository(mockDb)
                 ],
                 [
-                    new ImportProfileRepository(dbContext),
-                    new AccountRepository(dbContext)
+                    new EFCoreImportProfileRepository(dbContext),
+                    new EFCoreAccountRepository(dbContext)
+                ],
+                [
+                    new DuckDbImportProfileRepository(duckDbConnection),
+                    new DuckDbAccountRepository(duckDbConnection)
                 ]
             ];
         }
@@ -85,7 +91,7 @@ public class ImportProfileDatabaseTest : BaseDatabaseTest<ImportProfile>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IImportProfileRepository importProfileRepository,
         IAccountRepository accountRepository)
@@ -98,7 +104,7 @@ public class ImportProfileDatabaseTest : BaseDatabaseTest<ImportProfile>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IImportProfileRepository importProfileRepository,
         IAccountRepository accountRepository)
@@ -140,7 +146,7 @@ public class ImportProfileDatabaseTest : BaseDatabaseTest<ImportProfile>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IImportProfileRepository importProfileRepository,
         IAccountRepository accountRepository)

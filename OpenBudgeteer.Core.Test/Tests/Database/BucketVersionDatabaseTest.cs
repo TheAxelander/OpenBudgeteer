@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -36,10 +37,11 @@ public class BucketVersionDatabaseTest : BaseDatabaseTest<BucketVersion>
         Assert.Equal(expected.ValidFrom, actual.ValidFrom);
     }
     
-    public static IEnumerable<object[]> TestData_Repository =>
+    public static IEnumerable<object[]> TestDataRepository =>
     [
         [new MockBucketVersionRepository(new MockDatabase())],
-        [new BucketVersionRepository(GetInMemoryContext())]
+        [new EFCoreBucketVersionRepository(GetEFCoreInMemoryContext())],
+        [new DuckDbBucketVersionRepository(GetDuckDbInMemoryConnection())]
     ];
 
     private List<BucketVersion> SetupTestData(IBucketVersionRepository bucketVersionRepository)
@@ -74,7 +76,7 @@ public class BucketVersionDatabaseTest : BaseDatabaseTest<BucketVersion>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(IBucketVersionRepository bucketVersionRepository)
     {
         var bucketVersions = SetupTestData(bucketVersionRepository);
@@ -84,7 +86,7 @@ public class BucketVersionDatabaseTest : BaseDatabaseTest<BucketVersion>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(IBucketVersionRepository bucketVersionRepository)
     {
         var bucketVersions = SetupTestData(bucketVersionRepository);
@@ -112,7 +114,7 @@ public class BucketVersionDatabaseTest : BaseDatabaseTest<BucketVersion>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(IBucketVersionRepository bucketVersionRepository)
     {
         var bucketVersions = SetupTestData(bucketVersionRepository);

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -18,11 +19,12 @@ public class AccountDatabaseTest : BaseDatabaseTest<Account>
         Assert.Equal(expected.Name, actual.Name);
         Assert.Equal(expected.IsActive, actual.IsActive);
     }
-    
-    public static IEnumerable<object[]> TestData_Repository =>
+
+    public static IEnumerable<object[]> TestDataRepository =>
     [
         [new MockAccountRepository(new MockDatabase())],
-        [new AccountRepository(GetInMemoryContext())]
+        [new EFCoreAccountRepository(GetEFCoreInMemoryContext())],
+        [new DuckDbAccountRepository(GetDuckDbInMemoryConnection())]
     ];
 
     private List<Account> SetupTestData(IAccountRepository accountRepository)
@@ -43,7 +45,7 @@ public class AccountDatabaseTest : BaseDatabaseTest<Account>
     }
 
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(IAccountRepository baseRepository)
     {
         var accounts = SetupTestData(baseRepository);
@@ -53,7 +55,7 @@ public class AccountDatabaseTest : BaseDatabaseTest<Account>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(IAccountRepository baseRepository)
     {
         var accounts = SetupTestData(baseRepository);
@@ -74,7 +76,7 @@ public class AccountDatabaseTest : BaseDatabaseTest<Account>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(IAccountRepository baseRepository)
     {
         var accounts = SetupTestData(baseRepository);

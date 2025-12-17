@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -31,10 +32,11 @@ public class BucketRuleSetDatabaseTest : BaseDatabaseTest<BucketRuleSet>
         Assert.Equal(expected.TargetBucketId, actual.TargetBucketId);
     }
     
-    public static IEnumerable<object[]> TestData_Repository =>
+    public static IEnumerable<object[]> TestDataRepository =>
     [
         [new MockBucketRuleSetRepository(new MockDatabase())],
-        [new BucketRuleSetRepository(GetInMemoryContext())]
+        [new EFCoreBucketRuleSetRepository(GetEFCoreInMemoryContext())],
+        [new DuckDbBucketRuleSetRepository(GetDuckDbInMemoryConnection())]
     ];
 
     private List<BucketRuleSet> SetupTestData(IBucketRuleSetRepository bucketRuleSetRepository)
@@ -64,7 +66,7 @@ public class BucketRuleSetDatabaseTest : BaseDatabaseTest<BucketRuleSet>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(IBucketRuleSetRepository bucketRuleSetRepository)
     {
         var bucketRuleSets = SetupTestData(bucketRuleSetRepository);
@@ -74,7 +76,7 @@ public class BucketRuleSetDatabaseTest : BaseDatabaseTest<BucketRuleSet>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(IBucketRuleSetRepository bucketRuleSetRepository)
     {
         var bucketRuleSets = SetupTestData(bucketRuleSetRepository);
@@ -97,7 +99,7 @@ public class BucketRuleSetDatabaseTest : BaseDatabaseTest<BucketRuleSet>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(IBucketRuleSetRepository bucketRuleSetRepository)
     {
         var bucketRuleSets = SetupTestData(bucketRuleSetRepository);

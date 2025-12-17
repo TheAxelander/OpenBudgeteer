@@ -1,0 +1,160 @@
+name: Photino Desktop App Release
+
+on:
+  push:
+    branches: [ photino ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  PROJECT_PATH: 'OpenBudgeteer.Photino'
+  APP_NAME: 'OpenBudgeteer'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Test Cases
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Build Photino
+        run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: Run Test Cases
+        env:
+          CONNECTION_PROVIDER: duckdb
+          CONNECTION_DATABASE: ./test.db
+        run: dotnet test OpenBudgeteer.Core.Test
+
+  build-windows:
+    runs-on: windows-latest
+    name: Build Windows (x64)
+    needs: test
+    if: success()
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish Windows x64
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ./publish/win-x64 `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Create Windows ZIP
+        run: |
+          Compress-Archive -Path ./publish/win-x64/* -DestinationPath ./${{ env.APP_NAME }}-${{ github.ref_name }}-win-x64.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ github.ref_name }}-win-x64
+          path: ./${{ env.APP_NAME }}-${{ github.ref_name }}-win-x64.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    name: Build Linux (x64 AppImage)
+    needs: test
+    if: success()
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.PROJECT_PATH }}
+
+      - name: Publish Linux x64
+        run: |
+          dotnet publish ${{ env.PROJECT_PATH }} \
+            --configuration Release \
+            --runtime linux-x64 \
+            --self-contained true \
+            --output ./publish/linux-x64 \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Install AppImage tools
+        run: |
+          sudo apt-get install -y file
+          wget -O appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool
+
+      - name: Create AppImage structure
+        run: |
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+
+          # Copy published files
+          cp -r ./publish/linux-x64/* AppDir/usr/bin/
+
+          # Create desktop entry
+          cat > AppDir/usr/share/applications/${{ env.APP_NAME }}.desktop << EOF
+          [Desktop Entry]
+          Name=${{ env.APP_NAME }}
+          Exec=OpenBudgeteer.Photino
+          Icon=openbudgeteer
+          Type=Application
+          Categories=Office;Finance;
+          EOF
+
+          # Copy desktop entry to AppDir root (required by AppImage)
+          cp AppDir/usr/share/applications/${{ env.APP_NAME }}.desktop AppDir/
+
+          # Copy icon
+          cp wwwroot/icon.ico AppDir/usr/share/icons/hicolor/256x256/apps/openbudgeteer.png
+          cp wwwroot/icon.ico AppDir/openbudgeteer.png
+
+          # Create AppRun script
+          cat > AppDir/AppRun << 'APPRUN'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE=${SELF%/*}
+          export PATH="${HERE}/usr/bin:${PATH}"
+          export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+          exec "${HERE}/usr/bin/OpenBudgeteer.Photino" "$@"
+          APPRUN
+          chmod +x AppDir/AppRun
+
+      - name: Build AppImage
+        run: |
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir ${{ env.APP_NAME }}-${{ github.ref_name }}-x86_64.AppImage
+
+      - name: Upload Linux AppImage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APP_NAME }}-${{ github.ref_name }}-linux-x64
+          path: ./${{ env.APP_NAME }}-${{ github.ref_name }}-x86_64.AppImage
