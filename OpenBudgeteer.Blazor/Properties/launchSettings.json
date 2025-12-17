@@ -19,7 +19,8 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Logging__LogLevel__Default": "Warning"
       },
       "applicationUrl": "https://localhost:5001;http://localhost:5000"
     },

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
@@ -18,7 +20,8 @@ public class AccountPageViewModel : ViewModelBase
         private set => Set(ref _accounts, value);
     }
 
-    public AccountPageViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public AccountPageViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(AccountPageViewModel)))
     {
         _accounts = new();
     }
@@ -53,9 +56,14 @@ public class AccountPageViewModel : ViewModelBase
                 Accounts.Add(newAccountItem);
             }
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
         return new ViewModelOperationResult(true);
     }

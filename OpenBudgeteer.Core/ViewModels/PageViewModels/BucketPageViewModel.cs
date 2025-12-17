@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.Helper;
 
@@ -107,7 +109,9 @@ public class BucketPageViewModel : BucketListingViewModel
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
-    public BucketPageViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel) 
+    public BucketPageViewModel(
+        IServiceManager serviceManager, 
+        YearMonthSelectorViewModel yearMonthViewModel) 
         : base(serviceManager, yearMonthViewModel)
     {
     }
@@ -115,22 +119,25 @@ public class BucketPageViewModel : BucketListingViewModel
     /// <summary>
     /// Initialize ViewModel and load data from database
     /// </summary>
-    /// <param name="excludeInactive">Exclude Buckets which are marked as inactive</param>
-    /// <param name="includeDefaults">Include system default Buckets like Transfer and Income</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public override async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false, bool includeDefaults = false)
+    public async Task<ViewModelOperationResult> LoadDataAsync()
     {
         try
         {
-            var baseResult = await base.LoadDataAsync(excludeInactive, includeDefaults);
-            if (!baseResult.IsSuccessful) throw new Exception(baseResult.Message);
+            var baseResult = await base.LoadDataAsync();
+            if (!baseResult.IsSuccessful) return new ViewModelOperationResult(false, baseResult.Message);
             var result = UpdateBalanceFigures();
-            if (!result.IsSuccessful) throw new Exception(result.Message);
+            if (!result.IsSuccessful) return new ViewModelOperationResult(false, result.Message);
             return new ViewModelOperationResult(true);
+        }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -146,7 +153,8 @@ public class BucketPageViewModel : BucketListingViewModel
     }
 
     /// <summary>
-    /// Put money into all Buckets according to their Want. Saves the results to the database.
+    /// Put money into all Buckets according to their Want. After that clear all negative Bucket Balances.
+    /// Saves the results to the database.
     /// </summary>
     /// <remarks>Doesn't consider any available Budget figures.</remarks>
     /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
@@ -163,6 +171,8 @@ public class BucketPageViewModel : BucketListingViewModel
             {
                 buckets.AddRange(bucketGroup.Buckets);
             }
+            
+            // Clear Want
             foreach (var bucket in buckets.Where(i => i.Want > 0))
             {
                 bucket.InOut = bucket.Want;
@@ -173,13 +183,32 @@ public class BucketPageViewModel : BucketListingViewModel
             }
 
             //UpdateBalanceFigures(); // Should be done but not required because it will be done during ViewModel reload
+            
+            // Clear negative Bucket Balance (only continue if no error has occured yet)
+            if (successful)
+            {
+                foreach (var bucket in buckets.Where(i => i.Balance < 0))
+                {
+                    bucket.InOut = bucket.Balance * -1;
+                    var result = bucket.HandleInOutInput();
+                    if (result.IsSuccessful) continue;
+                    successful = false;
+                    message = result.Message;
+                }
+            }
+            
             return successful
                 ? new ViewModelOperationResult(true, true)
                 : new ViewModelOperationResult(false, $"For one or more Buckets the budget could not be distributed: {message}");
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during Budget distribution: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -238,9 +267,14 @@ public class BucketPageViewModel : BucketListingViewModel
                 .Where(i => i.Balance < 0)
                 .Sum(i => i.Balance);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during Balance recalculation: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
 
         return new ViewModelOperationResult(true);

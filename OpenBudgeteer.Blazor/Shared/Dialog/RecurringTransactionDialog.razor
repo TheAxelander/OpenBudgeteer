@@ -14,64 +14,121 @@
         <MudText Typo="Typo.h6">Recurring Transactions</MudText>
     </TitleContent>
     <DialogContent>
+
+        <!-- Action Buttons -->
         @if (_massEditEnabled)
         {
-            <MudStack Row Spacing="1">
-                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="SaveAllRecurringTransaction">Save all</MudButton>
-                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelAllRecurringTransaction">Cancel all</MudButton>
+            <!-- Action Buttons (Edit Mode) -->
+            <MudStack Row
+                      Spacing="1">
+                <MudButton OnClick="SaveAllRecurringTransaction"
+                           Class="me-2 mb-2"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Save all
+                </MudButton>
+                <MudButton OnClick="CancelAllRecurringTransaction"
+                           Class="me-2 mb-2"
+                           Color="Color.Error"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Cancel all
+                </MudButton>
             </MudStack>
         }
         else
         {
-            <MudStack Row Spacing="1">
-                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="StartCreateNewRecurringTransaction">Create Transaction</MudButton>
-                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="EditAllRecurringTransaction">Edit all</MudButton>
+            <!-- Action Buttons (Default Mode) -->
+            <MudStack Row
+                      Spacing="1">
+                <MudButton OnClick="StartCreateNewRecurringTransaction"
+                           Class="me-2 mb-2"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Create Transaction
+                </MudButton>
+                <MudButton OnClick="EditAllRecurringTransaction"
+                           Class="me-2 mb-2"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Edit all
+                </MudButton>
                 @if (_selectedRecurringTransactions.Count > 0)
                 {
-                    <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="DeleteSelectedRecurringTransactions">Delete @_selectedRecurringTransactions.Count Selected</MudButton>
+                    <MudButton OnClick="DeleteSelectedRecurringTransactions"
+                               Class="me-2 mb-2"
+                               Color="Color.Error"
+                               Size="Size.Small"
+                               Variant="Variant.Filled">
+                        Delete @_selectedRecurringTransactions.Count Selected
+                    </MudButton>
                 }
             </MudStack>
         }
 
-        <MudDataGrid
-            T="RecurringTransactionViewModel"
-            Items="@DataContext.Transactions"
-            Dense="true"
-            EditMode="DataGridEditMode.Cell"
-            Filterable="true"
-            FilterMode="DataGridFilterMode.ColumnFilterMenu"
-            FixedHeader="true"
-            Hover="true"
-            MultiSelection="true"
-            ReadOnly="@(!_massEditEnabled)"
-            SortMode="SortMode.Multiple"
-            SelectedItemsChanged="RecurringTransactions_SelectionChanged">
+        <!-- Recurring Transaction listing -->
+        <MudDataGrid T="RecurringTransactionViewModel"
+                     Items="@DataContext.Transactions"
+                     SelectedItemsChanged="RecurringTransactions_SelectionChanged"
+                     Dense="true"
+                     EditMode="DataGridEditMode.Cell"
+                     Filterable="true"
+                     FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                     FixedHeader="true"
+                     Hover="true"
+                     MultiSelection="true"
+                     ReadOnly="@(!_massEditEnabled)"
+                     SortMode="SortMode.Multiple">
             <Columns>
+
+                <!-- Selection CheckBox -->
                 <SelectColumn T="RecurringTransactionViewModel"/>
-                <PropertyColumn Property="x => x.FirstOccurrenceDate" Title="First Occurrence">
+
+                <!-- First Occurrence -->
+                <PropertyColumn Property="x => x.FirstOccurrenceDate"
+                                Title="First Occurrence">
                     <EditTemplate>
-                        <MudDatePicker Date="@(context.Item.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => FirstOccurrenceDateChanged(time, context.Item))" ShowToolbar="false"></MudDatePicker>
+                        <MudDatePicker DateChanged="@(time => FirstOccurrenceDateChanged(time, context.Item))"
+                                       Date="@(context.Item.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue))"
+                                       ShowToolbar="false"></MudDatePicker>
                     </EditTemplate>
                     <FilterTemplate>
-                        <MudGrid Spacing="6" Style="width:430px">
+                        <MudGrid Spacing="6"
+                                 Style="width:430px">
                             <MudItem xs="12">
-                                <MudDateRangePicker
-                                    PickerVariant="PickerVariant.Inline"
-                                    @bind-DateRange="@_dateOnlyMudFilter.DateRange"
-                                    Margin="Margin.Dense"/>
+                                <MudDateRangePicker @bind-DateRange="@_dateOnlyMudFilter.DateRange"
+                                                    Margin="Margin.Dense"
+                                                    PickerVariant="PickerVariant.Inline"/>
                             </MudItem>
-                            <MudItem xs="12" Class="d-flex justify-end">
-                                <MudButton OnClick="@(() => _dateOnlyMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
-                                <MudButton Color="@Color.Primary" OnClick="@(() => _dateOnlyMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                            <MudItem Class="d-flex justify-end"
+                                     xs="12">
+                                <MudButton OnClick="@(() => _dateOnlyMudFilter.ResetFilterOnContextAsync(context))">
+                                    Clear
+                                </MudButton>
+                                <MudButton OnClick="@(() => _dateOnlyMudFilter.ApplyFilterOnContextAsync(context))"
+                                           Color="@Color.Primary">
+                                    Filter
+                                </MudButton>
                             </MudItem>
                         </MudGrid>
                     </FilterTemplate>
                 </PropertyColumn>
-                <PropertyColumn Property="x => x.RecurrenceAmount" CellClass="col-numbers">
+
+                <!-- Recurrence Amount -->
+                <PropertyColumn Property="x => x.RecurrenceAmount"
+                                CellClass="col-numbers"
+                                Title="Recurrence Amount">
                 </PropertyColumn>
-                <PropertyColumn Property="x => x.RecurrenceType">
+
+                <!-- Recurrence Type -->
+                <PropertyColumn Property="x => x.RecurrenceType"
+                                Title="Recurrence Type">
                     <EditTemplate>
-                        <MudSelect T="RecurringTransactionRecurrenceType" @bind-Value="context.Item.RecurrenceType">
+                        <MudSelect T="RecurringTransactionRecurrenceType"
+                                   @bind-Value="context.Item.RecurrenceType">
                             @foreach (var recurrenceType in Enum.GetValues<RecurringTransactionRecurrenceType>())
                             {
                                 <MudSelectItem Value="@recurrenceType">@recurrenceType.GetStringValue()</MudSelectItem>
@@ -79,9 +136,14 @@
                         </MudSelect>
                     </EditTemplate>
                 </PropertyColumn>
-                <PropertyColumn Property="x => x.SelectedAccount" Comparer="@(new MudComparer())">
+
+                <!-- Selected Account -->
+                <PropertyColumn Property="x => x.SelectedAccount"
+                                Comparer="@(new MudComparer())"
+                                Title="Selected Account">
                     <EditTemplate>
-                        <MudSelect T="AccountViewModel" @bind-Value="context.Item.SelectedAccount">
+                        <MudSelect T="AccountViewModel"
+                                   @bind-Value="context.Item.SelectedAccount">
                             @foreach (var account in context.Item.AvailableAccounts)
                             {
                                 <MudSelectItem Value="@account">@account.Name</MudSelectItem>
@@ -89,39 +151,63 @@
                         </MudSelect>
                     </EditTemplate>
                     <FilterTemplate>
-                        <MudGrid Spacing="6" Style="width:430px">
+                        <MudGrid Spacing="6"
+                                 Style="width:430px">
                             <MudItem xs="12">
-                                <MudSelect
-                                    T="AccountViewModel"
-                                    @bind-SelectedValues="_accountMudFilter.SelectedItems"
-                                    MultiSelection="true"
-                                    MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Accounts"))"
-                                    SelectAll="true">
+                                <MudSelect T="AccountViewModel"
+                                           @bind-SelectedValues="_accountMudFilter.SelectedItems"
+                                           MultiSelection="true"
+                                           MultiSelectionTextFunc="@(items => MultiSelectionTextHelper.GetText(items, "Accounts"))"
+                                           SelectAll="true">
                                     @foreach (var account in _accountMudFilter.AvailableItems)
                                     {
                                         <MudSelectItem Value="account">@account</MudSelectItem>
                                     }
                                 </MudSelect>
                             </MudItem>
-                            <MudItem xs="12" Class="d-flex justify-end">
-                                <MudButton OnClick="@(() => _accountMudFilter.ResetFilterOnContextAsync(context))">Clear</MudButton>
-                                <MudButton Color="@Color.Primary" OnClick="@(() => _accountMudFilter.ApplyFilterOnContextAsync(context))">Filter</MudButton>
+                            <MudItem Class="d-flex justify-end"
+                                     xs="12">
+                                <MudButton OnClick="@(() => _accountMudFilter.ResetFilterOnContextAsync(context))">
+                                    Clear
+                                </MudButton>
+                                <MudButton OnClick="@(() => _accountMudFilter.ApplyFilterOnContextAsync(context))"
+                                           Color="@Color.Primary">
+                                    Filter
+                                </MudButton>
                             </MudItem>
                         </MudGrid>
                     </FilterTemplate>
                 </PropertyColumn>
-                <PropertyColumn Property="x => x.Payee"></PropertyColumn>
-                <PropertyColumn Property="x => x.Memo"></PropertyColumn>
-                <PropertyColumn Property="x => x.Amount" Format="C" Culture="CultureInfo.CurrentCulture" CellClass="col-numbers">
+
+                <!-- Payee -->
+                <PropertyColumn Property="x => x.Payee"/>
+
+                <!-- Memo -->
+                <PropertyColumn Property="x => x.Memo"/>
+
+                <!-- Amount -->
+                <PropertyColumn Property="x => x.Amount"
+                                CellClass="col-numbers"
+                                Culture="CultureInfo.CurrentCulture"
+                                Format="C">
                     <EditTemplate>
-                        <MudNumericField T="decimal" Format="N2" Culture="CultureInfo.CurrentCulture" @bind-Value="context.Item.Amount"/>
+                        <MudNumericField T="decimal"
+                                         @bind-Value="context.Item.Amount"
+                                         Culture="CultureInfo.CurrentCulture"
+                                         Format="N2"/>
                     </EditTemplate>
                 </PropertyColumn>
+
             </Columns>
         </MudDataGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CloseDialog">Close</MudButton>
+        <MudButton OnClick="CloseDialog"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Close
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -139,7 +225,7 @@
     HashSet<RecurringTransactionViewModel> _selectedRecurringTransactions = new();
 
     void CloseDialog() => MudDialog.Close(DialogResult.Ok(true));
-    
+
     protected override void OnInitialized()
     {
         _accountMudFilter = new(new()
@@ -148,7 +234,7 @@
         });
         _dateOnlyMudFilter = new(new()
         {
-            FilterFunction = x => 
+            FilterFunction = x =>
                 x.FirstOccurrenceDate >= DateOnly.FromDateTime(_dateOnlyMudFilter.DateRange.Start ?? DateTime.MinValue) &&
                 x.FirstOccurrenceDate <= DateOnly.FromDateTime(_dateOnlyMudFilter.DateRange.End ?? DateTime.MaxValue)
         });
@@ -160,17 +246,17 @@
         _accountMudFilter.ResetFilter();
         _dateOnlyMudFilter.ResetFilter();
     }
-    
+
     void RecurringTransactions_SelectionChanged(HashSet<RecurringTransactionViewModel> items)
     {
         _selectedRecurringTransactions = items;
     }
-    
+
     void FirstOccurrenceDateChanged(DateTime? dateTime, RecurringTransactionViewModel context)
     {
         context.FirstOccurrenceDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
     }
-    
+
     async Task StartCreateNewRecurringTransaction()
     {
         var reloadRequired = false;
@@ -210,7 +296,7 @@
         }
         if (reloadRequired) await DataContext.LoadDataAsync();
     }
-    
+
     void EditAllRecurringTransaction()
     {
         _massEditEnabled = true;
@@ -229,7 +315,7 @@
         await HandleResult(await DataContext.CancelAllTransactionAsync());
         StateHasChanged();
     }
-    
+
     async Task DeleteSelectedRecurringTransactions()
     {
         var parameters = new DialogParameters<DeleteConfirmationDialog>

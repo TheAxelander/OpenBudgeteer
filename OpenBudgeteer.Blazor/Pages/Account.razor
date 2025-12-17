@@ -1,10 +1,24 @@
-﻿@page "/account"
-
+@page "/account"
+@attribute [Authorize]
 @using System.Globalization
 
-<MudButton Class="me-2 mb-2" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="@(() => ShowEditAccountDialog(null))">New account</MudButton>
+<!-- Action Buttons -->
+<MudStack AlignItems="AlignItems.Center"
+          Class="mb-2"
+          Row
+          Spacing="2"
+          Wrap="Wrap.Wrap">
+    <MudButton OnClick="@(() => ShowEditAccountDialog(null))"
+               Color="Color.Primary"
+               Size="Size.Small"
+               Variant="Variant.Filled">
+        New account
+    </MudButton>
+</MudStack>
 
-<MudElement HtmlTag="div" Class="d-flex flex-wrap no-background">
+<!-- Account Cards -->
+<MudElement Class="d-flex flex-wrap no-background"
+            HtmlTag="div">
     @foreach (var account in _dataContext.Accounts)
     {
         <MudCard Class="card-account me-2 mb-2">
@@ -13,9 +27,26 @@
                 <MudText Typo="Typo.body2">Balance: @account.Balance.ToString("C", CultureInfo.CurrentCulture)</MudText>
             </MudCardContent>
             <MudCardActions>
-                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Class="me-2" OnClick="@(() => ShowTransactionListingDialog(account))">Display Transactions</MudButton>
-                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" Class="me-2" OnClick="@(() => ShowEditAccountDialog(account))">Edit</MudButton>
-                <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="@(() => ShowCloseAccountDialog(account))">Close</MudButton>
+                <MudButton OnClick="@(() => ShowTransactionListingDialog(account))"
+                           Class="me-2"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Display Transactions
+                </MudButton>
+                <MudButton OnClick="@(() => ShowEditAccountDialog(account))"
+                           Class="me-2"
+                           Color="Color.Primary"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Edit
+                </MudButton>
+                <MudButton OnClick="@(() => ShowCloseAccountDialog(account))"
+                           Color="Color.Error"
+                           Size="Size.Small"
+                           Variant="Variant.Filled">
+                    Close
+                </MudButton>
             </MudCardActions>
         </MudCard>
     }

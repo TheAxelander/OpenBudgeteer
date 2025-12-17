@@ -1,19 +1,25 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.Data.Services.Generic;
 
 namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreBucketMovementService : EFCoreBaseService<BucketMovement>, IBucketMovementService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreBucketMovementService> _logger;
     
-    public EFCoreBucketMovementService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreBucketMovementService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreBucketMovementService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericBucketMovementService CreateBaseService(DatabaseContext dbContext)
@@ -25,14 +31,18 @@ public class EFCoreBucketMovementService : EFCoreBaseService<BucketMovement>, IB
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAll(periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -45,14 +55,18 @@ public class EFCoreBucketMovementService : EFCoreBaseService<BucketMovement>, IB
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllFromBucket(bucketId, periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 }

@@ -1,0 +1,102 @@
+<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+
+	<!-- ================================ -->
+	<!-- General Code Style               -->
+	<!-- ================================ -->
+
+	<!-- Line width guideline -->
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/WRAP_LIMIT/@EntryValue">120</s:String>
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/RIGHT_MARGIN/@EntryValue">120</s:String>
+
+	<!-- ================================ -->
+	<!-- HTML/Razor Formatting            -->
+	<!-- ================================ -->
+
+	<!-- Attribute alignment: align with first attribute -->
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/ATTRIBUTE_INDENT/@EntryValue">AlignByFirstAttribute</s:String>
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/ATTRIBUTES_ON_NEW_LINE/@EntryValue">False</s:Boolean>
+
+	<!-- Wrap attributes when line exceeds limit -->
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/WRAP_ATTRIBUTES/@EntryValue">WrapIfLong</s:String>
+
+	<!-- Max attributes before wrapping (set low to trigger wrapping sooner) -->
+	<s:Int64 x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/MAX_SINGLE_LINE_ATTRIBUTES/@EntryValue">1</s:Int64>
+
+	<!-- Keep first attribute on same line as tag -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/PLACE_FIRST_ATTRIBUTE_ON_SAME_LINE/@EntryValue">True</s:Boolean>
+
+	<!-- Sort attributes (disabled to allow logical grouping: type params, data binding, behavior) -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/SORT_ATTRIBUTES/@EntryValue">False</s:Boolean>
+
+	<!-- Space inside attribute braces for Razor -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/SPACE_INSIDE_ATTRIBUTE_ANGLES/@EntryValue">False</s:Boolean>
+
+	<!-- Line break after multiline element opening tag -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LINE_BREAK_AFTER_MULTILINE_OPENING_TAG/@EntryValue">True</s:Boolean>
+
+	<!-- Line break before closing tag -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LINE_BREAK_BEFORE_CLOSING_TAG/@EntryValue">True</s:Boolean>
+
+	<!-- Do not preserve single-line tags when attributes wrap -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/PRESERVE_SINGLE_LINE_TAGS/@EntryValue">False</s:Boolean>
+
+	<!-- ================================ -->
+	<!-- Razor Specific                   -->
+	<!-- ================================ -->
+
+	<!-- Prefer code-behind files (.razor.cs) -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/RazorFormatter/PREFER_CODE_BEHIND/@EntryValue">True</s:Boolean>
+
+	<!-- Keep @using directives at top -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/RazorFormatter/PLACE_USINGS_AT_TOP/@EntryValue">True</s:Boolean>
+
+	<!-- Blank line after @using/@inject directives -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/RazorFormatter/BLANK_LINE_AFTER_DIRECTIVES/@EntryValue">True</s:Boolean>
+
+	<!-- ================================ -->
+	<!-- C# Naming Rules                  -->
+	<!-- ================================ -->
+
+	<!-- Private fields: _camelCase -->
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=PrivateInstanceFields/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="_" Suffix="" Style="aaBb" /&gt;</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=PrivateStaticFields/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="_" Suffix="" Style="aaBb" /&gt;</s:String>
+
+	<!-- Constants: SCREAMING_SNAKE_CASE -->
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=PrivateConstants/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="AA_BB" /&gt;</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/PredefinedNamingRules/=PublicFields/@EntryIndexedValue">&lt;Policy Inspect="True" Prefix="" Suffix="" Style="AaBb" /&gt;</s:String>
+
+	<!-- ================================ -->
+	<!-- C# Formatting                    -->
+	<!-- ================================ -->
+
+	<!-- Braces on new line (Allman style) -->
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/BRACE_STYLE/@EntryValue">NEXT_LINE</s:String>
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/ANONYMOUS_METHOD_BRACE_STYLE/@EntryValue">NEXT_LINE</s:String>
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/INITIALIZER_BRACE_STYLE/@EntryValue">NEXT_LINE</s:String>
+
+	<!-- Keep simple blocks on one line -->
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/KEEP_EXISTING_ARRANGEMENT/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/PLACE_SIMPLE_BLOCKS_ON_SINGLE_LINE/@EntryValue">True</s:Boolean>
+
+	<!-- Expression-bodied members -->
+	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/EXPRESSION_BODIED_MEMBERS_WHEN/@EntryValue">WhenOnSingleLine</s:String>
+
+	<!-- ================================ -->
+	<!-- File Layout                      -->
+	<!-- ================================ -->
+
+	<!-- File-scoped namespaces -->
+	<s:String x:Key="/Default/CodeStyle/CSharpFileLayoutPatterns/Pattern/@EntryValue">FileScopedNamespace</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/UserRules/=236f7aa5_002D7b06_002D43ca_002Dbf2a_002D9b31bfcff09a/@EntryIndexedValue">&lt;Policy&gt;&lt;Descriptor Staticness="Any" AccessRightKinds="Private" Description="Constant fields (private)"&gt;&lt;ElementKinds&gt;&lt;Kind Name="CONSTANT_FIELD" /&gt;&lt;/ElementKinds&gt;&lt;/Descriptor&gt;&lt;Policy Inspect="True" WarnAboutPrefixesAndSuffixes="False" Prefix="" Suffix="" Style="AA_BB" /&gt;&lt;/Policy&gt;</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/UserRules/=4a98fdf6_002D7d98_002D4f5a_002Dafeb_002Dea44ad98c70c/@EntryIndexedValue">&lt;Policy&gt;&lt;Descriptor Staticness="Instance" AccessRightKinds="Private" Description="Instance fields (private)"&gt;&lt;ElementKinds&gt;&lt;Kind Name="FIELD" /&gt;&lt;Kind Name="READONLY_FIELD" /&gt;&lt;/ElementKinds&gt;&lt;/Descriptor&gt;&lt;Policy Inspect="True" WarnAboutPrefixesAndSuffixes="False" Prefix="_" Suffix="" Style="aaBb" /&gt;&lt;/Policy&gt;</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/UserRules/=53eecf85_002Dd821_002D40e8_002Dac97_002Dfdb734542b84/@EntryIndexedValue">&lt;Policy&gt;&lt;Descriptor Staticness="Instance" AccessRightKinds="Protected, ProtectedInternal, Internal, Public, PrivateProtected" Description="Instance fields (not private)"&gt;&lt;ElementKinds&gt;&lt;Kind Name="FIELD" /&gt;&lt;Kind Name="READONLY_FIELD" /&gt;&lt;/ElementKinds&gt;&lt;/Descriptor&gt;&lt;Policy Inspect="True" WarnAboutPrefixesAndSuffixes="False" Prefix="" Suffix="" Style="AaBb" /&gt;&lt;/Policy&gt;</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/UserRules/=70345118_002D4b40_002D4ece_002D937c_002Dbbeb7a0b2e70/@EntryIndexedValue">&lt;Policy&gt;&lt;Descriptor Staticness="Static" AccessRightKinds="Protected, ProtectedInternal, Internal, Public, PrivateProtected" Description="Static fields (not private)"&gt;&lt;ElementKinds&gt;&lt;Kind Name="FIELD" /&gt;&lt;/ElementKinds&gt;&lt;/Descriptor&gt;&lt;Policy Inspect="True" WarnAboutPrefixesAndSuffixes="False" Prefix="" Suffix="" Style="AaBb" /&gt;&lt;/Policy&gt;</s:String>
+	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/UserRules/=f9fce829_002De6f4_002D4cb2_002D80f1_002D5497c44f51df/@EntryIndexedValue">&lt;Policy&gt;&lt;Descriptor Staticness="Static" AccessRightKinds="Private" Description="Static fields (private)"&gt;&lt;ElementKinds&gt;&lt;Kind Name="FIELD" /&gt;&lt;/ElementKinds&gt;&lt;/Descriptor&gt;&lt;Policy Inspect="True" WarnAboutPrefixesAndSuffixes="False" Prefix="_" Suffix="" Style="aaBb" /&gt;&lt;/Policy&gt;</s:String>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpKeepExistingMigration/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpPlaceEmbeddedOnSameLineMigration/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpUseContinuousIndentInsideBracesMigration/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002EMemberReordering_002EMigrations_002ECSharpFileLayoutPatternRemoveIsAttributeUpgrade/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ESettingsUpgrade_002EMigrateBlankLinesAroundFieldToBlankLinesAroundProperty/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ESettingsUpgrade_002EPredefinedNamingRulesToUserRulesUpgrade/@EntryIndexedValue">True</s:Boolean>
+
+</wpf:ResourceDictionary>

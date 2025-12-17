@@ -30,7 +30,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
     public Bucket GetWithLatestVersion(Guid id)
     {
         var result = _bucketRepository.ByIdWithVersions(id);
-        if (result is null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException("Unable to find Bucket with the given id.");
         result.CurrentVersion = GetLatestVersion(id, DateOnly.FromDateTime(DateTime.Today));
         result.BucketVersions = result.BucketVersions!.OrderByDescending(i => i.Version).ToList();
             
@@ -98,14 +98,14 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
             .OrderByDescending(i => i.ValidFrom)
             .ToList()
             .FirstOrDefault(i => i!.ValidFrom <= yearMonth, null);
-        if (result is null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException("Unable to find Bucket with the given id and month.");
         return result;
     }
 
     public BucketFigures GetFigures(Guid bucketId, DateOnly yearMonth)
     {
-        var bucketWithTransactions = _bucketRepository.ByIdWithTransactions(bucketId) ?? throw new Exception("Bucket not found.");
-        var bucketWithMovements = _bucketRepository.ByIdWithMovements(bucketId) ?? throw new Exception("Bucket not found.");
+        var bucketWithTransactions = _bucketRepository.ByIdWithTransactions(bucketId) ?? throw new EntityNotFoundException("Unable to find Bucket with the given id.");
+        var bucketWithMovements = _bucketRepository.ByIdWithMovements(bucketId) ?? throw new EntityNotFoundException("Unable to find Bucket with the given id.");
         
         decimal input = 0, output = 0;
 
@@ -150,13 +150,13 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
                 input += bucketMovement.Amount;
         }
 
-        return new BucketFigures{ Balance = balance, Input = input, Output = output };
+        return new BucketFigures(balance, input, output);
     }
 
     public decimal GetBalance(Guid bucketId, DateOnly yearMonth)
     {
-        var bucketWithTransactions = _bucketRepository.ByIdWithTransactions(bucketId) ?? throw new Exception("Bucket not found.");
-        var bucketWithMovements = _bucketRepository.ByIdWithMovements(bucketId) ?? throw new Exception("Bucket not found.");
+        var bucketWithTransactions = _bucketRepository.ByIdWithTransactions(bucketId) ?? throw new EntityNotFoundException("Unable to find Bucket with the given id.");
+        var bucketWithMovements = _bucketRepository.ByIdWithMovements(bucketId) ?? throw new EntityNotFoundException("Unable to find Bucket with the given id.");
             
         var result = bucketWithTransactions.BudgetedTransactions!
             .Where(i => i.Transaction.TransactionDate < yearMonth.AddMonths(1))
@@ -173,8 +173,8 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
 
     public BucketFigures GetInAndOut(Guid bucketId, DateOnly yearMonth)
     {
-        var bucketWithTransactions = _bucketRepository.ByIdWithTransactions(bucketId) ?? throw new Exception("Bucket not found.");
-        var bucketWithMovements = _bucketRepository.ByIdWithMovements(bucketId) ?? throw new Exception("Bucket not found.");
+        var bucketWithTransactions = _bucketRepository.ByIdWithTransactions(bucketId) ?? throw new EntityNotFoundException("Unable to find Bucket with the given id.");
+        var bucketWithMovements = _bucketRepository.ByIdWithMovements(bucketId) ?? throw new EntityNotFoundException("Unable to find Bucket with the given id.");
             
         decimal input = 0, output = 0;
         
@@ -206,12 +206,12 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
                 input += bucketMovement.Amount;
         }
 
-        return new BucketFigures{ Balance = null, Input = input, Output = output };
+        return new BucketFigures(null, input, output);
     }
 
     public override Bucket Create(Bucket entity)
     {
-        if (entity.CurrentVersion is null) throw new EntityUpdateException("No Bucket Version defined");
+        if (entity.CurrentVersion is null) throw new EntityUpdateException("No Bucket Version defined.");
 
         entity.CurrentVersion.Version = 1;
         entity.BucketVersions = new List<BucketVersion>();
@@ -265,15 +265,15 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
 
     public void Close(Guid id, DateOnly yearMonth)
     {
-        if (GetBalance(id, yearMonth) != 0) throw new EntityUpdateException("Balance must be 0 to close a Bucket");
+        if (GetBalance(id, yearMonth) != 0) throw new EntityUpdateException("Balance must be 0 to close a Bucket.");
             
         if (_budgetedTransactionRepository.All().Any(i => i.BucketId == id) ||
             _bucketMovementRepository.All().Any(i => i.BucketId == id))
         {
             // Update: Bucket will be set to inactive for the next month
             var entity = _bucketRepository.ById(id);
-            if (entity is null) throw new EntityUpdateException("Bucket not found");
-            if (entity.IsInactive) throw new EntityUpdateException("Bucket has been already set to inactive");
+            if (entity is null) throw new EntityUpdateException("Unable to find Bucket with the given id.");
+            if (entity.IsInactive) throw new EntityUpdateException("Bucket has been already set to inactive.");
             entity.IsInactive = true;
             entity.IsInactiveFrom = yearMonth.AddMonths(1);
             _bucketRepository.Update(entity);
@@ -290,7 +290,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
         if (_budgetedTransactionRepository.All().Any(i => i.BucketId == id) ||
             _bucketMovementRepository.All().Any(i => i.BucketId == id))
         {
-            throw new EntityUpdateException("Cannot delete a Bucket with assigned Transactions or Bucket Movements");
+            throw new EntityUpdateException("Cannot delete a Bucket with assigned Transactions or Bucket Movements.");
         }
             
         // Delete Bucket
@@ -315,7 +315,7 @@ public class GenericBucketService : GenericBaseService<Bucket>, IBucketService
             MovementDate = movementDate
         };
         var result = _bucketMovementRepository.Create(newBucketMovement);
-        if (result == 0) throw new EntityUpdateException($"Unable to create {typeof(BucketMovement)} in database");
+        if (result == 0) throw new EntityUpdateException("Unable to create Bucket Movement in database.");
         return newBucketMovement;
     }
 }

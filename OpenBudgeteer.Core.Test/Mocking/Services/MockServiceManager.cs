@@ -1,3 +1,5 @@
+using System;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 
 namespace OpenBudgeteer.Core.Test.Mocking.Services;
@@ -13,6 +15,8 @@ public class MockServiceManager : IServiceManager
     public IBudgetedTransactionService BudgetedTransactionService { get; }
     public IImportProfileService ImportProfileService { get; }
     public IRecurringBankTransactionService RecurringBankTransactionService { get; }
+    
+    private readonly ILoggerFactory _loggerFactory;
 
     public MockServiceManager(MockDatabase mockDatabase)
     {
@@ -25,5 +29,17 @@ public class MockServiceManager : IServiceManager
         BudgetedTransactionService = new MockBudgetedTransactionService(mockDatabase);
         ImportProfileService = new MockImportProfileService(mockDatabase);
         RecurringBankTransactionService = new MockRecurringBankTransactionService(mockDatabase);
+        
+        _loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder
+                .AddConsole()
+                .SetMinimumLevel(LogLevel.Debug);
+        });
+    }
+    
+    public ILogger CreateLogger(Type type)
+    {
+        return _loggerFactory.CreateLogger(type);
     }
 }

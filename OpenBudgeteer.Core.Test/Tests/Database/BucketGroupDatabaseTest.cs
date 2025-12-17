@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
-using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
 using OpenBudgeteer.Core.Test.Common;
@@ -20,18 +19,12 @@ public class BucketGroupDatabaseTest : BaseDatabaseTest<BucketGroup>
         Assert.Equal(expected.Position, actual.Position);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
-    {
-        get
-        {
-            return new[]
-            {
-                new object[] { new MockBucketGroupRepository(new MockDatabase()) },
-                new object[] { new BucketGroupRepository(new DatabaseContext(MariaDbContextOptions)) }
-            };
-        }
-    }
-    
+    public static IEnumerable<object[]> TestData_Repository =>
+    [
+        [new MockBucketGroupRepository(new MockDatabase())],
+        [new BucketGroupRepository(GetInMemoryContext())]
+    ];
+
     private List<BucketGroup> SetupTestData(IBucketGroupRepository bucketGroupRepository)
     {
         DeleteAllExtension<IBucketGroupRepository, BucketGroup>.DeleteAll(bucketGroupRepository);

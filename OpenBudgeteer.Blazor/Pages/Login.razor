@@ -1,0 +1,68 @@
+@page "/login"
+@layout LoginLayout
+@attribute [AllowAnonymous]
+
+<MudContainer Class="d-flex align-center justify-center"
+              MaxWidth="MaxWidth.Small"
+              Style="min-height: 100vh;">
+    <MudPaper Class="pa-8"
+              Elevation="4"
+              Width="400px">
+        <form method="post"
+              action="/auth/login">
+            <MudStack Spacing="4">
+
+                <!-- Icon and App Name -->
+                <MudStack AlignItems="AlignItems.Center"
+                          Class="mb-2"
+                          Spacing="2">
+                    <MudImage Class="rounded-circle pa-2"
+                              Height="60"
+                              Src="favicon.ico"
+                              Style=@($"background-color: {AppIconBackground};")/>
+                    <MudText Typo="Typo.h4">
+                        OpenBudgeteer
+                    </MudText>
+                </MudStack>
+
+                <!-- Error Message -->
+                @if (!string.IsNullOrEmpty(Error))
+                {
+                    <MudAlert Dense="true"
+                              Severity="Severity.Error"
+                              Variant="Variant.Filled">
+                        @GetErrorMessage()
+                    </MudAlert>
+                }
+
+                <!-- Login form -->
+                <MudTextField T="string"
+                              AutoFocus="true"
+                              Label="Username"
+                              Required="true"
+                              UserAttributes="@(new Dictionary<string, object> { { "name", "username" } })"
+                              Variant="Variant.Outlined"/>
+
+                <MudTextField T="string"
+                              InputType="InputType.Password"
+                              Label="Password"
+                              Required="true"
+                              UserAttributes="@(new Dictionary<string, object> { { "name", "password" } })"
+                              Variant="Variant.Outlined"/>
+
+                <input type="hidden"
+                       name="returnUrl"
+                       value="@(ReturnUrl ?? "/")"/>
+
+                <!-- Login Button -->
+                <MudButton ButtonType="ButtonType.Submit"
+                           Color="Color.Primary"
+                           FullWidth="true"
+                           Size="Size.Large"
+                           Variant="Variant.Filled">
+                    Sign In
+                </MudButton>
+            </MudStack>
+        </form>
+    </MudPaper>
+</MudContainer>

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
@@ -10,6 +11,7 @@ using OpenBudgeteer.Blazor.Shared.Dialog;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
+using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.Helper;
 using OpenBudgeteer.Core.ViewModels.PageViewModels;
@@ -23,6 +25,8 @@ public partial class Transaction : ComponentBase
     [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
 
     private TransactionPageViewModel _dataContext = null!;
+    private TransactionViewModel _createTransactionDataContext = null!;
+    private Tuple<TransactionViewModel, TransactionViewModel> _createTransferDataContext = null!;
     private bool _isEditModeEnabled;
     
     private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
@@ -62,6 +66,10 @@ public partial class Transaction : ComponentBase
     private async Task ReloadDataContext()
     {
         await HandleResult(await _dataContext.LoadDataAsync());
+        _createTransactionDataContext = TransactionViewModel.CreateEmpty(ServiceManager);
+        _createTransferDataContext = new(
+            TransactionViewModel.CreateEmpty(ServiceManager),
+            TransactionViewModel.CreateEmpty(ServiceManager));
         _selectedTransactions.Clear();
         
         _accountMudFilter.AvailableItems = _dataContext.Transactions
@@ -90,24 +98,28 @@ public partial class Transaction : ComponentBase
     private async Task ShowCreateTransactionDialog()
     {
         var reloadRequired = false;
+        var lastEnteredDate = YearMonthDataContext.IsTodayInCurrentMonth ? 
+            DateOnly.FromDateTime(DateTime.Today) : YearMonthDataContext.CurrentMonth;
+        
         while (true)
         {
+            _createTransactionDataContext.TransactionDate = lastEnteredDate;
             var createDialogParameters = new DialogParameters<CreateTransactionDialog>
             {
-                { x => x.DataContext, _dataContext.NewTransaction }
+                { x => x.DataContext, _createTransactionDataContext }
             };
             var createDialog = await DialogService.ShowAsync<CreateTransactionDialog>(
                 "Create Transactions", createDialogParameters);
             var createDialogResult = await createDialog.Result;
             if (createDialogResult is { Canceled: false })
             {
-                var createItemResult = _dataContext.CreateItem();
+                var createItemResult = _dataContext.CreateItem(_createTransactionDataContext);
                 if (createItemResult.IsSuccessful)
                 {
                     reloadRequired = true;
                     if (createDialogResult.Data is CreateDialogResponse.CreateAnother)
                     {
-                        _dataContext.ResetNewTransaction();
+                        lastEnteredDate = _createTransactionDataContext.TransactionDate;
                         continue;
                     }
                 }
@@ -119,6 +131,95 @@ public partial class Transaction : ComponentBase
                         { x => x.Message, createItemResult.Message }
                     };
                     await DialogService.ShowAsync<ErrorMessageDialog>("Create Transaction", errorDialogParameters);
+                }
+            }
+
+            break;
+        }
+        if (reloadRequired) await ReloadDataContext();
+    }
+
+    private async Task ShowCreateTransferDialog()
+    {
+        var reloadRequired = false;
+        var lastEnteredDateSender = YearMonthDataContext.IsTodayInCurrentMonth ? 
+            DateOnly.FromDateTime(DateTime.Today) : YearMonthDataContext.CurrentMonth;
+        var lastEnteredDateReceiver = YearMonthDataContext.IsTodayInCurrentMonth ? 
+            DateOnly.FromDateTime(DateTime.Today) : YearMonthDataContext.CurrentMonth;
+        
+        while (true)
+        {
+            var (sender, receiver) = _createTransferDataContext;
+            sender.TransactionDate = lastEnteredDateSender;
+            receiver.TransactionDate = lastEnteredDateReceiver;
+            var createDialogParameters = new DialogParameters<CreateTransferDialog>
+            {
+                { x => x.SenderDataContext, sender },
+                { x => x.ReceiverDataContext, receiver }
+            };
+            var createDialog = await DialogService.ShowAsync<CreateTransferDialog>(
+                "Create Transfer", createDialogParameters);
+            var createDialogResult = await createDialog.Result;
+            if (createDialogResult is { Canceled: false })
+            {
+                sender.Buckets.Clear(); // Just to be sure
+                receiver.Buckets.Clear(); // Just to be sure
+
+                var transferBucket = new Core.Data.Entities.Models.Bucket()
+                {
+                    Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
+                    BucketGroupId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    BucketGroup = new BucketGroup
+                    {
+                        Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                        Name = "System",
+                        Position = 0
+                    },
+                    Name = "Transfer"
+                };
+                sender.Buckets.Add(PartialBucketViewModel.CreateFromBucket(ServiceManager, transferBucket, sender.Amount));
+                receiver.Buckets.Add(PartialBucketViewModel.CreateFromBucket(ServiceManager, transferBucket, receiver.Amount));
+                
+                var createItemResultSender = sender.PerformConsistencyCheck();
+                var createItemResultReceiver = receiver.PerformConsistencyCheck();
+
+                if (createItemResultSender.IsSuccessful && createItemResultReceiver.IsSuccessful)
+                {
+                    createItemResultSender = _dataContext.CreateItem(sender);
+                    createItemResultReceiver = _dataContext.CreateItem(receiver);
+                }
+                
+                if (createItemResultSender.IsSuccessful && createItemResultReceiver.IsSuccessful)
+                {
+                    reloadRequired = true;
+                    if (createDialogResult.Data is CreateDialogResponse.CreateAnother)
+                    {
+                        lastEnteredDateSender = sender.TransactionDate;
+                        lastEnteredDateReceiver = receiver.TransactionDate;
+                        continue;
+                    }
+                }
+                else
+                {
+                    var messageStringBuilder = new StringBuilder();
+                    if (!createItemResultSender.IsSuccessful)
+                    {
+                        messageStringBuilder.AppendLine("Sending Transaction:");
+                        messageStringBuilder.AppendLine(createItemResultSender.Message);
+                    }
+                    if (!createItemResultReceiver.IsSuccessful)
+                    {
+                        if (messageStringBuilder.Length > 0) messageStringBuilder.AppendLine();
+                        messageStringBuilder.AppendLine("Receiving Transaction:");
+                        messageStringBuilder.AppendLine(createItemResultReceiver.Message);
+                    }
+                    
+                    var errorDialogParameters = new DialogParameters<ErrorMessageDialog>
+                    {
+                        { x => x.Title, "Create Transfer" },
+                        { x => x.Message, messageStringBuilder.ToString() }
+                    };
+                    await DialogService.ShowAsync<ErrorMessageDialog>("Create Transfer", errorDialogParameters);
                 }
             }
 
@@ -229,7 +330,7 @@ public partial class Transaction : ComponentBase
     private async Task ShowBucketSelectDialog(TransactionViewModel transactionViewModel, PartialBucketViewModel partialBucketViewModel)
     {
         var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
-        await bucketSelectDialogDataContext.LoadDataAsync(true, true);
+        await HandleResult(await bucketSelectDialogDataContext.LoadDataForSelectionScreenAsync());
         
         var parameters = new DialogParameters<BucketSelectDialog>
         {

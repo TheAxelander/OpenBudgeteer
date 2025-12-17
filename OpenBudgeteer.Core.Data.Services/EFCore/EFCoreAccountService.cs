@@ -1,19 +1,23 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.Data.Services.Generic;
 
 namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreAccountService : EFCoreBaseService<Account>, IAccountService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreAccountService> _logger;
 
-    public EFCoreAccountService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreAccountService(IDbContextFactory<DatabaseContext> dbContextFactory, ILogger<EFCoreAccountService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericAccountService CreateBaseService(DatabaseContext dbContext)
@@ -27,21 +31,37 @@ public class EFCoreAccountService : EFCoreBaseService<Account>, IAccountService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var genericAccountService = CreateBaseService(dbContext);
             return genericAccountService.GetActiveAccounts();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
     public Account CloseAccount(Guid id)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
-        var genericAccountService = CreateBaseService(dbContext);
-        return genericAccountService.CloseAccount(id);
+        try
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var genericAccountService = CreateBaseService(dbContext);
+            return genericAccountService.CloseAccount(id);
+        }
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to close Account: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
+        }
     }
 }

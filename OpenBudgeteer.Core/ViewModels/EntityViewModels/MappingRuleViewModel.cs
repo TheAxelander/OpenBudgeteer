@@ -58,7 +58,8 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>, IEquatable
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="mappingRule">MappingRule instance</param>
-    public MappingRuleViewModel(IServiceManager serviceManager, MappingRule mappingRule) : base(serviceManager)
+    public MappingRuleViewModel(IServiceManager serviceManager, MappingRule mappingRule) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(MappingRuleViewModel)))
     {
         MappingRuleId = mappingRule.Id;
         BucketRuleSetId = mappingRule.BucketRuleSetId;
@@ -71,7 +72,7 @@ public class MappingRuleViewModel : BaseEntityViewModel<MappingRule>, IEquatable
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected MappingRuleViewModel(MappingRuleViewModel viewModel) : base(viewModel.ServiceManager)
+    protected MappingRuleViewModel(MappingRuleViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         MappingRuleId = viewModel.MappingRuleId;
         BucketRuleSetId = viewModel.BucketRuleSetId;

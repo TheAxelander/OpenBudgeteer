@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using TinyCsvParser;
 using TinyCsvParser.Mapping;
@@ -153,7 +155,8 @@ public class ImportPageViewModel : ViewModelBase
     /// Basic constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
-    public ImportPageViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public ImportPageViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(ImportPageViewModel)))
     {
         AvailableImportProfiles = new ObservableCollection<ImportProfileViewModel>();
         AvailableAccounts = new ObservableCollection<AccountViewModel>();
@@ -187,10 +190,15 @@ public class ImportPageViewModel : ViewModelBase
             
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
-        }           
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
+        }       
     }
 
     /// <summary>
@@ -207,7 +215,8 @@ public class ImportPageViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -226,7 +235,8 @@ public class ImportPageViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -256,8 +266,9 @@ public class ImportPageViewModel : ViewModelBase
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to open file: {e.Message}");
-        }
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
+        }   
     }
 
     /// <summary>
@@ -287,9 +298,9 @@ public class ImportPageViewModel : ViewModelBase
             IdentifiedColumns.Clear();
             
             // Consistency checks
-            if (_fileLines is null) throw new Exception("File content not loaded.");
+            if (_fileLines is null) return FallbackWithError("File content not loaded.");
             if (ModifiedImportProfile.HeaderRow < 1 || ModifiedImportProfile.HeaderRow > _fileLines.Length)
-                throw new Exception("Cannot read headers with given header row.");
+                return FallbackWithError("Cannot read headers with given header row.");
 
             // Collect Columns for Column Mapping selection
             var headerLine = _fileLines[ModifiedImportProfile.HeaderRow - 1];
@@ -301,7 +312,7 @@ public class ImportPageViewModel : ViewModelBase
             }
             
             // Make an initial selection after loading headers if possible
-            if (IdentifiedColumns.Count == 0) throw new Exception("No headers found.");
+            if (IdentifiedColumns.Count == 0) return FallbackWithError("No headers found.");
             if (SelectedImportProfile is null)
             {
                 var firstSelection = IdentifiedColumns.First();
@@ -335,6 +346,17 @@ public class ImportPageViewModel : ViewModelBase
         }
         catch (Exception e)
         {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return FallbackWithError("An unexpected error occurred. Please check the logs for more details.");
+        }
+
+        string GetAssignableColumnName(string columnName)
+        {
+            return IdentifiedColumns.Contains(columnName) ? columnName : string.Empty;
+        }
+
+        ViewModelOperationResult FallbackWithError(string message)
+        {
             // Something went wrong, reset current mapping
             ModifiedImportProfile.PayeeColumnName = string.Empty;
             ModifiedImportProfile.MemoColumnName = string.Empty;
@@ -342,12 +364,7 @@ public class ImportPageViewModel : ViewModelBase
             ModifiedImportProfile.CreditColumnName = string.Empty;
             ModifiedImportProfile.CreditColumnIdentifierColumnName = string.Empty;
             
-            return new ViewModelOperationResult(false, $"Unable to load Headers: {e.Message}");
-        }
-
-        string GetAssignableColumnName(string columnName)
-        {
-            return IdentifiedColumns.Contains(columnName) ? columnName : string.Empty;
+            return new ViewModelOperationResult(false, $"Unable to load Headers: {message}");
         }
     }
     
@@ -364,20 +381,20 @@ public class ImportPageViewModel : ViewModelBase
         try
         {
             // Run pre-checks
-            if (string.IsNullOrEmpty(ModifiedImportProfile.NumberFormat)) throw new Exception("Missing Number Format");
-            if (string.IsNullOrEmpty(ModifiedImportProfile.DateFormat)) throw new Exception("Missing Date Format");
-            if (string.IsNullOrEmpty(ModifiedImportProfile.MemoColumnName)) throw new Exception("Missing Mapping for Memo");
-            if (string.IsNullOrEmpty(ModifiedImportProfile.TransactionDateColumnName)) throw new Exception("Missing Mapping for Transaction Date");
-            if (string.IsNullOrEmpty(ModifiedImportProfile.AmountColumnName)) throw new Exception("Missing Mapping for Amount");
-            if (ModifiedImportProfile.Account.AccountId == Guid.Empty) throw new Exception("No target account selected");
-            if (_fileLines is null) throw new Exception("File content not loaded.");
+            if (string.IsNullOrEmpty(ModifiedImportProfile.NumberFormat)) return ReturnWithError("Missing Number Format");
+            if (string.IsNullOrEmpty(ModifiedImportProfile.DateFormat)) return ReturnWithError("Missing Date Format");
+            if (string.IsNullOrEmpty(ModifiedImportProfile.MemoColumnName)) return ReturnWithError("Missing Mapping for Memo");
+            if (string.IsNullOrEmpty(ModifiedImportProfile.TransactionDateColumnName)) return ReturnWithError("Missing Mapping for Transaction Date");
+            if (string.IsNullOrEmpty(ModifiedImportProfile.AmountColumnName)) return ReturnWithError("Missing Mapping for Amount");
+            if (ModifiedImportProfile.Account.AccountId == Guid.Empty) return ReturnWithError("No target account selected");
+            if (_fileLines is null) return ReturnWithError("File content not loaded.");
 
             // Pre-Load Data for verification
             // Initialize CsvReader
             var options = new Options(ModifiedImportProfile.TextQualifier, '\\', ModifiedImportProfile.Delimiter);
             var tokenizer = new RFC4180Tokenizer(options);
             var csvParserOptions = new CsvParserOptions(true, tokenizer);
-            var csvReaderOptions = new CsvReaderOptions(new[] { Environment.NewLine });
+            var csvReaderOptions = new CsvReaderOptions([Environment.NewLine]);
             var csvMapper = new CsvBankTransactionMapping(ModifiedImportProfile, IdentifiedColumns);
             var csvParser = new CsvParser<ParsedBankTransaction>(csvParserOptions, csvMapper);
 
@@ -406,13 +423,18 @@ public class ImportPageViewModel : ViewModelBase
         }
         catch (Exception e)
         {
+            return ReturnWithError(e.Message);
+        }
+
+        ViewModelOperationResult ReturnWithError(string message)
+        {
             TotalRecords = 0;
             RecordsWithErrors = 0;
             ValidRecords = 0;
             PotentialDuplicates = 0;
             ParsedRecords.Clear();
             Duplicates.Clear();
-            return new ViewModelOperationResult(false, e.Message);
+            return new ViewModelOperationResult(false, message);
         }
     }
 
@@ -505,9 +527,14 @@ public class ImportPageViewModel : ViewModelBase
 
                 return new ViewModelOperationResult(true, $"Successfully imported {result.Count} records.");
             }
+            catch (ServiceException e)
+            {
+                return new ViewModelOperationResult(false, e.Message);
+            }
             catch (Exception e)
             {
-                return new ViewModelOperationResult(false, $"Unable to Import Data. Error message: {e.Message}");
+                Logger.LogError(e, "An unexpected error occurred.");
+                return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
             }
         });
     }
@@ -533,14 +560,19 @@ public class ImportPageViewModel : ViewModelBase
         try
         {
             var result = ModifiedImportProfile.CreateProfile();
-            if (!result.IsSuccessful) throw new Exception(result.Message);
+            if (!result.IsSuccessful) return new ViewModelOperationResult(false, result.Message);
             LoadAvailableProfiles();
             SelectedImportProfile = ModifiedImportProfile; //Setter will automatically create a detached copy for ModifiedImportProfile
             return new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -566,15 +598,20 @@ public class ImportPageViewModel : ViewModelBase
         try
         {
             var result = ModifiedImportProfile.DeleteProfile();
-            if (!result.IsSuccessful) throw new Exception(result.Message);
+            if (!result.IsSuccessful) return new ViewModelOperationResult(false, result.Message);
             LoadAvailableProfiles();
             SelectedImportProfile = ImportProfileViewModel.CreateEmpty(ServiceManager);
 
             return new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 }

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -126,8 +128,10 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="availableAccounts">List of all available <see cref="Account"/> from database. (Use a cached list here)</param>
     /// <param name="transaction">Transaction instance</param>
-    protected RecurringTransactionViewModel(IServiceManager serviceManager, IEnumerable<AccountViewModel> availableAccounts, 
-        RecurringBankTransaction? transaction) : base(serviceManager)
+    protected RecurringTransactionViewModel(
+        IServiceManager serviceManager, 
+        IEnumerable<AccountViewModel> availableAccounts, 
+        RecurringBankTransaction? transaction) : base(serviceManager, serviceManager.CreateLogger(typeof(RecurringTransactionViewModel)))
     {
         // Handle Accounts
         AvailableAccounts = new ObservableCollection<AccountViewModel>();
@@ -182,7 +186,7 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected RecurringTransactionViewModel(RecurringTransactionViewModel viewModel) : base(viewModel.ServiceManager)
+    protected RecurringTransactionViewModel(RecurringTransactionViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         // Handle Transaction
         RecurringTransactionId = viewModel.RecurringTransactionId;
@@ -241,7 +245,7 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
     public static RecurringTransactionViewModel CreateFromRecurringTransaction(
-        IServiceManager serviceManager, 
+        IServiceManager serviceManager,
         IEnumerable<AccountViewModel> availableAccounts,
         RecurringBankTransaction transaction)
     {
@@ -318,9 +322,14 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
             InModification = false;
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -352,9 +361,14 @@ public class RecurringTransactionViewModel : BaseEntityViewModel<RecurringBankTr
 
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     

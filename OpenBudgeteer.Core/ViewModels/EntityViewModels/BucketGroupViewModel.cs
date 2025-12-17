@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -124,7 +126,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
     /// <param name="bucketGroup">BucketGroup instance</param>
     /// <param name="currentMonth">YearMonth that should be used</param>
     protected BucketGroupViewModel(IServiceManager serviceManager, BucketGroup? bucketGroup, DateOnly currentMonth) 
-        : base(serviceManager)
+        : base(serviceManager, serviceManager.CreateLogger(typeof(BucketGroupViewModel)))
     {
         Buckets = new ObservableCollection<BucketViewModel>();
         _inModification = false;
@@ -148,7 +150,7 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected BucketGroupViewModel(BucketGroupViewModel viewModel) : base(viewModel.ServiceManager)
+    protected BucketGroupViewModel(BucketGroupViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         BucketGroupId = viewModel.BucketGroupId;
         _name = viewModel.Name;
@@ -238,15 +240,17 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
     {
         try
         {
-            if (Name == string.Empty) throw new Exception( "Bucket Group Name cannot be empty");
-        
             ServiceManager.BucketGroupService.Create(ConvertToDto());
-        
             return new ViewModelOperationResult(true, true);
+        }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
         }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, e.Message);
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -264,9 +268,14 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
             _oldBucketGroup = null;
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to write changes to database: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -283,9 +292,14 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
             ServiceManager.BucketGroupService.Delete(BucketGroupId);
             return new ViewModelOperationResult(true, true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -307,9 +321,14 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
             ServiceManager.BucketGroupService.Move(BucketGroupId, positions);
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Unable to move Bucket Group: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     

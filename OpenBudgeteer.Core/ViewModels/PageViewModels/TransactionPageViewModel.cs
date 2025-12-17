@@ -2,11 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
-using OpenBudgeteer.Core.Common.Extensions;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 using OpenBudgeteer.Core.ViewModels.Helper;
 
@@ -14,16 +15,6 @@ namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
 
 public class TransactionPageViewModel : TransactionListingViewModel
 {
-    private TransactionViewModel? _newTransaction;
-    /// <summary>
-    /// Helper property to handle creation of a new <see cref="BankTransaction"/>
-    /// </summary>
-    public TransactionViewModel? NewTransaction
-    {
-        get => _newTransaction;
-        set => Set(ref _newTransaction, value);
-    }
-    
     private int _proposeBucketsCount;
     /// <summary>
     /// Helper property for Progress Dialog during Bucket proposal process
@@ -75,51 +66,39 @@ public class TransactionPageViewModel : TransactionListingViewModel
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
-    public TransactionPageViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel) 
+    public TransactionPageViewModel(
+        IServiceManager serviceManager, 
+        YearMonthSelectorViewModel yearMonthViewModel) 
         : base(serviceManager, yearMonthViewModel)
     {
         _yearMonthViewModel = yearMonthViewModel;
         _transactions = new ObservableCollection<TransactionViewModel>();
-        ResetNewTransaction();
         //_yearMonthViewModel.SelectedYearMonthChanged += (sender) => { LoadData(); };
     }
     
     /// <summary>
-    /// Starts creation process based on <see cref="NewTransaction"/>
+    /// Creates the passed <see cref="TransactionViewModel"/> in the database
     /// </summary>
     /// <remarks>Triggers <see cref="ViewModelOperationResult.ViewModelReloadRequired"/></remarks>
     /// <returns>Object which contains information and results of this method</returns>
-    public ViewModelOperationResult CreateItem()
+    public ViewModelOperationResult CreateItem(TransactionViewModel transaction)
     {
         try
         {
-            if (NewTransaction is null) throw new Exception("New Transaction has not been initialized");
-            var result = NewTransaction.CreateOrUpdateTransaction();
-            if (!result.IsSuccessful) return result;
-            ResetNewTransaction();
-        
-            return new ViewModelOperationResult(true, true);
+            var result = transaction.CreateOrUpdateTransaction();
+            return !result.IsSuccessful ? result : new ViewModelOperationResult(true, true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
         }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
+        }
     }
    
-    /// <summary>
-    /// Helper method to reset values of <see cref="NewTransaction"/>
-    /// </summary>
-    public void ResetNewTransaction()
-    {
-        var lastEnteredDate = 
-            // Use previous entered date
-            NewTransaction?.TransactionDate ?? (
-            // Alternative use current Date or current selected month
-            _yearMonthViewModel.IsTodayInCurrentMonth ? DateOnly.FromDateTime(DateTime.Today) : _yearMonthViewModel.CurrentMonth);
-        NewTransaction = TransactionViewModel.CreateEmpty(ServiceManager);
-        NewTransaction.TransactionDate = lastEnteredDate;
-    }
-    
     /// <summary>
     /// Helper method to start modification process for all Transactions based on current Filter
     /// </summary>
@@ -142,13 +121,18 @@ public class TransactionPageViewModel : TransactionListingViewModel
             foreach (var transaction in _transactions.Where(i => i.InModification))
             {
                 var result = transaction.CreateOrUpdateTransaction();
-                if (!result.IsSuccessful) throw new Exception(result.Message);
+                if (!result.IsSuccessful) return new ViewModelOperationResult(false, result.Message);
             }
             return new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -196,9 +180,14 @@ public class TransactionPageViewModel : TransactionListingViewModel
                 ? new ViewModelOperationResult(true, true)
                 : new ViewModelOperationResult(true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 }

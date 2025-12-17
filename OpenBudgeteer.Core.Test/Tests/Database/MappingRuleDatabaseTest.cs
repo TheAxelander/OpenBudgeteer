@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
-using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
 using OpenBudgeteer.Core.Test.Common;
@@ -32,23 +31,22 @@ public class MappingRuleDatabaseTest : BaseDatabaseTest<MappingRule>
         get
         {
             var mockDb = new MockDatabase();
-            return new[]
-            {
-                new object[]
-                {
+            var dbContext = GetInMemoryContext();
+            return
+            [
+                [
                     new MockMappingRuleRepository(mockDb),
                     new MockBucketRuleSetRepository(mockDb),
                     new MockBucketRepository(mockDb),
                     new MockBucketGroupRepository(mockDb)
-                },
-                new object[]
-                {
-                    new MappingRuleRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new BucketRuleSetRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new BucketRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new BucketGroupRepository(new DatabaseContext(MariaDbContextOptions))
-                }
-            };
+                ],
+                [
+                    new MappingRuleRepository(dbContext),
+                    new BucketRuleSetRepository(dbContext),
+                    new BucketRepository(dbContext),
+                    new BucketGroupRepository(dbContext)
+                ]
+            ];
         }
     }
     

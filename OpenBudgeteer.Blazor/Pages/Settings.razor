@@ -1,96 +1,240 @@
 @page "/settings"
+@attribute [Authorize]
 
-<MudTabs Elevation="2" Rounded PanelClass="pa-4">
-    <MudTabPanel Text="Theme" Icon="@Icons.Material.Filled.ColorLens">
-        <MudStack Row Spacing="2" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ApplyThemeAsync">Apply Changes</MudButton>
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="RestoreThemeAsync">Restore Theme</MudButton>
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="RestoreDefaultThemeAsync">Restore Default</MudButton>
-            <MudSwitch @bind-Value="_dataContext.UseDarkTheme" Color="Color.Primary" Label="Use Dark Theme"/>
-            <MudSwitch @bind-Value="_showAll" Color="Color.Primary" Label="Show all"/>
+<!-- Setting Tabs -->
+<MudTabs Elevation="2"
+         PanelClass="pa-4"
+         Rounded>
+
+    <!-- Theme Tab -->
+    <MudTabPanel Icon="@Icons.Material.Filled.ColorLens"
+                 Text="Theme">
+
+        <!-- Theme Action Buttons -->
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  Spacing="2"
+                  Wrap="Wrap.Wrap">
+            <MudButton OnClick="ApplyThemeAsync"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Apply Changes
+            </MudButton>
+            <MudButton OnClick="RestoreThemeAsync"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Restore Theme
+            </MudButton>
+            <MudButton OnClick="RestoreDefaultThemeAsync"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Restore Default
+            </MudButton>
+            <MudSwitch @bind-Value="_dataContext.UseDarkTheme"
+                       Color="Color.Primary"
+                       Label="Use Dark Theme"/>
+            <MudSwitch @bind-Value="_showAll"
+                       Color="Color.Primary"
+                       Label="Show all"/>
         </MudStack>
 
+        <!-- Theme Settings -->
         <MudGrid>
-            <MudItem sm="12" md="4">
-                <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>Theme Colors</b></MudText>
-                <MudThemeColorItem Name="Primary" @bind-Value="@_dataContext.CurrentPalette.Primary" ColorPickerView="ColorPickerView.Spectrum"/>
+
+            <!-- Theme Colors -->
+            <MudItem md="4"
+                     sm="12">
+                <MudText Class="pt-4 mx-4"
+                         GutterBottom="true"
+                         Typo="Typo.body2">
+                    <b>Theme Colors</b>
+                </MudText>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Primary"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Primary"/>
                 @if (_showAll)
                 {
-                    <MudThemeColorItem Name="Secondary" @bind-Value="@_dataContext.CurrentPalette.Secondary" ColorPickerView="ColorPickerView.Spectrum"/>
-                    <MudThemeColorItem Name="Tertiary" @bind-Value="@_dataContext.CurrentPalette.Tertiary" ColorPickerView="ColorPickerView.Spectrum"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Secondary"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Secondary"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Tertiary"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Tertiary"/>
                 }
-                <MudThemeColorItem Name="Info" @bind-Value="@_dataContext.CurrentPalette.Info" ColorPickerView="ColorPickerView.Spectrum"/>
-                <MudThemeColorItem Name="Success" @bind-Value="@_dataContext.CurrentPalette.Success" ColorPickerView="ColorPickerView.Spectrum"/>
-                <MudThemeColorItem Name="Warning" @bind-Value="@_dataContext.CurrentPalette.Warning" ColorPickerView="ColorPickerView.Spectrum"/>
-                <MudThemeColorItem Name="Error" @bind-Value="@_dataContext.CurrentPalette.Error" ColorPickerView="ColorPickerView.Spectrum"/>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Info"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Info"/>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Success"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Success"/>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Warning"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Warning"/>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Error"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Error"/>
                 @if (_showAll)
                 {
-                    <MudThemeColorItem Name="Dark" @bind-Value="@_dataContext.CurrentPalette.Dark" ColorPickerView="ColorPickerView.Spectrum"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Dark"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Dark"/>
                 }
             </MudItem>
+
+            <!-- Components (default hidden) -->
             @if (_showAll)
             {
-                <MudItem sm="12" md="4">
-                    <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>Components</b></MudText>
-                    <MudThemeColorItem Name="Appbar Text" @bind-Value="@_dataContext.CurrentPalette.AppbarText" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Appbar Background" @bind-Value="@_dataContext.CurrentPalette.AppbarBackground" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Drawer Text" @bind-Value="@_dataContext.CurrentPalette.DrawerText" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Drawer Icons" @bind-Value="@_dataContext.CurrentPalette.DrawerIcon" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Drawer Background" @bind-Value="@_dataContext.CurrentPalette.DrawerBackground" ColorPickerView="ColorPickerView.Spectrum" />
+                <MudItem md="4"
+                         sm="12">
+                    <MudText Class="pt-4 mx-4"
+                             GutterBottom="true"
+                             Typo="Typo.body2">
+                        <b>Components</b>
+                    </MudText>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.AppbarText"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Appbar Text"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.AppbarBackground"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Appbar Background"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.DrawerText"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Drawer Text"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.DrawerIcon"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Drawer Icons"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.DrawerBackground"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Drawer Background"/>
                 </MudItem>
             }
-            <MudItem sm="12" md="4">
-                <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>General</b></MudText>
-                <MudThemeColorItem Name="Surface" @bind-Value="@_dataContext.CurrentPalette.Surface" ColorPickerView="ColorPickerView.Spectrum" />
-                <MudThemeColorItem Name="Background" @bind-Value="@_dataContext.CurrentPalette.Background" ColorPickerView="ColorPickerView.Spectrum" />
+
+            <!-- General -->
+            <MudItem md="4"
+                     sm="12">
+                <MudText Class="pt-4 mx-4"
+                         GutterBottom="true"
+                         Typo="Typo.body2">
+                    <b>General</b>
+                </MudText>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Surface"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Surface"/>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Background"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Background"/>
                 @if (_showAll)
                 {
-                    <MudThemeColorItem Name="Background Gray" @bind-Value="@_dataContext.CurrentPalette.BackgroundGray" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Lines Default" @bind-Value="@_dataContext.CurrentPalette.LinesDefault" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Lines Inputs" @bind-Value="@_dataContext.CurrentPalette.LinesInputs" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Divider" @bind-Value="@_dataContext.CurrentPalette.Divider" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Divider Light" @bind-Value="@_dataContext.CurrentPalette.DividerLight" ColorPickerView="ColorPickerView.Spectrum" />
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.BackgroundGray"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Background Gray"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.LinesDefault"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Lines Default"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.LinesInputs"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Lines Inputs"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Divider"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Divider"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.DividerLight"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Divider Light"/>
                 }
             </MudItem>
-            <MudItem sm="12" md="4">
-                <MudText Typo="Typo.body2" GutterBottom="true" Class="pt-4 mx-4"><b>Text & Actions</b></MudText>
-                <MudThemeColorItem Name="Text Primary" @bind-Value="@_dataContext.CurrentPalette.TextPrimary" ColorPickerView="ColorPickerView.Spectrum" />
-                <MudThemeColorItem Name="Text Secondary" @bind-Value="@_dataContext.CurrentPalette.TextSecondary" ColorPickerView="ColorPickerView.Spectrum" />
+
+            <!-- Text & Actions -->
+            <MudItem md="4"
+                     sm="12">
+                <MudText Class="pt-4 mx-4"
+                         GutterBottom="true"
+                         Typo="Typo.body2">
+                    <b>Text & Actions</b>
+                </MudText>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.TextPrimary"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Text Primary"/>
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.TextSecondary"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Text Secondary"/>
                 @if (_showAll)
                 {
-                    <MudThemeColorItem Name="Text Disabled" @bind-Value="@_dataContext.CurrentPalette.TextDisabled" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Action Default" @bind-Value="@_dataContext.CurrentPalette.ActionDefault" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Action Disabled" @bind-Value="@_dataContext.CurrentPalette.ActionDisabled" ColorPickerView="ColorPickerView.Spectrum" />
-                    <MudThemeColorItem Name="Disabled Background" @bind-Value="@_dataContext.CurrentPalette.ActionDisabledBackground" ColorPickerView="ColorPickerView.Spectrum" />
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.TextDisabled"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Text Disabled"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.ActionDefault"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Action Default"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.ActionDisabled"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Action Disabled"/>
+                    <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.ActionDisabledBackground"
+                                       ColorPickerView="ColorPickerView.Spectrum"
+                                       Name="Disabled Background"/>
                 }
-                <MudThemeColorItem Name="Surface" @bind-Value="@_dataContext.CurrentPalette.Surface" ColorPickerView="ColorPickerView.Spectrum" />
+                <MudThemeColorItem @bind-Value="@_dataContext.CurrentPalette.Surface"
+                                   ColorPickerView="ColorPickerView.Spectrum"
+                                   Name="Surface"/>
             </MudItem>
         </MudGrid>
     </MudTabPanel>
-    <MudTabPanel Text="Misc" Icon="@Icons.Material.Filled.Settings">
-        <MudStack Row Spacing="3" AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ApplySettingsAsync">Apply Changes</MudButton>
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="RestoreSettingsAsync">Cancel</MudButton>
+
+    <!-- Misc Tab -->
+    <MudTabPanel Icon="@Icons.Material.Filled.Settings"
+                 Text="Misc">
+
+        <!-- Misc Action Buttons -->
+        <MudStack AlignItems="AlignItems.Center"
+                  Row
+                  Spacing="3"
+                  Wrap="Wrap.Wrap">
+            <MudButton OnClick="ApplySettingsAsync"
+                       Color="Color.Primary"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Apply Changes
+            </MudButton>
+            <MudButton OnClick="RestoreSettingsAsync"
+                       Color="Color.Error"
+                       Size="Size.Small"
+                       Variant="Variant.Filled">
+                Cancel
+            </MudButton>
         </MudStack>
-        <MudGrid Spacing="6" Class="pt-4">
-            <MudItem xs="12" sm="6">
+
+        <!-- Misc Settings -->
+        <MudGrid Class="pt-4"
+                 Spacing="6">
+
+            <!-- Home Page & Transaction Listing (left side) -->
+            <MudItem sm="6"
+                     xs="12">
                 <MudStack>
                     <MudText Typo="Typo.h5">Home Page</MudText>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Displayed amount of Top X Transactions</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudNumericField T="int" @bind-Value="_dataContext.HomePageTopCount"/>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudNumericField T="int"
+                                             @bind-Value="_dataContext.HomePageTopCount"/>
                         </MudItem>
                     </MudGrid>
                     <MudText Typo="Typo.h5">Transaction Listing</MudText>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Default row per page</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudSelect @bind-Value="_dataContext.TransactionPageSize" Dense>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudSelect @bind-Value="_dataContext.TransactionPageSize"
+                                       Dense>
                                 <MudSelectItem Value="10">10</MudSelectItem>
                                 <MudSelectItem Value="25">25</MudSelectItem>
                                 <MudSelectItem Value="50">50</MudSelectItem>
@@ -100,48 +244,71 @@
                     </MudGrid>
                 </MudStack>
             </MudItem>
-            <MudItem xs="12" sm="6">
+
+            <!-- Report Page (right side) -->
+            <MudItem sm="6"
+                     xs="12">
                 <MudStack>
                     <MudText Typo="Typo.h5">Report Page</MudText>
                     <MudText Typo="Typo.body1">Set the time frame of data that should be shown</MudText>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Month Balance Chart</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudNumericField T="int" @bind-Value="_dataContext.ReportPageMonthBalanceCount" Label="Months"/>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudNumericField T="int"
+                                             @bind-Value="_dataContext.ReportPageMonthBalanceCount"
+                                             Label="Months"/>
                         </MudItem>
                     </MudGrid>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Bank Balance Chart</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudNumericField T="int" @bind-Value="_dataContext.ReportPageBankBalanceCount" Label="Months"/>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudNumericField T="int"
+                                             @bind-Value="_dataContext.ReportPageBankBalanceCount"
+                                             Label="Months"/>
                         </MudItem>
                     </MudGrid>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Month Income & Expenses Chart</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudNumericField T="int" @bind-Value="_dataContext.ReportPageMonthIncomeExpensesCount" Label="Months"/>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudNumericField T="int"
+                                             @bind-Value="_dataContext.ReportPageMonthIncomeExpensesCount"
+                                             Label="Months"/>
                         </MudItem>
                     </MudGrid>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Year Income & Expenses Chart</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudNumericField T="int" @bind-Value="_dataContext.ReportPageYearIncomeExpensesCount" Label="Years"/>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudNumericField T="int"
+                                             @bind-Value="_dataContext.ReportPageYearIncomeExpensesCount"
+                                             Label="Years"/>
                         </MudItem>
                     </MudGrid>
                     <MudGrid>
-                        <MudItem xs="9" Class="d-flex align-center">
+                        <MudItem Class="d-flex align-center"
+                                 xs="9">
                             <MudText Typo="Typo.body2">Month Bucket Expenses Charts</MudText>
                         </MudItem>
-                        <MudItem xs="3" Class="d-flex align-center">
-                            <MudNumericField T="int" @bind-Value="_dataContext.ReportPageMonthBucketExpensesCount" Label="Months"/>
+                        <MudItem Class="d-flex align-center"
+                                 xs="3">
+                            <MudNumericField T="int"
+                                             @bind-Value="_dataContext.ReportPageMonthBucketExpensesCount"
+                                             Label="Months"/>
                         </MudItem>
                     </MudGrid>
                 </MudStack>

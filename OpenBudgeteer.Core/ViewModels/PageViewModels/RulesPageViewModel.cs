@@ -2,9 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
@@ -25,7 +27,8 @@ public class RulesPageViewModel : ViewModelBase
     /// Basic constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
-    public RulesPageViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public RulesPageViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(RulesPageViewModel)))
     {
         _ruleSets = new ObservableCollection<RuleSetViewModel>();
     }
@@ -50,9 +53,14 @@ public class RulesPageViewModel : ViewModelBase
 
                 return new ViewModelOperationResult(true);
             }
+            catch (ServiceException e)
+            {
+                return new ViewModelOperationResult(false, e.Message);
+            }
             catch (Exception e)
             {
-                return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+                Logger.LogError(e, "An unexpected error occurred.");
+                return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
             }
         });
     }

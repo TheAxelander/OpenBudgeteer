@@ -10,53 +10,95 @@
     </TitleContent>
     <DialogContent>
         <MudGrid Spacing="2">
+
+            <!-- First Occurrence Date -->
             <MudItem xs="4">
-                <MudDatePicker Date="@(DataContext.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue))" DateChanged="@(time => FirstOccurrenceDateChanged(time))" ShowToolbar="false"/>
+                <MudDatePicker DateChanged="@(time => FirstOccurrenceDateChanged(time))"
+                               Date="@(DataContext.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue))"
+                               ShowToolbar="false"/>
             </MudItem>
+
+            <!-- Account -->
             <MudItem xs="8">
-                <MudSelect T="AccountViewModel" @bind-Value="DataContext.SelectedAccount" ToStringFunc="@_convertAccount">
+                <MudSelect T="AccountViewModel"
+                           @bind-Value="DataContext.SelectedAccount"
+                           ToStringFunc="@_convertAccount">
                     @foreach (var account in DataContext.AvailableAccounts)
                     {
                         <MudSelectItem Value="@account">@account.Name</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
+
+            <!-- Recurrence Amount -->
             <MudItem xs="4">
-                <MudNumericField T="int" Label="Recurrence" @bind-Value="DataContext.RecurrenceAmount"/>
+                <MudNumericField T="int"
+                                 @bind-Value="DataContext.RecurrenceAmount"
+                                 Label="Recurrence"/>
             </MudItem>
-            <MudItem xs="8" Class="align-self-end">
-                <MudSelect T="RecurringTransactionRecurrenceType" @bind-Value="DataContext.RecurrenceType">
+
+            <!-- Recurrence Type -->
+            <MudItem Class="align-self-end"
+                     xs="8">
+                <MudSelect T="RecurringTransactionRecurrenceType"
+                           @bind-Value="DataContext.RecurrenceType">
                     @foreach (var filter in Enum.GetValues<RecurringTransactionRecurrenceType>())
                     {
                         <MudSelectItem Value="@filter">@filter.GetStringValue()</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
+
+            <!-- Payee -->
             <MudItem xs="12">
-                <MudTextField Label="Payee" @bind-Value="DataContext.Payee"/>
+                <MudTextField @bind-Value="DataContext.Payee"
+                              Label="Payee"/>
             </MudItem>
+
+            <!-- Memo -->
             <MudItem xs="12">
-                <MudTextField Label="Memo" @bind-Value="DataContext.Memo"/>
+                <MudTextField @bind-Value="DataContext.Memo"
+                              Label="Memo"/>
             </MudItem>
+
+            <!-- Amount -->
             <MudItem xs="12">
-                <MudNumericField T="decimal" Label="Amount" @bind-Value="DataContext.Amount"/>
+                <MudNumericField T="decimal"
+                                 @bind-Value="DataContext.Amount"
+                                 Label="Amount"/>
             </MudItem>
+
         </MudGrid>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreate">Create</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmCreateAnother">Create another</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="CancelDialog">Cancel</MudButton>
+        <MudButton OnClick="ConfirmCreate"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Create
+        </MudButton>
+        <MudButton OnClick="ConfirmCreateAnother"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Create another
+        </MudButton>
+        <MudButton OnClick="CancelDialog"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Cancel
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public RecurringTransactionViewModel DataContext { get; set; } = null!;
-    
+
     private readonly Func<AccountViewModel, string> _convertAccount = x =>
     {
         try
@@ -68,11 +110,11 @@
             return string.Empty;
         }
     };
-    
+
     void ConfirmCreate() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.Create));
     void ConfirmCreateAnother() => MudDialog.Close(DialogResult.Ok(CreateDialogResponse.CreateAnother));
     void CancelDialog() => MudDialog.Cancel();
-    
+
     void FirstOccurrenceDateChanged(DateTime? dateTime)
     {
         DataContext.FirstOccurrenceDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);

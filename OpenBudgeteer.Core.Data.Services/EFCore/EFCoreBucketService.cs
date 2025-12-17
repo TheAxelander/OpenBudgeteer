@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,11 +11,15 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreBucketService> _logger;
 
-    public EFCoreBucketService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreBucketService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreBucketService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericBucketService CreateBaseService(DatabaseContext dbContext)
@@ -31,19 +36,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetWithLatestVersion(id);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"{typeof(Bucket)} not found in database");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -51,14 +55,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllWithoutSystemBuckets();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
     
@@ -66,14 +74,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAll();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -81,14 +93,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetSystemBuckets();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -96,14 +112,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetActiveBuckets(validFrom);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
     
@@ -111,19 +131,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetLatestVersion(bucketId, yearMonth);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception("No Bucket Version found for the selected month");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -131,14 +150,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetFigures(bucketId, yearMonth);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -146,14 +169,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetBalance(bucketId, yearMonth);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -161,20 +188,24 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetInAndOut(bucketId, yearMonth);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
     public override Bucket Create(Bucket entity)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var baseService = CreateBaseService(dbContext);
         try
@@ -186,20 +217,19 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         catch (EntityUpdateException e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception(e.Message);
+            throw new ServiceException($"Unable to create Bucket: {e.Message}", _logger);
         }
         catch (Exception e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
     public override Bucket Update(Bucket entity)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var baseService = CreateBaseService(dbContext);
         try
@@ -208,11 +238,16 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
             transaction.Commit();
             return result;
         }
+        catch (EntityUpdateException e)
+        {
+            transaction.Rollback();
+            throw new ServiceException($"Unable to update Bucket: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
@@ -220,25 +255,24 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             baseService.Close(id, yearMonth);
         }
         catch (EntityUpdateException e)
         {
-            Console.WriteLine(e);
-            throw new Exception(e.Message);
+            throw new ServiceException($"Unable to close Bucket: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
     public override void Delete(Guid id)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var baseService = CreateBaseService(dbContext);
         try
@@ -249,14 +283,13 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
         catch (EntityUpdateException e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception(e.Message);
+            throw new ServiceException($"Unable to delete Bucket: {e.Message}", _logger);
         }
         catch (Exception e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
@@ -264,19 +297,18 @@ public class EFCoreBucketService : EFCoreBaseService<Bucket>, IBucketService
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.CreateMovement(bucketId, amount, movementDate);
         }
         catch (EntityUpdateException e)
         {
-            Console.WriteLine(e);
-            throw new Exception(e.Message);
+            throw new ServiceException($"Unable to create Movement: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 }

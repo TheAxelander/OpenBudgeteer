@@ -1,0 +1,17 @@
+@inherits LayoutComponentBase
+@inject MudThemeService MudThemeService
+
+<MudThemeProvider IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"
+                  Theme="MudThemeService.CurrentThemeSetting.CurrentTheme"/>
+<MudPopoverProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+@Body
+
+@code {
+    protected override void OnInitialized()
+    {
+        MudThemeService.ThemeChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+    }
+}

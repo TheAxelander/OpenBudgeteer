@@ -1,19 +1,25 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.Data.Services.Generic;
 
 namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransaction>, IBudgetedTransactionService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreBudgetedTransactionService> _logger;
 
-    public EFCoreBudgetedTransactionService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreBudgetedTransactionService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreBudgetedTransactionService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericBudgetedTransactionService CreateBaseService(DatabaseContext dbContext)
@@ -25,14 +31,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAll(periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
     
@@ -40,14 +50,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllForReporting(periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
     
@@ -60,14 +74,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllFromTransaction(transactionId, periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -80,14 +98,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllFromBucket(bucketId, periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
     
@@ -100,14 +122,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllNonTransfer(periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -120,14 +146,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllTransfer(periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -140,14 +170,18 @@ public class EFCoreBudgetedTransactionService : EFCoreBaseService<BudgetedTransa
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllIncome(periodStart, periodEnd);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 }

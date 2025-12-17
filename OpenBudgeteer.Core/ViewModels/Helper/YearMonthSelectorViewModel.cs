@@ -75,7 +75,8 @@ public class YearMonthSelectorViewModel : ViewModelBase
     /// <summary>
     /// Basic constructor
     /// </summary>
-    public YearMonthSelectorViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public YearMonthSelectorViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(YearMonthSelectorViewModel)))
     {
         Months = new ObservableCollection<int>();
         for (var i = 1; i < 13; i++)

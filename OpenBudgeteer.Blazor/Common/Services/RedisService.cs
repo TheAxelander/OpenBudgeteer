@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -43,5 +44,18 @@ public class RedisService
     public async Task DeleteKeyAsync(string key)
     {
         await _database.KeyDeleteAsync(string.IsNullOrEmpty(_prefix) ? key : $"{_prefix}:{key}");
+    }
+
+    public async Task<bool> KeyExistsAsync(string key)
+    {
+        return await _database.KeyExistsAsync(string.IsNullOrEmpty(_prefix) ? key : $"{_prefix}:{key}");
+    }
+
+    public async Task<bool> SetStringValueWithExpirationAsync(string key, string value, TimeSpan expiration)
+    {
+        return await _database.StringSetAsync(
+            string.IsNullOrEmpty(_prefix) ? key : $"{_prefix}:{key}",
+            value,
+            expiration);
     }
 }

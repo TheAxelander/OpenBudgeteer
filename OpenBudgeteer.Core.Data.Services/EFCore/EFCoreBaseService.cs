@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -9,11 +10,13 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 public abstract class EFCoreBaseService<TEntity> : IBaseService<TEntity> 
     where TEntity : class, IEntity
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger _logger;
 
-    protected EFCoreBaseService(DbContextOptions<DatabaseContext> dbContextOptions)
+    protected EFCoreBaseService(IDbContextFactory<DatabaseContext> dbContextFactory, ILogger logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected abstract IBaseService<TEntity> CreateBaseService(DatabaseContext dbContext);
@@ -22,19 +25,18 @@ public abstract class EFCoreBaseService<TEntity> : IBaseService<TEntity>
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.Get(id);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {typeof(TEntity)} not found in database");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -42,14 +44,18 @@ public abstract class EFCoreBaseService<TEntity> : IBaseService<TEntity>
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAll();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -57,19 +63,18 @@ public abstract class EFCoreBaseService<TEntity> : IBaseService<TEntity>
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.Create(entity);
         }
         catch (EntityUpdateException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Unable to create {typeof(TEntity)} in database");
+            throw new ServiceException($"Unable to create {typeof(TEntity).Name} in database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
@@ -77,19 +82,18 @@ public abstract class EFCoreBaseService<TEntity> : IBaseService<TEntity>
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.Update(entity);
         }
         catch (EntityUpdateException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Unable to update {typeof(TEntity)} in database");
+            throw new ServiceException($"Unable to update {typeof(TEntity).Name} in database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
@@ -97,19 +101,18 @@ public abstract class EFCoreBaseService<TEntity> : IBaseService<TEntity>
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             baseService.Delete(id);
         }
         catch (EntityUpdateException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Unable to delete {typeof(TEntity)} in database");
+            throw new ServiceException($"Unable to delete {typeof(TEntity).Name} in database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 }

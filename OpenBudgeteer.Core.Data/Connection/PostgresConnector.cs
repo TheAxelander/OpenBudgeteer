@@ -4,14 +4,13 @@ using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
-using OpenBudgeteer.Core.Data.Entities;
 
 namespace OpenBudgeteer.Core.Data.Connection;
 
 public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionStringBuilder>
 {
     public override string Provider => "PostgreSQL";
-    
+
     public PostgresConnector(IConfiguration configuration) : base(configuration)
     {
         if (string.IsNullOrEmpty(Server)) Server = "localhost";
@@ -53,14 +52,14 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
         };
     }
 
-    protected override DbContextOptionsBuilder<DatabaseContext> BuildDbContextOptions()
+    public override DbContextOptions BuildDbConnection(DbContextOptionsBuilder dbContextOptionsBuilder)
     {
-        var builder = new DbContextOptionsBuilder<DatabaseContext>();
         var connectionStringBuilder = BuildConnectionString();
         
-        return builder.UseNpgsql(
+        dbContextOptionsBuilder.UseNpgsql(
             connectionStringBuilder.ConnectionString,
             b => b.MigrationsAssembly("OpenBudgeteer.Core.Data.Postgres.Migrations"));
+        return dbContextOptionsBuilder.Options;
     }
 
     public override bool IsDatabaseAccessible(bool useRoot = false)

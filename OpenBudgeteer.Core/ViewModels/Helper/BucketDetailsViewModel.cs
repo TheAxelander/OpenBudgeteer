@@ -53,12 +53,14 @@ namespace OpenBudgeteer.Core.ViewModels.Helper
         /// <param name="serviceManager">Reference to API based services</param>
         /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
         /// <param name="bucketId">Bucket that should be used</param>
-        public BucketDetailsViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel yearMonthViewModel,
-            Guid bucketId) : base(serviceManager)
+        public BucketDetailsViewModel(
+            IServiceManager serviceManager, 
+            YearMonthSelectorViewModel yearMonthViewModel,
+            Guid bucketId) : base(serviceManager, serviceManager.CreateLogger(typeof(BucketDetailsViewModel)))
         {
             _yearMonthViewModel = yearMonthViewModel;
             BucketId = bucketId;
-            BucketMovementsData = new TransactionListingViewModel(serviceManager, _yearMonthViewModel);
+            BucketMovementsData = new TransactionListingViewModel(serviceManager);
         }
 
         /// <summary>

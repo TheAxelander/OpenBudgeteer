@@ -6,15 +6,25 @@
         <MudText>@Message</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Error" OnClick="ConfirmYes">Yes</MudButton>
-        <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" OnClick="ConfirmNo">No</MudButton>
+        <MudButton OnClick="ConfirmYes"
+                   Color="Color.Error"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            Yes
+        </MudButton>
+        <MudButton OnClick="ConfirmNo"
+                   Color="Color.Primary"
+                   Size="Size.Small"
+                   Variant="Variant.Filled">
+            No
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = null!;
-    
+
     [Parameter]
     public string Title { get; set; } = string.Empty;
 
@@ -29,7 +39,7 @@
 
 	[Parameter]
     public EventCallback<MouseEventArgs> OnCancelClickCallback { get; set; }
-    
+
     private void ConfirmYes() => MudDialog.Close(DialogResult.Ok(true));
 
     private void ConfirmNo() => MudDialog.Cancel();

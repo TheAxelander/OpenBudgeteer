@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
-using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
 using OpenBudgeteer.Core.Test.Common;
@@ -44,25 +43,24 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
         get
         {
             var mockDb = new MockDatabase();
-            return new[]
-            {
-                new object[]
-                {
+            var dbContext = GetInMemoryContext();
+            return
+            [
+                [
                     new MockBudgetedTransactionRepository(mockDb),
                     new MockAccountRepository(mockDb),
                     new MockBankTransactionRepository(mockDb),
                     new MockBucketRepository(mockDb),
                     new MockBucketGroupRepository(mockDb)
-                },
-                new object[]
-                {
-                    new BudgetedTransactionRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new AccountRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new BankTransactionRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new BucketRepository(new DatabaseContext(MariaDbContextOptions)),
-                    new BucketGroupRepository(new DatabaseContext(MariaDbContextOptions))
-                }
-            };
+                ],
+                [
+                    new BudgetedTransactionRepository(dbContext),
+                    new AccountRepository(dbContext),
+                    new BankTransactionRepository(dbContext),
+                    new BucketRepository(dbContext),
+                    new BucketGroupRepository(dbContext)
+                ]
+            ];
         }
     }
     

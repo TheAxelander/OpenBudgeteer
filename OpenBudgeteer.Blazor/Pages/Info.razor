@@ -1,9 +1,17 @@
 @page "/info"
+@attribute [Authorize]
 
 <MudGrid Spacing="2">
-    <MudItem sm="12" md="6">
-        <MudText Typo="Typo.h5" Class="mb-2">Database connection details</MudText>
-        <MudSimpleTable 
+
+    <!-- Database connection details -->
+    <MudItem
+        md="6"
+        sm="12">
+        <MudText Class="mb-2"
+                 Typo="Typo.h5">
+            Database connection details
+        </MudText>
+        <MudSimpleTable
             Dense="true"
             FixedHeader="true"
             Hover="true">
@@ -27,8 +35,15 @@
             </tbody>
         </MudSimpleTable>
     </MudItem>
-    <MudItem sm="12" md="6">
-        <MudText Typo="Typo.h5" Class="mb-2">3rd party software & media</MudText>
+
+    <!-- 3rd party software & media -->
+    <MudItem
+        md="6"
+        sm="12">
+        <MudText Class="mb-2"
+                 Typo="Typo.h5">
+            3rd party software & media
+        </MudText>
         <MudTable
             Items="Software"
             Dense="true"

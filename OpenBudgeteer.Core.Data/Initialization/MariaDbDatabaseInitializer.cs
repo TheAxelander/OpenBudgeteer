@@ -1,4 +1,5 @@
 using System.Data;
+using System.Data.Common;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 using OpenBudgeteer.Core.Data.Connection;
@@ -11,23 +12,22 @@ namespace OpenBudgeteer.Core.Data.Initialization;
 // Grants DBO to user on database
 public class MariaDbDatabaseInitializer : IDatabaseInitializer
 {
-    public void InitializeDatabase(IConfiguration configuration)
+    public void InitializeDatabase(IDatabaseConnector<DbConnectionStringBuilder> databaseConnector)
     {
-        var dbConnectionBuilder = new MariaDbConnector(configuration);
-        if (string.IsNullOrWhiteSpace(dbConnectionBuilder.RootPassword))
+        if (string.IsNullOrWhiteSpace(databaseConnector.RootPassword))
         {
             // Assume DB created and migrated with init container/manually
             return;
         }
         
-        using var connection = new MySqlConnection(dbConnectionBuilder.BuildRootConnectionString().ConnectionString);
+        using var connection = new MySqlConnection(databaseConnector.BuildRootConnectionString().ConnectionString);
         connection.Open();
         
         using (var command = new MySqlCommand("CREATE USER IF NOT EXISTS @userId IDENTIFIED BY @password;"))
         {
             command.Connection = connection;
-            command.Parameters.AddWithValue("@userId", dbConnectionBuilder.Username);
-            command.Parameters.AddWithValue("@password", dbConnectionBuilder.Password);
+            command.Parameters.AddWithValue("@userId", databaseConnector.Username);
+            command.Parameters.AddWithValue("@password", databaseConnector.Password);
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
@@ -37,7 +37,7 @@ public class MariaDbDatabaseInitializer : IDatabaseInitializer
         {
             command.Connection = connection;
             // SQLi - CREATE DATABASE with params is NOT supported in MySQL/MariaDB!
-            command.CommandText = $"CREATE DATABASE IF NOT EXISTS `{dbConnectionBuilder.Database}`;";
+            command.CommandText = $"CREATE DATABASE IF NOT EXISTS `{databaseConnector.Database}`;";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();
@@ -47,7 +47,7 @@ public class MariaDbDatabaseInitializer : IDatabaseInitializer
         {
             command.Connection = connection;
             // SQLi - GRANT with params is NOT supported in MySQL/MariaDB!
-            command.CommandText = $"GRANT ALL PRIVILEGES ON `{dbConnectionBuilder.Database}`.* TO `{dbConnectionBuilder.Username}`;";
+            command.CommandText = $"GRANT ALL PRIVILEGES ON `{databaseConnector.Database}`.* TO `{databaseConnector.Username}`;";
             command.CommandType = CommandType.Text;
 
             command.ExecuteNonQuery();

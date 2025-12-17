@@ -3,21 +3,30 @@ Source: https://github.com/MudBlazor/ThemeManager
 *@
 @using MudBlazor.Utilities
 
-<MudOverlay @bind-Visible="_isOpen" AutoClose="true" />
+<MudOverlay @bind-Visible="_isOpen"
+            AutoClose="true"/>
 
 <div class="relative">
-    <div class="mud-list-item-clickable mud-ripple px-4 py-3" @onclick="() => _isOpen = !_isOpen">
-        <MudText Typo="Typo.body2" Class="mud-float-left">@Name</MudText>
-        <div style="background:@(Value?.ToString() ?? "none");" class="px-8 py-3 mud-float-right rounded mud-elevation-25"></div>
+    <div @onclick="() => _isOpen = !_isOpen"
+         class="mud-list-item-clickable mud-ripple px-4 py-3">
+        <MudText Class="mud-float-left"
+                 Typo="Typo.body2">
+            @Name
+        </MudText>
+        <div class="px-8 py-3 mud-float-right rounded mud-elevation-25"
+             style="background:@(Value?.ToString() ?? "none");"></div>
     </div>
-    <MudPopover Open="@_isOpen" Elevation="25" Square="true" TransformOrigin="Origin.TopCenter" AnchorOrigin="Origin.BottomCenter">
-        <MudColorPicker
-            Value="Value"
-            Class="mud-thememanager-color-picker" 
-            PickerVariant="PickerVariant.Static" 
-            Elevation="0" 
-            ColorPickerView="ColorPickerView"
-            ValueChanged="OnColorSelected"/>
+    <MudPopover AnchorOrigin="Origin.BottomCenter"
+                Elevation="25"
+                Open="@_isOpen"
+                Square="true"
+                TransformOrigin="Origin.TopCenter">
+        <MudColorPicker ValueChanged="OnColorSelected"
+                        Class="mud-thememanager-color-picker"
+                        ColorPickerView="ColorPickerView"
+                        Elevation="0"
+                        PickerVariant="PickerVariant.Static"
+                        Value="Value"/>
     </MudPopover>
 </div>
 
@@ -30,7 +39,7 @@ Source: https://github.com/MudBlazor/ThemeManager
 
     [Parameter]
     public MudColor? Value { get; set; }
-    
+
     [Parameter]
     public EventCallback<MudColor?> ValueChanged { get; set; }
 

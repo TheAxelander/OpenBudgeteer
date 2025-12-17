@@ -2,29 +2,48 @@
 @using OpenBudgeteer.Core.ViewModels.Helper
 @using System.Globalization
 
-<MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-    <MudIconButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.NavigateBefore" OnClick="DataContext.PreviousMonth"></MudIconButton>
-    <MudSelect T="Int32" @bind-Value="DataContext.SelectedMonth" Style="width: 80px">
+<MudStack AlignItems="AlignItems.Center"
+          Row
+          Spacing="2">
+
+    <!-- Previous Button -->
+    <MudIconButton OnClick="DataContext.PreviousMonth"
+                   Color="Color.Primary"
+                   Icon="@Icons.Material.Filled.NavigateBefore"
+                   Size="Size.Small"
+                   Variant="Variant.Outlined"></MudIconButton>
+
+    <!-- Month Selector -->
+    <MudSelect T="int"
+               @bind-Value="DataContext.SelectedMonth"
+               Style="width: 80px">
         @foreach (var month in DataContext.Months)
         {
-            <MudSelectItem Value="@month">@_monthConverter.ConvertMonth(month, CultureInfo.CurrentCulture)</MudSelectItem>
+            <MudSelectItem Value="@month">
+                @_monthConverter.ConvertMonth(month, CultureInfo.CurrentCulture)
+            </MudSelectItem>
         }
     </MudSelect>
-    <MudNumericField T="Int32" @bind-Value="@DataContext.SelectedYear" Style="text-align: right; width: 80px"/>
-    <MudIconButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" Icon="@Icons.Material.Filled.NavigateNext" OnClick="DataContext.NextMonth"></MudIconButton>
+
+    <!-- Year input field -->
+    <MudNumericField T="int"
+                     @bind-Value="@DataContext.SelectedYear"
+                     Style="text-align: right; width: 80px"/>
+
+    <!-- Next Button -->
+    <MudIconButton OnClick="DataContext.NextMonth"
+                   Color="Color.Primary"
+                   Icon="@Icons.Material.Filled.NavigateNext"
+                   Size="Size.Small"
+                   Variant="Variant.Outlined"></MudIconButton>
 </MudStack>
 
 @code {
     [Parameter]
     public YearMonthSelectorViewModel DataContext { get; set; } = null!;
-    
+
     [Parameter]
     public string? Class { get; set; }
 
     readonly MonthOutputConverter _monthConverter = new();
-
-    void SelectedMonth_SelectionChanged(ChangeEventArgs e)
-    {
-        DataContext.SelectedMonth = Convert.ToInt32(e.Value);
-    }
 }

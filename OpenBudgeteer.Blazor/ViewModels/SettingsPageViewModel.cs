@@ -124,7 +124,8 @@ public class SettingsPageViewModel : ViewModelBase
     public SettingsPageViewModel(
         IServiceManager serviceManager, 
         MudThemeService mudThemeService, 
-        AppSettingService settingService) : base(serviceManager)
+        AppSettingService settingService) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(SettingsPageViewModel)))
     {
         _mudThemeService = mudThemeService;
         _settingService = settingService;

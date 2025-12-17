@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+
 namespace OpenBudgeteer.Core.Data.Contracts.Services;
 
 public interface IServiceManager
@@ -11,4 +13,6 @@ public interface IServiceManager
     IBudgetedTransactionService BudgetedTransactionService { get; }
     IImportProfileService ImportProfileService { get; }
     IRecurringBankTransactionService RecurringBankTransactionService { get; }
+
+    public ILogger CreateLogger(Type type);
 }

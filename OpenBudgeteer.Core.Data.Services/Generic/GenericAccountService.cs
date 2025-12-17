@@ -1,6 +1,7 @@
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.Data.Services.Generic;
 
@@ -56,7 +57,7 @@ public class GenericAccountService : GenericBaseService<Account>, IAccountServic
             .ToList()
             .Sum(i => i.Amount);
             
-        if (balance != 0) throw new Exception("Balance must be 0 to close an Account");
+        if (balance != 0) throw new EntityUpdateException("Balance must be 0 to close an Account");
         
         var account = Get(id);
         account.IsActive = 0;

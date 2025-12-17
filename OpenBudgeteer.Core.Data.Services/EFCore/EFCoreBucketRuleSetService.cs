@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,11 +11,15 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreBucketRuleSetService : EFCoreBaseService<BucketRuleSet>, IBucketRuleSetService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreBucketRuleSetService> _logger;
 
-    public EFCoreBucketRuleSetService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreBucketRuleSetService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreBucketRuleSetService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericBucketRuleSetService CreateBaseService(DatabaseContext dbContext)
@@ -28,19 +33,18 @@ public class EFCoreBucketRuleSetService : EFCoreBaseService<BucketRuleSet>, IBuc
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.Get(id);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"{typeof(BucketRuleSet)} not found in database");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -48,14 +52,18 @@ public class EFCoreBucketRuleSetService : EFCoreBaseService<BucketRuleSet>, IBuc
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAll();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -63,20 +71,24 @@ public class EFCoreBucketRuleSetService : EFCoreBaseService<BucketRuleSet>, IBuc
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetMappingRules(bucketRuleSetId);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
     public override BucketRuleSet Update(BucketRuleSet entity)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var baseService = CreateBaseService(dbContext);
         try
@@ -85,17 +97,22 @@ public class EFCoreBucketRuleSetService : EFCoreBaseService<BucketRuleSet>, IBuc
             transaction.Commit();
             return results;
         }
+        catch (EntityUpdateException e)
+        {
+            transaction.Rollback();
+            throw new ServiceException($"Unable to update Rule Set: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 
     public override void Delete(Guid id)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var baseService = CreateBaseService(dbContext);
         try
@@ -103,11 +120,16 @@ public class EFCoreBucketRuleSetService : EFCoreBaseService<BucketRuleSet>, IBuc
             baseService.Delete(id);
             transaction.Commit();
         }
+        catch (EntityUpdateException e)
+        {
+            transaction.Rollback();
+            throw new ServiceException($"Unable to delete Rule Set: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
             transaction.Rollback();
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 }

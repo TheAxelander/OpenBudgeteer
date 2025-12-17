@@ -99,7 +99,8 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable, IEquatable<Part
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucket">Bucket instance</param>
     /// <param name="amount">Amount to be assigned to this Bucket</param>
-    protected PartialBucketViewModel(IServiceManager serviceManager, Bucket? bucket, decimal amount) : base(serviceManager)
+    protected PartialBucketViewModel(IServiceManager serviceManager, Bucket? bucket, decimal amount) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(PartialBucketViewModel)))
     {
         _amount = amount;
 
@@ -132,7 +133,7 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable, IEquatable<Part
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    public PartialBucketViewModel(PartialBucketViewModel viewModel) : base(viewModel.ServiceManager)
+    public PartialBucketViewModel(PartialBucketViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         SelectedBucketId = viewModel.SelectedBucketId;
         _selectedBucketName = viewModel.SelectedBucketName;
@@ -170,7 +171,6 @@ public class PartialBucketViewModel : ViewModelBase, ICloneable, IEquatable<Part
         return new PartialBucketViewModel(this);
     }
 
-    
     #endregion
     
     #region Modification Handler

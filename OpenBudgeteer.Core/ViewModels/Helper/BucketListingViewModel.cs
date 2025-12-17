@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 using OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
 namespace OpenBudgeteer.Core.ViewModels.Helper;
@@ -50,11 +52,52 @@ public class BucketListingViewModel : ViewModelBase
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="yearMonthViewModel">ViewModel instance to handle selection of a year and month</param>
-    public BucketListingViewModel(IServiceManager serviceManager, YearMonthSelectorViewModel? yearMonthViewModel) 
-        : base(serviceManager)
+    public BucketListingViewModel(
+        IServiceManager serviceManager, 
+        YearMonthSelectorViewModel? yearMonthViewModel) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(BucketListingViewModel)))
     {
         _bucketGroups = new ObservableCollection<BucketGroupViewModel>();
         YearMonthViewModel = yearMonthViewModel ?? new YearMonthSelectorViewModel(serviceManager);
+    }
+    
+    /// <summary>
+    /// Initialize ViewModel and load data from database.
+    /// Use Case: Buckets will be displayed for modification purposes.
+    /// </summary>
+    /// <remarks>
+    /// Includes inactive Buckets. Excludes default Buckets.
+    /// </remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataForModificationAsync()
+    {
+        return await LoadDataAsync();
+    }
+
+    /// <summary>
+    /// Initialize ViewModel and load data from database.
+    /// Use Case: Buckets will be displayed for selection purposes (display only).
+    /// </summary>
+    /// <remarks>
+    /// Excludes inactive Buckets. Includes default Buckets.
+    /// </remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataForSelectionScreenAsync()
+    {
+        return await LoadDataAsync(excludeInactive: true, includeDefaults: true);
+    }
+
+    /// <summary>
+    /// Initialize ViewModel and load data from database.
+    /// Use Case: Bucket data will be displayed for reporting purposes.
+    /// </summary>
+    /// <remarks>
+    /// Include inactive Buckets. Excludes default Buckets. Excludes Buckets that are marked to be hidden from reports
+    /// </remarks>
+    /// <returns>Object which contains information and results of this method</returns>
+    public async Task<ViewModelOperationResult> LoadDataForReportingAsync()
+    {
+        return await LoadDataAsync(forReporting: true);
     }
 
     /// <summary>
@@ -62,8 +105,12 @@ public class BucketListingViewModel : ViewModelBase
     /// </summary>
     /// <param name="excludeInactive">Exclude Buckets which are marked as inactive</param>
     /// <param name="includeDefaults">Include system default Buckets like Transfer and Income</param>
+    /// <param name="forReporting">Should data be used for reporting purposes</param>
     /// <returns>Object which contains information and results of this method</returns>
-    public virtual async Task<ViewModelOperationResult> LoadDataAsync(bool excludeInactive = false, bool includeDefaults = false)
+    protected async Task<ViewModelOperationResult> LoadDataAsync(
+        bool excludeInactive = false,
+        bool includeDefaults = false,
+        bool forReporting = false)
     {
         try
         {
@@ -84,6 +131,7 @@ public class BucketListingViewModel : ViewModelBase
                     if (excludeInactive && bucket.IsInactive) continue; // Skip as inactive Buckets should be excluded
                     if (bucket.ValidFrom > YearMonthViewModel.CurrentMonth) continue; // Bucket not yet active for selected month
                     if (bucket.IsInactive && bucket.IsInactiveFrom <= YearMonthViewModel.CurrentMonth) continue; // Bucket no longer active for selected month
+                    if (forReporting && bucket.IsHiddenFromSummaries) continue; // Data planned to be used for reporting but Bucket is marked to be hidden for such cases
                     var newBucketItemTask = includeDefaults
                         ? BucketViewModel.CreateForListingAsync(ServiceManager, bucket, YearMonthViewModel.CurrentMonth) // Including defaults, hence no modifications expected
                         : BucketViewModel.CreateForModificationAsync(ServiceManager, bucketGroups, bucket, YearMonthViewModel.CurrentMonth);
@@ -103,9 +151,14 @@ public class BucketListingViewModel : ViewModelBase
             }
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Error during loading: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 

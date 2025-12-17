@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,11 +11,15 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreRecurringBankTransactionService : EFCoreBaseService<RecurringBankTransaction>, IRecurringBankTransactionService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreRecurringBankTransactionService> _logger;
 
-    public EFCoreRecurringBankTransactionService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreRecurringBankTransactionService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreRecurringBankTransactionService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericRecurringBankTransactionService CreateBaseService(DatabaseContext dbContext)
@@ -28,19 +33,18 @@ public class EFCoreRecurringBankTransactionService : EFCoreBaseService<Recurring
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetWithEntities(id);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"{typeof(RecurringBankTransaction)} not found in database");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
     
@@ -48,14 +52,18 @@ public class EFCoreRecurringBankTransactionService : EFCoreBaseService<Recurring
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var baseService = CreateBaseService(dbContext);
             return baseService.GetAllWithEntities();
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -63,14 +71,18 @@ public class EFCoreRecurringBankTransactionService : EFCoreBaseService<Recurring
     {
         try
         {
-            await using var dbContext = new DatabaseContext(_dbContextOptions);
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
             var baseService = CreateBaseService(dbContext);
             return await baseService.GetPendingBankTransactionAsync(yearMonth);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -78,19 +90,18 @@ public class EFCoreRecurringBankTransactionService : EFCoreBaseService<Recurring
     {
         try
         {
-            await using var dbContext = new DatabaseContext(_dbContextOptions);
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
             var baseService = CreateBaseService(dbContext);
             return await baseService.CreatePendingBankTransactionAsync(yearMonth);
         }
         catch (EntityUpdateException e)
         {
-            Console.WriteLine(e);
-            throw new Exception(e.Message);
+            throw new ServiceException($"Unable to create Bank Transaction: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 }

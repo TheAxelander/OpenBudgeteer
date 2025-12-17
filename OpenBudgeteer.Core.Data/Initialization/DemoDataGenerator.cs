@@ -8,18 +8,18 @@ namespace OpenBudgeteer.Core.Data.Initialization;
 
 public class DemoDataGenerator
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
 
-    public DemoDataGenerator(DbContextOptions<DatabaseContext> dbContextOptions)
+    public DemoDataGenerator(IDbContextFactory<DatabaseContext> dbContextFactory)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
     }
 
     public void GenerateDemoData()
     {
         if (!IsDatabaseEmpty()) return;
         
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         
         // Create Accounts
         var accountChecking = new Account()
@@ -449,7 +449,7 @@ public class DemoDataGenerator
     
     private bool IsDatabaseEmpty()
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         if (dbContext.Account.Any()) return false;
         if (dbContext.Bucket.Any(i => i.BucketGroupId != new Guid("00000000-0000-0000-0000-000000000001"))) return false;
         if (dbContext.BankTransaction.Any()) return false;

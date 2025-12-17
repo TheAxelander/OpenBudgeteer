@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -10,11 +11,15 @@ namespace OpenBudgeteer.Core.Data.Services.EFCore;
 
 public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, IBankTransactionService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
+    private readonly ILogger<EFCoreBankTransactionService> _logger;
 
-    public EFCoreBankTransactionService(DbContextOptions<DatabaseContext> dbContextOptions) : base(dbContextOptions)
+    public EFCoreBankTransactionService(
+        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        ILogger<EFCoreBankTransactionService> logger) : base(dbContextFactory, logger)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
+        _logger = logger;
     }
 
     protected override GenericBankTransactionService CreateBaseService(DatabaseContext dbContext)
@@ -28,19 +33,18 @@ public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, 
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var genericBankTransactionService = CreateBaseService(dbContext);
             return genericBankTransactionService.GetWithEntities(id);
         }
         catch (EntityNotFoundException e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: Bank Transaction not found in database");
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -48,14 +52,18 @@ public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, 
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var genericBankTransactionService = CreateBaseService(dbContext);
             return genericBankTransactionService.GetAll(periodStart, periodEnd, limit);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
@@ -68,20 +76,24 @@ public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, 
     {
         try
         {
-            using var dbContext = new DatabaseContext(_dbContextOptions);
+            using var dbContext = _dbContextFactory.CreateDbContext();
             var genericBankTransactionService = CreateBaseService(dbContext);
             return genericBankTransactionService.GetFromAccount(accountId, periodStart, periodEnd, limit);
         }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            throw new Exception($"Error on querying database: {e.Message}");
+            _logger.LogError(e, "Error on querying database.");
+            throw;
         }
     }
 
     public IEnumerable<BankTransaction> ImportTransactions(IEnumerable<BankTransaction> entities)
     {
-        using var dbContext = new DatabaseContext(_dbContextOptions);
+        using var dbContext = _dbContextFactory.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
         var genericBankTransactionService = CreateBaseService(dbContext);
         try
@@ -90,10 +102,16 @@ public class EFCoreBankTransactionService : EFCoreBaseService<BankTransaction>, 
             transaction.Commit();
             return results;
         }
+        catch (EntityUpdateException e)
+        {
+            transaction.Rollback();
+            throw new ServiceException($"Unable to import Transactions: {e.Message}", _logger);
+        }
         catch (Exception e)
         {
             transaction.Rollback();
-            throw new Exception($"Errors during database update: {e.Message}");
+            _logger.LogError(e, "Error during database update.");
+            throw;
         }
     }
 }

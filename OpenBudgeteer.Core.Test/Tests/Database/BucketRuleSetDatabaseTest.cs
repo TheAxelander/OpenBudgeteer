@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
-using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Data.Repository;
 using OpenBudgeteer.Core.Test.Common;
@@ -32,24 +31,12 @@ public class BucketRuleSetDatabaseTest : BaseDatabaseTest<BucketRuleSet>
         Assert.Equal(expected.TargetBucketId, actual.TargetBucketId);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
-    {
-        get
-        {
-            return new[]
-            {
-                new object[]
-                {
-                    new MockBucketRuleSetRepository(new MockDatabase())
-                },
-                new object[]
-                {
-                    new BucketRuleSetRepository(new DatabaseContext(MariaDbContextOptions))
-                }
-            };
-        }
-    }
-    
+    public static IEnumerable<object[]> TestData_Repository =>
+    [
+        [new MockBucketRuleSetRepository(new MockDatabase())],
+        [new BucketRuleSetRepository(GetInMemoryContext())]
+    ];
+
     private List<BucketRuleSet> SetupTestData(IBucketRuleSetRepository bucketRuleSetRepository)
     {
         DeleteAllExtension<IBucketRuleSetRepository, BucketRuleSet>.DeleteAll(bucketRuleSetRepository);

@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.EventClasses;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -128,8 +130,11 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="availableAccounts">List of all available <see cref="Account"/> from database. (Use a cached list here)</param>
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="transaction">Transaction instance</param>
-    protected TransactionViewModel(IServiceManager serviceManager, IEnumerable<Account>? availableAccounts, 
-        IEnumerable<Bucket>? availableBuckets, BankTransaction? transaction) : base(serviceManager)
+    protected TransactionViewModel(
+        IServiceManager serviceManager, 
+        IEnumerable<Account>? availableAccounts, 
+        IEnumerable<Bucket>? availableBuckets, 
+        BankTransaction? transaction) : base(serviceManager, serviceManager.CreateLogger(typeof(TransactionViewModel)))
     {
         _buckets = new();
         _availableBuckets = new();
@@ -223,7 +228,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
             {
                 // Most likely an imported Transaction where Bucket assignment still needs to be done
                 Buckets.Add(PartialBucketViewModel.CreateNoSelection(
-                    serviceManager, 
+                    serviceManager,
                     transaction.Amount));
             }
                     
@@ -240,7 +245,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected TransactionViewModel(TransactionViewModel viewModel) : base(viewModel.ServiceManager)
+    protected TransactionViewModel(TransactionViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         TransactionId = viewModel.TransactionId;
         _selectedAccount = (AccountViewModel)viewModel.SelectedAccount.Clone();
@@ -307,8 +312,11 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
-    public static TransactionViewModel CreateFromTransaction(IServiceManager serviceManager, 
-        IEnumerable<Account> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
+    public static TransactionViewModel CreateFromTransaction(
+        IServiceManager serviceManager,
+        IEnumerable<Account> availableAccounts, 
+        IEnumerable<Bucket> availableBuckets, 
+        BankTransaction transaction)
     {
         return new TransactionViewModel(serviceManager, availableAccounts, availableBuckets, transaction);
     }
@@ -321,8 +329,11 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="availableBuckets">List of all available <see cref="Bucket"/> from database. (Use a cached list here)</param>
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
-    public static async Task<TransactionViewModel> CreateFromTransactionAsync(IServiceManager serviceManager, 
-        IEnumerable<Account> availableAccounts, IEnumerable<Bucket> availableBuckets, BankTransaction transaction)
+    public static async Task<TransactionViewModel> CreateFromTransactionAsync(
+        IServiceManager serviceManager, 
+        IEnumerable<Account> availableAccounts, 
+        IEnumerable<Bucket> availableBuckets, 
+        BankTransaction transaction)
     {
         return await Task.Run(() => CreateFromTransaction(serviceManager, availableAccounts, availableBuckets, transaction));
     }
@@ -334,7 +345,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
-    public static TransactionViewModel CreateFromTransactionWithoutBuckets(IServiceManager serviceManager, 
+    public static TransactionViewModel CreateFromTransactionWithoutBuckets(
+        IServiceManager serviceManager, 
         BankTransaction transaction)
     {
         return new TransactionViewModel(serviceManager, null, null, transaction);
@@ -347,7 +359,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="transaction">Transaction instance</param>
     /// <returns>New ViewModel instance</returns>
-    public static async Task<TransactionViewModel> CreateFromTransactionWithoutBucketsAsync(IServiceManager serviceManager, 
+    public static async Task<TransactionViewModel> CreateFromTransactionWithoutBucketsAsync(
+        IServiceManager serviceManager, 
         BankTransaction transaction)
     {
         return await Task.Run(() => CreateFromTransactionWithoutBuckets(serviceManager, transaction));
@@ -360,7 +373,8 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="bucketMovement">BucketMovement which will be transformed</param>
     /// <returns>New ViewModel instance</returns>
-    public static async Task<TransactionViewModel> CreateFromBucketMovementAsync(IServiceManager serviceManager, 
+    public static async Task<TransactionViewModel> CreateFromBucketMovementAsync(
+        IServiceManager serviceManager, 
         BucketMovement bucketMovement)
     {
         return await Task.Run(() =>
@@ -516,9 +530,14 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
             InModification = false;
             return new ViewModelOperationResult(true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -526,12 +545,22 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
     /// Executes several data consistency checks (e.g. Bucket assignment, pending amount etc.) to see if changes
     /// can be stored in the database 
     /// </summary>
-    /// <param name="skipBucketAssignment">Exclude checks on Bucket assignment</param>
     /// <returns>Object which contains information and results of this method</returns>
-    private ViewModelOperationResult PerformConsistencyCheck(out bool skipBucketAssignment)
+    public ViewModelOperationResult PerformConsistencyCheck()
+    {
+        return PerformConsistencyCheck(out _);
+    }
+
+    /// <summary>
+    /// Executes several data consistency checks (e.g. Bucket assignment, pending amount etc.) to see if changes
+    /// can be stored in the database 
+    /// </summary>
+    /// <param name="hasNoSelectionBucket">Will be set to true if Transaction has a "No Selection" Bucket assigned</param>
+    /// <returns>Object which contains information and results of this method</returns>
+    private ViewModelOperationResult PerformConsistencyCheck(out bool hasNoSelectionBucket)
     {
         decimal assignedAmount = 0;
-        skipBucketAssignment = false;
+        hasNoSelectionBucket = false;
 
         // Consistency and Validity Checks
         if (SelectedAccount.AccountId == Guid.Empty) return new ViewModelOperationResult(false, "No Bank account selected.");
@@ -547,7 +576,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
                 {
                     // Imported Transaction where Bucket assignment is pending
                     // Allow Transaction Update but Skip DB Updates for Bucket assignment
-                    skipBucketAssignment = true;
+                    hasNoSelectionBucket = true;
                 }
                 else
                 {
@@ -576,9 +605,14 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
             ServiceManager.BankTransactionService.Delete(TransactionId);
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, $"Errors during database update: {e.Message}");
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
 
@@ -622,7 +656,7 @@ public class TransactionViewModel : BaseEntityViewModel<BankTransaction>, IEquat
         if (proposal is null) return;
         Buckets.Clear();
         Buckets.Add(PartialBucketViewModel.CreateFromBucket(
-            ServiceManager, 
+            ServiceManager,
             proposal, 
             Amount));
     }

@@ -10,24 +10,24 @@ namespace OpenBudgeteer.Blazor.Common.Services;
 
 public class DatabaseMigratorService : IHostedService
 {
-    private readonly DbContextOptions<DatabaseContext> _dbContextOptions;
+    private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
     private readonly IConfiguration _configuration;
     
     private const string APPSETTINGS_DEMO_DATA = "APPSETTINGS_DEMO_DATA";
 
-    public DatabaseMigratorService(DbContextOptions<DatabaseContext> dbContextOptions, IConfiguration configuration)
+    public DatabaseMigratorService(IDbContextFactory<DatabaseContext> dbContextFactory, IConfiguration configuration)
     {
-        _dbContextOptions = dbContextOptions;
+        _dbContextFactory = dbContextFactory;
         _configuration = configuration;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await using var context = new DatabaseContext(_dbContextOptions);
+        await using var context = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
         await context.Database.MigrateAsync(cancellationToken: cancellationToken);
 
         var initializeWithDemoData = _configuration.GetValue<bool>(APPSETTINGS_DEMO_DATA);
-        if (initializeWithDemoData) new DemoDataGenerator(_dbContextOptions).GenerateDemoData();
+        if (initializeWithDemoData) new DemoDataGenerator(_dbContextFactory).GenerateDemoData();
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

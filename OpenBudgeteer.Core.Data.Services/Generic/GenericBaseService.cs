@@ -18,7 +18,7 @@ public abstract class GenericBaseService<TEntity> : IBaseService<TEntity>
     public virtual TEntity Get(Guid id)
     {
         var result = _baseRepository.ById(id);
-        if (result is null) throw new EntityNotFoundException();
+        if (result is null) throw new EntityNotFoundException($"Unable to find {typeof(TEntity).Name} with the given id.");
         return result;
     }
 
@@ -30,20 +30,20 @@ public abstract class GenericBaseService<TEntity> : IBaseService<TEntity>
     public virtual TEntity Create(TEntity entity)
     {
         var result = _baseRepository.Create(entity);
-        if (result == 0) throw new EntityUpdateException();
+        if (result == 0) throw new EntityUpdateException($"{typeof(TEntity).Name} hasn't been created.");
         return entity;
     }
 
     public virtual TEntity Update(TEntity entity)
     {
         var result = _baseRepository.Update(entity);
-        if (result == 0) throw new EntityUpdateException();
+        if (result == 0) throw new EntityUpdateException($"{typeof(TEntity).Name} hasn't been updated.");
         return entity;
     }
 
     public virtual void Delete(Guid id)
     {
         var result = _baseRepository.Delete(id);
-        if (result == 0) throw new EntityUpdateException();
+        if (result == 0) throw new EntityUpdateException($"{typeof(TEntity).Name} hasn't been deleted.");
     }
 }

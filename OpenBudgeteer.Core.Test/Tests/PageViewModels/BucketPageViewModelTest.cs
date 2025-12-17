@@ -125,19 +125,13 @@ public class BucketPageViewModelTest
         Assert.Equal(2, viewModel.BucketGroups.ElementAt(1).Position);
     }
     
-    public static IEnumerable<object[]> TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets
-    {
-        get
-        {
-            return new[]
-            {
-                new object[] {new List<string> {"Bucket 1"}},
-                new object[] {new List<string> {"Bucket 1", "Bucket 2", "Bucket 3"}},
-                new object[] {new List<string>()},
-            };
-        }
-    }
-    
+    public static IEnumerable<object[]> TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets =>
+    [
+        [new List<string> {"Bucket 1"}],
+        [new List<string> {"Bucket 1", "Bucket 2", "Bucket 3"}],
+        [new List<string>()]
+    ];
+
     [Theory]
     [MemberData(nameof(TestData_LoadDataAsync_CheckBucketGroupAssignedBuckets))]
     public async Task LoadDataAsync_CheckBucketGroupAssignedBuckets(List<string> bucketNames)
@@ -175,17 +169,14 @@ public class BucketPageViewModelTest
         }
     }
 
-    public static IEnumerable<object[]> TestData_LoadDataAsync_CheckBucketSorting
-    {
-        get
-        {
-            return new[]
-            {
-                new object[] {new List<string> {"A_Bucket 1", "C_Bucket 2", "B_Bucket 3"}, new List<string> {"A_Bucket 1", "B_Bucket 3", "C_Bucket 2"} }
-            };
-        }
-    }
-    
+    public static IEnumerable<object[]> TestData_LoadDataAsync_CheckBucketSorting =>
+    [
+        [
+            new List<string> {"A_Bucket 1", "C_Bucket 2", "B_Bucket 3"}, 
+            new List<string> {"A_Bucket 1", "B_Bucket 3", "C_Bucket 2"}
+        ]
+    ];
+
     [Theory]
     [MemberData(nameof(TestData_LoadDataAsync_CheckBucketSorting))]
     public async Task LoadDataAsync_CheckBucketSorting(List<string> bucketNamesUnsorted, List<string> expectedBucketNamesSorted)
@@ -224,32 +215,26 @@ public class BucketPageViewModelTest
         }
     }
 
-    public static IEnumerable<object[]> TestData_LoadDataAsync_LoadOnlyActiveBuckets
-    {
-        get
-        {
-            return new[]
-            {
-                // Active in current month
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2010,1,1), false, DateOnly.MaxValue, true},
-                // Active starting next month
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2010,2,1), false, DateOnly.MaxValue, false},
-                // Active starting next year
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2011,1,1), false, DateOnly.MaxValue, false},
-                // Inactive since current month
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2009,1,1), true, new DateOnly(2010,1,1), false},
-                // Inactive since last year
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2009,1,1), true, new DateOnly(2009,1,1), false},
-                // Inactive since last month
-                new object[] { new DateOnly(2010,2,1), new DateOnly(2009,1,1), true, new DateOnly(2010,1,1), false},
-                // Inactive starting next month                  
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2010,1,1), true, new DateOnly(2010,2,1), true},
-                // Active starting next month but already inactive in the future
-                new object[] { new DateOnly(2010,1,1), new DateOnly(2010,2,1), true, new DateOnly(2010,3,1), false}
-            };
-        }
-    }
-    
+    public static IEnumerable<object[]> TestData_LoadDataAsync_LoadOnlyActiveBuckets =>
+    [
+        // Active in current month
+        [new DateOnly(2010,1,1), new DateOnly(2010,1,1), false, DateOnly.MaxValue, true],
+        // Active starting next month
+        [new DateOnly(2010,1,1), new DateOnly(2010,2,1), false, DateOnly.MaxValue, false],
+        // Active starting next year
+        [new DateOnly(2010,1,1), new DateOnly(2011,1,1), false, DateOnly.MaxValue, false],
+        // Inactive since current month
+        [new DateOnly(2010,1,1), new DateOnly(2009,1,1), true, new DateOnly(2010,1,1), false],
+        // Inactive since last year
+        [new DateOnly(2010,1,1), new DateOnly(2009,1,1), true, new DateOnly(2009,1,1), false],
+        // Inactive since last month
+        [new DateOnly(2010,2,1), new DateOnly(2009,1,1), true, new DateOnly(2010,1,1), false],
+        // Inactive starting next month                  
+        [new DateOnly(2010,1,1), new DateOnly(2010,1,1), true, new DateOnly(2010,2,1), true],
+        // Active starting next month but already inactive in the future
+        [new DateOnly(2010,1,1), new DateOnly(2010,2,1), true, new DateOnly(2010,3,1), false]
+    ];
+
     [Theory]
     [MemberData(nameof(TestData_LoadDataAsync_LoadOnlyActiveBuckets))]
     public async Task LoadDataAsync_LoadOnlyActiveBuckets(
@@ -443,99 +428,87 @@ public class BucketPageViewModelTest
         Assert.Equal(10000, testObject.In);
     }
 
-    public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_MonthlyExpenses
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_MonthlyExpenses =>
+    [
+        [
+            new Bucket
             {
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "Bucket with pending Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>(),
-                    10, 0, 0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "Bucket with fulfilled Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 10 }
-                    },
-                    0, 10 ,0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "Bucket pending Want including expense", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2010,1,1), Amount = -10 }
-                    },
-                    new List<BucketMovement>(),
-                    10, 0, -10
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "Bucket fulfilled Want including expense", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2010,1,1),  Amount = -10 }
-                    },
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 10 }
-                    },
-                    0, 10, -10
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "Bucket with partial fulfilled Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 5 }
-                    },
-                    5, 5, 0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "Bucket with over fulfilled Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 15 }
-                    },
-                    0, 15 ,0
-                }
-            };
-        }
-    }
+                Name = "Bucket with pending Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>(),
+            10, 0, 0
+        ],
+        [
+            new Bucket
+            {
+                Name = "Bucket with fulfilled Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 10 }
+            },
+            0, 10 ,0
+        ],
+        [
+            new Bucket
+            {
+                Name = "Bucket pending Want including expense", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2010,1,1), Amount = -10 }
+            },
+            new List<BucketMovement>(),
+            10, 0, -10
+        ],
+        [
+            new Bucket
+            {
+                Name = "Bucket fulfilled Want including expense", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2010,1,1),  Amount = -10 }
+            },
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 10 }
+            },
+            0, 10, -10
+        ],
+        [
+            new Bucket
+            {
+                Name = "Bucket with partial fulfilled Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 5 }
+            },
+            5, 5, 0
+        ],
+        [
+            new Bucket
+            {
+                Name = "Bucket with over fulfilled Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 2, BucketTypeYParam = 10 }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2010, 1, 1), Amount = 15 }
+            },
+            0, 15 ,0
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_CheckWantAndDetailCalculation_MonthlyExpenses))]
@@ -556,423 +529,388 @@ public class BucketPageViewModelTest
         Assert.Equal(expectedActivity, testObject.Activity);
     }
 
-    public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_ExpenseEveryXMonths
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_ExpenseEveryXMonths =>
+    [
+        [
+            new Bucket
             {
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, with Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>(),
-                    10, 0, 0, 0, "120 until 2010-12", 0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, without Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2010,1,1), Amount = 10 }
-                    },
-                    0, 10, 0, 10, "120 until 2010-12", 8
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, with Want", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
-                    },
-                    10, 0, 0, 60, "120 until 2010-06", 50
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, without Want", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2010,1,1), Amount = 10 }
-                    },
-                    0, 10, 0, 70, "120 until 2010-06", 58
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, fulfilled target", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 20 }
-                    },
-                    0, 0, 0, 120, "120 until 2010-06", 100
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, over-fulfilled target", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 30 }
-                    },
-                    0, 0, 0, 130, "120 until 2010-06", 100
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, no input", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>(),
-                    20, 0, 0, 0, "120 until 2010-06", 0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, input not in sync", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 }
-                    },
-                    15, 0, 0, 30, "120 until 2010-06", 25
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "100 every 3 months, with Want", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateOnly(2010,3,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>(),
-                    33.33m, 0, 0, 0, "100 until 2010-03", 0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "100 every 3 months, last month, with Want", ValidFrom = new DateOnly(2009,11,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateOnly(2010,1,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 33.33m },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 33.33m }
-                    },
-                    33.34m, 0, 0, 66.66m, "100 until 2010-01", 67
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "100 every 3 months, last month, input not in sync", ValidFrom = new DateOnly(2009,11,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateOnly(2010,1,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 12.34m },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 56.78m }
-                    },
-                    30.88m, 0, 0, 69.12m, "100 until 2010-01", 69
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, last 6 months, with expenses", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2009,9,2), Amount = -30 },
-                        new() { TransactionDate = new DateOnly(2010,1,2), Amount = -10 }
-                    },
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
-                    },
-                    16.67m, 0, -10, 20, "120 until 2010-06", 17
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 every 12 months, 2nd year, last 6 months, with Want", ValidFrom = new DateOnly(2008,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2009,6,1) }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2009,6,1), Amount = -120 }
-                    },
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2008,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2008,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2008,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2008,10,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2008,11,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2008,12,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,1,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,2,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,3,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,4,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,5,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,6,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
-                    },
-                    10, 0, 0, 60, "120 until 2010-06", 50
-                }
-            };
-        }
-    }
+                Name = "120 every 12 months, with Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>(),
+            10, 0, 0, 0, "120 until 2010-12", 0
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, without Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2010,1,1), Amount = 10 }
+            },
+            0, 10, 0, 10, "120 until 2010-12", 8
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, with Want", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
+            },
+            10, 0, 0, 60, "120 until 2010-06", 50
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, without Want", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2010,1,1), Amount = 10 }
+            },
+            0, 10, 0, 70, "120 until 2010-06", 58
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, fulfilled target", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 20 }
+            },
+            0, 0, 0, 120, "120 until 2010-06", 100
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, over-fulfilled target", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 30 }
+            },
+            0, 0, 0, 130, "120 until 2010-06", 100
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, no input", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>(),
+            20, 0, 0, 0, "120 until 2010-06", 0
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, input not in sync", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 }
+            },
+            15, 0, 0, 30, "120 until 2010-06", 25
+        ],
+        [
+            new Bucket
+            {
+                Name = "100 every 3 months, with Want", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateOnly(2010,3,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>(),
+            33.33m, 0, 0, 0, "100 until 2010-03", 0
+        ],
+        [
+            new Bucket
+            {
+                Name = "100 every 3 months, last month, with Want", ValidFrom = new DateOnly(2009,11,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateOnly(2010,1,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 33.33m },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 33.33m }
+            },
+            33.34m, 0, 0, 66.66m, "100 until 2010-01", 67
+        ],
+        [
+            new Bucket
+            {
+                Name = "100 every 3 months, last month, input not in sync", ValidFrom = new DateOnly(2009,11,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 3, BucketTypeYParam = 100, BucketTypeZParam = new DateOnly(2010,1,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 12.34m },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 56.78m }
+            },
+            30.88m, 0, 0, 69.12m, "100 until 2010-01", 69
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, last 6 months, with expenses", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2009,9,2), Amount = -30 },
+                new() { TransactionDate = new DateOnly(2010,1,2), Amount = -10 }
+            },
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
+            },
+            16.67m, 0, -10, 20, "120 until 2010-06", 17
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 every 12 months, 2nd year, last 6 months, with Want", ValidFrom = new DateOnly(2008,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 3, BucketTypeXParam = 12, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2009,6,1) }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2009,6,1), Amount = -120 }
+            },
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2008,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2008,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2008,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2008,10,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2008,11,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2008,12,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,1,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,2,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,3,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,4,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,5,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,6,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
+            },
+            10, 0, 0, 60, "120 until 2010-06", 50
+        ]
+    ];
 
-    public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_SaveXUntilY
-    {
-        get
-        {
-            return new[]
+    public static IEnumerable<object[]> TestData_CheckWantAndDetailCalculation_SaveXUntilY =>
+    [
+        [
+            new Bucket
             {
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2010-12, no input", ValidFrom = new DateOnly(2010,1,1), 
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>(),
-                    10, 0, 0, 0, "120 until 2010-12", 0
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2010-12, input in current Month", ValidFrom = new DateOnly(2010,1,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2010,1,1), Amount = 10 }
-                    },
-                    0, 10, 0, 10, "120 until 2010-12", 8
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2010-06, input in sync", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
-                    },
-                    10, 0, 0, 60, "120 until 2010-06", 50
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2010-06, fulfilled target", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 20 }
-                    },
-                    0, 0, 0, 120, "120 until 2010-06", 100
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2010-06, over-fulfilled target", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
-                        new() { MovementDate = new DateOnly(2009,12,1), Amount = 30 }
-                    },
-                    0, 0, 0, 130, "120 until 2010-06", 100
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2010-06, input not in sync", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
-                    },
-                    15, 0, 0, 30, "120 until 2010-06", 25
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "120 until 2009-12, target not reached", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2009,12,1) }
-                    },
-                    new List<BankTransaction>(),
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
-                    },
-                    0, 0, 0, 30, "120 until 2009-12", 25
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "30 until 2010-01, target reached, with expense in target month", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateOnly(2010,1,1) }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2010,1,5), Amount = -30 }
-                    },
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
-                    },
-                    0, 0, -30, 0, "30 until 2010-01", 100
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "30 until 2010-01, target reached, with lower expense in target month", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateOnly(2010,1,1) }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2010,1,5),  Amount = -20 }
-                    },
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
-                    },
-                    0, 0, -20, 10, "30 until 2010-01", 100
-                },
-                new object[]
-                {
-                    new Bucket
-                    {
-                        Name = "30 until 2010-01, target reached, with higher expense in target month", ValidFrom = new DateOnly(2009,7,1),
-                        CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateOnly(2010,1,1) }
-                    },
-                    new List<BankTransaction>
-                    {
-                        new() { TransactionDate = new DateOnly(2010,1,5), Amount = -40 }
-                    },
-                    new List<BucketMovement>
-                    {
-                        new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
-                        new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
-                    },
-                    10, 0, -40, -10, "30 until 2010-01", 75
-                }
-            };
-        }
-    }
+                Name = "120 until 2010-12, no input", ValidFrom = new DateOnly(2010,1,1), 
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>(),
+            10, 0, 0, 0, "120 until 2010-12", 0
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 until 2010-12, input in current Month", ValidFrom = new DateOnly(2010,1,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,12,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2010,1,1), Amount = 10 }
+            },
+            0, 10, 0, 10, "120 until 2010-12", 8
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 until 2010-06, input in sync", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 10 }
+            },
+            10, 0, 0, 60, "120 until 2010-06", 50
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 until 2010-06, fulfilled target", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 20 }
+            },
+            0, 0, 0, 120, "120 until 2010-06", 100
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 until 2010-06, over-fulfilled target", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,8,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,11,1), Amount = 20 },
+                new() { MovementDate = new DateOnly(2009,12,1), Amount = 30 }
+            },
+            0, 0, 0, 130, "120 until 2010-06", 100
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 until 2010-06, input not in sync", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2010,6,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
+            },
+            15, 0, 0, 30, "120 until 2010-06", 25
+        ],
+        [
+            new Bucket
+            {
+                Name = "120 until 2009-12, target not reached", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 120, BucketTypeZParam = new DateOnly(2009,12,1) }
+            },
+            new List<BankTransaction>(),
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
+            },
+            0, 0, 0, 30, "120 until 2009-12", 25
+        ],
+        [
+            new Bucket
+            {
+                Name = "30 until 2010-01, target reached, with expense in target month", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateOnly(2010,1,1) }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2010,1,5), Amount = -30 }
+            },
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
+            },
+            0, 0, -30, 0, "30 until 2010-01", 100
+        ],
+        [
+            new Bucket
+            {
+                Name = "30 until 2010-01, target reached, with lower expense in target month", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateOnly(2010,1,1) }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2010,1,5),  Amount = -20 }
+            },
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
+            },
+            0, 0, -20, 10, "30 until 2010-01", 100
+        ],
+        [
+            new Bucket
+            {
+                Name = "30 until 2010-01, target reached, with higher expense in target month", ValidFrom = new DateOnly(2009,7,1),
+                CurrentVersion = new BucketVersion() { Version = 1, BucketType = 4, BucketTypeYParam = 30, BucketTypeZParam = new DateOnly(2010,1,1) }
+            },
+            new List<BankTransaction>
+            {
+                new() { TransactionDate = new DateOnly(2010,1,5), Amount = -40 }
+            },
+            new List<BucketMovement>
+            {
+                new() { MovementDate = new DateOnly(2009,7,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,9,1), Amount = 10 },
+                new() { MovementDate = new DateOnly(2009,10,1), Amount = 10 }
+            },
+            10, 0, -40, -10, "30 until 2010-01", 75
+        ]
+    ];
 
     [Theory]
     [MemberData(nameof(TestData_CheckWantAndDetailCalculation_ExpenseEveryXMonths))]
@@ -1053,19 +991,12 @@ public class BucketPageViewModelTest
         return testObject;
     }
 
-    public static IEnumerable<object[]> TestData_DistributeBudget_CheckDistributedMoney
-    {
-        get
-        {
-            return new[]
-            {
-                new object[]
-                {
+    public static IEnumerable<object[]> TestData_DistributeBudget_CheckDistributedMoney =>
+    [
+        [
 
-                },
-            };
-        }
-    }
+        ]
+    ];
 
     //TODO: Finalize Test Case DistributeBudget_CheckDistributedMoney
     [Theory (Skip = "Work in progress")]

@@ -21,7 +21,8 @@ public class DataConsistencyPageViewModel : ViewModelBase
     /// Basic constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
-    public DataConsistencyPageViewModel(IServiceManager serviceManager) : base(serviceManager)
+    public DataConsistencyPageViewModel(IServiceManager serviceManager) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(DataConsistencyPageViewModel)))
     {
         DataConsistencyChecks = new();
     }

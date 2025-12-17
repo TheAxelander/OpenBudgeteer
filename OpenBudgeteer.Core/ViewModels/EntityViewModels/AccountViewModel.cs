@@ -1,7 +1,9 @@
 using System;
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.ViewModels.EntityViewModels;
 
@@ -73,7 +75,8 @@ public class AccountViewModel : BaseEntityViewModel<Account>, IEquatable<Account
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
     /// <param name="account">Account instance</param>
-    protected AccountViewModel(IServiceManager serviceManager, Account? account) : base(serviceManager)
+    protected AccountViewModel(IServiceManager serviceManager, Account? account) 
+        : base(serviceManager, serviceManager.CreateLogger(typeof(AccountViewModel)))
     {
         if (account is null)
         {
@@ -94,7 +97,7 @@ public class AccountViewModel : BaseEntityViewModel<Account>, IEquatable<Account
     /// Initialize a copy of the passed ViewModel
     /// </summary>
     /// <param name="viewModel">Current ViewModel instance</param>
-    protected AccountViewModel(AccountViewModel viewModel) : base(viewModel.ServiceManager)
+    protected AccountViewModel(AccountViewModel viewModel) : base(viewModel.ServiceManager, viewModel.Logger)
     {
         AccountId = viewModel.AccountId;
         _name = viewModel.Name;
@@ -164,9 +167,14 @@ public class AccountViewModel : BaseEntityViewModel<Account>, IEquatable<Account
                 ServiceManager.AccountService.Update(ConvertToDto());
             return new ViewModelOperationResult(true, true);
         }
-        catch (Exception e)
+        catch (ServiceException e)
         {
             return new ViewModelOperationResult(false, e.Message);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
@@ -182,9 +190,14 @@ public class AccountViewModel : BaseEntityViewModel<Account>, IEquatable<Account
             ServiceManager.AccountService.CloseAccount(AccountId);
             return new ViewModelOperationResult(true, true);
         }
+        catch (ServiceException e)
+        {
+            return new ViewModelOperationResult(false, e.Message);
+        }
         catch (Exception e)
         {
-            return new ViewModelOperationResult(false, e.Message); 
+            Logger.LogError(e, "An unexpected error occurred.");
+            return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
         }
     }
     
