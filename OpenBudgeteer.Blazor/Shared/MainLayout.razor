@@ -77,7 +77,7 @@
                         </form>
                     </MudTooltip>
                     <MudIcon Class="ms-2"
-                             Color="Color.Surface"
+                             Color="Color.Inherit"
                              Icon="@Icons.Material.Filled.HorizontalRule"
                              Style="rotate: 90deg"/>
                     <MudText Class="ms-2">@context.User.Identity?.Name</MudText>
@@ -85,16 +85,16 @@
             </AuthorizeView>
         }
         <MudIcon Class="ms-2"
-                 Color="Color.Surface"
+                 Color="Color.Inherit"
                  Icon="@Icons.Material.Filled.HorizontalRule"
                  Style="rotate: 90deg"/>
         <MudText Class="ms-2">@CurrentDatabase</MudText>
         <MudIcon Class="ms-2"
-                 Color="Color.Surface"
+                 Color="Color.Inherit"
                  Icon="@Icons.Material.Filled.HorizontalRule"
                  Style="rotate: 90deg"/>
         <MudText Class="ms-2 d-none d-md-block">
-            Version: 1.11.0 (<a href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" target="_blank">Change Log</a>)
+            Version: 1.11.0 (<MudLink Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer/blob/master/CHANGELOG.md" Target="_blank">Change Log</MudLink>)
         </MudText>
     </MudAppBar>
 
