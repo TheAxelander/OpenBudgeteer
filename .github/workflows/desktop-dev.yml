@@ -135,8 +135,8 @@ jobs:
           cp AppDir/usr/share/applications/${{ env.APP_NAME }}.desktop AppDir/
 
           # Copy icon
-          cp wwwroot/icon.ico AppDir/usr/share/icons/hicolor/256x256/apps/openbudgeteer.png
-          cp wwwroot/icon.ico AppDir/openbudgeteer.png
+          cp ${{ env.PROJECT_PATH }}/wwwroot/icon.ico AppDir/usr/share/icons/hicolor/256x256/apps/openbudgeteer.png
+          cp ${{ env.PROJECT_PATH }}/wwwroot/icon.ico AppDir/openbudgeteer.png
 
           # Create AppRun script
           cat > AppDir/AppRun << 'APPRUN'
