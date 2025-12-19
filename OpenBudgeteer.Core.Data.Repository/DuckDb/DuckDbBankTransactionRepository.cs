@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,25 +17,35 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
 
     public IQueryable<BankTransaction> All()
     {
-        var sql = @"SELECT TransactionId AS Id, AccountId, TransactionDate, Payee, Memo, Amount
-                    FROM BankTransaction";
+        var sql = """
+                  SELECT
+                      TransactionId AS Id,
+                      AccountId,
+                      TransactionDate,
+                      Payee,
+                      Memo,
+                      Amount
+                  FROM BankTransaction
+                  """;
         return _connection.Query<BankTransaction>(sql).AsQueryable();
     }
 
     public IQueryable<BankTransaction> AllWithIncludedEntities()
     {
-        var sql = @"SELECT
-                        bt.TransactionId AS Id,
-                        bt.AccountId,
-                        bt.TransactionDate,
-                        bt.Payee,
-                        bt.Memo,
-                        bt.Amount,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM BankTransaction bt
-                    INNER JOIN Account a ON bt.AccountId = a.AccountId";
+        var sql = """
+                  SELECT
+                      bt.TransactionId AS Id,
+                      bt.AccountId,
+                      bt.TransactionDate,
+                      bt.Payee,
+                      bt.Memo,
+                      bt.Amount,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM BankTransaction bt
+                  INNER JOIN Account a ON bt.AccountId = a.AccountId
+                  """;
 
         var result = _connection.Query<BankTransaction, Account, BankTransaction>(
             sql,
@@ -54,16 +61,22 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
 
     public BankTransaction? ById(Guid id)
     {
-        var sql = @"SELECT TransactionId AS Id, AccountId, TransactionDate, Payee, Memo, Amount
-                    FROM BankTransaction
-                    WHERE TransactionId = $1";
+        var sql = """
+                  SELECT
+                      TransactionId AS Id,
+                      AccountId,
+                      TransactionDate,
+                      Payee,
+                      Memo,
+                      Amount
+                  FROM BankTransaction
+                  WHERE TransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -83,30 +96,30 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
 
     public BankTransaction? ByIdWithIncludedEntities(Guid id)
     {
-        var sql = @"SELECT
-                        bt.TransactionId AS Id,
-                        bt.AccountId,
-                        bt.TransactionDate,
-                        bt.Payee,
-                        bt.Memo,
-                        bt.Amount,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM BankTransaction bt
-                    INNER JOIN Account a ON bt.AccountId = a.AccountId
-                    WHERE bt.TransactionId = $1";
+        var sql = """
+                  SELECT
+                      bt.TransactionId AS Id,
+                      bt.AccountId,
+                      bt.TransactionDate,
+                      bt.Payee,
+                      bt.Memo,
+                      bt.Amount,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM BankTransaction bt
+                  INNER JOIN Account a ON bt.AccountId = a.AccountId
+                  WHERE bt.TransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) return null;
-        
+
         var transaction = new BankTransaction
         {
             Id = Guid.Parse(reader.GetString(0)),
@@ -129,35 +142,20 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
     {
         entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO BankTransaction (TransactionId, AccountId, TransactionDate, Payee, Memo, Amount)
-                    VALUES ($1, $2, $3, $4, $5, $6)";
+        var sql = """
+                  INSERT INTO BankTransaction (TransactionId, AccountId, TransactionDate, Payee, Memo, Amount)
+                  VALUES ($1, $2, $3, $4, $5, $6)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.AccountId.ToString();
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.TransactionDate.ToDateTime(TimeOnly.MinValue);
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = (object?)entity.Payee ?? DBNull.Value;
-        cmd.Parameters.Add(p4);
-
-        var p5 = cmd.CreateParameter();
-        p5.Value = (object?)entity.Memo ?? DBNull.Value;
-        cmd.Parameters.Add(p5);
-
-        var p6 = cmd.CreateParameter();
-        p6.Value = entity.Amount;
-        cmd.Parameters.Add(p6);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TransactionDate.ToDateTime(TimeOnly.MinValue)));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
 
         return cmd.ExecuteNonQuery();
     }
@@ -169,36 +167,21 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
 
     public int Update(BankTransaction entity)
     {
-        var sql = @"UPDATE BankTransaction
-                    SET AccountId = $1, TransactionDate = $2, Payee = $3, Memo = $4, Amount = $5
-                    WHERE TransactionId = $6";
+        var sql = """
+                  UPDATE BankTransaction
+                  SET AccountId = $1, TransactionDate = $2, Payee = $3, Memo = $4, Amount = $5
+                  WHERE TransactionId = $6
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.AccountId.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.TransactionDate.ToDateTime(TimeOnly.MinValue);
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = (object?)entity.Payee ?? DBNull.Value;
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = (object?)entity.Memo ?? DBNull.Value;
-        cmd.Parameters.Add(p4);
-
-        var p5 = cmd.CreateParameter();
-        p5.Value = entity.Amount;
-        cmd.Parameters.Add(p5);
-
-        var p6 = cmd.CreateParameter();
-        p6.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p6);
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TransactionDate.ToDateTime(TimeOnly.MinValue)));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -213,9 +196,9 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         // Consistency checks
         var entity = ByIdWithIncludedEntities(id);
         if (entity is null) throw new Exception($"BankTransaction with id {id} not found.");
-        
+
         var result = 0;
-        
+
         // Delete related BudgetedTransactions
         if (entity.BudgetedTransactions is not null)
         {
@@ -224,15 +207,15 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         }
 
         // Delete BankTransaction
-        var sql = @"DELETE FROM BankTransaction WHERE TransactionId = $1";
-        
+        var sql = """
+                  DELETE FROM BankTransaction WHERE TransactionId = $1
+                  """;
+
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
-        
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
-        
+
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+
         result += cmd.ExecuteNonQuery();
 
         return result;
@@ -244,7 +227,7 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         var scope = ids.ToList();
         var entities = scope.Select(ById).ToList();
         if (entities.Count == 0) throw new Exception("No BankTransactions found with passed IDs.");
-        
+
         return scope.Sum(Delete);
     }
 }

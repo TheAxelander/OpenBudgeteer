@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,36 +17,40 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
 
     public IQueryable<BudgetedTransaction> All()
     {
-        var sql = @"SELECT BudgetedTransactionId AS Id, TransactionId, BucketId, Amount
-                    FROM BudgetedTransaction";
+        var sql = """
+                  SELECT BudgetedTransactionId AS Id, TransactionId, BucketId, Amount
+                  FROM BudgetedTransaction
+                  """;
         return _connection.Query<BudgetedTransaction>(sql).AsQueryable();
     }
 
     public IQueryable<BudgetedTransaction> AllWithIncludedEntities()
     {
-        var sql = @"SELECT
-                        bt.BudgetedTransactionId AS Id,
-                        bt.TransactionId,
-                        bt.BucketId,
-                        bt.Amount,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries,
-                        t.TransactionId AS Id,
-                        t.AccountId,
-                        t.TransactionDate,
-                        t.Payee,
-                        t.Memo,
-                        t.Amount
-                    FROM BudgetedTransaction bt
-                    INNER JOIN Bucket b ON bt.BucketId = b.BucketId
-                    INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId";
+        var sql = """
+                  SELECT
+                      bt.BudgetedTransactionId AS Id,
+                      bt.TransactionId,
+                      bt.BucketId,
+                      bt.Amount,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries,
+                      t.TransactionId AS Id,
+                      t.AccountId,
+                      t.TransactionDate,
+                      t.Payee,
+                      t.Memo,
+                      t.Amount
+                  FROM BudgetedTransaction bt
+                  INNER JOIN Bucket b ON bt.BucketId = b.BucketId
+                  INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
+                  """;
 
         var result = _connection.Query<BudgetedTransaction, Bucket, BankTransaction, BudgetedTransaction>(
             sql,
@@ -66,33 +67,35 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
 
     public IQueryable<BudgetedTransaction> AllWithTransactions()
     {
-        var sql = @"SELECT
-                        bt.BudgetedTransactionId AS Id,
-                        bt.TransactionId,
-                        bt.BucketId,
-                        bt.Amount,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries,
-                        t.TransactionId AS Id,
-                        t.AccountId,
-                        t.TransactionDate,
-                        t.Payee,
-                        t.Memo,
-                        t.Amount,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM BudgetedTransaction bt
-                    INNER JOIN Bucket b ON bt.BucketId = b.BucketId
-                    INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
-                    INNER JOIN Account a ON t.AccountId = a.AccountId";
+        var sql = """
+                  SELECT
+                      bt.BudgetedTransactionId AS Id,
+                      bt.TransactionId,
+                      bt.BucketId,
+                      bt.Amount,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries,
+                      t.TransactionId AS Id,
+                      t.AccountId,
+                      t.TransactionDate,
+                      t.Payee,
+                      t.Memo,
+                      t.Amount,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM BudgetedTransaction bt
+                  INNER JOIN Bucket b ON bt.BucketId = b.BucketId
+                  INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
+                  INNER JOIN Account a ON t.AccountId = a.AccountId
+                  """;
 
         var result = _connection.Query<BudgetedTransaction, Bucket, BankTransaction, Account, BudgetedTransaction>(
             sql,
@@ -110,16 +113,16 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
 
     public BudgetedTransaction? ById(Guid id)
     {
-        var sql = @"SELECT BudgetedTransactionId AS Id, TransactionId, BucketId, Amount
-                    FROM BudgetedTransaction
-                    WHERE BudgetedTransactionId = $1";
+        var sql = """
+                  SELECT BudgetedTransactionId AS Id, TransactionId, BucketId, Amount
+                  FROM BudgetedTransaction
+                  WHERE BudgetedTransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -137,41 +140,41 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
 
     public BudgetedTransaction? ByIdWithTransaction(Guid id)
     {
-        var sql = @"SELECT
-                        bt.BudgetedTransactionId AS Id,
-                        bt.TransactionId,
-                        bt.BucketId,
-                        bt.Amount,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries,
-                        t.TransactionId AS Id,
-                        t.AccountId,
-                        t.TransactionDate,
-                        t.Payee,
-                        t.Memo,
-                        t.Amount,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM BudgetedTransaction bt
-                    INNER JOIN Bucket b ON bt.BucketId = b.BucketId
-                    INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
-                    INNER JOIN Account a ON t.AccountId = a.AccountId
-                    WHERE bt.BudgetedTransactionId = $1";
+        var sql = """
+                  SELECT
+                      bt.BudgetedTransactionId AS Id,
+                      bt.TransactionId,
+                      bt.BucketId,
+                      bt.Amount,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries,
+                      t.TransactionId AS Id,
+                      t.AccountId,
+                      t.TransactionDate,
+                      t.Payee,
+                      t.Memo,
+                      t.Amount,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM BudgetedTransaction bt
+                  INNER JOIN Bucket b ON bt.BucketId = b.BucketId
+                  INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
+                  INNER JOIN Account a ON t.AccountId = a.AccountId
+                  WHERE bt.BudgetedTransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) return null;
@@ -214,37 +217,37 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
 
     public BudgetedTransaction? ByIdWithIncludedEntities(Guid id)
     {
-        var sql = @"SELECT
-                        bt.BudgetedTransactionId AS Id,
-                        bt.TransactionId,
-                        bt.BucketId,
-                        bt.Amount,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries,
-                        t.TransactionId AS Id,
-                        t.AccountId,
-                        t.TransactionDate,
-                        t.Payee,
-                        t.Memo,
-                        t.Amount
-                    FROM BudgetedTransaction bt
-                    INNER JOIN Bucket b ON bt.BucketId = b.BucketId
-                    INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
-                    WHERE bt.BudgetedTransactionId = $1";
+        var sql = """
+                  SELECT
+                      bt.BudgetedTransactionId AS Id,
+                      bt.TransactionId,
+                      bt.BucketId,
+                      bt.Amount,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries,
+                      t.TransactionId AS Id,
+                      t.AccountId,
+                      t.TransactionDate,
+                      t.Payee,
+                      t.Memo,
+                      t.Amount
+                  FROM BudgetedTransaction bt
+                  INNER JOIN Bucket b ON bt.BucketId = b.BucketId
+                  INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
+                  WHERE bt.BudgetedTransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) return null;
@@ -283,27 +286,18 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
     {
         if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO BudgetedTransaction (BudgetedTransactionId, TransactionId, BucketId, Amount)
-                    VALUES ($1, $2, $3, $4)";
+        var sql = """
+                  INSERT INTO BudgetedTransaction (BudgetedTransactionId, TransactionId, BucketId, Amount)
+                  VALUES ($1, $2, $3, $4)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.TransactionId.ToString();
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.BucketId.ToString();
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.Amount;
-        cmd.Parameters.Add(p4);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TransactionId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
 
         return cmd.ExecuteNonQuery();
     }
@@ -330,15 +324,15 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
         // Consistency checks
         var entity = ById(id);
         if (entity is null) throw new Exception($"BudgetedTransaction with id {id} not found.");
-        
-        var sql = @"DELETE FROM BudgetedTransaction WHERE BudgetedTransactionId = $1";
+
+        var sql = """
+                  DELETE FROM BudgetedTransaction WHERE BudgetedTransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -349,7 +343,7 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
         var scope = ids.ToList();
         var entities = scope.Select(ById).ToList();
         if (entities.Count == 0) throw new Exception($"No BudgetedTransactions found with passed IDs.");
-        
+
         return scope.Sum(Delete);
     }
 }

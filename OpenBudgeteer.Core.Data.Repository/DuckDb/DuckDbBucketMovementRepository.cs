@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,29 +17,33 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
 
     public IQueryable<BucketMovement> All()
     {
-        var sql = @"SELECT BucketMovementId AS Id, BucketId, Amount, MovementDate
-                    FROM BucketMovement";
+        var sql = """
+                  SELECT BucketMovementId AS Id, BucketId, Amount, MovementDate
+                  FROM BucketMovement
+                  """;
         return _connection.Query<BucketMovement>(sql).AsQueryable();
     }
 
     public IQueryable<BucketMovement> AllWithIncludedEntities()
     {
-        var sql = @"SELECT
-                        bm.BucketMovementId AS Id,
-                        bm.BucketId,
-                        bm.Amount,
-                        bm.MovementDate,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries
-                    FROM BucketMovement bm
-                    INNER JOIN Bucket b ON bm.BucketId = b.BucketId";
+        var sql = """
+                  SELECT
+                      bm.BucketMovementId AS Id,
+                      bm.BucketId,
+                      bm.Amount,
+                      bm.MovementDate,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries
+                  FROM BucketMovement bm
+                  INNER JOIN Bucket b ON bm.BucketId = b.BucketId
+                  """;
 
         var result = _connection.Query<BucketMovement, Bucket, BucketMovement>(
             sql,
@@ -58,16 +59,16 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
 
     public BucketMovement? ById(Guid id)
     {
-        var sql = @"SELECT BucketMovementId AS Id, BucketId, Amount, MovementDate
-                    FROM BucketMovement
-                    WHERE BucketMovementId = $1";
+        var sql = """
+                  SELECT BucketMovementId AS Id, BucketId, Amount, MovementDate
+                  FROM BucketMovement
+                  WHERE BucketMovementId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -85,34 +86,34 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
 
     public BucketMovement? ByIdWithIncludedEntities(Guid id)
     {
-        var sql = @"SELECT
-                        bm.BucketMovementId AS Id,
-                        bm.BucketId,
-                        bm.Amount,
-                        bm.MovementDate,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries
-                    FROM BucketMovement bm
-                    INNER JOIN Bucket b ON bm.BucketId = b.BucketId
-                    WHERE bm.BucketMovementId = $1";
+        var sql = """
+                  SELECT
+                      bm.BucketMovementId AS Id,
+                      bm.BucketId,
+                      bm.Amount,
+                      bm.MovementDate,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries
+                  FROM BucketMovement bm
+                  INNER JOIN Bucket b ON bm.BucketId = b.BucketId
+                  WHERE bm.BucketMovementId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) return null;
-        
+
         var bucketMovement = new BucketMovement
         {
             Id = Guid.Parse(reader.GetString(0)),
@@ -139,27 +140,18 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     {
         if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO BucketMovement (BucketMovementId, BucketId, Amount, MovementDate)
-                    VALUES ($1, $2, $3, $4)";
+        var sql = """
+                  INSERT INTO BucketMovement (BucketMovementId, BucketId, Amount, MovementDate)
+                  VALUES ($1, $2, $3, $4)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.BucketId.ToString();
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.Amount;
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.MovementDate.ToDateTime(TimeOnly.MinValue);
-        cmd.Parameters.Add(p4);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
+        cmd.Parameters.Add(new DuckDBParameter(entity.MovementDate.ToDateTime(TimeOnly.MinValue)));
 
         return cmd.ExecuteNonQuery();
     }
@@ -171,28 +163,19 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
 
     public int Update(BucketMovement entity)
     {
-        var sql = @"UPDATE BucketMovement
-                    SET BucketId = $1, Amount = $2, MovementDate = $3
-                    WHERE BucketMovementId = $4";
+        var sql = """
+                  UPDATE BucketMovement
+                  SET BucketId = $1, Amount = $2, MovementDate = $3
+                  WHERE BucketMovementId = $4
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.BucketId.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.Amount;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.MovementDate.ToDateTime(TimeOnly.MinValue);
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p4);
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
+        cmd.Parameters.Add(new DuckDBParameter(entity.MovementDate.ToDateTime(TimeOnly.MinValue)));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -207,15 +190,15 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
         // Consistency checks
         var entity = ById(id);
         if (entity is null) throw new Exception($"BucketMovement with id {id} not found.");
-        
-        var sql = @"DELETE FROM BucketMovement WHERE BucketMovementId = $1";
+
+        var sql = """
+                  DELETE FROM BucketMovement WHERE BucketMovementId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }

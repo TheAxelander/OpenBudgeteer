@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,35 +17,39 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
 
     public IQueryable<RecurringBankTransaction> All()
     {
-        var sql = @"SELECT 
-                        TransactionId AS Id, 
-                        AccountId, 
-                        RecurrenceType, 
-                        RecurrenceAmount, 
-                        FirstOccurrenceDate, 
-                        Payee, 
-                        Memo, 
-                        Amount
-                    FROM RecurringBankTransaction";
+        var sql = """
+                  SELECT
+                      TransactionId AS Id,
+                      AccountId,
+                      RecurrenceType,
+                      RecurrenceAmount,
+                      FirstOccurrenceDate,
+                      Payee,
+                      Memo,
+                      Amount
+                  FROM RecurringBankTransaction
+                  """;
         return _connection.Query<RecurringBankTransaction>(sql).AsQueryable();
     }
 
     public IQueryable<RecurringBankTransaction> AllWithIncludedEntities()
     {
-        var sql = @"SELECT
-                        rbt.TransactionId AS Id,
-                        rbt.AccountId,
-                        rbt.RecurrenceType,
-                        rbt.RecurrenceAmount,
-                        rbt.FirstOccurrenceDate,
-                        rbt.Payee,
-                        rbt.Memo,
-                        rbt.Amount,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM RecurringBankTransaction rbt
-                    INNER JOIN Account a ON rbt.AccountId = a.AccountId";
+        var sql = """
+                  SELECT
+                      rbt.TransactionId AS Id,
+                      rbt.AccountId,
+                      rbt.RecurrenceType,
+                      rbt.RecurrenceAmount,
+                      rbt.FirstOccurrenceDate,
+                      rbt.Payee,
+                      rbt.Memo,
+                      rbt.Amount,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM RecurringBankTransaction rbt
+                  INNER JOIN Account a ON rbt.AccountId = a.AccountId
+                  """;
 
         var result = _connection.Query<RecurringBankTransaction, Account, RecurringBankTransaction>(
             sql,
@@ -64,24 +65,24 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
 
     public RecurringBankTransaction? ById(Guid id)
     {
-        var sql = @"SELECT 
-                        TransactionId AS Id, 
-                        AccountId, 
-                        RecurrenceType, 
-                        RecurrenceAmount, 
-                        FirstOccurrenceDate, 
-                        Payee, 
-                        Memo, 
-                        Amount
-                    FROM RecurringBankTransaction
-                    WHERE TransactionId = $1";
+        var sql = """
+                  SELECT
+                      TransactionId AS Id,
+                      AccountId,
+                      RecurrenceType,
+                      RecurrenceAmount,
+                      FirstOccurrenceDate,
+                      Payee,
+                      Memo,
+                      Amount
+                  FROM RecurringBankTransaction
+                  WHERE TransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -103,28 +104,28 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
 
     public RecurringBankTransaction? ByIdWithIncludedEntities(Guid id)
     {
-        var sql = @"SELECT
-                        rbt.TransactionId AS Id,
-                        rbt.AccountId,
-                        rbt.RecurrenceType,
-                        rbt.RecurrenceAmount,
-                        rbt.FirstOccurrenceDate,
-                        rbt.Payee,
-                        rbt.Memo,
-                        rbt.Amount,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM RecurringBankTransaction rbt
-                    INNER JOIN Account a ON rbt.AccountId = a.AccountId
-                    WHERE rbt.TransactionId = $1";
+        var sql = """
+                  SELECT
+                      rbt.TransactionId AS Id,
+                      rbt.AccountId,
+                      rbt.RecurrenceType,
+                      rbt.RecurrenceAmount,
+                      rbt.FirstOccurrenceDate,
+                      rbt.Payee,
+                      rbt.Memo,
+                      rbt.Amount,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM RecurringBankTransaction rbt
+                  INNER JOIN Account a ON rbt.AccountId = a.AccountId
+                  WHERE rbt.TransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) return null;
@@ -152,51 +153,30 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
     {
         if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO RecurringBankTransaction (
-                        TransactionId, 
-                        AccountId, 
-                        RecurrenceType, 
-                        RecurrenceAmount, 
-                        FirstOccurrenceDate, 
-                        Payee, 
-                        Memo, 
-                        Amount)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)";
+        var sql = """
+                  INSERT INTO RecurringBankTransaction (
+                      TransactionId,
+                      AccountId,
+                      RecurrenceType,
+                      RecurrenceAmount,
+                      FirstOccurrenceDate,
+                      Payee,
+                      Memo,
+                      Amount)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.AccountId.ToString();
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.RecurrenceType;
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.RecurrenceAmount;
-        cmd.Parameters.Add(p4);
-
-        var p5 = cmd.CreateParameter();
-        p5.Value = entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue);
-        cmd.Parameters.Add(p5);
-
-        var p6 = cmd.CreateParameter();
-        p6.Value = (object?)entity.Payee ?? DBNull.Value;
-        cmd.Parameters.Add(p6);
-
-        var p7 = cmd.CreateParameter();
-        p7.Value = (object?)entity.Memo ?? DBNull.Value;
-        cmd.Parameters.Add(p7);
-
-        var p8 = cmd.CreateParameter();
-        p8.Value = entity.Amount;
-        cmd.Parameters.Add(p8);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceType));
+        cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceAmount));
+        cmd.Parameters.Add(new DuckDBParameter(entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue)));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
 
         return cmd.ExecuteNonQuery();
     }
@@ -208,51 +188,30 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
 
     public int Update(RecurringBankTransaction entity)
     {
-        var sql = @"UPDATE RecurringBankTransaction
-                    SET 
-                        AccountId = $1, 
-                        RecurrenceType = $2, 
-                        RecurrenceAmount = $3, 
-                        FirstOccurrenceDate = $4, 
-                        Payee = $5, 
-                        Memo = $6, 
-                        Amount = $7
-                    WHERE TransactionId = $8";
+        var sql = """
+                  UPDATE RecurringBankTransaction
+                  SET
+                      AccountId = $1,
+                      RecurrenceType = $2,
+                      RecurrenceAmount = $3,
+                      FirstOccurrenceDate = $4,
+                      Payee = $5,
+                      Memo = $6,
+                      Amount = $7
+                  WHERE TransactionId = $8
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.AccountId.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.RecurrenceType;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.RecurrenceAmount;
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue);
-        cmd.Parameters.Add(p4);
-
-        var p5 = cmd.CreateParameter();
-        p5.Value = (object?)entity.Payee ?? DBNull.Value;
-        cmd.Parameters.Add(p5);
-
-        var p6 = cmd.CreateParameter();
-        p6.Value = (object?)entity.Memo ?? DBNull.Value;
-        cmd.Parameters.Add(p6);
-
-        var p7 = cmd.CreateParameter();
-        p7.Value = entity.Amount;
-        cmd.Parameters.Add(p7);
-
-        var p8 = cmd.CreateParameter();
-        p8.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p8);
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceType));
+        cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceAmount));
+        cmd.Parameters.Add(new DuckDBParameter(entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue)));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -267,15 +226,15 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         // Consistency checks
         var entity = ById(id);
         if (entity is null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
-        
-        var sql = @"DELETE FROM RecurringBankTransaction WHERE TransactionId = $1";
+
+        var sql = """
+                  DELETE FROM RecurringBankTransaction WHERE TransactionId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -286,7 +245,7 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         var scope = ids.ToList();
         var entities = scope.Select(ById).ToList();
         if (entities.Count == 0) throw new Exception($"No RecurringBankTransactions found with passed IDs.");
-        
+
         return scope.Sum(Delete);
     }
 }

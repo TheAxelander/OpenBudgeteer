@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,55 +17,59 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
 
     public IQueryable<ImportProfile> All()
     {
-        var sql = @"SELECT 
-                        ImportProfileId AS Id, 
-                        ProfileName, 
-                        AccountId, 
-                        HeaderRow, 
-                        Delimiter, 
-                        TextQualifier, 
-                        DateFormat, 
-                        NumberFormat,
-                        TransactionDateColumnName, 
-                        PayeeColumnName, 
-                        MemoColumnName, 
-                        AmountColumnName,
-                        AdditionalSettingCreditValue, 
-                        CreditColumnName, 
-                        CreditColumnIdentifierColumnName, 
-                        CreditColumnIdentifierValue,
-                        AdditionalSettingAmountCleanup, 
-                        AdditionalSettingAmountCleanupValue
-                    FROM ImportProfile";
+        var sql = """
+                  SELECT
+                      ImportProfileId AS Id,
+                      ProfileName,
+                      AccountId,
+                      HeaderRow,
+                      Delimiter,
+                      TextQualifier,
+                      DateFormat,
+                      NumberFormat,
+                      TransactionDateColumnName,
+                      PayeeColumnName,
+                      MemoColumnName,
+                      AmountColumnName,
+                      AdditionalSettingCreditValue,
+                      CreditColumnName,
+                      CreditColumnIdentifierColumnName,
+                      CreditColumnIdentifierValue,
+                      AdditionalSettingAmountCleanup,
+                      AdditionalSettingAmountCleanupValue
+                  FROM ImportProfile
+                  """;
         return _connection.Query<ImportProfile>(sql).AsQueryable();
     }
 
     public IQueryable<ImportProfile> AllWithIncludedEntities()
     {
-        var sql = @"SELECT
-                        ip.ImportProfileId AS Id,
-                        ip.ProfileName,
-                        ip.AccountId,
-                        ip.HeaderRow,
-                        ip.Delimiter,
-                        ip.TextQualifier,
-                        ip.DateFormat,
-                        ip.NumberFormat,
-                        ip.TransactionDateColumnName,
-                        ip.PayeeColumnName,
-                        ip.MemoColumnName,
-                        ip.AmountColumnName,
-                        ip.AdditionalSettingCreditValue,
-                        ip.CreditColumnName,
-                        ip.CreditColumnIdentifierColumnName,
-                        ip.CreditColumnIdentifierValue,
-                        ip.AdditionalSettingAmountCleanup,
-                        ip.AdditionalSettingAmountCleanupValue,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM ImportProfile ip
-                    INNER JOIN Account a ON ip.AccountId = a.AccountId";
+        var sql = """
+                  SELECT
+                      ip.ImportProfileId AS Id,
+                      ip.ProfileName,
+                      ip.AccountId,
+                      ip.HeaderRow,
+                      ip.Delimiter,
+                      ip.TextQualifier,
+                      ip.DateFormat,
+                      ip.NumberFormat,
+                      ip.TransactionDateColumnName,
+                      ip.PayeeColumnName,
+                      ip.MemoColumnName,
+                      ip.AmountColumnName,
+                      ip.AdditionalSettingCreditValue,
+                      ip.CreditColumnName,
+                      ip.CreditColumnIdentifierColumnName,
+                      ip.CreditColumnIdentifierValue,
+                      ip.AdditionalSettingAmountCleanup,
+                      ip.AdditionalSettingAmountCleanupValue,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM ImportProfile ip
+                  INNER JOIN Account a ON ip.AccountId = a.AccountId
+                  """;
 
         var result = _connection.Query<ImportProfile, Account, ImportProfile>(
             sql,
@@ -84,34 +85,34 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
 
     public ImportProfile? ById(Guid id)
     {
-        var sql = @"SELECT 
-                        ImportProfileId AS Id, 
-                        ProfileName, 
-                        AccountId, 
-                        HeaderRow, 
-                        Delimiter, 
-                        TextQualifier, 
-                        DateFormat, 
-                        NumberFormat,
-                       TransactionDateColumnName, 
-                       PayeeColumnName, 
-                       MemoColumnName, 
-                       AmountColumnName,
-                       AdditionalSettingCreditValue, 
-                       CreditColumnName, 
-                       CreditColumnIdentifierColumnName, 
-                       CreditColumnIdentifierValue,
-                       AdditionalSettingAmountCleanup, 
-                       AdditionalSettingAmountCleanupValue
-                    FROM ImportProfile
-                    WHERE ImportProfileId = $1";
+        var sql = """
+                  SELECT
+                      ImportProfileId AS Id,
+                      ProfileName,
+                      AccountId,
+                      HeaderRow,
+                      Delimiter,
+                      TextQualifier,
+                      DateFormat,
+                      NumberFormat,
+                      TransactionDateColumnName,
+                      PayeeColumnName,
+                      MemoColumnName,
+                      AmountColumnName,
+                      AdditionalSettingCreditValue,
+                      CreditColumnName,
+                      CreditColumnIdentifierColumnName,
+                      CreditColumnIdentifierValue,
+                      AdditionalSettingAmountCleanup,
+                      AdditionalSettingAmountCleanupValue
+                  FROM ImportProfile
+                  WHERE ImportProfileId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -143,38 +144,38 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
 
     public ImportProfile? ByIdWithIncludedEntities(Guid id)
     {
-        var sql = @"SELECT
-                        ip.ImportProfileId AS Id,
-                        ip.ProfileName,
-                        ip.AccountId,
-                        ip.HeaderRow,
-                        ip.Delimiter,
-                        ip.TextQualifier,
-                        ip.DateFormat,
-                        ip.NumberFormat,
-                        ip.TransactionDateColumnName,
-                        ip.PayeeColumnName,
-                        ip.MemoColumnName,
-                        ip.AmountColumnName,
-                        ip.AdditionalSettingCreditValue,
-                        ip.CreditColumnName,
-                        ip.CreditColumnIdentifierColumnName,
-                        ip.CreditColumnIdentifierValue,
-                        ip.AdditionalSettingAmountCleanup,
-                        ip.AdditionalSettingAmountCleanupValue,
-                        a.AccountId AS Id,
-                        a.Name,
-                        a.IsActive
-                    FROM ImportProfile ip
-                    INNER JOIN Account a ON ip.AccountId = a.AccountId
-                    WHERE ip.ImportProfileId = $1";
+        var sql = """
+                  SELECT
+                      ip.ImportProfileId AS Id,
+                      ip.ProfileName,
+                      ip.AccountId,
+                      ip.HeaderRow,
+                      ip.Delimiter,
+                      ip.TextQualifier,
+                      ip.DateFormat,
+                      ip.NumberFormat,
+                      ip.TransactionDateColumnName,
+                      ip.PayeeColumnName,
+                      ip.MemoColumnName,
+                      ip.AmountColumnName,
+                      ip.AdditionalSettingCreditValue,
+                      ip.CreditColumnName,
+                      ip.CreditColumnIdentifierColumnName,
+                      ip.CreditColumnIdentifierValue,
+                      ip.AdditionalSettingAmountCleanup,
+                      ip.AdditionalSettingAmountCleanupValue,
+                      a.AccountId AS Id,
+                      a.Name,
+                      a.IsActive
+                  FROM ImportProfile ip
+                  INNER JOIN Account a ON ip.AccountId = a.AccountId
+                  WHERE ip.ImportProfileId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (!reader.Read()) return null;
@@ -212,101 +213,50 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
     {
         if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO ImportProfile (
-                        ImportProfileId, 
-                        ProfileName, 
-                        AccountId, 
-                        HeaderRow, 
-                        Delimiter, 
-                        TextQualifier, 
-                        DateFormat, 
-                        NumberFormat,
-                        TransactionDateColumnName, 
-                        PayeeColumnName, 
-                        MemoColumnName, 
-                        AmountColumnName,
-                        AdditionalSettingCreditValue, 
-                        CreditColumnName, 
-                        CreditColumnIdentifierColumnName, 
-                        CreditColumnIdentifierValue,
-                        AdditionalSettingAmountCleanup, 
-                        AdditionalSettingAmountCleanupValue)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)";
+        var sql = """
+                  INSERT INTO ImportProfile (
+                      ImportProfileId,
+                      ProfileName,
+                      AccountId,
+                      HeaderRow,
+                      Delimiter,
+                      TextQualifier,
+                      DateFormat,
+                      NumberFormat,
+                      TransactionDateColumnName,
+                      PayeeColumnName,
+                      MemoColumnName,
+                      AmountColumnName,
+                      AdditionalSettingCreditValue,
+                      CreditColumnName,
+                      CreditColumnIdentifierColumnName,
+                      CreditColumnIdentifierValue,
+                      AdditionalSettingAmountCleanup,
+                      AdditionalSettingAmountCleanupValue)
+                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = (object?)entity.ProfileName ?? DBNull.Value;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.AccountId.ToString();
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.HeaderRow;
-        cmd.Parameters.Add(p4);
-
-        var p5 = cmd.CreateParameter();
-        p5.Value = entity.Delimiter.ToString();
-        cmd.Parameters.Add(p5);
-
-        var p6 = cmd.CreateParameter();
-        p6.Value = entity.TextQualifier.ToString();
-        cmd.Parameters.Add(p6);
-
-        var p7 = cmd.CreateParameter();
-        p7.Value = (object?)entity.DateFormat ?? DBNull.Value;
-        cmd.Parameters.Add(p7);
-
-        var p8 = cmd.CreateParameter();
-        p8.Value = (object?)entity.NumberFormat ?? DBNull.Value;
-        cmd.Parameters.Add(p8);
-
-        var p9 = cmd.CreateParameter();
-        p9.Value = (object?)entity.TransactionDateColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p9);
-
-        var p10 = cmd.CreateParameter();
-        p10.Value = (object?)entity.PayeeColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p10);
-
-        var p11 = cmd.CreateParameter();
-        p11.Value = (object?)entity.MemoColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p11);
-
-        var p12 = cmd.CreateParameter();
-        p12.Value = (object?)entity.AmountColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p12);
-
-        var p13 = cmd.CreateParameter();
-        p13.Value = entity.AdditionalSettingCreditValue;
-        cmd.Parameters.Add(p13);
-
-        var p14 = cmd.CreateParameter();
-        p14.Value = (object?)entity.CreditColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p14);
-
-        var p15 = cmd.CreateParameter();
-        p15.Value = (object?)entity.CreditColumnIdentifierColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p15);
-
-        var p16 = cmd.CreateParameter();
-        p16.Value = (object?)entity.CreditColumnIdentifierValue ?? DBNull.Value;
-        cmd.Parameters.Add(p16);
-
-        var p17 = cmd.CreateParameter();
-        p17.Value = entity.AdditionalSettingAmountCleanup;
-        cmd.Parameters.Add(p17);
-
-        var p18 = cmd.CreateParameter();
-        p18.Value = (object?)entity.AdditionalSettingAmountCleanupValue ?? DBNull.Value;
-        cmd.Parameters.Add(p18);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.ProfileName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.HeaderRow));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Delimiter.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TextQualifier.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.DateFormat ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.NumberFormat ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.TransactionDateColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.PayeeColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.MemoColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.AmountColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AdditionalSettingCreditValue));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnIdentifierColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnIdentifierValue ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AdditionalSettingAmountCleanup));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.AdditionalSettingAmountCleanupValue ?? DBNull.Value));
 
         return cmd.ExecuteNonQuery();
     }
@@ -318,101 +268,50 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
 
     public int Update(ImportProfile entity)
     {
-        var sql = @"UPDATE ImportProfile
-                    SET 
-                        ProfileName = $1, 
-                        AccountId = $2, 
-                        HeaderRow = $3, 
-                        Delimiter = $4, 
-                        TextQualifier = $5, 
-                        DateFormat = $6, 
-                        NumberFormat = $7,
-                        TransactionDateColumnName = $8, 
-                        PayeeColumnName = $9, 
-                        MemoColumnName = $10, 
-                        AmountColumnName = $11,
-                        AdditionalSettingCreditValue = $12, 
-                        CreditColumnName = $13, 
-                        CreditColumnIdentifierColumnName = $14, 
-                        CreditColumnIdentifierValue = $15,
-                        AdditionalSettingAmountCleanup = $16, 
-                        AdditionalSettingAmountCleanupValue = $17
-                    WHERE ImportProfileId = $18";
+        var sql = """
+                  UPDATE ImportProfile
+                  SET
+                      ProfileName = $1,
+                      AccountId = $2,
+                      HeaderRow = $3,
+                      Delimiter = $4,
+                      TextQualifier = $5,
+                      DateFormat = $6,
+                      NumberFormat = $7,
+                      TransactionDateColumnName = $8,
+                      PayeeColumnName = $9,
+                      MemoColumnName = $10,
+                      AmountColumnName = $11,
+                      AdditionalSettingCreditValue = $12,
+                      CreditColumnName = $13,
+                      CreditColumnIdentifierColumnName = $14,
+                      CreditColumnIdentifierValue = $15,
+                      AdditionalSettingAmountCleanup = $16,
+                      AdditionalSettingAmountCleanupValue = $17
+                  WHERE ImportProfileId = $18
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = (object?)entity.ProfileName ?? DBNull.Value;
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.AccountId.ToString();
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.HeaderRow;
-        cmd.Parameters.Add(p3);
-
-        var p4 = cmd.CreateParameter();
-        p4.Value = entity.Delimiter.ToString();
-        cmd.Parameters.Add(p4);
-
-        var p5 = cmd.CreateParameter();
-        p5.Value = entity.TextQualifier.ToString();
-        cmd.Parameters.Add(p5);
-
-        var p6 = cmd.CreateParameter();
-        p6.Value = (object?)entity.DateFormat ?? DBNull.Value;
-        cmd.Parameters.Add(p6);
-
-        var p7 = cmd.CreateParameter();
-        p7.Value = (object?)entity.NumberFormat ?? DBNull.Value;
-        cmd.Parameters.Add(p7);
-
-        var p8 = cmd.CreateParameter();
-        p8.Value = (object?)entity.TransactionDateColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p8);
-
-        var p9 = cmd.CreateParameter();
-        p9.Value = (object?)entity.PayeeColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p9);
-
-        var p10 = cmd.CreateParameter();
-        p10.Value = (object?)entity.MemoColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p10);
-
-        var p11 = cmd.CreateParameter();
-        p11.Value = (object?)entity.AmountColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p11);
-
-        var p12 = cmd.CreateParameter();
-        p12.Value = entity.AdditionalSettingCreditValue;
-        cmd.Parameters.Add(p12);
-
-        var p13 = cmd.CreateParameter();
-        p13.Value = (object?)entity.CreditColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p13);
-
-        var p14 = cmd.CreateParameter();
-        p14.Value = (object?)entity.CreditColumnIdentifierColumnName ?? DBNull.Value;
-        cmd.Parameters.Add(p14);
-
-        var p15 = cmd.CreateParameter();
-        p15.Value = (object?)entity.CreditColumnIdentifierValue ?? DBNull.Value;
-        cmd.Parameters.Add(p15);
-
-        var p16 = cmd.CreateParameter();
-        p16.Value = entity.AdditionalSettingAmountCleanup;
-        cmd.Parameters.Add(p16);
-
-        var p17 = cmd.CreateParameter();
-        p17.Value = (object?)entity.AdditionalSettingAmountCleanupValue ?? DBNull.Value;
-        cmd.Parameters.Add(p17);
-
-        var p18 = cmd.CreateParameter();
-        p18.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p18);
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.ProfileName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.HeaderRow));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Delimiter.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TextQualifier.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.DateFormat ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.NumberFormat ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.TransactionDateColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.PayeeColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.MemoColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.AmountColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AdditionalSettingCreditValue));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnIdentifierColumnName ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnIdentifierValue ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AdditionalSettingAmountCleanup));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.AdditionalSettingAmountCleanupValue ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -427,15 +326,15 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         // Consistency checks
         var entity = ById(id);
         if (entity is null) throw new Exception($"ImportProfile with id {id} not found.");
-        
-        var sql = @"DELETE FROM ImportProfile WHERE ImportProfileId = $1";
+
+        var sql = """
+                  DELETE FROM ImportProfile WHERE ImportProfileId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -446,7 +345,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         var scope = ids.ToList();
         var entities = scope.Select(ById).ToList();
         if (entities.Count == 0) throw new Exception("No ImportProfiles found with passed IDs.");
-        
+
         return scope.Sum(Delete);
     }
 }

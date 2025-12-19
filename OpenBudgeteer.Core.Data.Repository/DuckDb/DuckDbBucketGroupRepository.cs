@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,27 +17,31 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
 
     public IQueryable<BucketGroup> All()
     {
-        var sql = @"SELECT BucketGroupId AS Id, Name, Position FROM BucketGroup";
+        var sql = """
+                  SELECT BucketGroupId AS Id, Name, Position FROM BucketGroup
+                  """;
         return _connection.Query<BucketGroup>(sql).AsQueryable();
     }
 
     public IQueryable<BucketGroup> AllWithIncludedEntities()
     {
-        var sql = @"SELECT
-                        bg.BucketGroupId AS Id,
-                        bg.Name,
-                        bg.Position,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries
-                    FROM BucketGroup bg
-                    LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId";
+        var sql = """
+                  SELECT
+                      bg.BucketGroupId AS Id,
+                      bg.Name,
+                      bg.Position,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries
+                  FROM BucketGroup bg
+                  LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
+                  """;
 
         var bucketGroupDict = new Dictionary<Guid, BucketGroup>();
         _connection.Query<BucketGroup, Bucket?, BucketGroup>(
@@ -65,16 +66,16 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
 
     public BucketGroup? ById(Guid id)
     {
-        var sql = @"SELECT BucketGroupId AS Id, Name, Position
-                    FROM BucketGroup
-                    WHERE BucketGroupId = $1";
+        var sql = """
+                  SELECT BucketGroupId AS Id, Name, Position
+                  FROM BucketGroup
+                  WHERE BucketGroupId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -91,29 +92,29 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
 
     public BucketGroup? ByIdWithIncludedEntities(Guid id)
     {
-        var sql = @"SELECT
-                        bg.BucketGroupId AS Id,
-                        bg.Name,
-                        bg.Position,
-                        b.BucketId AS Id,
-                        b.Name,
-                        b.BucketGroupId,
-                        b.ColorCode,
-                        b.TextColorCode,
-                        b.ValidFrom,
-                        b.IsInactive,
-                        b.IsInactiveFrom,
-                        b.IsHiddenFromSummaries
-                    FROM BucketGroup bg
-                    LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
-                    WHERE bg.BucketGroupId = $1";
+        var sql = """
+                  SELECT
+                      bg.BucketGroupId AS Id,
+                      bg.Name,
+                      bg.Position,
+                      b.BucketId AS Id,
+                      b.Name,
+                      b.BucketGroupId,
+                      b.ColorCode,
+                      b.TextColorCode,
+                      b.ValidFrom,
+                      b.IsInactive,
+                      b.IsInactiveFrom,
+                      b.IsHiddenFromSummaries
+                  FROM BucketGroup bg
+                  LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
+                  WHERE bg.BucketGroupId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         BucketGroup? bucketGroup = null;
         using var reader = cmd.ExecuteReader();
@@ -148,23 +149,17 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
     {
         if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO BucketGroup (BucketGroupId, Name, Position)
-                    VALUES ($1, $2, $3)";
+        var sql = """
+                  INSERT INTO BucketGroup (BucketGroupId, Name, Position)
+                  VALUES ($1, $2, $3)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = (object?)entity.Name ?? DBNull.Value;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.Position;
-        cmd.Parameters.Add(p3);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Position));
 
         return cmd.ExecuteNonQuery();
     }
@@ -176,24 +171,18 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
 
     public int Update(BucketGroup entity)
     {
-        var sql = @"UPDATE BucketGroup
-                    SET Name = $1, Position = $2
-                    WHERE BucketGroupId = $3";
+        var sql = """
+                  UPDATE BucketGroup
+                  SET Name = $1, Position = $2
+                  WHERE BucketGroupId = $3
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = (object?)entity.Name ?? DBNull.Value;
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.Position;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p3);
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Position));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -213,14 +202,14 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
         if (entity is null) throw new Exception($"BucketGroup with id {id} not found.");
         if (entity.Buckets is not null && entity.Buckets.Count != 0) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 
-        var sql = @"DELETE FROM BucketGroup WHERE BucketGroupId = $1";
+        var sql = """
+                  DELETE FROM BucketGroup WHERE BucketGroupId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -231,7 +220,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
         var cleansedEntities = ids
             .Where(i => i != Guid.Parse("00000000-0000-0000-0000-000000000001"))
             .ToList();
-        
+
         // Consistency checks
         var entities = cleansedEntities.
             Select(ByIdWithIncludedEntities)

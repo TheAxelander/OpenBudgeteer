@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
 using Dapper;
+using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
@@ -20,7 +17,13 @@ public class DuckDbAccountRepository : IAccountRepository
 
     public IQueryable<Account> All()
     {
-        var sql = @"SELECT AccountId AS Id, Name, IsActive FROM Account";
+        var sql = """
+                  SELECT
+                      AccountId AS Id,
+                      Name,
+                      IsActive
+                  FROM Account
+                  """;
         return _connection.Query<Account>(sql).AsQueryable();
     }
 
@@ -31,16 +34,19 @@ public class DuckDbAccountRepository : IAccountRepository
 
     public Account? ById(Guid id)
     {
-        var sql = @"SELECT AccountId AS Id, Name, IsActive
-                    FROM Account
-                    WHERE AccountId = $1";
+        var sql = """
+                  SELECT
+                      AccountId AS Id,
+                      Name,
+                      IsActive
+                  FROM Account
+                  WHERE AccountId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         using var reader = cmd.ExecuteReader();
         if (reader.Read())
@@ -64,23 +70,17 @@ public class DuckDbAccountRepository : IAccountRepository
     {
         entity.Id = Guid.NewGuid();
 
-        var sql = @"INSERT INTO Account (AccountId, Name, IsActive)
-                    VALUES ($1, $2, $3)";
+        var sql = """
+                  INSERT INTO Account (AccountId, Name, IsActive)
+                  VALUES ($1, $2, $3)
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
-        
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p1);
 
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.Name;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.IsActive;
-        cmd.Parameters.Add(p3);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Name));
+        cmd.Parameters.Add(new DuckDBParameter(entity.IsActive));
 
         return cmd.ExecuteNonQuery();
     }
@@ -92,24 +92,20 @@ public class DuckDbAccountRepository : IAccountRepository
 
     public int Update(Account entity)
     {
-        var sql = @"UPDATE Account
-                    SET Name = $1, IsActive = $2
-                    WHERE AccountId = $3";
+        var sql = """
+                  UPDATE Account
+                  SET
+                      Name = $1,
+                      IsActive = $2
+                  WHERE AccountId = $3
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = entity.Name;
-        cmd.Parameters.Add(p1);
-
-        var p2 = cmd.CreateParameter();
-        p2.Value = entity.IsActive;
-        cmd.Parameters.Add(p2);
-
-        var p3 = cmd.CreateParameter();
-        p3.Value = entity.Id.ToString();
-        cmd.Parameters.Add(p3);
+        cmd.Parameters.Add(new DuckDBParameter(entity.Name));
+        cmd.Parameters.Add(new DuckDBParameter(entity.IsActive));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -124,15 +120,17 @@ public class DuckDbAccountRepository : IAccountRepository
         // Consistency checks
         var entity = ById(id);
         if (entity is null) throw new Exception($"Account with id {id} not found.");
-        
-        var sql = @"DELETE FROM Account WHERE AccountId = $1";
+
+        var sql = """
+                  DELETE
+                  FROM Account
+                  WHERE AccountId = $1
+                  """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        var p1 = cmd.CreateParameter();
-        p1.Value = id.ToString();
-        cmd.Parameters.Add(p1);
+        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
@@ -143,7 +141,7 @@ public class DuckDbAccountRepository : IAccountRepository
         var scope = ids.ToList();
         var entities = scope.Select(ById).ToList();
         if (entities.Count == 0) throw new Exception($"No Account found with passed IDs.");
-        
+
         return scope.Sum(Delete);
     }
 }
