@@ -158,7 +158,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
 
     public int Create(ImportProfile entity)
     {
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO ImportProfile (

@@ -111,7 +111,7 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
 
     public int Create(BucketMovement entity)
     {
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO BucketMovement (BucketMovementId, BucketId, Amount, MovementDate)

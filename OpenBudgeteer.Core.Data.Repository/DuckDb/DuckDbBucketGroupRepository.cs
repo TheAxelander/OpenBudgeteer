@@ -106,7 +106,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
 
     public int Create(BucketGroup entity)
     {
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO BucketGroup (BucketGroupId, Name, Position)

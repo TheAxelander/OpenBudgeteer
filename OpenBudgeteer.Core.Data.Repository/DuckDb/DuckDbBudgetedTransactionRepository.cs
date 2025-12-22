@@ -212,7 +212,7 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
 
     public int Create(BudgetedTransaction entity)
     {
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO BudgetedTransaction (BudgetedTransactionId, TransactionId, BucketId, Amount)

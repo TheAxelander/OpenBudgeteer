@@ -350,8 +350,7 @@ public class DuckDbBucketRepository : IBucketRepository
 
     public int Create(Bucket entity)
     {
-        // TODO [Guid Gen-Check] Check if this is right or the other Guid Gen-Check
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO Bucket

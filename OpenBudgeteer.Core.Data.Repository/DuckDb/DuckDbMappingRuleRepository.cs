@@ -103,7 +103,7 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
 
     public int Create(MappingRule entity)
     {
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO MappingRule (

@@ -49,7 +49,6 @@ public class DuckDbAccountRepository : IAccountRepository
 
     public int Create(Account entity)
     {
-        // TODO [Guid Gen-Check] Check if this is right or the other Guid Gen-Check
         entity.Id = Guid.NewGuid();
 
         var sql = """

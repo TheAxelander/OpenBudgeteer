@@ -118,7 +118,7 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
 
     public int Create(RecurringBankTransaction entity)
     {
-        if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
+        entity.Id = Guid.NewGuid();
 
         var sql = """
                   INSERT INTO RecurringBankTransaction (
