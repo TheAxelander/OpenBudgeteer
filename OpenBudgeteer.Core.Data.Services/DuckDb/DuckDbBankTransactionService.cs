@@ -15,7 +15,7 @@ public class DuckDbBankTransactionService : GenericBankTransactionService<DbConn
     private readonly ILogger<DuckDbBankTransactionService> _logger;
 
     public DuckDbBankTransactionService(
-        Func<DbConnection> dbConnectionFactory, 
+        Func<DbConnection> dbConnectionFactory,
         ILogger<DuckDbBankTransactionService> logger) : base(logger)
     {
         _dbConnectionFactory = dbConnectionFactory;
@@ -35,6 +35,7 @@ public class DuckDbBankTransactionService : GenericBankTransactionService<DbConn
             var bankTransactionRepository = CreateBaseRepository(dbConnection);
             var newTransactions = entities.ToList();
             bankTransactionRepository.CreateRange(newTransactions);
+            transaction.Commit();
             return newTransactions;
         }
         catch (EntityUpdateException e)

@@ -14,13 +14,13 @@ public class EFCoreBankTransactionService : GenericBankTransactionService<Databa
     private readonly ILogger<EFCoreBankTransactionService> _logger;
 
     public EFCoreBankTransactionService(
-        IDbContextFactory<DatabaseContext> dbContextFactory, 
+        IDbContextFactory<DatabaseContext> dbContextFactory,
         ILogger<EFCoreBankTransactionService> logger) : base(logger)
     {
         _dbContextFactory = dbContextFactory;
         _logger = logger;
     }
-    
+
     protected override DatabaseContext CreateDbConnection() => _dbContextFactory.CreateDbContext();
     protected override EFCoreBankTransactionRepository CreateBaseRepository(DatabaseContext dbConnection) => new(dbConnection);
     protected override EFCoreBudgetedTransactionRepository CreateBudgetedTransactionRepository(DatabaseContext dbConnection) => new(dbConnection);
@@ -34,6 +34,7 @@ public class EFCoreBankTransactionService : GenericBankTransactionService<Databa
             var bankTransactionRepository = CreateBaseRepository(dbConnection);
             var newTransactions = entities.ToList();
             bankTransactionRepository.CreateRange(newTransactions);
+            transaction.Commit();
             return newTransactions;
         }
         catch (EntityUpdateException e)
