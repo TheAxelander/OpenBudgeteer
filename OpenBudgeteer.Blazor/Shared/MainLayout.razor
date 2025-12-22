@@ -4,7 +4,7 @@
 @using OpenBudgeteer.Core.Data
 @using OpenBudgeteer.Core.Data.Entities
 @inject IDbContextFactory<DatabaseContext> DbContextFactory
-@inject MudThemeService MudThemeService
+@inject IMudThemeService MudThemeService
 @inject IConfiguration Configuration
 
 <MudThemeProvider IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"

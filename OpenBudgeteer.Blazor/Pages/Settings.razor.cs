@@ -14,7 +14,7 @@ public partial class Settings : ComponentBase
 {
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
-    [Inject] private MudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private IMudThemeService MudThemeService { get; set; } = null!;
     [Inject] private IAppSettingService AppSettingService { get; set; } = null!;
 
     private SettingsPageViewModel _dataContext = null!;

@@ -1,9 +1,9 @@
 using MudBlazor;
+using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels;
-using OpenBudgeteer.Photino.Services;
 
 namespace OpenBudgeteer.Photino.ViewModels;
 
@@ -120,12 +120,12 @@ public class PhotinoSettingsPageViewModel : ViewModelBase
         set => Set(ref _reportPageMonthBucketExpensesCount, value);
     }
 
-    private readonly PhotinoMudThemeService _mudThemeService;
+    private readonly IMudThemeService _mudThemeService;
     private readonly IAppSettingService _appSettingService;
 
     public PhotinoSettingsPageViewModel(
         IServiceManager serviceManager,
-        PhotinoMudThemeService mudThemeService,
+        IMudThemeService mudThemeService,
         IAppSettingService appSettingService)
         : base(serviceManager, serviceManager.CreateLogger(typeof(PhotinoSettingsPageViewModel)))
     {
@@ -172,7 +172,7 @@ public class PhotinoSettingsPageViewModel : ViewModelBase
     {
         try
         {
-            await _mudThemeService.ApplyThemeAsync(new PhotinoMudThemeService.MudThemeSetting(CurrentTheme, UseDarkTheme));
+            await _mudThemeService.ApplyThemeAsync(new MudThemeSetting(CurrentTheme, UseDarkTheme));
         }
         catch (Exception e)
         {

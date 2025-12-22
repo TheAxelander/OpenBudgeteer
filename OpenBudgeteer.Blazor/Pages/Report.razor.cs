@@ -18,7 +18,7 @@ public partial class Report : ComponentBase
 {
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
-    [Inject] private MudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private IMudThemeService MudThemeService { get; set; } = null!;
     [Inject] private IAppSettingService AppSettingService { get; set; } = null!;
 
     private readonly List<ApexChartWrapper<ApexRecord>> _generalCharts = new();

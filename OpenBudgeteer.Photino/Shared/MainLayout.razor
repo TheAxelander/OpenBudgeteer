@@ -1,6 +1,6 @@
-@using OpenBudgeteer.Photino.Services
+@using OpenBudgeteer.Blazor.Common.Services
 @inherits LayoutComponentBase
-@inject PhotinoMudThemeService MudThemeService
+@inject IMudThemeService MudThemeService
 
 <MudThemeProvider Theme="MudThemeService.CurrentThemeSetting.CurrentTheme" IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"/>
 <MudPopoverProvider/>

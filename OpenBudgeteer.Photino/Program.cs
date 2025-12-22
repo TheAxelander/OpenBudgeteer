@@ -5,6 +5,7 @@ using DuckDB.NET.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
+using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Contracts.Services;
@@ -56,7 +57,7 @@ public class Program
             x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
         appBuilder.Services.AddSingleton<IAppSettingService, PhotinoAppSettingService>(
             x => new PhotinoAppSettingService(x.GetRequiredService<ConfigFileService>()));
-        appBuilder.Services.AddSingleton(
+        appBuilder.Services.AddSingleton<IMudThemeService, PhotinoMudThemeService>(
             x => new PhotinoMudThemeService(x.GetRequiredService<ConfigFileService>()));
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
@@ -73,7 +74,7 @@ public class Program
         // Manually initialize services (Photino doesn't run IHostedService)
         // Rework of OpenBudgeteer.Blazor.Common.Services.AppInitializerHostedService
         var appSettingService = app.Services.GetRequiredService<IAppSettingService>();
-        var mudThemeService = app.Services.GetRequiredService<PhotinoMudThemeService>();
+        var mudThemeService = app.Services.GetRequiredService<IMudThemeService>();
         Task.Run(async () =>
         {
             await appSettingService.InitializeAsync();

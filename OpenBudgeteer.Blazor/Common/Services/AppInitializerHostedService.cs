@@ -8,9 +8,9 @@ namespace OpenBudgeteer.Blazor.Common.Services;
 public class AppInitializerHostedService : IHostedService
 {
     private readonly IAppSettingService _appSettingService;
-    private readonly MudThemeService _mudThemeService;
+    private readonly IMudThemeService _mudThemeService;
 
-    public AppInitializerHostedService(IAppSettingService appSettingService, MudThemeService mudThemeService)
+    public AppInitializerHostedService(IAppSettingService appSettingService, IMudThemeService mudThemeService)
     {
         _appSettingService = appSettingService;
         _mudThemeService = mudThemeService;

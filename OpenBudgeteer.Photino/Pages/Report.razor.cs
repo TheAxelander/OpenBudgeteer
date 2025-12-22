@@ -1,11 +1,11 @@
 using ApexCharts;
 using Microsoft.AspNetCore.Components;
 using OpenBudgeteer.Blazor.Common;
+using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Blazor.Shared;
 using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.Helper;
-using OpenBudgeteer.Photino.Services;
 using OpenBudgeteer.Photino.ViewModels;
 
 namespace OpenBudgeteer.Photino.Pages;
@@ -14,7 +14,7 @@ public partial class Report : ComponentBase
 {
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
     [Inject] private YearMonthSelectorViewModel YearMonthDataContext { get; set; } = null!;
-    [Inject] private PhotinoMudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private IMudThemeService MudThemeService { get; set; } = null!;
     [Inject] private IAppSettingService AppSettingService { get; set; } = null!;
 
     private readonly List<ApexChartWrapper<ApexRecord>> _generalCharts = new();

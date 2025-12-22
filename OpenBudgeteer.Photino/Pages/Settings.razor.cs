@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
+using OpenBudgeteer.Blazor.Common.Services;
 using OpenBudgeteer.Blazor.Shared.Dialog;
 using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
-using OpenBudgeteer.Photino.Services;
 using OpenBudgeteer.Photino.ViewModels;
 
 namespace OpenBudgeteer.Photino.Pages;
@@ -13,7 +13,7 @@ public partial class Settings : ComponentBase
 {
     [Inject] private IDialogService DialogService { get; set; } = null!;
     [Inject] private IServiceManager ServiceManager { get; set; } = null!;
-    [Inject] private PhotinoMudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private IMudThemeService MudThemeService { get; set; } = null!;
     [Inject] private IAppSettingService AppSettingService { get; set; } = null!;
 
     private PhotinoSettingsPageViewModel _dataContext = null!;

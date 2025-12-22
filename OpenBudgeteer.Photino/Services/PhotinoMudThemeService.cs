@@ -1,13 +1,12 @@
 using MudBlazor;
 using MudBlazor.Utilities;
+using OpenBudgeteer.Blazor.Common.Services;
 
 namespace OpenBudgeteer.Photino.Services;
 
-public class PhotinoMudThemeService
+public class PhotinoMudThemeService : IMudThemeService
 {
-    public record MudThemeSetting(MudTheme CurrentTheme, bool IsDarkMode);
-
-    public MudThemeSetting CurrentThemeSetting { get; protected set; }
+    public MudThemeSetting CurrentThemeSetting { get; private set; }
 
     public event EventHandler<MudThemeSetting>? ThemeChanged;
 

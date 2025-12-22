@@ -6,10 +6,8 @@ using MudBlazor.Utilities;
 
 namespace OpenBudgeteer.Blazor.Common.Services;
 
-public class MudThemeService
+public class BlazorMudThemeService : IMudThemeService
 {
-    public record MudThemeSetting(MudTheme CurrentTheme, bool IsDarkMode);
-
     private static readonly Dictionary<string, Action<Palette, MudColor>> _paletteSetters = new()
     {
         ["Primary"] = (p, c) => p.Primary = c,
@@ -50,7 +48,7 @@ public class MudThemeService
     private const string PALETTE_LIGHT = "Theme:PaletteLight";
     private const string PALETTE_DARK = "Theme:PaletteDark";
 
-    public MudThemeService(RedisService redisService)
+    public BlazorMudThemeService(RedisService redisService)
     {
         _redisService = redisService;
         CurrentThemeSetting = new(new MudTheme(), false);

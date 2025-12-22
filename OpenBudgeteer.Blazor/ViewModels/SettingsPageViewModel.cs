@@ -119,12 +119,12 @@ public class SettingsPageViewModel : ViewModelBase
         set => Set(ref _reportPageMonthBucketExpensesCount, value);
     }
 
-    private readonly MudThemeService _mudThemeService;
+    private readonly IMudThemeService _mudThemeService;
     private readonly IAppSettingService _appSettingService;
 
     public SettingsPageViewModel(
         IServiceManager serviceManager,
-        MudThemeService mudThemeService,
+        IMudThemeService mudThemeService,
         IAppSettingService appSettingService)
         : base(serviceManager, serviceManager.CreateLogger(typeof(SettingsPageViewModel)))
     {
