@@ -19,7 +19,11 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
     public IQueryable<BucketGroup> All()
     {
         var sql = """
-                  SELECT BucketGroupId AS Id, Name, Position FROM BucketGroup
+                  SELECT
+                      BucketGroupId AS Id
+                      ,Name
+                      ,Position
+                  FROM BucketGroup
                   """;
         return _connection.Query<BucketGroup>(sql).AsQueryable();
     }
@@ -28,18 +32,18 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
     {
         var sql = """
                   SELECT
-                      bg.BucketGroupId AS Id,
-                      bg.Name,
-                      bg.Position,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries
+                      bg.BucketGroupId AS Id
+                      ,bg.Name
+                      ,bg.Position
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
                   FROM BucketGroup bg
                   LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
                   """;
@@ -59,9 +63,9 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
     {
         var sql = """
                   SELECT
-                      BucketGroupId AS Id,
-                      Name,
-                      Position
+                      BucketGroupId AS Id
+                      ,Name
+                      ,Position
                   FROM BucketGroup
                   WHERE BucketGroupId = $id
                   """;
@@ -75,18 +79,18 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
     {
         var sql = """
                   SELECT
-                      bg.BucketGroupId AS Id,
-                      bg.Name,
-                      bg.Position,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries
+                      bg.BucketGroupId AS Id
+                      ,bg.Name
+                      ,bg.Position
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
                   FROM BucketGroup bg
                   LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
                   WHERE bg.BucketGroupId = $id
@@ -109,7 +113,10 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
         entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO BucketGroup (BucketGroupId, Name, Position)
+                  INSERT INTO BucketGroup
+                      (BucketGroupId
+                       ,Name
+                       ,Position)
                   VALUES ($1, $2, $3)
                   """;
 
@@ -132,7 +139,9 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
     {
         var sql = """
                   UPDATE BucketGroup
-                  SET Name = $1, Position = $2
+                  SET
+                      Name = $1
+                      ,Position = $2
                   WHERE BucketGroupId = $3
                   """;
 
@@ -162,7 +171,9 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
         if (entity.Buckets is not null && entity.Buckets.Count != 0) throw new Exception($"Cannot delete a BucketGroup with Buckets assigned to it.");
 
         var sql = """
-                  DELETE FROM BucketGroup WHERE BucketGroupId = $1
+                  DELETE
+                  FROM BucketGroup
+                  WHERE BucketGroupId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

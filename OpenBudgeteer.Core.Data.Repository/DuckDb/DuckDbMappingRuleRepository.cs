@@ -19,7 +19,12 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
     public IQueryable<MappingRule> All()
     {
         var sql = """
-                  SELECT MappingRuleId AS Id, BucketRuleSetId, ComparisonField, ComparisonType, ComparisonValue
+                  SELECT
+                      MappingRuleId AS Id
+                      ,BucketRuleSetId
+                      ,ComparisonField
+                      ,ComparisonType
+                      ,ComparisonValue
                   FROM MappingRule
                   """;
         return _connection.Query<MappingRule>(sql).AsQueryable();
@@ -29,15 +34,15 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
     {
         var sql = """
                   SELECT
-                      mr.MappingRuleId AS Id,
-                      mr.BucketRuleSetId,
-                      mr.ComparisonField,
-                      mr.ComparisonType,
-                      mr.ComparisonValue,
-                      brs.BucketRuleSetId AS Id,
-                      brs.Priority,
-                      brs.Name,
-                      brs.TargetBucketId
+                      mr.MappingRuleId AS Id
+                      ,mr.BucketRuleSetId
+                      ,mr.ComparisonField
+                      ,mr.ComparisonType
+                      ,mr.ComparisonValue
+                      ,brs.BucketRuleSetId AS Id
+                      ,brs.Priority
+                      ,brs.Name
+                      ,brs.TargetBucketId
                   FROM MappingRule mr
                   INNER JOIN BucketRuleSet brs ON mr.BucketRuleSetId = brs.BucketRuleSetId
                   """;
@@ -57,11 +62,11 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
     {
         var sql = """
                   SELECT
-                      MappingRuleId AS Id,
-                      BucketRuleSetId,
-                      ComparisonField,
-                      ComparisonType,
-                      ComparisonValue
+                      MappingRuleId AS Id
+                      ,BucketRuleSetId
+                      ,ComparisonField
+                      ,ComparisonType
+                      ,ComparisonValue
                   FROM MappingRule
                   WHERE MappingRuleId = $id
                   """;
@@ -75,15 +80,15 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
     {
         var sql = """
                   SELECT
-                      mr.MappingRuleId AS Id,
-                      mr.BucketRuleSetId,
-                      mr.ComparisonField,
-                      mr.ComparisonType,
-                      mr.ComparisonValue,
-                      brs.BucketRuleSetId AS Id,
-                      brs.Priority,
-                      brs.Name,
-                      brs.TargetBucketId
+                      mr.MappingRuleId AS Id
+                      ,mr.BucketRuleSetId
+                      ,mr.ComparisonField
+                      ,mr.ComparisonType
+                      ,mr.ComparisonValue
+                      ,brs.BucketRuleSetId AS Id
+                      ,brs.Priority
+                      ,brs.Name
+                      ,brs.TargetBucketId
                   FROM MappingRule mr
                   INNER JOIN BucketRuleSet brs ON mr.BucketRuleSetId = brs.BucketRuleSetId
                   WHERE mr.MappingRuleId = $id
@@ -107,11 +112,11 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
 
         var sql = """
                   INSERT INTO MappingRule (
-                      MappingRuleId,
-                      BucketRuleSetId,
-                      ComparisonField,
-                      ComparisonType,
-                      ComparisonValue)
+                      MappingRuleId
+                      ,BucketRuleSetId
+                      ,ComparisonField
+                      ,ComparisonType
+                      ,ComparisonValue)
                   VALUES ($1, $2, $3, $4, $5)
                   """;
 
@@ -136,7 +141,11 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
     {
         var sql = """
                   UPDATE MappingRule
-                  SET BucketRuleSetId = $1, ComparisonField = $2, ComparisonType = $3, ComparisonValue = $4
+                  SET
+                      BucketRuleSetId = $1
+                      ,ComparisonField = $2
+                      ,ComparisonType = $3
+                      ,ComparisonValue = $4
                   WHERE MappingRuleId = $5
                   """;
 
@@ -164,7 +173,9 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
         if (entity is null) throw new Exception($"MappingRule with id {id} not found.");
 
         var sql = """
-                  DELETE FROM MappingRule WHERE MappingRuleId = $1
+                  DELETE
+                  FROM MappingRule
+                  WHERE MappingRuleId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

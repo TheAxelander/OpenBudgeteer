@@ -20,12 +20,12 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
     {
         var sql = """
                   SELECT
-                      TransactionId AS Id,
-                      AccountId,
-                      TransactionDate,
-                      Payee,
-                      Memo,
-                      Amount
+                      TransactionId AS Id
+                      ,AccountId
+                      ,TransactionDate
+                      ,Payee
+                      ,Memo
+                      ,Amount
                   FROM BankTransaction
                   """;
         return _connection.Query<BankTransaction>(sql).AsQueryable();
@@ -35,15 +35,15 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
     {
         var sql = """
                   SELECT
-                      bt.TransactionId AS Id,
-                      bt.AccountId,
-                      bt.TransactionDate,
-                      bt.Payee,
-                      bt.Memo,
-                      bt.Amount,
-                      a.AccountId AS Id,
-                      a.Name,
-                      a.IsActive
+                      bt.TransactionId AS Id
+                      ,bt.AccountId
+                      ,bt.TransactionDate
+                      ,bt.Payee
+                      ,bt.Memo
+                      ,bt.Amount
+                      ,a.AccountId AS Id
+                      ,a.Name
+                      ,a.IsActive
                   FROM BankTransaction bt
                   INNER JOIN Account a ON bt.AccountId = a.AccountId
                   """;
@@ -63,12 +63,12 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
     {
         var sql = """
                   SELECT
-                      TransactionId AS Id,
-                      AccountId,
-                      TransactionDate,
-                      Payee,
-                      Memo,
-                      Amount
+                      TransactionId AS Id
+                      ,AccountId
+                      ,TransactionDate
+                      ,Payee
+                      ,Memo
+                      ,Amount
                   FROM BankTransaction
                   WHERE TransactionId = $id
                   """;
@@ -82,15 +82,15 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
     {
         var sql = """
                   SELECT
-                      bt.TransactionId AS Id,
-                      bt.AccountId,
-                      bt.TransactionDate,
-                      bt.Payee,
-                      bt.Memo,
-                      bt.Amount,
-                      a.AccountId AS Id,
-                      a.Name,
-                      a.IsActive
+                      bt.TransactionId AS Id
+                      ,bt.AccountId
+                      ,bt.TransactionDate
+                      ,bt.Payee
+                      ,bt.Memo
+                      ,bt.Amount
+                      ,a.AccountId AS Id
+                      ,a.Name
+                      ,a.IsActive
                   FROM BankTransaction bt
                   INNER JOIN Account a ON bt.AccountId = a.AccountId
                   WHERE bt.TransactionId = $id
@@ -113,7 +113,13 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO BankTransaction (TransactionId, AccountId, TransactionDate, Payee, Memo, Amount)
+                  INSERT INTO BankTransaction
+                      (TransactionId
+                      ,AccountId
+                      ,TransactionDate
+                      ,Payee
+                      ,Memo
+                      ,Amount)
                   VALUES ($1, $2, $3, $4, $5, $6)
                   """;
 
@@ -139,7 +145,12 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
     {
         var sql = """
                   UPDATE BankTransaction
-                  SET AccountId = $1, TransactionDate = $2, Payee = $3, Memo = $4, Amount = $5
+                  SET
+                      AccountId = $1
+                      ,TransactionDate = $2
+                      ,Payee = $3
+                      ,Memo = $4
+                      ,Amount = $5
                   WHERE TransactionId = $6
                   """;
 
@@ -178,7 +189,9 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
 
         // Delete BankTransaction
         var sql = """
-                  DELETE FROM BankTransaction WHERE TransactionId = $1
+                  DELETE
+                  FROM BankTransaction
+                  WHERE TransactionId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

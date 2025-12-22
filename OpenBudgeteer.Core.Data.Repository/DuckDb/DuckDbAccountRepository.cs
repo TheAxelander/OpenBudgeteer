@@ -73,10 +73,10 @@ public class DuckDbAccountRepository : IAccountRepository
 
     public int Update(Account entity)
     {
-        // TODO Work on overall SQL formatting (SET values should wrap automatically to new line here)
         var sql = """
                   UPDATE Account
-                  SET Name = $1
+                  SET
+                      Name = $1
                       ,IsActive = $2
                   WHERE AccountId = $3
                   """;

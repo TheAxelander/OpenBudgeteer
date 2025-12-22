@@ -20,24 +20,24 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
     {
         var sql = """
                   SELECT
-                      ImportProfileId AS Id,
-                      ProfileName,
-                      AccountId,
-                      HeaderRow,
-                      Delimiter,
-                      TextQualifier,
-                      DateFormat,
-                      NumberFormat,
-                      TransactionDateColumnName,
-                      PayeeColumnName,
-                      MemoColumnName,
-                      AmountColumnName,
-                      AdditionalSettingCreditValue,
-                      CreditColumnName,
-                      CreditColumnIdentifierColumnName,
-                      CreditColumnIdentifierValue,
-                      AdditionalSettingAmountCleanup,
-                      AdditionalSettingAmountCleanupValue
+                      ImportProfileId AS Id
+                      ,ProfileName
+                      ,AccountId
+                      ,HeaderRow
+                      ,Delimiter
+                      ,TextQualifier
+                      ,DateFormat
+                      ,NumberFormat
+                      ,TransactionDateColumnName
+                      ,PayeeColumnName
+                      ,MemoColumnName
+                      ,AmountColumnName
+                      ,AdditionalSettingCreditValue
+                      ,CreditColumnName
+                      ,CreditColumnIdentifierColumnName
+                      ,CreditColumnIdentifierValue
+                      ,AdditionalSettingAmountCleanup
+                      ,AdditionalSettingAmountCleanupValue
                   FROM ImportProfile
                   """;
         return _connection.Query<ImportProfile>(sql).AsQueryable();
@@ -47,27 +47,27 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
     {
         var sql = """
                   SELECT
-                      ip.ImportProfileId AS Id,
-                      ip.ProfileName,
-                      ip.AccountId,
-                      ip.HeaderRow,
-                      ip.Delimiter,
-                      ip.TextQualifier,
-                      ip.DateFormat,
-                      ip.NumberFormat,
-                      ip.TransactionDateColumnName,
-                      ip.PayeeColumnName,
-                      ip.MemoColumnName,
-                      ip.AmountColumnName,
-                      ip.AdditionalSettingCreditValue,
-                      ip.CreditColumnName,
-                      ip.CreditColumnIdentifierColumnName,
-                      ip.CreditColumnIdentifierValue,
-                      ip.AdditionalSettingAmountCleanup,
-                      ip.AdditionalSettingAmountCleanupValue,
-                      a.AccountId AS Id,
-                      a.Name,
-                      a.IsActive
+                      ip.ImportProfileId AS Id
+                      ,ip.ProfileName
+                      ,ip.AccountId
+                      ,ip.HeaderRow
+                      ,ip.Delimiter
+                      ,ip.TextQualifier
+                      ,ip.DateFormat
+                      ,ip.NumberFormat
+                      ,ip.TransactionDateColumnName
+                      ,ip.PayeeColumnName
+                      ,ip.MemoColumnName
+                      ,ip.AmountColumnName
+                      ,ip.AdditionalSettingCreditValue
+                      ,ip.CreditColumnName
+                      ,ip.CreditColumnIdentifierColumnName
+                      ,ip.CreditColumnIdentifierValue
+                      ,ip.AdditionalSettingAmountCleanup
+                      ,ip.AdditionalSettingAmountCleanupValue
+                      ,a.AccountId AS Id
+                      ,a.Name
+                      ,a.IsActive
                   FROM ImportProfile ip
                   INNER JOIN Account a ON ip.AccountId = a.AccountId
                   """;
@@ -87,24 +87,24 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
     {
         var sql = """
                   SELECT
-                      ImportProfileId AS Id,
-                      ProfileName,
-                      AccountId,
-                      HeaderRow,
-                      Delimiter,
-                      TextQualifier,
-                      DateFormat,
-                      NumberFormat,
-                      TransactionDateColumnName,
-                      PayeeColumnName,
-                      MemoColumnName,
-                      AmountColumnName,
-                      AdditionalSettingCreditValue,
-                      CreditColumnName,
-                      CreditColumnIdentifierColumnName,
-                      CreditColumnIdentifierValue,
-                      AdditionalSettingAmountCleanup,
-                      AdditionalSettingAmountCleanupValue
+                      ImportProfileId AS Id
+                      ,ProfileName
+                      ,AccountId
+                      ,HeaderRow
+                      ,Delimiter
+                      ,TextQualifier
+                      ,DateFormat
+                      ,NumberFormat
+                      ,TransactionDateColumnName
+                      ,PayeeColumnName
+                      ,MemoColumnName
+                      ,AmountColumnName
+                      ,AdditionalSettingCreditValue
+                      ,CreditColumnName
+                      ,CreditColumnIdentifierColumnName
+                      ,CreditColumnIdentifierValue
+                      ,AdditionalSettingAmountCleanup
+                      ,AdditionalSettingAmountCleanupValue
                   FROM ImportProfile
                   WHERE ImportProfileId = $id
                   """;
@@ -118,27 +118,27 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
     {
         var sql = """
                   SELECT
-                      ip.ImportProfileId AS Id,
-                      ip.ProfileName,
-                      ip.AccountId,
-                      ip.HeaderRow,
-                      ip.Delimiter,
-                      ip.TextQualifier,
-                      ip.DateFormat,
-                      ip.NumberFormat,
-                      ip.TransactionDateColumnName,
-                      ip.PayeeColumnName,
-                      ip.MemoColumnName,
-                      ip.AmountColumnName,
-                      ip.AdditionalSettingCreditValue,
-                      ip.CreditColumnName,
-                      ip.CreditColumnIdentifierColumnName,
-                      ip.CreditColumnIdentifierValue,
-                      ip.AdditionalSettingAmountCleanup,
-                      ip.AdditionalSettingAmountCleanupValue,
-                      a.AccountId AS Id,
-                      a.Name,
-                      a.IsActive
+                      ip.ImportProfileId AS Id
+                      ,ip.ProfileName
+                      ,ip.AccountId
+                      ,ip.HeaderRow
+                      ,ip.Delimiter
+                      ,ip.TextQualifier
+                      ,ip.DateFormat
+                      ,ip.NumberFormat
+                      ,ip.TransactionDateColumnName
+                      ,ip.PayeeColumnName
+                      ,ip.MemoColumnName
+                      ,ip.AmountColumnName
+                      ,ip.AdditionalSettingCreditValue
+                      ,ip.CreditColumnName
+                      ,ip.CreditColumnIdentifierColumnName
+                      ,ip.CreditColumnIdentifierValue
+                      ,ip.AdditionalSettingAmountCleanup
+                      ,ip.AdditionalSettingAmountCleanupValue
+                      ,a.AccountId AS Id
+                      ,a.Name
+                      ,a.IsActive
                   FROM ImportProfile ip
                   INNER JOIN Account a ON ip.AccountId = a.AccountId
                   WHERE ip.ImportProfileId = $id
@@ -162,24 +162,24 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
 
         var sql = """
                   INSERT INTO ImportProfile (
-                      ImportProfileId,
-                      ProfileName,
-                      AccountId,
-                      HeaderRow,
-                      Delimiter,
-                      TextQualifier,
-                      DateFormat,
-                      NumberFormat,
-                      TransactionDateColumnName,
-                      PayeeColumnName,
-                      MemoColumnName,
-                      AmountColumnName,
-                      AdditionalSettingCreditValue,
-                      CreditColumnName,
-                      CreditColumnIdentifierColumnName,
-                      CreditColumnIdentifierValue,
-                      AdditionalSettingAmountCleanup,
-                      AdditionalSettingAmountCleanupValue)
+                      ImportProfileId
+                      ,ProfileName
+                      ,AccountId
+                      ,HeaderRow
+                      ,Delimiter
+                      ,TextQualifier
+                      ,DateFormat
+                      ,NumberFormat
+                      ,TransactionDateColumnName
+                      ,PayeeColumnName
+                      ,MemoColumnName
+                      ,AmountColumnName
+                      ,AdditionalSettingCreditValue
+                      ,CreditColumnName
+                      ,CreditColumnIdentifierColumnName
+                      ,CreditColumnIdentifierValue
+                      ,AdditionalSettingAmountCleanup
+                      ,AdditionalSettingAmountCleanupValue)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
                   """;
 
@@ -218,23 +218,23 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         var sql = """
                   UPDATE ImportProfile
                   SET
-                      ProfileName = $1,
-                      AccountId = $2,
-                      HeaderRow = $3,
-                      Delimiter = $4,
-                      TextQualifier = $5,
-                      DateFormat = $6,
-                      NumberFormat = $7,
-                      TransactionDateColumnName = $8,
-                      PayeeColumnName = $9,
-                      MemoColumnName = $10,
-                      AmountColumnName = $11,
-                      AdditionalSettingCreditValue = $12,
-                      CreditColumnName = $13,
-                      CreditColumnIdentifierColumnName = $14,
-                      CreditColumnIdentifierValue = $15,
-                      AdditionalSettingAmountCleanup = $16,
-                      AdditionalSettingAmountCleanupValue = $17
+                      ProfileName = $1
+                      ,AccountId = $2
+                      ,HeaderRow = $3
+                      ,Delimiter = $4
+                      ,TextQualifier = $5
+                      ,DateFormat = $6
+                      ,NumberFormat = $7
+                      ,TransactionDateColumnName = $8
+                      ,PayeeColumnName = $9
+                      ,MemoColumnName = $10
+                      ,AmountColumnName = $11
+                      ,AdditionalSettingCreditValue = $12
+                      ,CreditColumnName = $13
+                      ,CreditColumnIdentifierColumnName = $14
+                      ,CreditColumnIdentifierValue = $15
+                      ,AdditionalSettingAmountCleanup = $16
+                      ,AdditionalSettingAmountCleanupValue = $17
                   WHERE ImportProfileId = $18
                   """;
 
@@ -275,7 +275,9 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         if (entity is null) throw new Exception($"ImportProfile with id {id} not found.");
 
         var sql = """
-                  DELETE FROM ImportProfile WHERE ImportProfileId = $1
+                  DELETE
+                  FROM ImportProfile
+                  WHERE ImportProfileId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

@@ -20,14 +20,14 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
     {
         var sql = """
                   SELECT
-                      TransactionId AS Id,
-                      AccountId,
-                      RecurrenceType,
-                      RecurrenceAmount,
-                      FirstOccurrenceDate,
-                      Payee,
-                      Memo,
-                      Amount
+                      TransactionId AS Id
+                      ,AccountId
+                      ,RecurrenceType
+                      ,RecurrenceAmount
+                      ,FirstOccurrenceDate
+                      ,Payee
+                      ,Memo
+                      ,Amount
                   FROM RecurringBankTransaction
                   """;
         return _connection.Query<RecurringBankTransaction>(sql).AsQueryable();
@@ -37,17 +37,17 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
     {
         var sql = """
                   SELECT
-                      rbt.TransactionId AS Id,
-                      rbt.AccountId,
-                      rbt.RecurrenceType,
-                      rbt.RecurrenceAmount,
-                      rbt.FirstOccurrenceDate,
-                      rbt.Payee,
-                      rbt.Memo,
-                      rbt.Amount,
-                      a.AccountId AS Id,
-                      a.Name,
-                      a.IsActive
+                      rbt.TransactionId AS Id
+                      ,rbt.AccountId
+                      ,rbt.RecurrenceType
+                      ,rbt.RecurrenceAmount
+                      ,rbt.FirstOccurrenceDate
+                      ,rbt.Payee
+                      ,rbt.Memo
+                      ,rbt.Amount
+                      ,a.AccountId AS Id
+                      ,a.Name
+                      ,a.IsActive
                   FROM RecurringBankTransaction rbt
                   INNER JOIN Account a ON rbt.AccountId = a.AccountId
                   """;
@@ -67,14 +67,14 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
     {
         var sql = """
                   SELECT
-                      TransactionId AS Id,
-                      AccountId,
-                      RecurrenceType,
-                      RecurrenceAmount,
-                      FirstOccurrenceDate,
-                      Payee,
-                      Memo,
-                      Amount
+                      TransactionId AS Id
+                      ,AccountId
+                      ,RecurrenceType
+                      ,RecurrenceAmount
+                      ,FirstOccurrenceDate
+                      ,Payee
+                      ,Memo
+                      ,Amount
                   FROM RecurringBankTransaction
                   WHERE TransactionId = $id
                   """;
@@ -88,17 +88,17 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
     {
         var sql = """
                   SELECT
-                      rbt.TransactionId AS Id,
-                      rbt.AccountId,
-                      rbt.RecurrenceType,
-                      rbt.RecurrenceAmount,
-                      rbt.FirstOccurrenceDate,
-                      rbt.Payee,
-                      rbt.Memo,
-                      rbt.Amount,
-                      a.AccountId AS Id,
-                      a.Name,
-                      a.IsActive
+                      rbt.TransactionId AS Id
+                      ,rbt.AccountId
+                      ,rbt.RecurrenceType
+                      ,rbt.RecurrenceAmount
+                      ,rbt.FirstOccurrenceDate
+                      ,rbt.Payee
+                      ,rbt.Memo
+                      ,rbt.Amount
+                      ,a.AccountId AS Id
+                      ,a.Name
+                      ,a.IsActive
                   FROM RecurringBankTransaction rbt
                   INNER JOIN Account a ON rbt.AccountId = a.AccountId
                   WHERE rbt.TransactionId = $id
@@ -122,14 +122,14 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
 
         var sql = """
                   INSERT INTO RecurringBankTransaction (
-                      TransactionId,
-                      AccountId,
-                      RecurrenceType,
-                      RecurrenceAmount,
-                      FirstOccurrenceDate,
-                      Payee,
-                      Memo,
-                      Amount)
+                      TransactionId
+                      ,AccountId
+                      ,RecurrenceType
+                      ,RecurrenceAmount
+                      ,FirstOccurrenceDate
+                      ,Payee
+                      ,Memo
+                      ,Amount)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                   """;
 
@@ -158,13 +158,13 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         var sql = """
                   UPDATE RecurringBankTransaction
                   SET
-                      AccountId = $1,
-                      RecurrenceType = $2,
-                      RecurrenceAmount = $3,
-                      FirstOccurrenceDate = $4,
-                      Payee = $5,
-                      Memo = $6,
-                      Amount = $7
+                      AccountId = $1
+                      ,RecurrenceType = $2
+                      ,RecurrenceAmount = $3
+                      ,FirstOccurrenceDate = $4
+                      ,Payee = $5
+                      ,Memo = $6
+                      ,Amount = $7
                   WHERE TransactionId = $8
                   """;
 
@@ -195,7 +195,9 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         if (entity is null) throw new Exception($"RecurringBankTransaction with id {id} not found.");
 
         var sql = """
-                  DELETE FROM RecurringBankTransaction WHERE TransactionId = $1
+                  DELETE
+                  FROM RecurringBankTransaction
+                  WHERE TransactionId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

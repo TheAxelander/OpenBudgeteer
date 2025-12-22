@@ -19,7 +19,11 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
     public IQueryable<BucketRuleSet> All()
     {
         var sql = """
-                  SELECT BucketRuleSetId AS Id, Priority, Name, TargetBucketId
+                  SELECT
+                      BucketRuleSetId AS Id
+                      ,Priority
+                      ,Name
+                      ,TargetBucketId
                   FROM BucketRuleSet
                   """;
         return _connection.Query<BucketRuleSet>(sql).AsQueryable();
@@ -29,24 +33,24 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
     {
         var sql = """
                   SELECT
-                      brs.BucketRuleSetId AS Id,
-                      brs.Priority,
-                      brs.Name,
-                      brs.TargetBucketId,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      mr.MappingRuleId AS Id,
-                      mr.BucketRuleSetId,
-                      mr.ComparisonField,
-                      mr.ComparisonType,
-                      mr.ComparisonValue
+                      brs.BucketRuleSetId AS Id
+                      ,brs.Priority
+                      ,brs.Name
+                      ,brs.TargetBucketId
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,mr.MappingRuleId AS Id
+                      ,mr.BucketRuleSetId
+                      ,mr.ComparisonField
+                      ,mr.ComparisonType
+                      ,mr.ComparisonValue
                   FROM BucketRuleSet brs
                   INNER JOIN Bucket b ON brs.TargetBucketId = b.BucketId
                   LEFT JOIN MappingRule mr ON brs.BucketRuleSetId = mr.BucketRuleSetId
@@ -67,10 +71,10 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
     {
         var sql = """
                   SELECT
-                      BucketRuleSetId AS Id,
-                      Priority,
-                      Name,
-                      TargetBucketId
+                      BucketRuleSetId AS Id
+                      ,Priority
+                      ,Name
+                      ,TargetBucketId
                   FROM BucketRuleSet
                   WHERE BucketRuleSetId = $id
                   """;
@@ -84,24 +88,24 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
     {
         var sql = """
                   SELECT
-                      brs.BucketRuleSetId AS Id,
-                      brs.Priority,
-                      brs.Name,
-                      brs.TargetBucketId,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      mr.MappingRuleId AS Id,
-                      mr.BucketRuleSetId,
-                      mr.ComparisonField,
-                      mr.ComparisonType,
-                      mr.ComparisonValue
+                      brs.BucketRuleSetId AS Id
+                      ,brs.Priority
+                      ,brs.Name
+                      ,brs.TargetBucketId
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,mr.MappingRuleId AS Id
+                      ,mr.BucketRuleSetId
+                      ,mr.ComparisonField
+                      ,mr.ComparisonType
+                      ,mr.ComparisonValue
                   FROM BucketRuleSet brs
                   INNER JOIN Bucket b ON brs.TargetBucketId = b.BucketId
                   LEFT JOIN MappingRule mr ON brs.BucketRuleSetId = mr.BucketRuleSetId
@@ -125,7 +129,11 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
         entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO BucketRuleSet (BucketRuleSetId, Priority, Name, TargetBucketId)
+                  INSERT INTO BucketRuleSet
+                      (BucketRuleSetId
+                       ,Priority
+                       ,Name
+                       ,TargetBucketId)
                   VALUES ($1, $2, $3, $4)
                   """;
 
@@ -149,7 +157,10 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
     {
         var sql = """
                   UPDATE BucketRuleSet
-                  SET Priority = $1, Name = $2, TargetBucketId = $3
+                  SET
+                      Priority = $1
+                      ,Name = $2
+                      ,TargetBucketId = $3
                   WHERE BucketRuleSetId = $4
                   """;
 
@@ -186,7 +197,9 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
 
         // Delete BucketRuleSet
         var sql = """
-                  DELETE FROM BucketRuleSet WHERE BucketRuleSetId = $1
+                  DELETE
+                  FROM BucketRuleSet
+                  WHERE BucketRuleSetId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

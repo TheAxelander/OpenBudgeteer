@@ -19,7 +19,11 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     public IQueryable<BucketMovement> All()
     {
         var sql = """
-                  SELECT BucketMovementId AS Id, BucketId, Amount, MovementDate
+                  SELECT
+                      BucketMovementId AS Id
+                      ,BucketId
+                      ,Amount
+                      ,MovementDate
                   FROM BucketMovement
                   """;
         return _connection.Query<BucketMovement>(sql).AsQueryable();
@@ -29,19 +33,19 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     {
         var sql = """
                   SELECT
-                      bm.BucketMovementId AS Id,
-                      bm.BucketId,
-                      bm.Amount,
-                      bm.MovementDate,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries
+                      bm.BucketMovementId AS Id
+                      ,bm.BucketId
+                      ,bm.Amount
+                      ,bm.MovementDate
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
                   FROM BucketMovement bm
                   INNER JOIN Bucket b ON bm.BucketId = b.BucketId
                   """;
@@ -62,10 +66,10 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     {
         var sql = """
                   SELECT
-                      BucketMovementId AS Id,
-                      BucketId,
-                      Amount,
-                      MovementDate
+                      BucketMovementId AS Id
+                      ,BucketId
+                      ,Amount
+                      ,MovementDate
                   FROM BucketMovement
                   WHERE BucketMovementId = $id
                   """;
@@ -79,19 +83,19 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     {
         var sql = """
                   SELECT
-                      bm.BucketMovementId AS Id,
-                      bm.BucketId,
-                      bm.Amount,
-                      bm.MovementDate,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries
+                      bm.BucketMovementId AS Id
+                      ,bm.BucketId
+                      ,bm.Amount
+                      ,bm.MovementDate
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
                   FROM BucketMovement bm
                   INNER JOIN Bucket b ON bm.BucketId = b.BucketId
                   WHERE bm.BucketMovementId = $id
@@ -114,7 +118,11 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
         entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO BucketMovement (BucketMovementId, BucketId, Amount, MovementDate)
+                  INSERT INTO BucketMovement
+                      (BucketMovementId
+                       ,BucketId
+                       ,Amount
+                       ,MovementDate)
                   VALUES ($1, $2, $3, $4)
                   """;
 
@@ -138,7 +146,10 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     {
         var sql = """
                   UPDATE BucketMovement
-                  SET BucketId = $1, Amount = $2, MovementDate = $3
+                  SET
+                      BucketId = $1
+                      ,Amount = $2
+                      ,MovementDate = $3
                   WHERE BucketMovementId = $4
                   """;
 
@@ -165,7 +176,9 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
         if (entity is null) throw new Exception($"BucketMovement with id {id} not found.");
 
         var sql = """
-                  DELETE FROM BucketMovement WHERE BucketMovementId = $1
+                  DELETE
+                  FROM BucketMovement
+                  WHERE BucketMovementId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

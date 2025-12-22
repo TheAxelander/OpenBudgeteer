@@ -22,7 +22,16 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
     public IQueryable<BucketVersion> All()
     {
         var sql = """
-                  SELECT BucketVersionId AS Id, BucketId, Version, BucketType, BucketTypeXParam, BucketTypeYParam, BucketTypeZParam, Notes, ValidFrom
+                  SELECT
+                      BucketVersionId AS Id
+                      ,BucketId
+                      ,Version
+                      ,BucketType
+                      ,BucketTypeXParam
+                      ,BucketTypeYParam
+                      ,BucketTypeZParam
+                      ,Notes
+                      ,ValidFrom
                   FROM BucketVersion
                   """;
         return _connection.Query<BucketVersion>(sql).AsQueryable();
@@ -32,24 +41,24 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
     {
         var sql = """
                   SELECT
-                      bv.BucketVersionId AS Id,
-                      bv.BucketId,
-                      bv.Version,
-                      bv.BucketType,
-                      bv.BucketTypeXParam,
-                      bv.BucketTypeYParam,
-                      bv.BucketTypeZParam,
-                      bv.Notes,
-                      bv.ValidFrom,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries
+                      bv.BucketVersionId AS Id
+                      ,bv.BucketId
+                      ,bv.Version
+                      ,bv.BucketType
+                      ,bv.BucketTypeXParam
+                      ,bv.BucketTypeYParam
+                      ,bv.BucketTypeZParam
+                      ,bv.Notes
+                      ,bv.ValidFrom
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
                   FROM BucketVersion bv
                   INNER JOIN Bucket b ON bv.BucketId = b.BucketId
                   """;
@@ -69,15 +78,15 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
     {
         var sql = """
                   SELECT
-                      BucketVersionId AS Id,
-                      BucketId,
-                      Version,
-                      BucketType,
-                      BucketTypeXParam,
-                      BucketTypeYParam,
-                      BucketTypeZParam,
-                      Notes,
-                      ValidFrom
+                      BucketVersionId AS Id
+                      ,BucketId
+                      ,Version
+                      ,BucketType
+                      ,BucketTypeXParam
+                      ,BucketTypeYParam
+                      ,BucketTypeZParam
+                      ,Notes
+                      ,ValidFrom
                   FROM BucketVersion
                   WHERE BucketVersionId = $id
                   """;
@@ -91,24 +100,24 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
     {
         var sql = """
                   SELECT
-                      bv.BucketVersionId AS Id,
-                      bv.BucketId,
-                      bv.Version,
-                      bv.BucketType,
-                      bv.BucketTypeXParam,
-                      bv.BucketTypeYParam,
-                      bv.BucketTypeZParam,
-                      bv.Notes,
-                      bv.ValidFrom,
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries
+                      bv.BucketVersionId AS Id
+                      ,bv.BucketId
+                      ,bv.Version
+                      ,bv.BucketType
+                      ,bv.BucketTypeXParam
+                      ,bv.BucketTypeYParam
+                      ,bv.BucketTypeZParam
+                      ,bv.Notes
+                      ,bv.ValidFrom
+                      ,b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
                   FROM BucketVersion bv
                   INNER JOIN Bucket b ON bv.BucketId = b.BucketId
                   WHERE bv.BucketVersionId = $id
@@ -131,7 +140,16 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
         entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO BucketVersion (BucketVersionId, BucketId, Version, BucketType, BucketTypeXParam, BucketTypeYParam, BucketTypeZParam, Notes, ValidFrom)
+                  INSERT INTO BucketVersion
+                      (BucketVersionId
+                       ,BucketId
+                       ,Version
+                       ,BucketType
+                       ,BucketTypeXParam
+                       ,BucketTypeYParam
+                       ,BucketTypeZParam
+                       ,Notes
+                       ,ValidFrom)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                   """;
 
@@ -165,7 +183,15 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
     {
         var sql = """
                   UPDATE BucketVersion
-                  SET BucketId = $1, Version = $2, BucketType = $3, BucketTypeXParam = $4, BucketTypeYParam = $5, BucketTypeZParam = $6, Notes = $7, ValidFrom = $8
+                  SET
+                      BucketId = $1
+                      ,Version = $2
+                      ,BucketType = $3
+                      ,BucketTypeXParam = $4
+                      ,BucketTypeYParam = $5
+                      ,BucketTypeZParam = $6
+                      ,Notes = $7
+                      ,ValidFrom = $8
                   WHERE BucketVersionId = $9
                   """;
 
@@ -198,7 +224,9 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
     public int Delete(Guid id)
     {
         var sql = """
-                  DELETE FROM BucketVersion WHERE BucketVersionId = $1
+                  DELETE
+                  FROM BucketVersion
+                  WHERE BucketVersionId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();
