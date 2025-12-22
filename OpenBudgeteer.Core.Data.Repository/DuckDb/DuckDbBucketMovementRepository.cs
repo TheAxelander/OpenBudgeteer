@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -60,28 +61,18 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
     public BucketMovement? ById(Guid id)
     {
         var sql = """
-                  SELECT BucketMovementId AS Id, BucketId, Amount, MovementDate
+                  SELECT
+                      BucketMovementId AS Id,
+                      BucketId,
+                      Amount,
+                      MovementDate
                   FROM BucketMovement
-                  WHERE BucketMovementId = $1
+                  WHERE BucketMovementId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new BucketMovement
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                BucketId = Guid.Parse(reader.GetString(1)),
-                Amount = reader.GetDecimal(2),
-                MovementDate = DateOnly.FromDateTime(reader.GetDateTime(3))
-            };
-        }
-        return null;
+        return _connection
+            .Query<BucketMovement>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public BucketMovement? ByIdWithIncludedEntities(Guid id)
@@ -103,37 +94,19 @@ public class DuckDbBucketMovementRepository : IBucketMovementRepository
                       b.IsHiddenFromSummaries
                   FROM BucketMovement bm
                   INNER JOIN Bucket b ON bm.BucketId = b.BucketId
-                  WHERE bm.BucketMovementId = $1
+                  WHERE bm.BucketMovementId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketMovementMapper();
+        _ = _connection
+            .Query<BucketMovement, Bucket, BucketMovement>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-
-        var bucketMovement = new BucketMovement
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            BucketId = Guid.Parse(reader.GetString(1)),
-            Amount = reader.GetDecimal(2),
-            MovementDate = DateOnly.FromDateTime(reader.GetDateTime(3)),
-            Bucket = new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(4)),
-                Name = reader.IsDBNull(5) ? null : reader.GetString(5),
-                BucketGroupId = Guid.Parse(reader.GetString(6)),
-                ColorCode = reader.IsDBNull(7) ? null : reader.GetString(7),
-                TextColorCode = reader.IsDBNull(8) ? null : reader.GetString(8),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(9)),
-                IsInactive = reader.GetBoolean(10),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(11)),
-                IsHiddenFromSummaries = reader.GetBoolean(12)
-            }
-        };
-        return bucketMovement;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(BucketMovement entity)

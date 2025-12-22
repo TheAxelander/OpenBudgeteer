@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -43,51 +44,31 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
                   LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
                   """;
 
-        var bucketGroupDict = new Dictionary<Guid, BucketGroup>();
-        _connection.Query<BucketGroup, Bucket?, BucketGroup>(
-            sql,
-            (bucketGroup, bucket) =>
-            {
-                if (!bucketGroupDict.TryGetValue(bucketGroup.Id, out var existingBucketGroup))
-                {
-                    existingBucketGroup = bucketGroup;
-                    bucketGroupDict.Add(bucketGroup.Id, existingBucketGroup);
-                }
+        var mapper = new BucketGroupMapper();
+        _ = _connection
+            .Query<BucketGroup, Bucket?, BucketGroup>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id")
+            .ToList();
 
-                if (bucket == null) return existingBucketGroup;
-                existingBucketGroup.Buckets ??= new List<Bucket>();
-                existingBucketGroup.Buckets.Add(bucket);
-                return existingBucketGroup;
-            },
-            splitOn: "Id");
-
-        return bucketGroupDict.Values.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public BucketGroup? ById(Guid id)
     {
         var sql = """
-                  SELECT BucketGroupId AS Id, Name, Position
+                  SELECT
+                      BucketGroupId AS Id,
+                      Name,
+                      Position
                   FROM BucketGroup
-                  WHERE BucketGroupId = $1
+                  WHERE BucketGroupId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new BucketGroup
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                Position = reader.GetInt32(2)
-            };
-        }
-        return null;
+        return _connection
+            .Query<BucketGroup>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public BucketGroup? ByIdWithIncludedEntities(Guid id)
@@ -108,41 +89,19 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
                       b.IsHiddenFromSummaries
                   FROM BucketGroup bg
                   LEFT JOIN Bucket b ON bg.BucketGroupId = b.BucketGroupId
-                  WHERE bg.BucketGroupId = $1
+                  WHERE bg.BucketGroupId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketGroupMapper();
+        _ = _connection
+            .Query<BucketGroup, Bucket?, BucketGroup>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        BucketGroup? bucketGroup = null;
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            bucketGroup ??= new BucketGroup
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                Position = reader.GetInt32(2)
-            };
-
-            if (reader.IsDBNull(3)) continue;
-            bucketGroup.Buckets ??= new List<Bucket>();
-            bucketGroup.Buckets.Add(new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(3)),
-                Name = reader.IsDBNull(4) ? null : reader.GetString(4),
-                BucketGroupId = Guid.Parse(reader.GetString(5)),
-                ColorCode = reader.IsDBNull(6) ? null : reader.GetString(6),
-                TextColorCode = reader.IsDBNull(7) ? null : reader.GetString(7),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(8)),
-                IsInactive = reader.GetBoolean(9),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(10)),
-                IsHiddenFromSummaries = reader.GetBoolean(11)
-            });
-        }
-        return bucketGroup;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(BucketGroup entity)

@@ -19,59 +19,44 @@ public class DuckDbAccountRepository : IAccountRepository
     {
         var sql = """
                   SELECT
-                      AccountId AS Id,
-                      Name,
-                      IsActive
+                      AccountId AS Id
+                      ,Name
+                      ,IsActive
                   FROM Account
                   """;
         return _connection.Query<Account>(sql).AsQueryable();
     }
 
-    public IQueryable<Account> AllWithIncludedEntities()
-    {
-        return All();
-    }
+    public IQueryable<Account> AllWithIncludedEntities() => All();
 
     public Account? ById(Guid id)
     {
         var sql = """
                   SELECT
-                      AccountId AS Id,
-                      Name,
-                      IsActive
+                      AccountId AS Id
+                      ,Name
+                      ,IsActive
                   FROM Account
-                  WHERE AccountId = $1
+                  WHERE AccountId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new Account
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                IsActive = reader.GetInt32(2)
-            };
-        }
-        return null;
+        return _connection
+            .Query<Account>(sql, new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
-    public Account? ByIdWithIncludedEntities(Guid id)
-    {
-        return ById(id);
-    }
+    public Account? ByIdWithIncludedEntities(Guid id) => ById(id);
 
     public int Create(Account entity)
     {
+        // TODO [Guid Gen-Check] Check if this is right or the other Guid Gen-Check
         entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO Account (AccountId, Name, IsActive)
+                  INSERT INTO Account
+                      (AccountId
+                      ,Name
+                      ,IsActive)
                   VALUES ($1, $2, $3)
                   """;
 
@@ -79,41 +64,35 @@ public class DuckDbAccountRepository : IAccountRepository
         cmd.CommandText = sql;
 
         cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Name));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.IsActive));
 
         return cmd.ExecuteNonQuery();
     }
 
-    public int CreateRange(IEnumerable<Account> entities)
-    {
-        return entities.Sum(Create);
-    }
+    public int CreateRange(IEnumerable<Account> entities) => entities.Sum(Create);
 
     public int Update(Account entity)
     {
+        // TODO Work on overall SQL formatting (SET values should wrap automatically to new line here)
         var sql = """
                   UPDATE Account
-                  SET
-                      Name = $1,
-                      IsActive = $2
+                  SET Name = $1
+                      ,IsActive = $2
                   WHERE AccountId = $3
                   """;
 
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Name));
+        cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.IsActive));
         cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
 
         return cmd.ExecuteNonQuery();
     }
 
-    public int UpdateRange(IEnumerable<Account> entities)
-    {
-        return entities.Sum(Update);
-    }
+    public int UpdateRange(IEnumerable<Account> entities) => entities.Sum(Update);
 
     public int Delete(Guid id)
     {

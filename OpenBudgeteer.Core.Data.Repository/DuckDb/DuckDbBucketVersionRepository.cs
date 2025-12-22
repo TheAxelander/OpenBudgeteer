@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -53,48 +54,37 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
                   INNER JOIN Bucket b ON bv.BucketId = b.BucketId
                   """;
 
-        var result = _connection.Query<BucketVersion, Bucket, BucketVersion>(
-            sql,
-            (bucketVersion, bucket) =>
-            {
-                bucketVersion.Bucket = bucket;
-                return bucketVersion;
-            },
-            splitOn: "Id");
+        var mapper = new BucketVersionMapper();
+        _ = _connection
+            .Query<BucketVersion, Bucket, BucketVersion>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public BucketVersion? ById(Guid id)
     {
         var sql = """
-                  SELECT BucketVersionId AS Id, BucketId, Version, BucketType, BucketTypeXParam, BucketTypeYParam, BucketTypeZParam, Notes, ValidFrom
+                  SELECT
+                      BucketVersionId AS Id,
+                      BucketId,
+                      Version,
+                      BucketType,
+                      BucketTypeXParam,
+                      BucketTypeYParam,
+                      BucketTypeZParam,
+                      Notes,
+                      ValidFrom
                   FROM BucketVersion
-                  WHERE BucketVersionId = $1
+                  WHERE BucketVersionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new BucketVersion
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                BucketId = Guid.Parse(reader.GetString(1)),
-                Version = reader.GetInt32(2),
-                BucketType = reader.GetInt32(3),
-                BucketTypeXParam = reader.GetInt32(4),
-                BucketTypeYParam = reader.GetDecimal(5),
-                BucketTypeZParam = DateOnly.FromDateTime(reader.GetDateTime(6)),
-                Notes = reader.IsDBNull(7) ? null : reader.GetString(7),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(8))
-            };
-        }
-        return null;
+        return _connection
+            .Query<BucketVersion>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public BucketVersion? ByIdWithIncludedEntities(Guid id)
@@ -121,44 +111,19 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
                       b.IsHiddenFromSummaries
                   FROM BucketVersion bv
                   INNER JOIN Bucket b ON bv.BucketId = b.BucketId
-                  WHERE bv.BucketVersionId = $1
+                  WHERE bv.BucketVersionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketVersionMapper();
+        _ = _connection
+            .Query<BucketVersion, Bucket, BucketVersion>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            var bucketVersion = new BucketVersion
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                BucketId = Guid.Parse(reader.GetString(1)),
-                Version = reader.GetInt32(2),
-                BucketType = reader.GetInt32(3),
-                BucketTypeXParam = reader.GetInt32(4),
-                BucketTypeYParam = reader.GetDecimal(5),
-                BucketTypeZParam = DateOnly.FromDateTime(reader.GetDateTime(6)),
-                Notes = reader.IsDBNull(7) ? null : reader.GetString(7),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(8)),
-                Bucket = new Bucket
-                {
-                    Id = Guid.Parse(reader.GetString(9)),
-                    Name = reader.IsDBNull(10) ? null : reader.GetString(10),
-                    BucketGroupId = Guid.Parse(reader.GetString(11)),
-                    ColorCode = reader.IsDBNull(12) ? null : reader.GetString(12),
-                    TextColorCode = reader.IsDBNull(13) ? null : reader.GetString(13),
-                    ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(14)),
-                    IsInactive = reader.GetBoolean(15),
-                    IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(16)),
-                    IsHiddenFromSummaries = reader.GetBoolean(17)
-                }
-            };
-            return bucketVersion;
-        }
-        return null;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(BucketVersion entity)

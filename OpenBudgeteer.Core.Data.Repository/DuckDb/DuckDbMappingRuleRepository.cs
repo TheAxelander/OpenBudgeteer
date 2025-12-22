@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -41,44 +42,33 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
                   INNER JOIN BucketRuleSet brs ON mr.BucketRuleSetId = brs.BucketRuleSetId
                   """;
 
-        var result = _connection.Query<MappingRule, BucketRuleSet, MappingRule>(
-            sql,
-            (mappingRule, bucketRuleSet) =>
-            {
-                mappingRule.BucketRuleSet = bucketRuleSet;
-                return mappingRule;
-            },
-            splitOn: "Id");
+        var mapper = new MappingRuleMapper();
+        _ = _connection
+            .Query<MappingRule, BucketRuleSet, MappingRule>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public MappingRule? ById(Guid id)
     {
         var sql = """
-                  SELECT MappingRuleId AS Id, BucketRuleSetId, ComparisonField, ComparisonType, ComparisonValue
+                  SELECT
+                      MappingRuleId AS Id,
+                      BucketRuleSetId,
+                      ComparisonField,
+                      ComparisonType,
+                      ComparisonValue
                   FROM MappingRule
-                  WHERE MappingRuleId = $1
+                  WHERE MappingRuleId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new MappingRule
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                BucketRuleSetId = Guid.Parse(reader.GetString(1)),
-                ComparisonField = reader.GetInt32(2),
-                ComparisonType = reader.GetInt32(3),
-                ComparisonValue = reader.GetString(4)
-            };
-        }
-        return null;
+        return _connection
+            .Query<MappingRule>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public MappingRule? ByIdWithIncludedEntities(Guid id)
@@ -96,32 +86,19 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
                       brs.TargetBucketId
                   FROM MappingRule mr
                   INNER JOIN BucketRuleSet brs ON mr.BucketRuleSetId = brs.BucketRuleSetId
-                  WHERE mr.MappingRuleId = $1
+                  WHERE mr.MappingRuleId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new MappingRuleMapper();
+        _ = _connection
+            .Query<MappingRule, BucketRuleSet, MappingRule>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-        var mappingRule = new MappingRule
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            BucketRuleSetId = Guid.Parse(reader.GetString(1)),
-            ComparisonField = reader.GetInt32(2),
-            ComparisonType = reader.GetInt32(3),
-            ComparisonValue = reader.GetString(4),
-            BucketRuleSet = new BucketRuleSet
-            {
-                Id = Guid.Parse(reader.GetString(5)),
-                Priority = reader.GetInt32(6),
-                Name = reader.IsDBNull(7) ? null : reader.GetString(7),
-                TargetBucketId = Guid.Parse(reader.GetString(8))
-            }
-        };
-        return mappingRule;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(MappingRule entity)

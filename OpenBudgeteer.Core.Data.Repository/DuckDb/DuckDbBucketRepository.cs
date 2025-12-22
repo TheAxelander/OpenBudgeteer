@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -19,15 +20,15 @@ public class DuckDbBucketRepository : IBucketRepository
     {
         var sql = """
                   SELECT
-                      BucketId AS Id,
-                      Name,
-                      BucketGroupId,
-                      ColorCode,
-                      TextColorCode,
-                      ValidFrom,
-                      IsInactive,
-                      IsInactiveFrom,
-                      IsHiddenFromSummaries
+                      BucketId AS Id
+                      ,Name
+                      ,BucketGroupId
+                      ,ColorCode
+                      ,TextColorCode
+                      ,ValidFrom
+                      ,IsInactive
+                      ,IsInactiveFrom
+                      ,IsHiddenFromSummaries
                   FROM Bucket
                   """;
         return _connection.Query<Bucket>(sql).AsQueryable();
@@ -37,137 +38,109 @@ public class DuckDbBucketRepository : IBucketRepository
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      bv.BucketVersionId AS Id,
-                      bv.BucketId,
-                      bv.Version,
-                      bv.BucketType,
-                      bv.BucketTypeXParam,
-                      bv.BucketTypeYParam,
-                      bv.BucketTypeZParam,
-                      bv.Notes,
-                      bv.ValidFrom
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,bv.BucketVersionId AS Id
+                      ,bv.BucketId
+                      ,bv.Version
+                      ,bv.BucketType
+                      ,bv.BucketTypeXParam
+                      ,bv.BucketTypeYParam
+                      ,bv.BucketTypeZParam
+                      ,bv.Notes
+                      ,bv.ValidFrom
                   FROM Bucket b
                   LEFT JOIN BucketVersion bv ON b.BucketId = bv.BucketId
                   """;
 
-        var bucketDict = new Dictionary<Guid, Bucket>();
-        _connection.Query<Bucket, BucketVersion?, Bucket>(
-            sql,
-            (bucket, version) =>
-            {
-                if (!bucketDict.TryGetValue(bucket.Id, out var existingBucket))
-                {
-                    existingBucket = bucket;
-                    bucketDict.Add(bucket.Id, existingBucket);
-                }
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BucketVersion?, Bucket>(
+                sql,
+                mapper.MapWithVersion,
+                splitOn: "Id")
+            .ToList();
 
-                if (version == null) return existingBucket;
-                existingBucket.BucketVersions ??= new List<BucketVersion>();
-                existingBucket.BucketVersions.Add(version);
-                return existingBucket;
-            },
-            splitOn: "Id");
-
-        return bucketDict.Values.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public IQueryable<Bucket> AllWithActivities()
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      bm.BucketMovementId AS Id,
-                      bm.BucketId,
-                      bm.Amount,
-                      bm.MovementDate,
-                      bt.BudgetedTransactionId AS Id,
-                      bt.TransactionId,
-                      bt.BucketId,
-                      bt.Amount
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,bm.BucketMovementId AS Id
+                      ,bm.BucketId
+                      ,bm.Amount
+                      ,bm.MovementDate
+                      ,bt.BudgetedTransactionId AS Id
+                      ,bt.TransactionId
+                      ,bt.BucketId
+                      ,bt.Amount
                   FROM Bucket b
                   LEFT JOIN BucketMovement bm ON b.BucketId = bm.BucketId
                   LEFT JOIN BudgetedTransaction bt ON b.BucketId = bt.BucketId
                   """;
 
-        var bucketDict = new Dictionary<Guid, Bucket>();
-        _connection.Query<Bucket, BucketMovement?, BudgetedTransaction?, Bucket>(
-            sql,
-            (bucket, movement, transaction) =>
-            {
-                if (!bucketDict.TryGetValue(bucket.Id, out var existingBucket))
-                {
-                    existingBucket = bucket;
-                    bucketDict.Add(bucket.Id, existingBucket);
-                }
-                if (movement != null)
-                {
-                    existingBucket.BucketMovements ??= new List<BucketMovement>();
-                    if (existingBucket.BucketMovements.All(m => m.Id != movement.Id))
-                        existingBucket.BucketMovements.Add(movement);
-                }
-                if (transaction != null)
-                {
-                    existingBucket.BudgetedTransactions ??= new List<BudgetedTransaction>();
-                    if (existingBucket.BudgetedTransactions.All(t => t.Id != transaction.Id))
-                        existingBucket.BudgetedTransactions.Add(transaction);
-                }
-                return existingBucket;
-            },
-            splitOn: "Id,Id");
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BucketMovement?, BudgetedTransaction?, Bucket>(
+                sql,
+                mapper.MapWithActivities,
+                splitOn: "Id,Id")
+            .ToList();
 
-        return bucketDict.Values.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public IQueryable<Bucket> AllWithIncludedEntities()
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      bg.BucketGroupId AS Id,
-                      bg.Name,
-                      bg.Position,
-                      bm.BucketMovementId AS Id,
-                      bm.BucketId,
-                      bm.Amount,
-                      bm.MovementDate,
-                      bv.BucketVersionId AS Id,
-                      bv.BucketId,
-                      bv.Version,
-                      bv.BucketType,
-                      bv.BucketTypeXParam,
-                      bv.BucketTypeYParam,
-                      bv.BucketTypeZParam,
-                      bv.Notes,
-                      bv.ValidFrom,
-                      bt.BudgetedTransactionId AS Id,
-                      bt.TransactionId,
-                      bt.BucketId,
-                      bt.Amount
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,bg.BucketGroupId AS Id
+                      ,bg.Name
+                      ,bg.Position
+                      ,bm.BucketMovementId AS Id
+                      ,bm.BucketId
+                      ,bm.Amount
+                      ,bm.MovementDate
+                      ,bv.BucketVersionId AS Id
+                      ,bv.BucketId
+                      ,bv.Version
+                      ,bv.BucketType
+                      ,bv.BucketTypeXParam
+                      ,bv.BucketTypeYParam
+                      ,bv.BucketTypeZParam
+                      ,bv.Notes
+                      ,bv.ValidFrom
+                      ,bt.BudgetedTransactionId AS Id
+                      ,bt.TransactionId
+                      ,bt.BucketId
+                      ,bt.Amount
                   FROM Bucket b
                   INNER JOIN BucketGroup bg ON b.BucketGroupId = bg.BucketGroupId
                   LEFT JOIN BucketMovement bm ON b.BucketId = bm.BucketId
@@ -175,420 +148,222 @@ public class DuckDbBucketRepository : IBucketRepository
                   LEFT JOIN BudgetedTransaction bt ON b.BucketId = bt.BucketId
                   """;
 
-        var bucketDict = new Dictionary<Guid, Bucket>();
-        _connection.Query<Bucket, BucketGroup, BucketMovement?, BucketVersion?, BudgetedTransaction?, Bucket>(
-            sql,
-            (bucket, bucketGroup, movement, version, transaction) =>
-            {
-                if (!bucketDict.TryGetValue(bucket.Id, out var existingBucket))
-                {
-                    existingBucket = bucket;
-                    existingBucket.BucketGroup = bucketGroup;
-                    bucketDict.Add(bucket.Id, existingBucket);
-                }
-                if (movement != null)
-                {
-                    existingBucket.BucketMovements ??= new List<BucketMovement>();
-                    if (existingBucket.BucketMovements.All(m => m.Id != movement.Id))
-                        existingBucket.BucketMovements.Add(movement);
-                }
-                if (version != null)
-                {
-                    existingBucket.BucketVersions ??= new List<BucketVersion>();
-                    if (existingBucket.BucketVersions.All(v => v.Id != version.Id))
-                        existingBucket.BucketVersions.Add(version);
-                }
-                if (transaction != null)
-                {
-                    existingBucket.BudgetedTransactions ??= new List<BudgetedTransaction>();
-                    if (existingBucket.BudgetedTransactions.All(t => t.Id != transaction.Id))
-                        existingBucket.BudgetedTransactions.Add(transaction);
-                }
-                return existingBucket;
-            },
-            splitOn: "Id,Id,Id,Id");
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BucketGroup, BucketMovement?, BucketVersion?, BudgetedTransaction?, Bucket>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id,Id,Id,Id")
+            .ToList();
 
-        return bucketDict.Values.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public Bucket? ById(Guid id)
     {
         var sql = """
                   SELECT
-                      BucketId AS Id,
-                      Name,
-                      BucketGroupId,
-                      ColorCode,
-                      TextColorCode,
-                      ValidFrom,
-                      IsInactive,
-                      IsInactiveFrom,
-                      IsHiddenFromSummaries
+                      BucketId AS Id
+                      ,Name
+                      ,BucketGroupId
+                      ,ColorCode
+                      ,TextColorCode
+                      ,ValidFrom
+                      ,IsInactive
+                      ,IsInactiveFrom
+                      ,IsHiddenFromSummaries
                   FROM Bucket
-                  WHERE BucketId = $1
+                  WHERE BucketId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                BucketGroupId = Guid.Parse(reader.GetString(2)),
-                ColorCode = reader.IsDBNull(3) ? null : reader.GetString(3),
-                TextColorCode = reader.IsDBNull(4) ? null : reader.GetString(4),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                IsInactive = reader.GetBoolean(6),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(7)),
-                IsHiddenFromSummaries = reader.GetBoolean(8)
-            };
-        }
-        return null;
+        return _connection
+            .Query<Bucket>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public Bucket? ByIdWithVersions(Guid id)
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      bv.BucketVersionId AS Id,
-                      bv.BucketId,
-                      bv.Version,
-                      bv.BucketType,
-                      bv.BucketTypeXParam,
-                      bv.BucketTypeYParam,
-                      bv.BucketTypeZParam,
-                      bv.Notes,
-                      bv.ValidFrom
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,bv.BucketVersionId AS Id
+                      ,bv.BucketId
+                      ,bv.Version
+                      ,bv.BucketType
+                      ,bv.BucketTypeXParam
+                      ,bv.BucketTypeYParam
+                      ,bv.BucketTypeZParam
+                      ,bv.Notes
+                      ,bv.ValidFrom
                   FROM Bucket b
                   LEFT JOIN BucketVersion bv ON b.BucketId = bv.BucketId
-                  WHERE b.BucketId = $1
+                  WHERE b.BucketId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BucketVersion?, Bucket>(
+                sql,
+                mapper.MapWithVersion,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        Bucket? bucket = null;
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            bucket ??= new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                BucketGroupId = Guid.Parse(reader.GetString(2)),
-                ColorCode = reader.IsDBNull(3) ? null : reader.GetString(3),
-                TextColorCode = reader.IsDBNull(4) ? null : reader.GetString(4),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                IsInactive = reader.GetBoolean(6),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(7)),
-                IsHiddenFromSummaries = reader.GetBoolean(8),
-            };
-
-            if (reader.IsDBNull(9)) continue;
-            bucket.BucketVersions ??=  new List<BucketVersion>();
-            bucket.BucketVersions.Add(new BucketVersion
-            {
-                Id = Guid.Parse(reader.GetString(9)),
-                BucketId = Guid.Parse(reader.GetString(10)),
-                Version = reader.GetInt32(11),
-                BucketType = reader.GetInt32(12),
-                BucketTypeXParam = reader.GetInt32(13),
-                BucketTypeYParam = reader.GetDecimal(14),
-                BucketTypeZParam = DateOnly.FromDateTime(reader.GetDateTime(15)),
-                Notes = reader.IsDBNull(16) ? null : reader.GetString(16),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(17))
-            });
-        }
-        return bucket;
+        return mapper.Results.FirstOrDefault();
     }
 
     public Bucket? ByIdWithMovements(Guid id)
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      bm.BucketMovementId AS Id,
-                      bm.BucketId,
-                      bm.Amount,
-                      bm.MovementDate
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,bm.BucketMovementId AS Id
+                      ,bm.BucketId
+                      ,bm.Amount
+                      ,bm.MovementDate
                   FROM Bucket b
                   LEFT JOIN BucketMovement bm ON b.BucketId = bm.BucketId
-                  WHERE b.BucketId = $1
+                  WHERE b.BucketId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BucketMovement?, Bucket>(
+                sql,
+                mapper.MapWithMovement,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        Bucket? bucket = null;
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            bucket ??= new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                BucketGroupId = Guid.Parse(reader.GetString(2)),
-                ColorCode = reader.IsDBNull(3) ? null : reader.GetString(3),
-                TextColorCode = reader.IsDBNull(4) ? null : reader.GetString(4),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                IsInactive = reader.GetBoolean(6),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(7)),
-                IsHiddenFromSummaries = reader.GetBoolean(8),
-            };
-
-            if (reader.IsDBNull(9)) continue;
-            bucket.BucketMovements ??= new List<BucketMovement>();
-            bucket.BucketMovements.Add(new BucketMovement
-            {
-                Id = Guid.Parse(reader.GetString(9)),
-                BucketId = Guid.Parse(reader.GetString(10)),
-                Amount = reader.GetDecimal(11),
-                MovementDate = DateOnly.FromDateTime(reader.GetDateTime(12))
-            });
-        }
-        return bucket;
+        return mapper.Results.FirstOrDefault();
     }
 
     public Bucket? ByIdWithTransactions(Guid id)
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      but.BudgetedTransactionId AS Id,
-                      but.TransactionId,
-                      but.BucketId,
-                      but.Amount,
-                      bt.TransactionId AS Id,
-                      bt.AccountId,
-                      bt.TransactionDate,
-                      bt.Payee,
-                      bt.Memo,
-                      bt.Amount
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,but.BudgetedTransactionId AS Id
+                      ,but.TransactionId
+                      ,but.BucketId
+                      ,but.Amount
+                      ,bt.TransactionId AS Id
+                      ,bt.AccountId
+                      ,bt.TransactionDate
+                      ,bt.Payee
+                      ,bt.Memo
+                      ,bt.Amount
                   FROM Bucket b
                   LEFT JOIN BudgetedTransaction but ON b.BucketId = but.BucketId
                   LEFT JOIN BankTransaction bt ON but.TransactionId = bt.TransactionId
-                  WHERE b.BucketId = $1
+                  WHERE b.BucketId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BudgetedTransaction?, BankTransaction?, Bucket>(
+                sql,
+                mapper.MapWithTransactions,
+                splitOn: "Id,Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        Bucket? bucket = null;
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            bucket ??= new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                BucketGroupId = Guid.Parse(reader.GetString(2)),
-                ColorCode = reader.IsDBNull(3) ? null : reader.GetString(3),
-                TextColorCode = reader.IsDBNull(4) ? null : reader.GetString(4),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                IsInactive = reader.GetBoolean(6),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(7)),
-                IsHiddenFromSummaries = reader.GetBoolean(8),
-            };
-
-            if (reader.IsDBNull(9)) continue;
-            bucket.BudgetedTransactions ??=  new List<BudgetedTransaction>();
-            bucket.BudgetedTransactions.Add(new BudgetedTransaction
-            {
-                Id = Guid.Parse(reader.GetString(9)),
-                TransactionId = Guid.Parse(reader.GetString(10)),
-                Transaction = new()
-                {
-                    Id = Guid.Parse(reader.GetString(13)),
-                    AccountId = Guid.Parse(reader.GetString(14)),
-                    TransactionDate = DateOnly.FromDateTime(reader.GetDateTime(15)),
-                    Payee = reader.IsDBNull(16) ? null : reader.GetString(16),
-                    Memo = reader.IsDBNull(17) ? null : reader.GetString(17),
-                    Amount = reader.GetDecimal(18),
-                },
-                BucketId = Guid.Parse(reader.GetString(11)),
-                Amount = reader.GetDecimal(12)
-            });
-        }
-        return bucket;
+        return mapper.Results.FirstOrDefault();
     }
 
     public Bucket? ByIdWithIncludedEntities(Guid id)
     {
         var sql = """
                   SELECT
-                      b.BucketId AS Id,
-                      b.Name,
-                      b.BucketGroupId,
-                      b.ColorCode,
-                      b.TextColorCode,
-                      b.ValidFrom,
-                      b.IsInactive,
-                      b.IsInactiveFrom,
-                      b.IsHiddenFromSummaries,
-                      bg.BucketGroupId AS Id,
-                      bg.Name,
-                      bg.Position,
-                      bm.BucketMovementId AS Id,
-                      bm.BucketId,
-                      bm.Amount,
-                      bm.MovementDate,
-                      bv.BucketVersionId AS Id,
-                      bv.BucketId,
-                      bv.Version,
-                      bv.BucketType,
-                      bv.BucketTypeXParam,
-                      bv.BucketTypeYParam,
-                      bv.BucketTypeZParam,
-                      bv.Notes,
-                      bv.ValidFrom,
-                      bt.BudgetedTransactionId AS Id,
-                      bt.TransactionId,
-                      bt.BucketId,
-                      bt.Amount
+                      b.BucketId AS Id
+                      ,b.Name
+                      ,b.BucketGroupId
+                      ,b.ColorCode
+                      ,b.TextColorCode
+                      ,b.ValidFrom
+                      ,b.IsInactive
+                      ,b.IsInactiveFrom
+                      ,b.IsHiddenFromSummaries
+                      ,bg.BucketGroupId AS Id
+                      ,bg.Name
+                      ,bg.Position
+                      ,bm.BucketMovementId AS Id
+                      ,bm.BucketId
+                      ,bm.Amount
+                      ,bm.MovementDate
+                      ,bv.BucketVersionId AS Id
+                      ,bv.BucketId
+                      ,bv.Version
+                      ,bv.BucketType
+                      ,bv.BucketTypeXParam
+                      ,bv.BucketTypeYParam
+                      ,bv.BucketTypeZParam
+                      ,bv.Notes
+                      ,bv.ValidFrom
+                      ,bt.BudgetedTransactionId AS Id
+                      ,bt.TransactionId
+                      ,bt.BucketId
+                      ,bt.Amount
                   FROM Bucket b
                   INNER JOIN BucketGroup bg ON b.BucketGroupId = bg.BucketGroupId
                   LEFT JOIN BucketMovement bm ON b.BucketId = bm.BucketId
                   LEFT JOIN BucketVersion bv ON b.BucketId = bv.BucketId
                   LEFT JOIN BudgetedTransaction bt ON b.BucketId = bt.BucketId
-                  WHERE b.BucketId = $1
+                  WHERE b.BucketId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketMapper();
+        _ = _connection
+            .Query<Bucket, BucketGroup, BucketMovement?, BucketVersion?, BudgetedTransaction?, Bucket>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id,Id,Id,Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        Bucket? bucket = null;
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            bucket ??= new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Name = reader.IsDBNull(1) ? null : reader.GetString(1),
-                BucketGroupId = Guid.Parse(reader.GetString(2)),
-                ColorCode = reader.IsDBNull(3) ? null : reader.GetString(3),
-                TextColorCode = reader.IsDBNull(4) ? null : reader.GetString(4),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(5)),
-                IsInactive = reader.GetBoolean(6),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(7)),
-                IsHiddenFromSummaries = reader.GetBoolean(8),
-                BucketGroup = new BucketGroup
-                {
-                    Id = Guid.Parse(reader.GetString(9)),
-                    Name = reader.IsDBNull(10) ? null : reader.GetString(10),
-                    Position = reader.GetInt32(11)
-                }
-            };
-
-            if (!reader.IsDBNull(12))
-            {
-                var movementId = Guid.Parse(reader.GetString(12));
-                bucket.BucketMovements ??= new List<BucketMovement>();
-                if (bucket.BucketMovements.All(m => m.Id != movementId))
-                {
-                    bucket.BucketMovements.Add(new BucketMovement
-                    {
-                        Id = movementId,
-                        BucketId = Guid.Parse(reader.GetString(13)),
-                        Amount = reader.GetDecimal(14),
-                        MovementDate = DateOnly.FromDateTime(reader.GetDateTime(15))
-                    });
-                }
-            }
-
-            if (!reader.IsDBNull(16))
-            {
-                var versionId = Guid.Parse(reader.GetString(16));
-                bucket.BucketVersions ??= new List<BucketVersion>();
-                if (bucket.BucketVersions.All(v => v.Id != versionId))
-                {
-                    bucket.BucketVersions.Add(new BucketVersion
-                    {
-                        Id = versionId,
-                        BucketId = Guid.Parse(reader.GetString(17)),
-                        Version = reader.GetInt32(18),
-                        BucketType = reader.GetInt32(19),
-                        BucketTypeXParam = reader.GetInt32(20),
-                        BucketTypeYParam = reader.GetDecimal(21),
-                        BucketTypeZParam = DateOnly.FromDateTime(reader.GetDateTime(22)),
-                        Notes = reader.IsDBNull(23) ? null : reader.GetString(23),
-                        ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(24))
-                    });
-                }
-            }
-
-            if (!reader.IsDBNull(25))
-            {
-                var transactionId = Guid.Parse(reader.GetString(25));
-                bucket.BudgetedTransactions ??= new List<BudgetedTransaction>();
-                if (bucket.BudgetedTransactions.All(t => t.Id != transactionId))
-                {
-                    bucket.BudgetedTransactions.Add(new BudgetedTransaction
-                    {
-                        Id = transactionId,
-                        TransactionId = Guid.Parse(reader.GetString(26)),
-                        BucketId = Guid.Parse(reader.GetString(27)),
-                        Amount = reader.GetDecimal(28)
-                    });
-                }
-            }
-        }
-        return bucket;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(Bucket entity)
     {
+        // TODO [Guid Gen-Check] Check if this is right or the other Guid Gen-Check
         if (entity.Id == Guid.Empty) entity.Id = Guid.NewGuid();
 
         var sql = """
-                  INSERT INTO Bucket (
-                      BucketId,
-                      Name,
-                      BucketGroupId,
-                      ColorCode,
-                      TextColorCode,
-                      ValidFrom,
-                      IsInactive,
-                      IsInactiveFrom,
-                      IsHiddenFromSummaries)
+                  INSERT INTO Bucket
+                      (BucketId
+                      ,Name
+                      ,BucketGroupId
+                      ,ColorCode
+                      ,TextColorCode
+                      ,ValidFrom
+                      ,IsInactive
+                      ,IsInactiveFrom
+                      ,IsHiddenFromSummaries)
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                   """;
 
@@ -626,15 +401,14 @@ public class DuckDbBucketRepository : IBucketRepository
     {
         var sql = """
                   UPDATE Bucket
-                  SET
-                      Name = $1,
-                      BucketGroupId = $2,
-                      ColorCode = $3,
-                      TextColorCode = $4,
-                      ValidFrom = $5,
-                      IsInactive = $6,
-                      IsInactiveFrom = $7,
-                      IsHiddenFromSummaries = $8
+                  SET Name = $1
+                      ,BucketGroupId = $2
+                      ,ColorCode = $3
+                      ,TextColorCode = $4
+                      ,ValidFrom = $5
+                      ,IsInactive = $6
+                      ,IsInactiveFrom = $7
+                      ,IsHiddenFromSummaries = $8
                   WHERE BucketId = $9
                   """;
 
@@ -682,17 +456,17 @@ public class DuckDbBucketRepository : IBucketRepository
         var result = 0;
 
         // Delete related entities first
-        if (entity.BucketVersions is not null)
+        if (entity.BucketVersions is not null && entity.BucketVersions.Count > 0)
         {
             var bucketVersionRepository = new DuckDbBucketVersionRepository(_connection);
             result += bucketVersionRepository.DeleteRange(entity.BucketVersions.Select(i => i.Id));
         }
-        if (entity.BucketMovements is not null)
+        if (entity.BucketMovements is not null && entity.BucketMovements.Count > 0)
         {
             var bucketMovementRepository = new DuckDbBucketMovementRepository(_connection);
             result += bucketMovementRepository.DeleteRange(entity.BucketMovements.Select(i => i.Id));
         }
-        if (entity.BudgetedTransactions != null)
+        if (entity.BudgetedTransactions != null && entity.BudgetedTransactions.Count > 0)
         {
             var budgetedTransactionRepository = new DuckDbBudgetedTransactionRepository(_connection);
             result += budgetedTransactionRepository.DeleteRange(entity.BudgetedTransactions.Select(i => i.Id));
@@ -700,7 +474,9 @@ public class DuckDbBucketRepository : IBucketRepository
 
         // Delete the bucket
         var sql = """
-                  DELETE FROM Bucket WHERE BucketId = $1
+                  DELETE
+                  FROM Bucket
+                  WHERE BucketId = $1
                   """;
 
         using var cmd = _connection.CreateCommand();

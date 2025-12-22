@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -51,16 +52,15 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
                   INNER JOIN Account a ON rbt.AccountId = a.AccountId
                   """;
 
-        var result = _connection.Query<RecurringBankTransaction, Account, RecurringBankTransaction>(
-            sql,
-            (transaction, account) =>
-            {
-                transaction.Account = account;
-                return transaction;
-            },
-            splitOn: "Id");
+        var mapper = new RecurringBankTransactionMapper();
+        _ = _connection
+            .Query<RecurringBankTransaction, Account, RecurringBankTransaction>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public RecurringBankTransaction? ById(Guid id)
@@ -76,30 +76,12 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
                       Memo,
                       Amount
                   FROM RecurringBankTransaction
-                  WHERE TransactionId = $1
+                  WHERE TransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new RecurringBankTransaction
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                AccountId = Guid.Parse(reader.GetString(1)),
-                RecurrenceType = reader.GetInt32(2),
-                RecurrenceAmount = reader.GetInt32(3),
-                FirstOccurrenceDate = DateOnly.FromDateTime(reader.GetDateTime(4)),
-                Payee = reader.IsDBNull(5) ? null : reader.GetString(5),
-                Memo = reader.IsDBNull(6) ? null : reader.GetString(6),
-                Amount = reader.GetDecimal(7)
-            };
-        }
-        return null;
+        return _connection
+            .Query<RecurringBankTransaction>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public RecurringBankTransaction? ByIdWithIncludedEntities(Guid id)
@@ -119,34 +101,19 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
                       a.IsActive
                   FROM RecurringBankTransaction rbt
                   INNER JOIN Account a ON rbt.AccountId = a.AccountId
-                  WHERE rbt.TransactionId = $1
+                  WHERE rbt.TransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new RecurringBankTransactionMapper();
+        _ = _connection
+            .Query<RecurringBankTransaction, Account, RecurringBankTransaction>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-        var transaction = new RecurringBankTransaction
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            AccountId = Guid.Parse(reader.GetString(1)),
-            RecurrenceType = reader.GetInt32(2),
-            RecurrenceAmount = reader.GetInt32(3),
-            FirstOccurrenceDate = DateOnly.FromDateTime(reader.GetDateTime(4)),
-            Payee = reader.IsDBNull(5) ? null : reader.GetString(5),
-            Memo = reader.IsDBNull(6) ? null : reader.GetString(6),
-            Amount = reader.GetDecimal(7),
-            Account = new Account
-            {
-                Id = Guid.Parse(reader.GetString(8)),
-                Name = reader.IsDBNull(9) ? null : reader.GetString(9),
-                IsActive = reader.GetInt32(10)
-            }
-        };
-        return transaction;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(RecurringBankTransaction entity)

@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -51,53 +52,32 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
                   LEFT JOIN MappingRule mr ON brs.BucketRuleSetId = mr.BucketRuleSetId
                   """;
 
-        var ruleSetDict = new Dictionary<Guid, BucketRuleSet>();
-        _connection.Query<BucketRuleSet, Bucket, MappingRule?, BucketRuleSet>(
-            sql,
-            (ruleSet, bucket, mappingRule) =>
-            {
-                if (!ruleSetDict.TryGetValue(ruleSet.Id, out var existingRuleSet))
-                {
-                    existingRuleSet = ruleSet;
-                    existingRuleSet.TargetBucket = bucket;
-                    ruleSetDict.Add(ruleSet.Id, existingRuleSet);
-                }
+        var mapper = new BucketRuleSetMapper();
+        _ = _connection
+            .Query<BucketRuleSet, Bucket, MappingRule?, BucketRuleSet>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id,Id")
+            .ToList();
 
-                if (mappingRule == null) return existingRuleSet;
-                existingRuleSet.MappingRules ??= new List<MappingRule>();
-                existingRuleSet.MappingRules.Add(mappingRule);
-                return existingRuleSet;
-            },
-            splitOn: "Id,Id");
-
-        return ruleSetDict.Values.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public BucketRuleSet? ById(Guid id)
     {
         var sql = """
-                  SELECT BucketRuleSetId AS Id, Priority, Name, TargetBucketId
+                  SELECT
+                      BucketRuleSetId AS Id,
+                      Priority,
+                      Name,
+                      TargetBucketId
                   FROM BucketRuleSet
-                  WHERE BucketRuleSetId = $1
+                  WHERE BucketRuleSetId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new BucketRuleSet
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Priority = reader.GetInt32(1),
-                Name = reader.IsDBNull(2) ? null : reader.GetString(2),
-                TargetBucketId = Guid.Parse(reader.GetString(3))
-            };
-        }
-        return null;
+        return _connection
+            .Query<BucketRuleSet>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public BucketRuleSet? ByIdWithIncludedEntities(Guid id)
@@ -125,50 +105,19 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
                   FROM BucketRuleSet brs
                   INNER JOIN Bucket b ON brs.TargetBucketId = b.BucketId
                   LEFT JOIN MappingRule mr ON brs.BucketRuleSetId = mr.BucketRuleSetId
-                  WHERE brs.BucketRuleSetId = $1
+                  WHERE brs.BucketRuleSetId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BucketRuleSetMapper();
+        _ = _connection
+            .Query<BucketRuleSet, Bucket, MappingRule?, BucketRuleSet>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id,Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        BucketRuleSet? ruleSet = null;
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-        {
-            ruleSet ??= new BucketRuleSet
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                Priority = reader.GetInt32(1),
-                Name = reader.IsDBNull(2) ? null : reader.GetString(2),
-                TargetBucketId = Guid.Parse(reader.GetString(3)),
-                TargetBucket = new Bucket
-                {
-                    Id = Guid.Parse(reader.GetString(4)),
-                    Name = reader.IsDBNull(5) ? null : reader.GetString(5),
-                    BucketGroupId = Guid.Parse(reader.GetString(6)),
-                    ColorCode = reader.IsDBNull(7) ? null : reader.GetString(7),
-                    TextColorCode = reader.IsDBNull(8) ? null : reader.GetString(8),
-                    ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(9)),
-                    IsInactive = reader.GetBoolean(10),
-                    IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(11)),
-                    IsHiddenFromSummaries = reader.GetBoolean(12)
-                }
-            };
-
-            if (reader.IsDBNull(13)) continue;
-            ruleSet.MappingRules ??= new List<MappingRule>();
-            ruleSet.MappingRules.Add(new MappingRule
-            {
-                Id = Guid.Parse(reader.GetString(13)),
-                BucketRuleSetId = Guid.Parse(reader.GetString(14)),
-                ComparisonField = reader.GetInt32(15),
-                ComparisonType = reader.GetInt32(16),
-                ComparisonValue = reader.GetString(17)
-            });
-        }
-        return ruleSet;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(BucketRuleSet entity)
@@ -229,7 +178,7 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
         var result = 0;
 
         // Delete related MappingRules
-        if (entity.MappingRules is not null)
+        if (entity.MappingRules is not null && entity.MappingRules.Count > 0)
         {
             var mappingRuleRepository = new DuckDbMappingRuleRepository(_connection);
             result += mappingRuleRepository.DeleteRange(entity.MappingRules.Select(i => i.Id));

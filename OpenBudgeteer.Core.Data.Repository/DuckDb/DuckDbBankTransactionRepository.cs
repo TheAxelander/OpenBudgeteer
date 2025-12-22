@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -47,16 +48,15 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
                   INNER JOIN Account a ON bt.AccountId = a.AccountId
                   """;
 
-        var result = _connection.Query<BankTransaction, Account, BankTransaction>(
-            sql,
-            (transaction, account) =>
-            {
-                transaction.Account = account;
-                return transaction;
-            },
-            splitOn: "Id");
+        var mapper = new BankTransactionMapper();
+        _ = _connection
+            .Query<BankTransaction, Account, BankTransaction>(
+                sql,
+                mapper.MapWithAccount,
+                splitOn: "Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public BankTransaction? ById(Guid id)
@@ -70,28 +70,12 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
                       Memo,
                       Amount
                   FROM BankTransaction
-                  WHERE TransactionId = $1
+                  WHERE TransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new BankTransaction
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                AccountId = Guid.Parse(reader.GetString(1)),
-                TransactionDate = DateOnly.FromDateTime(reader.GetDateTime(2)),
-                Payee = reader.IsDBNull(3) ? null : reader.GetString(3),
-                Memo = reader.IsDBNull(4) ? null : reader.GetString(4),
-                Amount = reader.GetDecimal(5)
-            };
-        }
-        return null;
+        return _connection
+            .Query<BankTransaction>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public BankTransaction? ByIdWithIncludedEntities(Guid id)
@@ -109,33 +93,19 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
                       a.IsActive
                   FROM BankTransaction bt
                   INNER JOIN Account a ON bt.AccountId = a.AccountId
-                  WHERE bt.TransactionId = $1
+                  WHERE bt.TransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BankTransactionMapper();
+        _ = _connection
+            .Query<BankTransaction, Account, BankTransaction>(
+                sql,
+                mapper.MapWithAccount,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-
-        var transaction = new BankTransaction
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            AccountId = Guid.Parse(reader.GetString(1)),
-            TransactionDate = DateOnly.FromDateTime(reader.GetDateTime(2)),
-            Payee = reader.IsDBNull(3) ? null : reader.GetString(3),
-            Memo = reader.IsDBNull(4) ? null : reader.GetString(4),
-            Amount = reader.GetDecimal(5),
-            Account = new Account
-            {
-                Id = Guid.Parse(reader.GetString(6)),
-                Name = reader.IsDBNull(7) ? null : reader.GetString(7),
-                IsActive = reader.GetInt32(8)
-            }
-        };
-        return transaction;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(BankTransaction entity)

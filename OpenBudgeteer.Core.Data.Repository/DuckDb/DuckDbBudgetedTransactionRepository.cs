@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -52,17 +53,15 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                   INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
                   """;
 
-        var result = _connection.Query<BudgetedTransaction, Bucket, BankTransaction, BudgetedTransaction>(
-            sql,
-            (budgetedTransaction, bucket, bankTransaction) =>
-            {
-                budgetedTransaction.Bucket = bucket;
-                budgetedTransaction.Transaction = bankTransaction;
-                return budgetedTransaction;
-            },
-            splitOn: "Id,Id");
+        var mapper = new BudgetedTransactionMapper();
+        _ = _connection
+            .Query<BudgetedTransaction, Bucket, BankTransaction, BudgetedTransaction>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id,Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public IQueryable<BudgetedTransaction> AllWithTransactions()
@@ -97,45 +96,32 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                   INNER JOIN Account a ON t.AccountId = a.AccountId
                   """;
 
-        var result = _connection.Query<BudgetedTransaction, Bucket, BankTransaction, Account, BudgetedTransaction>(
-            sql,
-            (budgetedTransaction, bucket, bankTransaction, account) =>
-            {
-                budgetedTransaction.Bucket = bucket;
-                budgetedTransaction.Transaction = bankTransaction;
-                budgetedTransaction.Transaction.Account = account;
-                return budgetedTransaction;
-            },
-            splitOn: "Id,Id,Id");
+        var mapper = new BudgetedTransactionMapper();
+        _ = _connection
+            .Query<BudgetedTransaction, Bucket, BankTransaction, Account, BudgetedTransaction>(
+                sql,
+                mapper.MapWithEverythingIncludingAccount,
+                splitOn: "Id,Id,Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public BudgetedTransaction? ById(Guid id)
     {
         var sql = """
-                  SELECT BudgetedTransactionId AS Id, TransactionId, BucketId, Amount
+                  SELECT
+                      BudgetedTransactionId AS Id,
+                      TransactionId,
+                      BucketId,
+                      Amount
                   FROM BudgetedTransaction
-                  WHERE BudgetedTransactionId = $1
+                  WHERE BudgetedTransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new BudgetedTransaction
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                TransactionId = Guid.Parse(reader.GetString(1)),
-                BucketId = Guid.Parse(reader.GetString(2)),
-                Amount = reader.GetDecimal(3)
-            };
-        }
-        return null;
+        return _connection
+            .Query<BudgetedTransaction>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public BudgetedTransaction? ByIdWithTransaction(Guid id)
@@ -168,51 +154,19 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                   INNER JOIN Bucket b ON bt.BucketId = b.BucketId
                   INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
                   INNER JOIN Account a ON t.AccountId = a.AccountId
-                  WHERE bt.BudgetedTransactionId = $1
+                  WHERE bt.BudgetedTransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BudgetedTransactionMapper();
+        _ = _connection
+            .Query<BudgetedTransaction, Bucket, BankTransaction, Account, BudgetedTransaction>(
+                sql,
+                mapper.MapWithEverythingIncludingAccount,
+                splitOn: "Id,Id,Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-        var budgetedTransaction = new BudgetedTransaction
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            TransactionId = Guid.Parse(reader.GetString(1)),
-            BucketId = Guid.Parse(reader.GetString(2)),
-            Amount = reader.GetDecimal(3),
-            Bucket = new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(4)),
-                Name = reader.IsDBNull(5) ? null : reader.GetString(5),
-                BucketGroupId = Guid.Parse(reader.GetString(6)),
-                ColorCode = reader.IsDBNull(7) ? null : reader.GetString(7),
-                TextColorCode = reader.IsDBNull(8) ? null : reader.GetString(8),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(9)),
-                IsInactive = reader.GetBoolean(10),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(11)),
-                IsHiddenFromSummaries = reader.GetBoolean(12)
-            },
-            Transaction = new BankTransaction
-            {
-                Id = Guid.Parse(reader.GetString(13)),
-                AccountId = Guid.Parse(reader.GetString(14)),
-                TransactionDate = DateOnly.FromDateTime(reader.GetDateTime(15)),
-                Payee = reader.IsDBNull(16) ? null : reader.GetString(16),
-                Memo = reader.IsDBNull(17) ? null : reader.GetString(17),
-                Amount = reader.GetDecimal(18),
-                Account = new Account
-                {
-                    Id = Guid.Parse(reader.GetString(19)),
-                    Name = reader.IsDBNull(20) ? null : reader.GetString(20),
-                    IsActive = reader.GetInt32(21)
-                }
-            }
-        };
-        return budgetedTransaction;
+        return mapper.Results.FirstOrDefault();
     }
 
     public BudgetedTransaction? ByIdWithIncludedEntities(Guid id)
@@ -241,45 +195,19 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                   FROM BudgetedTransaction bt
                   INNER JOIN Bucket b ON bt.BucketId = b.BucketId
                   INNER JOIN BankTransaction t ON bt.TransactionId = t.TransactionId
-                  WHERE bt.BudgetedTransactionId = $1
+                  WHERE bt.BudgetedTransactionId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new BudgetedTransactionMapper();
+        _ = _connection
+            .Query<BudgetedTransaction, Bucket, BankTransaction, BudgetedTransaction>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id,Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-        var budgetedTransaction = new BudgetedTransaction
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            TransactionId = Guid.Parse(reader.GetString(1)),
-            BucketId = Guid.Parse(reader.GetString(2)),
-            Amount = reader.GetDecimal(3),
-            Bucket = new Bucket
-            {
-                Id = Guid.Parse(reader.GetString(4)),
-                Name = reader.IsDBNull(5) ? null : reader.GetString(5),
-                BucketGroupId = Guid.Parse(reader.GetString(6)),
-                ColorCode = reader.IsDBNull(7) ? null : reader.GetString(7),
-                TextColorCode = reader.IsDBNull(8) ? null : reader.GetString(8),
-                ValidFrom = DateOnly.FromDateTime(reader.GetDateTime(9)),
-                IsInactive = reader.GetBoolean(10),
-                IsInactiveFrom = DateOnly.FromDateTime(reader.GetDateTime(11)),
-                IsHiddenFromSummaries = reader.GetBoolean(12)
-            },
-            Transaction = new BankTransaction
-            {
-                Id = Guid.Parse(reader.GetString(13)),
-                AccountId = Guid.Parse(reader.GetString(14)),
-                TransactionDate = DateOnly.FromDateTime(reader.GetDateTime(15)),
-                Payee = reader.IsDBNull(16) ? null : reader.GetString(16),
-                Memo = reader.IsDBNull(17) ? null : reader.GetString(17),
-                Amount = reader.GetDecimal(18)
-            }
-        };
-        return budgetedTransaction;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(BudgetedTransaction entity)

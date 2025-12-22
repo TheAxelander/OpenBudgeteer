@@ -3,6 +3,7 @@ using Dapper;
 using DuckDB.NET.Data;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb;
 
@@ -71,16 +72,15 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
                   INNER JOIN Account a ON ip.AccountId = a.AccountId
                   """;
 
-        var result = _connection.Query<ImportProfile, Account, ImportProfile>(
-            sql,
-            (importProfile, account) =>
-            {
-                importProfile.Account = account;
-                return importProfile;
-            },
-            splitOn: "Id");
+        var mapper = new ImportProfileMapper();
+        _ = _connection
+            .Query<ImportProfile, Account, ImportProfile>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id")
+            .ToList();
 
-        return result.AsQueryable();
+        return mapper.Results.AsQueryable();
     }
 
     public ImportProfile? ById(Guid id)
@@ -106,40 +106,12 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
                       AdditionalSettingAmountCleanup,
                       AdditionalSettingAmountCleanupValue
                   FROM ImportProfile
-                  WHERE ImportProfileId = $1
+                  WHERE ImportProfileId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
-
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (reader.Read())
-        {
-            return new ImportProfile
-            {
-                Id = Guid.Parse(reader.GetString(0)),
-                ProfileName = reader.IsDBNull(1) ? null : reader.GetString(1),
-                AccountId = Guid.Parse(reader.GetString(2)),
-                HeaderRow = reader.GetInt32(3),
-                Delimiter = reader.GetString(4)[0],
-                TextQualifier = reader.GetString(5)[0],
-                DateFormat = reader.IsDBNull(6) ? null : reader.GetString(6),
-                NumberFormat = reader.IsDBNull(7) ? null : reader.GetString(7),
-                TransactionDateColumnName = reader.IsDBNull(8) ? null : reader.GetString(8),
-                PayeeColumnName = reader.IsDBNull(9) ? null : reader.GetString(9),
-                MemoColumnName = reader.IsDBNull(10) ? null : reader.GetString(10),
-                AmountColumnName = reader.IsDBNull(11) ? null : reader.GetString(11),
-                AdditionalSettingCreditValue = reader.GetInt32(12),
-                CreditColumnName = reader.IsDBNull(13) ? null : reader.GetString(13),
-                CreditColumnIdentifierColumnName = reader.IsDBNull(14) ? null : reader.GetString(14),
-                CreditColumnIdentifierValue = reader.IsDBNull(15) ? null : reader.GetString(15),
-                AdditionalSettingAmountCleanup = reader.GetBoolean(16),
-                AdditionalSettingAmountCleanupValue = reader.IsDBNull(17) ? null : reader.GetString(17)
-            };
-        }
-        return null;
+        return _connection
+            .Query<ImportProfile>(sql, param: new { id = id.ToString() })
+            .FirstOrDefault();
     }
 
     public ImportProfile? ByIdWithIncludedEntities(Guid id)
@@ -169,44 +141,19 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
                       a.IsActive
                   FROM ImportProfile ip
                   INNER JOIN Account a ON ip.AccountId = a.AccountId
-                  WHERE ip.ImportProfileId = $1
+                  WHERE ip.ImportProfileId = $id
                   """;
 
-        using var cmd = _connection.CreateCommand();
-        cmd.CommandText = sql;
+        var mapper = new ImportProfileMapper();
+        _ = _connection
+            .Query<ImportProfile, Account, ImportProfile>(
+                sql,
+                mapper.MapWithEverything,
+                splitOn: "Id",
+                param: new { id = id.ToString() })
+            .ToList();
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
-
-        using var reader = cmd.ExecuteReader();
-        if (!reader.Read()) return null;
-        var importProfile = new ImportProfile
-        {
-            Id = Guid.Parse(reader.GetString(0)),
-            ProfileName = reader.IsDBNull(1) ? null : reader.GetString(1),
-            AccountId = Guid.Parse(reader.GetString(2)),
-            HeaderRow = reader.GetInt32(3),
-            Delimiter = reader.GetString(4)[0],
-            TextQualifier = reader.GetString(5)[0],
-            DateFormat = reader.IsDBNull(6) ? null : reader.GetString(6),
-            NumberFormat = reader.IsDBNull(7) ? null : reader.GetString(7),
-            TransactionDateColumnName = reader.IsDBNull(8) ? null : reader.GetString(8),
-            PayeeColumnName = reader.IsDBNull(9) ? null : reader.GetString(9),
-            MemoColumnName = reader.IsDBNull(10) ? null : reader.GetString(10),
-            AmountColumnName = reader.IsDBNull(11) ? null : reader.GetString(11),
-            AdditionalSettingCreditValue = reader.GetInt32(12),
-            CreditColumnName = reader.IsDBNull(13) ? null : reader.GetString(13),
-            CreditColumnIdentifierColumnName = reader.IsDBNull(14) ? null : reader.GetString(14),
-            CreditColumnIdentifierValue = reader.IsDBNull(15) ? null : reader.GetString(15),
-            AdditionalSettingAmountCleanup = reader.GetBoolean(16),
-            AdditionalSettingAmountCleanupValue = reader.IsDBNull(17) ? null : reader.GetString(17),
-            Account = new Account
-            {
-                Id = Guid.Parse(reader.GetString(18)),
-                Name = reader.IsDBNull(19) ? null : reader.GetString(19),
-                IsActive = reader.GetInt32(20)
-            }
-        };
-        return importProfile;
+        return mapper.Results.FirstOrDefault();
     }
 
     public int Create(ImportProfile entity)
