@@ -8,6 +8,32 @@
 	<s:String x:Key="/Default/CodeInspection/ExternalAnnotations/SqlDialect/@EntryValue">PostgreSQL</s:String>
 
 	<!-- ================================ -->
+	<!-- SQL Formatting                   -->
+	<!-- ================================ -->
+
+	<!-- Common: Place clause elements on new line -->
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/ELEMENTS_LAYOUT/@EntryValue">NewLine</s:String>
+	<!-- Common: Place comma to begin -->
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/COMMA_POSITION/@EntryValue">ToBegin</s:String>
+
+	<!-- SELECT clause: As in common -->
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/SELECT_ELEMENTS_LAYOUT/@EntryValue">AsCommon</s:String>
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/SELECT_COMMA_POSITION/@EntryValue">AsCommon</s:String>
+
+	<!-- FROM clause: As in common -->
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/FROM_ELEMENTS_LAYOUT/@EntryValue">AsCommon</s:String>
+
+	<!-- WHERE and HAVING clauses: As in common, AND/OR to begin -->
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/WHERE_ELEMENTS_LAYOUT/@EntryValue">AsCommon</s:String>
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/AND_OR_POSITION/@EntryValue">ToBegin</s:String>
+
+	<!-- GROUP BY and ORDER BY clauses: As in common -->
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/GROUP_BY_ELEMENTS_LAYOUT/@EntryValue">AsCommon</s:String>
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/GROUP_BY_COMMA_POSITION/@EntryValue">AsCommon</s:String>
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/ORDER_BY_ELEMENTS_LAYOUT/@EntryValue">AsCommon</s:String>
+	<s:String x:Key="/Default/CodeStyle/SqlFormatter/ORDER_BY_COMMA_POSITION/@EntryValue">AsCommon</s:String>
+
+	<!-- ================================ -->
 	<!-- General Code Style               -->
 	<!-- ================================ -->
 
