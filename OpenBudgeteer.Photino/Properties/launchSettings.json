@@ -1,0 +1,18 @@
+{
+  "profiles": {
+    "OpenBudgeteer.Photino": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Logging__LogLevel__Default": "Warning"
+      }
+    },
+    "Production": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "Logging__LogLevel__Default": "Warning"
+      }
+    }
+  }
+}
