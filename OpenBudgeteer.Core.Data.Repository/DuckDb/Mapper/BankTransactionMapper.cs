@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BankTransactionMapperExtensions
+public static class BankTransactionMapperExtensions
 {
     public static BankTransaction MapWithAccount(this BankTransaction transaction, Account account)
     {
@@ -14,15 +14,16 @@ internal static class BankTransactionMapperExtensions
         this BankTransaction transaction,
         BudgetedTransaction? budgetedTransaction)
     {
-        BaseMapperExtensions.AddIfNotNull(
+        BaseMapperExtensions.AddWithBackReference(
             transaction.BudgetedTransactions ??= new List<BudgetedTransaction>(),
             budgetedTransaction,
-            m => m.Id);
+            bt => bt.Id,
+            bt => bt.Transaction = transaction);
         return transaction;
     }
 }
 
-internal class BankTransactionMapper
+public class BankTransactionMapper
 {
     public IEnumerable<BankTransaction> Results => _cache.Values;
 

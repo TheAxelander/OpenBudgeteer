@@ -1,10 +1,17 @@
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BaseMapperExtensions
+public static class BaseMapperExtensions
 {
-    internal static void AddIfNotNull<T>(ICollection<T> list, T? item, Func<T, Guid> idSelector) where T : class
+    internal static void AddWithBackReference<TChild>(
+        ICollection<TChild> collection,
+        TChild? child,
+        Func<TChild, Guid> idSelector,
+        Action<TChild> setBackReference) where TChild : class
     {
-        if (item != null && list.All(x => idSelector(x) != idSelector(item)))
-            list.Add(item);
+        if (child == null) return;
+        if (collection.Any(c => idSelector(c) == idSelector(child))) return;
+
+        collection.Add(child);
+        setBackReference.Invoke(child);
     }
 }

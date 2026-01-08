@@ -11,12 +11,13 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
     where TDatabase : class, IDisposable
 {
     private readonly ILogger _logger;
-    
+    private readonly Guid _systemBucketGroupId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+
     public GenericBucketGroupService(ILogger logger) : base(logger)
     {
         _logger = logger;
     }
-    
+
     protected abstract override IBucketGroupRepository CreateBaseRepository(TDatabase dbConnection);
 
     public virtual BucketGroup GetWithBuckets(Guid id)
@@ -48,7 +49,7 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
             var bucketGroupRepository = CreateBaseRepository(dbConnection);
             return bucketGroupRepository
                 .AllWithIncludedEntities()
-                .Where(i => i.Id != Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                .Where(i => i.Id != _systemBucketGroupId)
                 .OrderBy(i => i.Position)
                 .ToList();
         }
@@ -84,7 +85,7 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
             throw;
         }
     }
-    
+
     public virtual IEnumerable<BucketGroup> GetSystemBucketGroups()
     {
         try
@@ -93,8 +94,8 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
             var bucketGroupRepository = CreateBaseRepository(dbConnection);
             return bucketGroupRepository
                 .AllWithIncludedEntities()
-                .Where(i => i.Id == Guid.Parse("00000000-0000-0000-0000-000000000001"))
-                .OrderBy(i => i.Position) //In case in future there are multiple groups
+                .Where(i => i.Id == _systemBucketGroupId)
+                .OrderBy(i => i.Position) // In case in future there are multiple groups
                 .ToList();
         }
         catch (EntityNotFoundException e)
@@ -114,24 +115,24 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
         {
             using var dbConnection = CreateDbConnection();
             var bucketGroupRepository = CreateBaseRepository(dbConnection);
-            
+
             if (entity.Name == string.Empty) throw new EntityUpdateException("Bucket Group Name cannot be empty");
             var allGroups = GetAll().ToList();
             var lastNewPosition = allGroups.Count + 1;
-            
+
             if (entity.Position > 0)
             {
                 // Update positions of existing BucketGroups based on requested position
                 // As GetAll excludes System Groups no check on 0 position required
-                foreach (var bucketGroup in allGroups.Where(i => i.Position >= entity.Position)) 
+                foreach (var bucketGroup in allGroups.Where(i => i.Position >= entity.Position))
                 {
                     bucketGroup.Position++;
                     bucketGroupRepository.Update(bucketGroup);
                 }
-                
+
                 // Fix a potential too large position number
                 if (entity.Position > lastNewPosition) entity.Position = lastNewPosition;
-            } 
+            }
             else
             {
                 entity.Position = lastNewPosition;
@@ -169,7 +170,7 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
 
             var oldPosition = entity.Position;
             bucketGroupRepository.Delete(id);
-            
+
             // Update Positions of other Bucket Groups
             foreach (var bucketGroup in GetAll().Where(i => i.Position > oldPosition))
             {
@@ -195,7 +196,7 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
             using var dbConnection = CreateDbConnection();
             var bucketGroupRepository = CreateBaseRepository(dbConnection);
             var (bucketGroup, updatedBucketGroups) = HandleMovement(bucketGroupId, positions);
-            
+
             if (updatedBucketGroups.Any()) bucketGroupRepository.UpdateRange(updatedBucketGroups);
             return bucketGroup;
         }
@@ -221,8 +222,8 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
         {
             existingBucketGroups.Add(group);
         }
-        
-        // Re-use existing reference in interim list of passed Bucket Group (see #282) 
+
+        // Re-use existing reference in interim list of passed Bucket Group (see #282)
         var bucketGroup = existingBucketGroups.First(i => i.Id == bucketGroupId);
         if (positions == 0) return new(bucketGroup, new());
 
@@ -235,7 +236,7 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
 
         // Move Group in interim list
         existingBucketGroups.Move(bucketGroup.Position - 1, targetPosition - 1);
-                    
+
         // Update Position number for each group
         var newPosition = 1;
         foreach (var group in existingBucketGroups)
@@ -243,7 +244,7 @@ public abstract class GenericBucketGroupService<TDatabase> : GenericBaseService<
             group.Position = newPosition;
             newPosition++;
         }
-        
+
         return new(bucketGroup, existingBucketGroups.ToList());
     }
 }

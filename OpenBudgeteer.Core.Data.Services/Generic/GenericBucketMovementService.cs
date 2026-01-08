@@ -10,15 +10,15 @@ public abstract class GenericBucketMovementService<TDatabase> : GenericBaseServi
     where TDatabase : class, IDisposable
 {
     private readonly ILogger _logger;
-    
+
     public GenericBucketMovementService(ILogger logger) : base(logger)
     {
         _logger = logger;
     }
-    
+
     protected abstract override IBucketMovementRepository CreateBaseRepository(TDatabase dbConnection);
 
-    public IEnumerable<BucketMovement> GetAll(DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BucketMovement> GetAll(DateOnly periodStart, DateOnly periodEnd)
     {
         try
         {
@@ -42,12 +42,12 @@ public abstract class GenericBucketMovementService<TDatabase> : GenericBaseServi
         }
     }
 
-    public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId)
+    public virtual IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId)
     {
         return GetAllFromBucket(bucketId, DateOnly.MinValue, DateOnly.MaxValue);
     }
 
-    public IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
+    public virtual IEnumerable<BucketMovement> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
     {
         try
         {

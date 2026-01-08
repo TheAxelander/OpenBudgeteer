@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BucketVersionMapperExtensions
+public static class BucketVersionMapperExtensions
 {
     public static BucketVersion MapWithBucket(this BucketVersion bucketVersion, Bucket bucket)
     {
@@ -11,7 +11,7 @@ internal static class BucketVersionMapperExtensions
     }
 }
 
-internal class BucketVersionMapper
+public class BucketVersionMapper
 {
     public IEnumerable<BucketVersion> Results => _cache.Values;
 

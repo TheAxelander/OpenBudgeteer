@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class RecurringBankTransactionMapperExtensions
+public static class RecurringBankTransactionMapperExtensions
 {
     public static RecurringBankTransaction MapWithAccount(this RecurringBankTransaction transaction, Account account)
     {
@@ -11,7 +11,7 @@ internal static class RecurringBankTransactionMapperExtensions
     }
 }
 
-internal class RecurringBankTransactionMapper
+public class RecurringBankTransactionMapper
 {
     public IEnumerable<RecurringBankTransaction> Results => _cache.Values;
 

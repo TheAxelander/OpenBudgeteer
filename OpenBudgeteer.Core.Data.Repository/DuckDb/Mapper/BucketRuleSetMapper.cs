@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BucketRuleSetMapperExtensions
+public static class BucketRuleSetMapperExtensions
 {
     public static BucketRuleSet MapWithTargetBucket(this BucketRuleSet bucketRuleSet, Bucket bucket)
     {
@@ -12,15 +12,16 @@ internal static class BucketRuleSetMapperExtensions
 
     public static BucketRuleSet MapWithMappingRule(this BucketRuleSet bucketRuleSet, MappingRule? mappingRule)
     {
-        BaseMapperExtensions.AddIfNotNull(
+        BaseMapperExtensions.AddWithBackReference(
             bucketRuleSet.MappingRules ??= new List<MappingRule>(),
             mappingRule,
-            m => m.Id);
+            mr => mr.Id,
+            mr => mr.BucketRuleSet = bucketRuleSet);
         return bucketRuleSet;
     }
 }
 
-internal class BucketRuleSetMapper
+public class BucketRuleSetMapper
 {
     public IEnumerable<BucketRuleSet> Results => _cache.Values;
 

@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BucketMapperExtensions
+public static class BucketMapperExtensions
 {
     public static Bucket MapWithBucketGroup(this Bucket bucket, BucketGroup bucketGroup)
     {
@@ -12,33 +12,36 @@ internal static class BucketMapperExtensions
 
     public static Bucket MapWithBudgetedTransaction(this Bucket bucket, BudgetedTransaction? budgetedTransaction)
     {
-        BaseMapperExtensions.AddIfNotNull(
+        BaseMapperExtensions.AddWithBackReference(
             bucket.BudgetedTransactions ??= new List<BudgetedTransaction>(),
             budgetedTransaction,
-            m => m.Id);
+            bt => bt.Id,
+            bt => bt.Bucket = bucket);
         return bucket;
     }
 
     public static Bucket MapWithMovement(this Bucket bucket, BucketMovement? movement)
     {
-        BaseMapperExtensions.AddIfNotNull(
+        BaseMapperExtensions.AddWithBackReference(
             bucket.BucketMovements ??= new List<BucketMovement>(),
             movement,
-            m => m.Id);
+            bm => bm.Id,
+            bm => bm.Bucket = bucket);
         return bucket;
     }
 
     public static Bucket MapWithVersion(this Bucket bucket, BucketVersion? version)
     {
-        BaseMapperExtensions.AddIfNotNull(
+        BaseMapperExtensions.AddWithBackReference(
             bucket.BucketVersions ??= new List<BucketVersion>(),
             version,
-            v => v.Id);
+            bv => bv.Id,
+            bv => bv.Bucket = bucket);
         return bucket;
     }
 }
 
-internal class BucketMapper
+public class BucketMapper
 {
     public IEnumerable<Bucket> Results => _cache.Values;
 

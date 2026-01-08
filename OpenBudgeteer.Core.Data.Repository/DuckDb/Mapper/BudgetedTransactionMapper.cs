@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BudgetedTransactionMapperExtensions
+public static class BudgetedTransactionMapperExtensions
 {
     public static BudgetedTransaction MapWithBucket(this BudgetedTransaction budgetedTransaction, Bucket bucket)
     {
@@ -29,7 +29,7 @@ internal static class BudgetedTransactionMapperExtensions
     }
 }
 
-internal class BudgetedTransactionMapper
+public class BudgetedTransactionMapper
 {
     public IEnumerable<BudgetedTransaction> Results => _cache.Values;
 

@@ -10,12 +10,16 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
     where TDatabase : class, IDisposable
 {
     private readonly ILogger _logger;
-    
+
+    // System bucket IDs
+    private readonly Guid _incomeBucketId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private readonly Guid _transferBucketId = Guid.Parse("00000000-0000-0000-0000-000000000002");
+
     public GenericBudgetedTransactionService(ILogger logger) : base(logger)
     {
         _logger = logger;
     }
-    
+
     protected abstract override IBudgetedTransactionRepository CreateBaseRepository(TDatabase dbConnection);
 
     public virtual IEnumerable<BudgetedTransaction> GetAll(DateOnly periodStart, DateOnly periodEnd)
@@ -41,7 +45,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
             throw;
         }
     }
-    
+
     public virtual IEnumerable<BudgetedTransaction> GetAllForReporting(DateOnly periodStart, DateOnly periodEnd)
     {
         try
@@ -66,12 +70,12 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
             throw;
         }
     }
-    
+
     public virtual IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId)
     {
         return GetAllFromTransaction(transactionId, DateOnly.MinValue, DateOnly.MaxValue);
     }
-    
+
     public virtual IEnumerable<BudgetedTransaction> GetAllFromTransaction(Guid transactionId, DateOnly periodStart, DateOnly periodEnd)
     {
         try
@@ -101,7 +105,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
     {
         return GetAllFromBucket(bucketId, DateOnly.MinValue, DateOnly.MaxValue);
     }
-    
+
     public virtual IEnumerable<BudgetedTransaction> GetAllFromBucket(Guid bucketId, DateOnly periodStart, DateOnly periodEnd)
     {
         try
@@ -112,7 +116,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
                 .AllWithTransactions()
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
-                    i.Transaction.TransactionDate <= periodEnd && 
+                    i.Transaction.TransactionDate <= periodEnd &&
                     i.BucketId == bucketId)
                 .OrderByDescending(i => i.Transaction.TransactionDate)
                 .ToList();
@@ -127,7 +131,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
             throw;
         }
     }
-    
+
     public virtual IEnumerable<BudgetedTransaction> GetAllNonTransfer()
     {
         return GetAllNonTransfer(DateOnly.MinValue, DateOnly.MaxValue);
@@ -144,7 +148,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd &&
-                    i.BucketId != Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                    i.BucketId != _transferBucketId)
                 .ToList();
         }
         catch (EntityNotFoundException e)
@@ -174,7 +178,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd &&
-                    i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000002"))
+                    i.BucketId == _transferBucketId)
                 .ToList();
         }
         catch (EntityNotFoundException e)
@@ -204,7 +208,7 @@ public abstract class GenericBudgetedTransactionService<TDatabase> : GenericBase
                 .Where(i =>
                     i.Transaction.TransactionDate >= periodStart &&
                     i.Transaction.TransactionDate <= periodEnd &&
-                    i.BucketId == Guid.Parse("00000000-0000-0000-0000-000000000001"))
+                    i.BucketId == _incomeBucketId)
                 .ToList();
         }
         catch (EntityNotFoundException e)

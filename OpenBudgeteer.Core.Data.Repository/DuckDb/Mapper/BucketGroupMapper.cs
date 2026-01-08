@@ -2,19 +2,20 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class BucketGroupMapperExtensions
+public static class BucketGroupMapperExtensions
 {
     public static BucketGroup MapWithBucket(this BucketGroup bucketGroup, Bucket? bucket)
     {
-        BaseMapperExtensions.AddIfNotNull(
+        BaseMapperExtensions.AddWithBackReference(
             bucketGroup.Buckets ??= new List<Bucket>(),
             bucket,
-            b => b.Id);
+            b => b.Id,
+            b => b.BucketGroup = bucketGroup);
         return bucketGroup;
     }
 }
 
-internal class BucketGroupMapper
+public class BucketGroupMapper
 {
     public IEnumerable<BucketGroup> Results => _cache.Values;
 

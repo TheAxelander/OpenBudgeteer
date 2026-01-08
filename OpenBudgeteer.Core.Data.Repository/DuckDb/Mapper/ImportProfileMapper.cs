@@ -2,7 +2,7 @@ using OpenBudgeteer.Core.Data.Entities.Models;
 
 namespace OpenBudgeteer.Core.Data.Repository.DuckDb.Mapper;
 
-internal static class ImportProfileMapperExtensions
+public static class ImportProfileMapperExtensions
 {
     public static ImportProfile MapWithAccount(this ImportProfile importProfile, Account account)
     {
@@ -11,7 +11,7 @@ internal static class ImportProfileMapperExtensions
     }
 }
 
-internal class ImportProfileMapper
+public class ImportProfileMapper
 {
     public IEnumerable<ImportProfile> Results => _cache.Values;
 
