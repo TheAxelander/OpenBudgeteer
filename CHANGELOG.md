@@ -1,3 +1,11 @@
+## 1.11.1 (2026-xx-xx)
+
+### :beetle: Bug Fixes
+
+* Transaction Page:
+  * While creating Transactions and Transfers, `Create another` button is now resetting the form (except the Transaction date) [#350](https://github.com/TheAxelander/OpenBudgeteer/issues/350)
+  * Unable to enter a decimal number for Amount while creating a new Recurring Transaction
+
 ## 1.11 (2025-12-17)
 
 ### :gear: Features & Enhancements

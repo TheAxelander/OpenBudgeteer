@@ -116,6 +116,7 @@ public partial class Transaction : ComponentBase
                     if (createDialogResult.Data is CreateDialogResponse.CreateAnother)
                     {
                         lastEnteredDate = _createTransactionDataContext.TransactionDate;
+                        _createTransactionDataContext = TransactionViewModel.CreateEmpty(ServiceManager);
                         continue;
                     }
                 }
@@ -192,6 +193,7 @@ public partial class Transaction : ComponentBase
                     {
                         lastEnteredDateSender = sender.TransactionDate;
                         lastEnteredDateReceiver = receiver.TransactionDate;
+                        _createTransactionDataContext = TransactionViewModel.CreateEmpty(ServiceManager);
                         continue;
                     }
                 }
