@@ -1,0 +1,146 @@
+@page "/export"
+@attribute [Authorize]
+@using BankAccount = OpenBudgeteer.Core.Data.Entities.Models.Account
+
+<!-- Page Title -->
+<MudText Class="mb-4"
+         Typo="Typo.h5">
+    Export Data
+</MudText>
+<MudText Class="mb-6"
+         Typo="Typo.body1">
+    Download your budget data as CSV files for use in spreadsheets, AI analysis tools, or custom applications.
+</MudText>
+
+<!-- Three export tabs: Transactions / Buckets / Bucket Movements -->
+<MudTabs Elevation="2"
+         Rounded="true"
+         ApplyEffectsToContainer="true">
+
+    <!-- ── Transactions Tab ─────────────────────────────────────────────── -->
+    <MudTabPanel Text="Transactions">
+        <MudCard Class="mt-4">
+            <MudCardContent>
+                <MudText Class="mb-3"
+                         Typo="Typo.body2">
+                    Exports bank transactions with their bucket assignments.
+                    Split transactions produce multiple rows (one per bucket).
+                    Columns: <em>date, payee, memo, amount, type, account, bucket, bucket_group, bucket_amount</em>
+                </MudText>
+                <!-- Filter controls -->
+                <MudGrid>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Start date (optional)"
+                                       Date="@_txStartDateTime"
+                                       DateChanged="@(d => _txStartDateTime = d)"
+                                       Clearable="true"
+                                       ShowToolbar="false"
+                                       Margin="Margin.Dense"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="End date (optional)"
+                                       Date="@_txEndDateTime"
+                                       DateChanged="@(d => _txEndDateTime = d)"
+                                       Clearable="true"
+                                       ShowToolbar="false"
+                                       Margin="Margin.Dense"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <!-- Optional account filter: ToStringFunc tells MudBlazor how to render the selected Account entity in the trigger button -->
+                        <MudSelect T="BankAccount?"
+                                   Label="Account (optional — all if blank)"
+                                   @bind-Value="_txAccount"
+                                   ToStringFunc="@(a => a?.Name ?? string.Empty)"
+                                   Clearable="true"
+                                   Margin="Margin.Dense">
+                            @foreach (var account in _accounts)
+                            {
+                                <MudSelectItem T="BankAccount?" Value="@account">@account.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton OnClick="DownloadTransactions"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           Variant="Variant.Filled">
+                    Download Transactions CSV
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudTabPanel>
+
+    <!-- ── Buckets Tab ──────────────────────────────────────────────────── -->
+    <MudTabPanel Text="Buckets">
+        <MudCard Class="mt-4">
+            <MudCardContent>
+                <MudText Class="mb-3"
+                         Typo="Typo.body2">
+                    Exports all user-created buckets with their current configuration.
+                    System buckets (Income, Transfer) are always excluded.
+                    Columns: <em>bucket_id, name, group, bucket_type, target_amount, notes, valid_from, is_active</em>
+                </MudText>
+                <!-- Filter controls -->
+                <MudGrid>
+                    <MudItem xs="12" sm="4"
+                             Class="d-flex align-center">
+                        <MudSwitch @bind-Value="_includeInactive"
+                                   Color="Color.Primary"
+                                   Label="Include inactive buckets"/>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton OnClick="DownloadBuckets"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           Variant="Variant.Filled">
+                    Download Buckets CSV
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudTabPanel>
+
+    <!-- ── Bucket Movements Tab ─────────────────────────────────────────── -->
+    <MudTabPanel Text="Bucket Movements">
+        <MudCard Class="mt-4">
+            <MudCardContent>
+                <MudText Class="mb-3"
+                         Typo="Typo.body2">
+                    Exports manual fund movements between buckets.
+                    Columns: <em>movement_id, movement_date, bucket, amount</em>
+                </MudText>
+                <!-- Filter controls -->
+                <MudGrid>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="Start date (optional)"
+                                       Date="@_mvStartDateTime"
+                                       DateChanged="@(d => _mvStartDateTime = d)"
+                                       Clearable="true"
+                                       ShowToolbar="false"
+                                       Margin="Margin.Dense"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudDatePicker Label="End date (optional)"
+                                       Date="@_mvEndDateTime"
+                                       DateChanged="@(d => _mvEndDateTime = d)"
+                                       Clearable="true"
+                                       ShowToolbar="false"
+                                       Margin="Margin.Dense"/>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton OnClick="DownloadMovements"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           Variant="Variant.Filled">
+                    Download Bucket Movements CSV
+                </MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudTabPanel>
+
+</MudTabs>

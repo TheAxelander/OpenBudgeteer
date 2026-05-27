@@ -242,6 +242,38 @@ import.MapDelete( "/{id:guid}", (Guid id) => importProfileService.Delete(id));
 
 #endregion
 
+#region Export
+
+// CSV Export endpoints — return file downloads for use in spreadsheet tools or AI analysis pipelines.
+// All date params use ISO 8601 (yyyy-MM-dd). Omit start/end for an unbounded export.
+var export = app.MapGroup("/export").WithTags("export");
+
+// GET /export/transactions?start=2024-01-01&end=2024-12-31[&accountId=guid]
+export.MapGet("/transactions", (DateOnly? start, DateOnly? end, Guid? accountId) =>
+{
+    var bytes = serviceManager.CsvExportService.ExportTransactions(start, end, accountId);
+    var filename = $"transactions_{DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}.csv";
+    return Results.File(bytes, "text/csv; charset=utf-8", filename);
+});
+
+// GET /export/buckets[?includeInactive=true]
+export.MapGet("/buckets", (bool? includeInactive) =>
+{
+    var bytes = serviceManager.CsvExportService.ExportBuckets(includeInactive ?? false);
+    var filename = $"buckets_{DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}.csv";
+    return Results.File(bytes, "text/csv; charset=utf-8", filename);
+});
+
+// GET /export/movements?start=2024-01-01&end=2024-12-31
+export.MapGet("/movements", (DateOnly? start, DateOnly? end) =>
+{
+    var bytes = serviceManager.CsvExportService.ExportBucketMovements(start, end);
+    var filename = $"bucket_movements_{DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}.csv";
+    return Results.File(bytes, "text/csv; charset=utf-8", filename);
+});
+
+#endregion
+
 app.MapOpenApi("/openapi/{documentName}/openapi.json");
 app.MapScalarApiReference("/api", options =>
 {

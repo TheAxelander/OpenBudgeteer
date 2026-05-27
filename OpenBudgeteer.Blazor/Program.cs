@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using DotNetEnv;
 using DotNetEnv.Configuration;
@@ -18,6 +19,7 @@ using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Initialization;
 using OpenBudgeteer.Core.Data.Services.EFCore;
 using OpenBudgeteer.Core.ViewModels.Helper;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = new ConfigurationBuilder()
@@ -80,6 +82,42 @@ if (authEnabled)
 {
     app.MapAuthenticationEndpoints();
 }
+
+// CSV Export endpoints — these are standard Minimal API GET routes that return file downloads.
+// The Blazor UI triggers them via NavigationManager.NavigateTo(url, forceLoad: true).
+// forceLoad bypasses Blazor client-side routing so the browser makes a real HTTP request;
+// the browser sees Content-Disposition: attachment and downloads without navigating away.
+var exportGroup = app.MapGroup("/export");
+
+exportGroup.MapGet("/transactions", (
+    IServiceManager svc,
+    DateOnly? start,
+    DateOnly? end,
+    Guid? accountId) =>
+{
+    var bytes = svc.CsvExportService.ExportTransactions(start, end, accountId);
+    var filename = $"transactions_{DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}.csv";
+    return Results.File(bytes, "text/csv; charset=utf-8", filename);
+});
+
+exportGroup.MapGet("/buckets", (
+    IServiceManager svc,
+    bool? includeInactive) =>
+{
+    var bytes = svc.CsvExportService.ExportBuckets(includeInactive ?? false);
+    var filename = $"buckets_{DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}.csv";
+    return Results.File(bytes, "text/csv; charset=utf-8", filename);
+});
+
+exportGroup.MapGet("/movements", (
+    IServiceManager svc,
+    DateOnly? start,
+    DateOnly? end) =>
+{
+    var bytes = svc.CsvExportService.ExportBucketMovements(start, end);
+    var filename = $"bucket_movements_{DateOnly.FromDateTime(DateTime.Today):yyyy-MM-dd}.csv";
+    return Results.File(bytes, "text/csv; charset=utf-8", filename);
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

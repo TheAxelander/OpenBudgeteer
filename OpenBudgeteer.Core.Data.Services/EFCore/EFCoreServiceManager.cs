@@ -31,8 +31,12 @@ public class EFCoreServiceManager : IServiceManager
     public IImportProfileService ImportProfileService => 
         new EFCoreImportProfileService(_dbContextFactory, new Logger<EFCoreImportProfileService>(_loggerFactory));
     
-    public IRecurringBankTransactionService RecurringBankTransactionService => 
+    public IRecurringBankTransactionService RecurringBankTransactionService =>
         new EFCoreRecurringBankTransactionService(_dbContextFactory, new Logger<EFCoreRecurringBankTransactionService>(_loggerFactory));
+
+    /// <summary>Creates a new export service instance backed by the shared DB context factory.</summary>
+    public ICsvExportService CsvExportService =>
+        new EFCoreCsvExportService(_dbContextFactory, new Logger<EFCoreCsvExportService>(_loggerFactory));
 
     private readonly IDbContextFactory<DatabaseContext> _dbContextFactory;
     private readonly ILoggerFactory _loggerFactory;

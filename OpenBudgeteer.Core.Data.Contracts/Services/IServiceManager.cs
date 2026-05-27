@@ -13,6 +13,8 @@ public interface IServiceManager
     IBudgetedTransactionService BudgetedTransactionService { get; }
     IImportProfileService ImportProfileService { get; }
     IRecurringBankTransactionService RecurringBankTransactionService { get; }
+    /// <summary>Provides CSV export for transactions, buckets, and bucket movements.</summary>
+    ICsvExportService CsvExportService { get; }
 
     public ILogger CreateLogger(Type type);
 }
