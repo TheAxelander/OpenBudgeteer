@@ -15,18 +15,17 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
     {
         if (string.IsNullOrEmpty(Server)) Server = "localhost";
         if (Port == 0) Port = 5432;
-        
+
         if (string.IsNullOrEmpty(Database)) Database = "postgres";
         if (!DatabaseNameRegex().IsMatch(Database))
-        {
             throw new InvalidOperationException("Database name provided is illegal or SQLi attempt");
-        }
-        
+
         if (string.IsNullOrEmpty(Username)) Username = Database;
         if (!DatabaseNameRegex().IsMatch(Username))
-        {
             throw new InvalidOperationException("User name provided is illegal or SQLi attempt");
-        }
+
+        if (!PasswordRegex().IsMatch(Password))
+            throw new InvalidOperationException("Password provided is illegal or SQLi attempt");
     }
 
     public override NpgsqlConnectionStringBuilder BuildConnectionString()
@@ -55,7 +54,7 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
     public override DbContextOptions BuildDbConnection(DbContextOptionsBuilder dbContextOptionsBuilder)
     {
         var connectionStringBuilder = BuildConnectionString();
-        
+
         dbContextOptionsBuilder.UseNpgsql(
             connectionStringBuilder.ConnectionString,
             b => b.MigrationsAssembly("OpenBudgeteer.Core.Data.Postgres.Migrations"));
@@ -69,7 +68,7 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
             var connectionStringBuilder = useRoot ? BuildRootConnectionString() : BuildConnectionString();
             using var connection = new NpgsqlConnection(connectionStringBuilder.ConnectionString);
             connection.Open();
-                
+
             using var command = new NpgsqlCommand("SELECT 1");
             command.Connection = connection;
             command.CommandType = CommandType.Text;
@@ -87,4 +86,7 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
 
     [GeneratedRegex("^[a-zA-Z][0-9a-zA-Z$_]{0,63}$", RegexOptions.Compiled | RegexOptions.Singleline)]
     private static partial Regex DatabaseNameRegex();
+
+    [GeneratedRegex(@"^[^'\\;\p{Cc}]*\z", RegexOptions.Compiled | RegexOptions.Singleline)]
+    private static partial Regex PasswordRegex();
 }
