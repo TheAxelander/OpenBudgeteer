@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Common;
@@ -21,14 +22,14 @@ namespace OpenBudgeteer.Core.ViewModels.PageViewModels;
 public class ImportPageViewModel : ViewModelBase
 {
     /// <summary>
-    /// Helper Record to better handle Duplicates 
+    /// Helper Record to better handle Duplicates
     /// </summary>
     /// <param name="ParsedBankTransaction">Result from <see cref="TinyCsvParser"/></param>
     /// <param name="Duplicates">Identified Duplicates that belong to the parsed Transaction</param>
     public record Duplicate(
         CsvMappingResult<ParsedBankTransaction> ParsedBankTransaction,
         List<BankTransaction> Duplicates);
-    
+
     private string _filePath;
     /// <summary>
     /// Path to the file which should be imported
@@ -67,7 +68,7 @@ public class ImportPageViewModel : ViewModelBase
             if (value is not null) ModifiedImportProfile =  ImportProfileViewModel.CreateAsCopy(value);
         }
     }
-    
+
     private ImportProfileViewModel _modifiedImportProfile;
     /// <summary>
     /// Profile with import settings which can contain modifications set by the UI that have been not yet
@@ -112,7 +113,7 @@ public class ImportPageViewModel : ViewModelBase
         get => _validRecords;
         private set => Set(ref _validRecords, value);
     }
-    
+
     private int _potentialDuplicates;
     /// <summary>
     /// Number of records which have been identified as potential duplicate
@@ -144,7 +145,7 @@ public class ImportPageViewModel : ViewModelBase
     public readonly ObservableCollection<CsvMappingResult<ParsedBankTransaction>> ParsedRecords;
 
     /// <summary>
-    /// Collection of all parsed CSV records which are a potential duplicate of existing <see cref="BankTransaction"/> 
+    /// Collection of all parsed CSV records which are a potential duplicate of existing <see cref="BankTransaction"/>
     /// </summary>
     public readonly ObservableCollection<Duplicate> Duplicates;
 
@@ -155,7 +156,7 @@ public class ImportPageViewModel : ViewModelBase
     /// Basic constructor
     /// </summary>
     /// <param name="serviceManager">Reference to API based services</param>
-    public ImportPageViewModel(IServiceManager serviceManager) 
+    public ImportPageViewModel(IServiceManager serviceManager)
         : base(serviceManager, serviceManager.CreateLogger(typeof(ImportPageViewModel)))
     {
         AvailableImportProfiles = new ObservableCollection<ImportProfileViewModel>();
@@ -180,14 +181,14 @@ public class ImportPageViewModel : ViewModelBase
             LoadAvailableProfiles();
             SelectedImportProfile = null;
             ModifiedImportProfile = ImportProfileViewModel.CreateEmpty(ServiceManager);
-            
+
             // Handle available Accounts
             AvailableAccounts.Clear();
             foreach (var account in ServiceManager.AccountService.GetActiveAccounts())
             {
                 AvailableAccounts.Add(AccountViewModel.CreateFromAccount(ServiceManager, account));
             }
-            
+
             return new ViewModelOperationResult(true);
         }
         catch (ServiceException e)
@@ -198,7 +199,7 @@ public class ImportPageViewModel : ViewModelBase
         {
             Logger.LogError(e, "An unexpected error occurred.");
             return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
-        }       
+        }
     }
 
     /// <summary>
@@ -268,7 +269,7 @@ public class ImportPageViewModel : ViewModelBase
         {
             Logger.LogError(e, "An unexpected error occurred.");
             return new ViewModelOperationResult(false, "An unexpected error occurred. Please check the logs for more details.");
-        }   
+        }
     }
 
     /// <summary>
@@ -296,7 +297,7 @@ public class ImportPageViewModel : ViewModelBase
         try
         {
             IdentifiedColumns.Clear();
-            
+
             // Consistency checks
             if (_fileLines is null) return FallbackWithError("File content not loaded.");
             if (ModifiedImportProfile.HeaderRow < 1 || ModifiedImportProfile.HeaderRow > _fileLines.Length)
@@ -310,7 +311,7 @@ public class ImportPageViewModel : ViewModelBase
                 if (!string.IsNullOrEmpty(column))
                     IdentifiedColumns.Add(column.Trim(ModifiedImportProfile.TextQualifier)); // Exclude TextQualifier
             }
-            
+
             // Make an initial selection after loading headers if possible
             if (IdentifiedColumns.Count == 0) return FallbackWithError("No headers found.");
             if (SelectedImportProfile is null)
@@ -326,22 +327,22 @@ public class ImportPageViewModel : ViewModelBase
             }
             else
             {
-                // A profile has been selected, check if the columns really exist, otherwise reset 
+                // A profile has been selected, check if the columns really exist, otherwise reset
                 // This can also potentially restore existing column mapping in case the header row number had to be updated
                 ModifiedImportProfile.TransactionDateColumnName =
                     GetAssignableColumnName(SelectedImportProfile.TransactionDateColumnName);
-                ModifiedImportProfile.PayeeColumnName = 
+                ModifiedImportProfile.PayeeColumnName =
                     GetAssignableColumnName(SelectedImportProfile.PayeeColumnName);
-                ModifiedImportProfile.MemoColumnName = 
+                ModifiedImportProfile.MemoColumnName =
                     GetAssignableColumnName(SelectedImportProfile.MemoColumnName);
-                ModifiedImportProfile.AmountColumnName = 
+                ModifiedImportProfile.AmountColumnName =
                     GetAssignableColumnName(SelectedImportProfile.AmountColumnName);
-                ModifiedImportProfile.CreditColumnName = 
+                ModifiedImportProfile.CreditColumnName =
                     GetAssignableColumnName(SelectedImportProfile.CreditColumnName);
-                ModifiedImportProfile.CreditColumnIdentifierColumnName = 
+                ModifiedImportProfile.CreditColumnIdentifierColumnName =
                     GetAssignableColumnName(SelectedImportProfile.CreditColumnIdentifierColumnName);
             }
-            
+
             return new ViewModelOperationResult(true);
         }
         catch (Exception e)
@@ -363,11 +364,11 @@ public class ImportPageViewModel : ViewModelBase
             ModifiedImportProfile.AmountColumnName = string.Empty;
             ModifiedImportProfile.CreditColumnName = string.Empty;
             ModifiedImportProfile.CreditColumnIdentifierColumnName = string.Empty;
-            
+
             return new ViewModelOperationResult(false, $"Unable to load Headers: {message}");
         }
     }
-    
+
     /// <summary>
     /// Reads the file and parses the content to a set of <see cref="BankTransaction"/>.
     /// Results will be stored in <see cref="ParsedRecords"/>
@@ -388,6 +389,8 @@ public class ImportPageViewModel : ViewModelBase
             if (string.IsNullOrEmpty(ModifiedImportProfile.AmountColumnName)) return ReturnWithError("Missing Mapping for Amount");
             if (ModifiedImportProfile.Account.AccountId == Guid.Empty) return ReturnWithError("No target account selected");
             if (_fileLines is null) return ReturnWithError("File content not loaded.");
+            var regexValidationError = CsvBankTransactionMapping.ValidateAmountCleanupPattern(ModifiedImportProfile);
+            if (regexValidationError is not null) return ReturnWithError(regexValidationError);
 
             // Pre-Load Data for verification
             // Initialize CsvReader
@@ -421,6 +424,15 @@ public class ImportPageViewModel : ViewModelBase
             if (ValidRecords > 0) _isProfileValid = true;
             return new ViewModelOperationResult(true);
         }
+        // Special Exception Handling for Regex timeout
+        catch (Exception e) when
+            (e is RegexMatchTimeoutException ||
+             (e is AggregateException aggregateException &&
+              aggregateException.Flatten().InnerExceptions.Any(i => i is RegexMatchTimeoutException)))
+        {
+            Logger.LogWarning("Amount cleanup Regex exceeded execution timeout during CSV parsing.");
+            return ReturnWithError("Amount cleanup pattern took too long to evaluate. Please simplify it.");
+        }
         catch (Exception e)
         {
             return ReturnWithError(e.Message);
@@ -450,7 +462,7 @@ public class ImportPageViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Checks each parsed CSV records on potential existing <see cref="BankTransaction"/> 
+    /// Checks each parsed CSV records on potential existing <see cref="BankTransaction"/>
     /// </summary>
     private async Task DuplicateCheckOnParsedRecordsAsync()
     {
@@ -469,7 +481,7 @@ public class ImportPageViewModel : ViewModelBase
                     transactions,
                     i => i.Result.AsBankTransaction(),
                     j => j,
-                    (parsedRecord, matches) => 
+                    (parsedRecord, matches) =>
                         new { ParsedRecord = parsedRecord, MatchList = matches.ToList() },
                     new DuplicateMatchComparer())
                 .ToList();
@@ -585,7 +597,7 @@ public class ImportPageViewModel : ViewModelBase
         var result = ModifiedImportProfile.SaveProfile();
         LoadAvailableProfiles();
         SelectedImportProfile = ModifiedImportProfile; //Setter will automatically create a detached copy for ModifiedImportProfile
-        
+
         return result;
     }
 

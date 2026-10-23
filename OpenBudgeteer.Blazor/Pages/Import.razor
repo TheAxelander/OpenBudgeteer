@@ -298,7 +298,8 @@
                     @if (_dataContext.ModifiedImportProfile.AdditionalSettingAmountCleanup)
                     {
                         <MudTextField @bind-Value="_dataContext.ModifiedImportProfile.AdditionalSettingAmountCleanupValue"
-                                      Label="Characters / Substring to be removed:"/>
+                                      Label="Characters / Substring to be removed:"
+                                      HelperText="Enter as Regular expression, e.g. [€$ ]"/>
                     }
                 </MudItem>
             </MudGrid>

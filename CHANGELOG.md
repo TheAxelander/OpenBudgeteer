@@ -1,3 +1,12 @@
+## 1.11.1 (2026-10-23)
+
+### :beetle: Bug Fixes
+
+* Import Page:
+  * Fix CVE-2026-61636 ReDoS vulnerability in Amount cleanup by enforcing a Regex execution timeout and pattern validation [GHSA-ch28-32c3-4h4q](https://github.com/TheAxelander/OpenBudgeteer/security/advisories/GHSA-ch28-32c3-4h4q)
+* Misc:
+  * Fix CVE-2026-61635 SQL Injection in Postgres database initializer [GHSA-vjxw-f3mc-4m3g](https://github.com/TheAxelander/OpenBudgeteer/security/advisories/GHSA-vjxw-f3mc-4m3g)
+
 ## 1.11 (2025-12-17)
 
 ### :gear: Features & Enhancements
