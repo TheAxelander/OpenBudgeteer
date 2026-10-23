@@ -1,10 +1,10 @@
 <p align="center">
-    <img alt="OpenBudgeteer banner" src="https://github.com/TheAxelander/OpenBudgeteer/blob/master/assets/banner.png?raw=true">
+    <img alt="OpenBudgeteer banner" src="https://github.com/TheAxelander/OpenBudgeteer/blob/main/assets/banner.png?raw=true">
 </p>
 
 <p align="center">
     <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml" target="_blank"><img alt="Docker Image pre-release" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml/badge.svg"></a>
-    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml" target="_blank"><img alt="Docker Image latest" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-master.yml/badge.svg"></a>
+    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-release.yml" target="_blank"><img alt="Docker Image latest" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-release.yml/badge.svg"></a>
 </p>
 <p align="center">
     <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#money-budgeting--management" target="_blank"><img alt="Mentioned in Awesome-Selfhosted" src="https://awesome.re/mentioned-badge.svg"></a>
