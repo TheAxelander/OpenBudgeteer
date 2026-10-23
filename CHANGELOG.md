@@ -1,3 +1,9 @@
+## 1.11.2 (2026-10-23)
+
+### :hammer: Maintenance
+
+* Intermediate version for the new release process, no actual changes
+
 ## 1.11.1 (2026-10-23)
 
 ### :beetle: Bug Fixes
