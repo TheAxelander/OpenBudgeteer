@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common;
 using OpenBudgeteer.Core.Data.Entities.Models;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Services;
@@ -17,7 +19,7 @@ public class ImportPageViewModelTest
     private readonly Account _testAccount = new()
     {
         Id = Guid.NewGuid(),
-        Name = "Test Account", 
+        Name = "Test Account",
         IsActive = 1
     };
 
@@ -62,7 +64,7 @@ public class ImportPageViewModelTest
         ImportProfile importProfile)
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
-            
+
         var inactiveTestAccount = new Account() { Name = "Inactive Test Account", IsActive = 0 };
         serviceManager.AccountService.Create(inactiveTestAccount);
 
@@ -121,13 +123,13 @@ public class ImportPageViewModelTest
         List<string> fileHeaders)
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
-            
+
         importProfile.AccountId = _testAccount.Id;
         serviceManager.ImportProfileService.Create(importProfile);
 
         var viewModel = new ImportPageViewModel(serviceManager);
         viewModel.LoadData();
-            
+
         await viewModel.HandleOpenFileAsync(File.OpenRead(testFilePath));
         viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
             i => i.ImportProfileId == importProfile.Id);
@@ -172,7 +174,7 @@ public class ImportPageViewModelTest
         string testFilePath)
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
-            
+
         importProfile.AccountId = _testAccount.Id;
         serviceManager.ImportProfileService.Create(importProfile);
 
@@ -235,7 +237,7 @@ public class ImportPageViewModelTest
                 CreditColumnName = "Credit (EUR)",
 
                 AdditionalSettingCreditValue = 1,
-                        
+
                 Delimiter = ';',
                 TextQualifier = '"',
                 DateFormat = "dd.MM.yyyy",
@@ -253,7 +255,7 @@ public class ImportPageViewModelTest
         string testFilePath)
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
-            
+
         importProfile.AccountId = _testAccount.Id;
         serviceManager.ImportProfileService.Create(importProfile);
 
@@ -401,7 +403,7 @@ public class ImportPageViewModelTest
         string testFilePath2)
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
-            
+
         importProfile.AccountId = _testAccount.Id;
         serviceManager.ImportProfileService.Create(importProfile);
 
@@ -413,7 +415,7 @@ public class ImportPageViewModelTest
             i => i.ImportProfileId == importProfile.Id);
         viewModel.ResetLoadFigures();
         await viewModel.ValidateDataAsync();
-            
+
         Assert.Equal(4, viewModel.TotalRecords);
         Assert.Equal(2, viewModel.ValidRecords);
         Assert.Equal(2, viewModel.RecordsWithErrors);
@@ -481,7 +483,7 @@ public class ImportPageViewModelTest
         string testFilePath)
     {
         var serviceManager = new MockServiceManager(SetupMockDatabase());
-            
+
         importProfile.AccountId = _testAccount.Id;
         serviceManager.ImportProfileService.Create(importProfile);
 
@@ -528,5 +530,91 @@ public class ImportPageViewModelTest
         Assert.Equal("The Webshop.com", checkRecord.Payee);
         Assert.Equal("Billing", checkRecord.Memo);
         Assert.Equal(new decimal(-6.34), checkRecord.Amount);
+    }
+
+    private async Task<(ImportPageViewModel ViewModel, ViewModelOperationResult Result)> ValidateWithAmountCleanupAsync(
+        string cleanupPattern,
+        string amountValue)
+    {
+        var serviceManager = new MockServiceManager(SetupMockDatabase());
+        var importProfile = new ImportProfile()
+        {
+            ProfileName = "Test Profile",
+            AccountId = _testAccount.Id,
+
+            TransactionDateColumnName = "Date",
+            PayeeColumnName = "Payee",
+            MemoColumnName = "Memo",
+            AmountColumnName = "Amount",
+
+            AdditionalSettingAmountCleanup = true,
+            AdditionalSettingAmountCleanupValue = cleanupPattern,
+
+            Delimiter = ';',
+            TextQualifier = '"',
+            DateFormat = "dd.MM.yyyy",
+            NumberFormat = "de-DE",
+            HeaderRow = 1
+        };
+        // Bypass ViewModel validation to simulate a profile which already exists in the database
+        serviceManager.ImportProfileService.Create(importProfile);
+
+        var fileContent = string.Join(Environment.NewLine,
+            "Date;Payee;Memo;Amount",
+            $"14.02.2022;Lorem ipsum;dolor sit amet;{amountValue}");
+
+        var viewModel = new ImportPageViewModel(serviceManager);
+        viewModel.LoadData();
+        await viewModel.HandleOpenFileAsync(new MemoryStream(Encoding.UTF8.GetBytes(fileContent)));
+        viewModel.SelectedImportProfile = viewModel.AvailableImportProfiles.Single(
+            i => i.ImportProfileId == importProfile.Id);
+        viewModel.ResetLoadFigures();
+
+        return (viewModel, await viewModel.ValidateDataAsync());
+    }
+
+    [Fact]
+    public async Task ValidateDataAsync_AmountCleanupWithValidRegex()
+    {
+        var (viewModel, result) = await ValidateWithAmountCleanupAsync("[€ ]", "-2,95 €");
+
+        Assert.True(result.IsSuccessful, result.Message);
+        Assert.Equal(1, viewModel.ValidRecords);
+        Assert.Equal(new decimal(-2.95), viewModel.ParsedRecords[0].Result.Amount);
+    }
+
+    [Fact]
+    public async Task ValidateDataAsync_AmountCleanupWithInvalidRegex()
+    {
+        var (_, result) = await ValidateWithAmountCleanupAsync("(", "-2,95");
+
+        Assert.False(result.IsSuccessful);
+        Assert.Contains("Invalid Regex", result.Message);
+    }
+
+    [Fact]
+    public async Task ValidateDataAsync_AmountCleanupWithCatastrophicBacktrackingRegex()
+    {
+        var (_, result) = await ValidateWithAmountCleanupAsync("(a+)+$", new string('a', 40) + "!");
+
+        Assert.False(result.IsSuccessful);
+        Assert.Contains("took too long", result.Message);
+    }
+
+    [Fact]
+    public void CreateProfile_RejectsInvalidAmountCleanupRegex()
+    {
+        var serviceManager = new MockServiceManager(SetupMockDatabase());
+        var viewModel = new ImportPageViewModel(serviceManager);
+        viewModel.LoadData();
+        viewModel.ModifiedImportProfile.ProfileName = "Test Profile";
+        viewModel.ModifiedImportProfile.AdditionalSettingAmountCleanup = true;
+        viewModel.ModifiedImportProfile.AdditionalSettingAmountCleanupValue = "(";
+
+        var result = viewModel.CreateProfile();
+
+        Assert.False(result.IsSuccessful);
+        Assert.Contains("Invalid Regex", result.Message);
+        Assert.Empty(serviceManager.ImportProfileService.GetAll());
     }
 }

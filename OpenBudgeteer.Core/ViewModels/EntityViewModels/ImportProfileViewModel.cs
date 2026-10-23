@@ -378,6 +378,9 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
     {
         try
         {
+            var regexValidationError = CsvBankTransactionMapping.ValidateAmountCleanupPattern(this);
+            if (regexValidationError is not null) return new ViewModelOperationResult(false, regexValidationError);
+
             ImportProfileId = Guid.Empty;
             var importProfileDto = ConvertToDto();
             ServiceManager.ImportProfileService.Create(importProfileDto);
@@ -404,6 +407,9 @@ public class ImportProfileViewModel : BaseEntityViewModel<ImportProfile>, IEquat
     {
         try
         {
+            var regexValidationError = CsvBankTransactionMapping.ValidateAmountCleanupPattern(this);
+            if (regexValidationError is not null) return new ViewModelOperationResult(false, regexValidationError);
+
             ServiceManager.ImportProfileService.Update(ConvertToDto());
             return new ViewModelOperationResult(true);
         }

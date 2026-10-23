@@ -1,3 +1,10 @@
+## 1.11.1 (2026-xx-xx)
+
+### :beetle: Bug Fixes
+
+* Import Page:
+  * Fix CVE-2026-61636 ReDoS vulnerability in Amount cleanup by enforcing a Regex execution timeout and pattern validation [GHSA-ch28-32c3-4h4q](https://github.com/TheAxelander/OpenBudgeteer/security/advisories/GHSA-ch28-32c3-4h4q)
+
 ## 1.11 (2025-12-17)
 
 ### :gear: Features & Enhancements
