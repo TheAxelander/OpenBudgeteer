@@ -3,13 +3,13 @@ using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class BucketRepository : IBucketRepository
+public class EFCoreBucketRepository : IBucketRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public BucketRepository(DatabaseContext databaseContext)
+    public EFCoreBucketRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
@@ -92,7 +92,7 @@ public class BucketRepository : IBucketRepository
         var entity = DatabaseContext.Bucket
             .Include(i => i.BucketMovements)
             .Include(i => i.BucketVersions)
-            .Include(i => i.BudgetedTransactions)
+            .Include(i => i.BudgetedTransactions) //Include relations to delete them too
             .FirstOrDefault(i => i.Id == id);
         if (entity is null) throw new Exception($"Bucket with id {id} not found.");
         if (entity.BucketMovements is not null && entity.BucketMovements.Count != 0) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");
@@ -113,7 +113,7 @@ public class BucketRepository : IBucketRepository
         var entities = DatabaseContext.Bucket
             .Include(i => i.BucketMovements)
             .Include(i => i.BucketVersions)
-            .Include(i => i.BudgetedTransactions)
+            .Include(i => i.BudgetedTransactions) //Include relations to delete them too
             .Where(i => cleansedEntities.Contains(i.Id));
         if (!entities.Any()) throw new Exception($"No Buckets found with passed IDs.");
         if (entities.Any(i => i.BucketMovements != null && i.BucketMovements.Count != 0)) throw new Exception($"Cannot delete a Bucket with BucketMovements assigned to it.");

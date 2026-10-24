@@ -1,16 +1,15 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class ImportProfileRepository : IImportProfileRepository
+public class EFCoreImportProfileRepository : IImportProfileRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public ImportProfileRepository(DatabaseContext databaseContext)
+    public EFCoreImportProfileRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
@@ -65,7 +64,7 @@ public class ImportProfileRepository : IImportProfileRepository
     public int DeleteRange(IEnumerable<Guid> ids)
     {
         var entities = DatabaseContext.ImportProfile.Where(i => ids.Contains(i.Id));
-        if (!entities.Any()) throw new Exception($"No ImportProfiles found with passed IDs.");
+        if (!entities.Any()) throw new Exception("No ImportProfiles found with passed IDs.");
 
         DatabaseContext.ImportProfile.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

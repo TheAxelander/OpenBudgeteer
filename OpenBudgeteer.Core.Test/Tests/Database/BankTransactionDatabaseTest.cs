@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -25,12 +26,13 @@ public class BankTransactionDatabaseTest : BaseDatabaseTest<BankTransaction>
         Assert.Equal(expected.Amount, actual.Amount);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -38,8 +40,12 @@ public class BankTransactionDatabaseTest : BaseDatabaseTest<BankTransaction>
                     new MockAccountRepository(mockDb)
                 ],
                 [
-                    new BankTransactionRepository(dbContext),
-                    new AccountRepository(dbContext)
+                    new EFCoreBankTransactionRepository(dbContext),
+                    new EFCoreAccountRepository(dbContext)
+                ],
+                [
+                    new DuckDbBankTransactionRepository(duckDbConnection),
+                    new DuckDbAccountRepository(duckDbConnection)
                 ]
             ];
         }
@@ -73,7 +79,7 @@ public class BankTransactionDatabaseTest : BaseDatabaseTest<BankTransaction>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IBankTransactionRepository bankTransactionRepository,
         IAccountRepository accountRepository)
@@ -86,7 +92,7 @@ public class BankTransactionDatabaseTest : BaseDatabaseTest<BankTransaction>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IBankTransactionRepository bankTransactionRepository,
         IAccountRepository accountRepository)
@@ -115,7 +121,7 @@ public class BankTransactionDatabaseTest : BaseDatabaseTest<BankTransaction>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IBankTransactionRepository bankTransactionRepository,
         IAccountRepository accountRepository)

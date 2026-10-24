@@ -3,13 +3,13 @@ using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class BucketMovementRepository : IBucketMovementRepository
+public class EFCoreBucketMovementRepository : IBucketMovementRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public BucketMovementRepository(DatabaseContext databaseContext)
+    public EFCoreBucketMovementRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }

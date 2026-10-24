@@ -1,18 +1,19 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using OpenBudgeteer.Core.Common.AppSettings;
 
 namespace OpenBudgeteer.Blazor.Common.Services;
 
 public class AppInitializerHostedService : IHostedService
 {
-    private readonly AppSettingService _appSettingService;
-    private readonly MudThemeService _mudThemeService;
+    private readonly IAppSettingService _appSettingService;
+    private readonly IMudThemeService _mudThemeService;
     private readonly AppAuthenticationService _authService;
 
     public AppInitializerHostedService(
-        AppSettingService appSettingService,
-        MudThemeService mudThemeService,
+        IAppSettingService appSettingService,
+        IMudThemeService mudThemeService,
         AppAuthenticationService authService)
     {
         _appSettingService = appSettingService;

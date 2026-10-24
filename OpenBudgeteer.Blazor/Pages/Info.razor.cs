@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Data.Common;
 using Microsoft.AspNetCore.Components;
 using OpenBudgeteer.Core.Data.Connection;
 
@@ -9,13 +8,15 @@ public partial class Info : ComponentBase
 {
     private record ThirdPartyInfo(string Name, string Url, string License, string LicenseUrl);
     
-    [Inject] IDatabaseConnector<DbConnectionStringBuilder> DatabaseConnector { get; set; } = null!;
+    [Inject] DatabaseConnectionInfo DatabaseConnectionInfo { get; set; } = null!;
     
     private ObservableCollection<ThirdPartyInfo> Software => new()
     {
         new("aspnet-api-versioning", "https://github.com/dotnet/aspnet-api-versioning", "MIT", "https://github.com/dotnet/aspnet-api-versioning/blob/main/LICENSE.txt"),
         new("Blazor-ApexCharts", "https://github.com/apexcharts/Blazor-ApexCharts", "MIT", "https://github.com/apexcharts/Blazor-ApexCharts/blob/master/LICENSE"),
+        new("Dapper", "https://github.com/DapperLib/Dapper", "Apache-2.0", "https://github.com/DapperLib/Dapper/blob/main/License.txt"),
         new("dotnet-env", "https://github.com/tonerdo/dotnet-env", "MIT", "https://github.com/tonerdo/dotnet-env/blob/master/LICENSE"),
+        new("DuckDB.NET", "https://github.com/Giorgi/DuckDB.NET", "MIT", "https://github.com/Giorgi/DuckDB.NET/blob/develop/LICENSE"),
         new("efcore", "https://github.com/dotnet/efcore", "MIT", "https://github.com/dotnet/efcore/blob/main/LICENSE.txt"),
         new("efcore.pg", "https://github.com/npgsql/efcore.pg", "PostgreSQL License", "https://github.com/npgsql/efcore.pg/blob/main/LICENSE"),
         new("Microting.EntityFrameworkCore.MySql", "https://github.com/microting/Pomelo.EntityFrameworkCore.MySql", "MIT", "https://github.com/microting/Pomelo.EntityFrameworkCore.MySql/blob/master/LICENSE"),

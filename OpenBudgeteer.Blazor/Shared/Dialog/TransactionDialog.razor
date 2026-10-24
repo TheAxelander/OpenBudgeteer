@@ -1,14 +1,14 @@
 ﻿@using System.Globalization
 @using OpenBudgeteer.Blazor.Common
 @using OpenBudgeteer.Blazor.Common.CustomMudFilter
-@using OpenBudgeteer.Blazor.Common.Services
+@using OpenBudgeteer.Core.Common.AppSettings
 @using OpenBudgeteer.Core.Common.Extensions
 @using OpenBudgeteer.Core.Data.Entities.Models
 @using OpenBudgeteer.Core.ViewModels.EntityViewModels
 @using OpenBudgeteer.Core.ViewModels.Helper
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
-@inject AppSettingService AppSettingService
+@inject IAppSettingService AppSettingService
 
 <MudDialog Class="dialog-background">
     <TitleContent>

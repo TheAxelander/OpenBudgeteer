@@ -1,15 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
+using Dapper;
+using DuckDB.NET.Data;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
+using OpenBudgeteer.Core.Data.DuckDb.Migrations;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
 
 namespace OpenBudgeteer.Core.Test.Tests.Database;
 
 public abstract class BaseDatabaseTest<TEntity> where TEntity : IEntity
 {
+    private static bool _dapperConfigured;
+
     // protected static DbContextOptions MariaDbContextOptions
     // {
     //     get
@@ -33,7 +40,7 @@ public abstract class BaseDatabaseTest<TEntity> where TEntity : IEntity
     //     }
     // }
     
-    protected static DatabaseContext GetInMemoryContext()
+    protected static DatabaseContext GetEFCoreInMemoryContext()
     {
         var options = new DbContextOptionsBuilder<DatabaseContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -46,11 +53,26 @@ public abstract class BaseDatabaseTest<TEntity> where TEntity : IEntity
 
         return context;
     }
+
+    protected static DbConnection GetDuckDbInMemoryConnection()
+    {
+        // Configure Dapper type handlers for DuckDB
+        if (!_dapperConfigured)
+        {
+            SqlMapper.AddTypeHandler(new DuckDbGuidTypeHandler());
+            _dapperConfigured = true;
+        }
+
+        var connection = new DuckDBConnection("DataSource=:memory:");
+        connection.Open();
+
+        // Apply migrations to set up schema and initial data
+        DuckDbMigrationRunner.ApplyMigrations(connection);
+
+        return connection;
+    }
     
     protected abstract void CompareEntities(TEntity expected, TEntity actual);
-    // public abstract void Create(IBaseRepository<TEntity> baseRepository);
-    // public abstract void Update(IBaseRepository<TEntity> baseRepository);
-    // public abstract void Delete(IBaseRepository<TEntity> baseRepository);
 
     protected virtual void RunChecks(IBaseRepository<TEntity> baseRepository, List<TEntity> testEntities)
     {

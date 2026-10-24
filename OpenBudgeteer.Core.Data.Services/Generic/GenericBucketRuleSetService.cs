@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -5,77 +6,152 @@ using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.Data.Services.Generic;
 
-public class GenericBucketRuleSetService : GenericBaseService<BucketRuleSet>, IBucketRuleSetService
+public abstract class GenericBucketRuleSetService<TDatabase> : GenericBaseService<BucketRuleSet, TDatabase>, IBucketRuleSetService
+    where TDatabase : class, IDisposable
 {
-    private readonly IBucketRuleSetRepository _bucketRuleSetRepository;
-    private readonly IMappingRuleRepository _mappingRuleRepository;
+    private readonly ILogger _logger;
     
-    public GenericBucketRuleSetService(
-        IBucketRuleSetRepository bucketRuleSetRepository, IMappingRuleRepository mappingRuleRepository) : base(bucketRuleSetRepository)
+    public GenericBucketRuleSetService(ILogger logger) : base(logger)
     {
-        _bucketRuleSetRepository = bucketRuleSetRepository;
-        _mappingRuleRepository = mappingRuleRepository;
+        _logger = logger;
     }
+    
+    protected abstract override IBucketRuleSetRepository CreateBaseRepository(TDatabase dbConnection);
+    protected abstract IMappingRuleRepository CreateMappingRuleRepository(TDatabase dbConnection);
 
     public override BucketRuleSet Get(Guid id)
     {
-        var result = _bucketRuleSetRepository.ByIdWithIncludedEntities(id);
-        if (result is null) throw new EntityNotFoundException("Unable to find Rule Set with the given id.");
-        return result;
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketRuleSetRepository = CreateBaseRepository(dbConnection);
+            var result = bucketRuleSetRepository.ByIdWithIncludedEntities(id);
+            if (result is null) throw new EntityNotFoundException("Unable to find Rule Set with the given id.");
+            return result;
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
     public override IEnumerable<BucketRuleSet> GetAll()
     {
-        return _bucketRuleSetRepository
-            .AllWithIncludedEntities()
-            .OrderBy(i => i.Priority)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketRuleSetRepository = CreateBaseRepository(dbConnection);
+            return bucketRuleSetRepository
+                .AllWithIncludedEntities()
+                .OrderBy(i => i.Priority)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
-    public IEnumerable<MappingRule> GetMappingRules(Guid bucketRuleSetId)
+    public virtual IEnumerable<MappingRule> GetMappingRules(Guid bucketRuleSetId)
     {
-        return _mappingRuleRepository
-            .AllWithIncludedEntities()
-            .Where(i => i.BucketRuleSetId == bucketRuleSetId)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var mappingRuleRepository = CreateMappingRuleRepository(dbConnection);
+            return mappingRuleRepository
+                .AllWithIncludedEntities()
+                .Where(i => i.BucketRuleSetId == bucketRuleSetId)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
 
     public override BucketRuleSet Update(BucketRuleSet entity)
     {
-        // Check if Mapping Rules need to be deleted
-        var deletedIds = 
-            // Collect database entities
-            _mappingRuleRepository.All()
-                .Where(i => i.BucketRuleSetId == entity.Id)
-                .ToList()
-                // Select which of the database IDs are no longer available in entity
-                .Where(i => entity.MappingRules is not null && entity.MappingRules
-                    .All(j => j.Id != i.Id))
-                .Select(i => i.Id)
-                .ToList();
-        if (deletedIds.Count != 0)
+        try
         {
-            var result = _mappingRuleRepository.DeleteRange(deletedIds);
-            if (result != deletedIds.Count) 
-                throw new EntityUpdateException("Unable to delete old Mapping Rules of that Rule Set");
+            using var dbConnection = CreateDbConnection();
+            var bucketRuleSetRepository = CreateBaseRepository(dbConnection);
+            var mappingRuleRepository = CreateMappingRuleRepository(dbConnection);
+            
+            // Check if Mapping Rules need to be deleted
+            var deletedIds = 
+                // Collect database entities
+                mappingRuleRepository.All()
+                    .Where(i => i.BucketRuleSetId == entity.Id)
+                    .ToList()
+                    // Select which of the database IDs are no longer available in entity
+                    .Where(i => entity.MappingRules is not null && entity.MappingRules
+                        .All(j => j.Id != i.Id))
+                    .Select(i => i.Id)
+                    .ToList();
+            if (deletedIds.Count != 0)
+            {
+                var result = mappingRuleRepository.DeleteRange(deletedIds);
+                if (result != deletedIds.Count) 
+                    throw new EntityUpdateException("Unable to delete old Mapping Rules of that Rule Set");
+            }
+            
+            // Update BucketRuleSet including MappingRules
+            bucketRuleSetRepository.Update(entity);
+            
+            return entity;
         }
-            
-        // Update BucketRuleSet including MappingRules
-        _bucketRuleSetRepository.Update(entity);
-            
-        return entity;
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to update Rule Set in database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
+        }
     }
 
     public override void Delete(Guid id)
     {
-        // Delete all existing Mapping Rules
-        _mappingRuleRepository.DeleteRange(_mappingRuleRepository
-            .All()
-            .Where(i => i.BucketRuleSetId == id)
-            .Select(i => i.Id)
-            .ToList());
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bucketRuleSetRepository = CreateBaseRepository(dbConnection);
+            var mappingRuleRepository = CreateMappingRuleRepository(dbConnection);
             
-        // Delete BucketRuleSet
-        _bucketRuleSetRepository.Delete(id);
+            // Delete all existing Mapping Rules
+            mappingRuleRepository.DeleteRange(mappingRuleRepository
+                .All()
+                .Where(i => i.BucketRuleSetId == id)
+                .Select(i => i.Id)
+                .ToList());
+            
+            // Delete BucketRuleSet
+            bucketRuleSetRepository.Delete(id);
+        }
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to delete Rule Set in database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
+        }
     }
 }

@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -38,12 +39,13 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
         Assert.Equal(expected.Amount, actual.Amount);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -54,11 +56,18 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
                     new MockBucketGroupRepository(mockDb)
                 ],
                 [
-                    new BudgetedTransactionRepository(dbContext),
-                    new AccountRepository(dbContext),
-                    new BankTransactionRepository(dbContext),
-                    new BucketRepository(dbContext),
-                    new BucketGroupRepository(dbContext)
+                    new EFCoreBudgetedTransactionRepository(dbContext),
+                    new EFCoreAccountRepository(dbContext),
+                    new EFCoreBankTransactionRepository(dbContext),
+                    new EFCoreBucketRepository(dbContext),
+                    new EFCoreBucketGroupRepository(dbContext)
+                ],
+                [
+                    new DuckDbBudgetedTransactionRepository(duckDbConnection),
+                    new DuckDbAccountRepository(duckDbConnection),
+                    new DuckDbBankTransactionRepository(duckDbConnection),
+                    new DuckDbBucketRepository(duckDbConnection),
+                    new DuckDbBucketGroupRepository(duckDbConnection)
                 ]
             ];
         }
@@ -72,8 +81,8 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
         IBucketGroupRepository bucketGroupRepository)
     {
         DeleteAllExtension<IBudgetedTransactionRepository, BudgetedTransaction>.DeleteAll(budgetedTransactionRepository);
-        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(accountRepository);
         DeleteAllExtension<IBankTransactionRepository, BankTransaction>.DeleteAll(bankTransactionRepository);
+        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(accountRepository);
         DeleteAllExtension<IBucketRepository, Bucket>.DeleteAll(bucketRepository);
         DeleteAllExtension<IBucketGroupRepository, BucketGroup>.DeleteAll(bucketGroupRepository);
 
@@ -125,7 +134,7 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IBudgetedTransactionRepository budgetedTransactionRepository,
         IAccountRepository accountRepository,
@@ -142,14 +151,14 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
         RunChecks(budgetedTransactionRepository, budgetedTransactions);
     
         DeleteAllExtension<IBudgetedTransactionRepository, BudgetedTransaction>.DeleteAll(budgetedTransactionRepository);
-        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(accountRepository);
         DeleteAllExtension<IBankTransactionRepository, BankTransaction>.DeleteAll(bankTransactionRepository);
+        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(accountRepository);
         DeleteAllExtension<IBucketRepository, Bucket>.DeleteAll(bucketRepository);
         DeleteAllExtension<IBucketGroupRepository, BucketGroup>.DeleteAll(bucketGroupRepository);
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IBudgetedTransactionRepository budgetedTransactionRepository,
         IAccountRepository accountRepository,
@@ -178,14 +187,14 @@ public class BudgetedTransactionDatabaseTest : BaseDatabaseTest<BudgetedTransact
         RunChecks(budgetedTransactionRepository, budgetedTransactions);
         
         DeleteAllExtension<IBudgetedTransactionRepository, BudgetedTransaction>.DeleteAll(budgetedTransactionRepository);
-        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(accountRepository);
         DeleteAllExtension<IBankTransactionRepository, BankTransaction>.DeleteAll(bankTransactionRepository);
+        DeleteAllExtension<IAccountRepository, Account>.DeleteAll(accountRepository);
         DeleteAllExtension<IBucketRepository, Bucket>.DeleteAll(bucketRepository);
         DeleteAllExtension<IBucketGroupRepository, BucketGroup>.DeleteAll(bucketGroupRepository);
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IBudgetedTransactionRepository budgetedTransactionRepository,
         IAccountRepository accountRepository,

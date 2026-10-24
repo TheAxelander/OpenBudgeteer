@@ -1,72 +1,83 @@
-using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
-using System.Threading;
-using DotNetEnv;
-using DotNetEnv.Configuration;
+using Dapper;
+using DuckDB.NET.Data;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 using OpenBudgeteer.Blazor;
-using OpenBudgeteer.Blazor.Common.Extensions;
 using OpenBudgeteer.Blazor.Common.Services;
+using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data;
+using OpenBudgeteer.Core.Data.Connection;
 using OpenBudgeteer.Core.Data.Contracts.Services;
-using OpenBudgeteer.Core.Data.Entities;
-using OpenBudgeteer.Core.Data.Initialization;
-using OpenBudgeteer.Core.Data.Services.EFCore;
+using OpenBudgeteer.Core.Data.DuckDb.Migrations;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Services.DuckDb;
 using OpenBudgeteer.Core.ViewModels.Helper;
+using OpenBudgeteer.Desktop.Services;
 using Photino.Blazor;
 
 namespace OpenBudgeteer.Desktop;
 
 internal class Program
 {
+    private const string DATABASE_FILE_NAME = "OpenBudgeteer.duckdb";
+
     [STAThread]
     private static void Main(string[] args)
     {
+        // Settings are stored in a local config file (instead of .env and Redis like the Web App)
+        var configFileService = new ConfigFileService();
+        Console.WriteLine($"Configuration file: {configFileService.ConfigFilePath}");
+
+        // Shared Blazor components check if authentication is enabled. Desktop App is single-user, no login required
         var configuration = new ConfigurationBuilder()
-            .AddDotNetEnv(".env", LoadOptions.TraversePath())
-            .AddEnvironmentVariables()
-            .AddCommandLine(args)
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                // Desktop App is single-user, no login required
                 [ConfigurationKeyConstants.APPSETTINGS_AUTH_ENABLED] = "false"
             })
             .Build();
 
-        var culture = new CultureInfo(configuration.GetValue<string>(ConfigurationKeyConstants.APPSETTINGS_CULTURE, "en-US")!);
+        var culture = new CultureInfo(configFileService.GetStringValue(ConfigurationKeyConstants.APPSETTINGS_CULTURE, "en-US"));
         CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files
 
+        var databaseConnection = InitializeDatabase(configFileService); // Prepare database (establish, run migrations)
+
         var builder = PhotinoBlazorAppBuilder.CreateDefault(args);
 
         builder.Services.AddSingleton<IConfiguration>(configuration);
+        builder.Services.AddSingleton(configFileService);
         builder.Services.AddLogging(x => x
-#if DEBUG
-            .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information)
-#endif
-            .AddFilter("OpenBudgeteer", configuration.GetValue(ConfigurationKeyConstants.LOGLEVEL_DEFAULT_JSON, LogLevel.Information))
+            .AddFilter("OpenBudgeteer", LogLevel.Warning)
             .AddConsole());
         builder.Services.AddLocalization();
         builder.Services.AddMudServices();
-        builder.Services.AddDatabase(configuration); // Check, establish and register database connection
-        builder.Services.AddRedis(configuration); // Check, establish and register Redis database connection
-        builder.Services.AddSingleton<AppAuthenticationService>();
-        builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x =>
-            new EFCoreServiceManager(
-                x.GetRequiredService<IDbContextFactory<DatabaseContext>>(),
+        builder.Services.AddSingleton(databaseConnection);
+        builder.Services.AddSingleton(new DatabaseConnectionInfo(
+            "DuckDB",
+            configFileService.ConfigDirectory,
+            DATABASE_FILE_NAME,
+            Environment.UserName));
+        builder.Services.AddScoped<IServiceManager, DuckDbServiceManager>(x =>
+            new DuckDbServiceManager(
+                () =>
+                {
+                    var connection = new DuckDBConnection(databaseConnection.ConnectionString);
+                    connection.Open();
+                    return connection;
+                },
                 x.GetRequiredService<ILoggerFactory>()));
         builder.Services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
-        builder.Services.AddSingleton(x => new AppSettingService(x.GetRequiredService<RedisService>()));
-        builder.Services.AddSingleton(x => new MudThemeService(x.GetRequiredService<RedisService>()));
+        builder.Services.AddSingleton<IAppSettingService, DesktopAppSettingService>(
+            x => new DesktopAppSettingService(x.GetRequiredService<ConfigFileService>()));
+        builder.Services.AddSingleton<IMudThemeService, DesktopMudThemeService>(
+            x => new DesktopMudThemeService(x.GetRequiredService<ConfigFileService>()));
 
         builder.RootComponents.Add<Routes>("#app");
         builder.RootComponents.Add<HeadOutlet>("head::after");
@@ -74,17 +85,14 @@ internal class Program
         var app = builder.Build();
 
         // Photino has no generic host, so run what the Web App does via IHostedService manually
-        new DatabaseMigratorService(
-                app.Services.GetRequiredService<IDbContextFactory<DatabaseContext>>(),
-                configuration)
-            .StartAsync(CancellationToken.None).GetAwaiter().GetResult();
         new AppInitializerHostedService(
-                app.Services.GetRequiredService<AppSettingService>(),
-                app.Services.GetRequiredService<MudThemeService>())
+                app.Services.GetRequiredService<IAppSettingService>(),
+                app.Services.GetRequiredService<IMudThemeService>())
             .StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 
         app.MainWindow
             .SetTitle("OpenBudgeteer")
+            .SetLogVerbosity(0) // Suppress Log Messages flooding the console output
             .SetSize(1400, 900)
             .Center();
 
@@ -94,5 +102,19 @@ internal class Program
         };
 
         app.Run();
+    }
+
+    private static DuckDBConnection InitializeDatabase(ConfigFileService configFileService)
+    {
+        SqlMapper.AddTypeHandler(new DuckDbGuidTypeHandler());
+
+        var databasePath = Path.Combine(configFileService.ConfigDirectory, DATABASE_FILE_NAME);
+        var connection = new DuckDBConnection($"DataSource={databasePath}");
+        connection.Open();
+        DuckDbMigrationRunner.ApplyMigrations(connection);
+
+        // TODO: Initialize demo data using DuckDB if APPSETTINGS_DEMO_DATA is set
+
+        return connection;
     }
 }

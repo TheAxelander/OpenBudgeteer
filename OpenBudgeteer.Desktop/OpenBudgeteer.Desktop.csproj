@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>OpenBudgeteer.Desktop</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>false</InvariantGlobalization>
     <Nullable>enable</Nullable>
     <LangVersion>13</LangVersion>
@@ -14,6 +15,8 @@
     <!-- Photino.Blazor only ships net8/net9 builds, pin WebView to the version matching the rest of the solution -->
     <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="10.0.13" />
     <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="1.1.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,8 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Reuse all Pages, Layouts, Dialogs and Services from the Web App -->
     <ProjectReference Include="..\OpenBudgeteer.Blazor\OpenBudgeteer.Blazor.csproj" />
+    <ProjectReference Include="..\OpenBudgeteer.Core.Data.DuckDb.Migrations\OpenBudgeteer.Core.Data.DuckDb.Migrations.csproj" />
   </ItemGroup>
 
 </Project>

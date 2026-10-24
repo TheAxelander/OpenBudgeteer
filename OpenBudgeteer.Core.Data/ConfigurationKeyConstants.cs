@@ -9,7 +9,7 @@ public static class ConfigurationKeyConstants
     public const string CONNECTION_PASSWORD = "CONNECTION_PASSWORD";
     public const string CONNECTION_ROOT_PASSWORD = "CONNECTION_ROOT_PASSWORD";
     public const string CONNECTION_PROVIDER = "CONNECTION_PROVIDER";
-    
+
     public const string CONNECTION_REDIS_SERVER = "CONNECTION_REDIS_SERVER";
     public const string CONNECTION_REDIS_PORT = "CONNECTION_REDIS_PORT";
     public const string CONNECTION_REDIS_USER = "CONNECTION_REDIS_USER";
@@ -18,6 +18,7 @@ public static class ConfigurationKeyConstants
 
     public const string APPSETTINGS_CULTURE = "APPSETTINGS_CULTURE";
     public const string APPSETTINGS_THEME = "APPSETTINGS_CULTURE";
+    public const string APPSETTINGS_DEMO_DATA = "APPSETTINGS_DEMO_DATA";
 
     public const string APPSETTINGS_AUTH_ENABLED = "APPSETTINGS_AUTH_ENABLED";
     public const string APPSETTINGS_AUTH_USERNAME = "APPSETTINGS_AUTH_USERNAME";
