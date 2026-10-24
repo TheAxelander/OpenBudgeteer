@@ -17,7 +17,6 @@ public static class ConfigurationKeyConstants
     public const string CONNECTION_REDIS_PREFIX = "CONNECTION_REDIS_PREFIX";
 
     public const string APPSETTINGS_CULTURE = "APPSETTINGS_CULTURE";
-    public const string APPSETTINGS_THEME = "APPSETTINGS_CULTURE";
     public const string APPSETTINGS_DEMO_DATA = "APPSETTINGS_DEMO_DATA";
 
     public const string APPSETTINGS_AUTH_ENABLED = "APPSETTINGS_AUTH_ENABLED";
