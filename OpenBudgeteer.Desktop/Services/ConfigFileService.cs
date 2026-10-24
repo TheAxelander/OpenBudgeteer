@@ -253,8 +253,24 @@ public class ConfigFileService : ISettingHandler
         var sb = new StringBuilder();
         foreach (var setting in _settings.OrderBy(x => x.Key))
         {
-            sb.AppendLine($"{setting.Key}={setting.Value}");
+            sb.AppendLine($"{setting.Key}={QuoteValue(setting.Value)}");
         }
         await File.WriteAllTextAsync(ConfigFilePath, sb.ToString());
+    }
+
+    /// <summary>
+    /// Quotes a value so it is read back unchanged, as unquoted values would treat '#' as start of a comment
+    /// </summary>
+    private static string QuoteValue(string value)
+    {
+        // Single quotes keep the value as is, but cannot contain a single quote themselves
+        if (!value.Contains('\'')) return $"'{value}'";
+
+        // Double quotes require escaping, otherwise '$' would be interpreted as variable
+        var escapedValue = value
+            .Replace("\\", "\\\\")
+            .Replace("\"", "\\\"")
+            .Replace("$", "\\$");
+        return $"\"{escapedValue}\"";
     }
 }
