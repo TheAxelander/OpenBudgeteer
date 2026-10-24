@@ -7,7 +7,7 @@ namespace OpenBudgeteer.Blazor.Common.CustomMudFilter;
 
 public class CsvMappingErrorMudFilter<T> : ICustomMudFilter<T>
 {
-    public IEnumerable<EquatableCsvMappingError> SelectedItems { get; set; }
+    public IReadOnlyCollection<EquatableCsvMappingError> SelectedItems { get; set; }
     public HashSet<EquatableCsvMappingError> FilterItems { get; set; }
     public List<EquatableCsvMappingError> AvailableItems { get; set; }
     

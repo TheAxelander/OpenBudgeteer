@@ -5,10 +5,10 @@
     - Blazor-ApexCharts, Copyright (c) 2020 Joakim Dangården
     - dotnet-env, Copyright (c) 2016 Toni Solarin-Sodara
     - efcore, Copyright (c) .NET Foundation and Contributors
-    - Pomelo.EntityFrameworkCore.MySql, Copyright (c) 2017 Pomelo Foundation
+    - Microting.EntityFrameworkCore.MySql (fork of Pomelo.EntityFrameworkCore.MySql), Copyright (c) 2017 Microting, Copyright (c) 2017 Pomelo Foundation
     - MudBlazor, Copyright (c) 2021 MudBlazor
+    - Scalar, Copyright (c) 2023-present Scalar
     - StackExchange.Redis, Copyright (c) 2014 Stack Exchange
-    - Swashbuckle.AspNetCore, Copyright (c) 2016 Richard Morris
     - TinyCsvParser, Copyright (c) Philipp Wagner and Contributors   
     - .NET runtime, Copyright (c) .NET Foundation and Contributors
 -----------------------------------------------------------------------------

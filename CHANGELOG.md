@@ -1,3 +1,21 @@
+## 1.12 (tbd)
+
+### :gear: Features & Enhancements
+
+* Import Page:
+  * Small UI rework of Open File Button after MudBlazor Update
+
+### :beetle: Bug Fixes
+
+* Bucket Page:
+  * In/Out input value for a Bucket gets properly reset after hitting Enter (MudBlazor fix)
+
+### :hammer: Maintenance
+
+* Upgrade to .NET 10
+* Upgrade to MudBlazor 9.11
+* Replace `Pomelo.EntityFrameworkCore.MySql` with fork `Microting.EntityFrameworkCore.MySql`
+
 ## 1.11.2 (2026-10-23)
 
 ### :hammer: Maintenance

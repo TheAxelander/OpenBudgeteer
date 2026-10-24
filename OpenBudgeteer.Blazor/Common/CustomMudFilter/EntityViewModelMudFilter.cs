@@ -7,7 +7,7 @@ namespace OpenBudgeteer.Blazor.Common.CustomMudFilter;
 
 public class EntityViewModelMudFilter<TSource, TTarget> : ICustomMudFilter<TTarget>
 {
-    public IEnumerable<TSource> SelectedItems { get; set; }
+    public IReadOnlyCollection<TSource> SelectedItems { get; set; }
     public HashSet<TSource> FilterItems { get; set; }
     public List<TSource> AvailableItems { get; set; }
 

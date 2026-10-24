@@ -27,13 +27,12 @@ public partial class Import : ComponentBase
 
     private MudStepper? _stepper;
     private MudFileUpload<IBrowserFile>? _fileUpload;
-    private string? _selectedFileName;
     private InputLargeTextArea? _previewTextArea;
     private CancellationTokenSource? _previewOnChangeCancellationTokenSource;
 
     private string DelimiterHelper
     {
-        get => _dataContext.ModifiedImportProfile.Delimiter == '\0' ? 
+        get => _dataContext.ModifiedImportProfile.Delimiter == '\0' ?
             string.Empty : _dataContext.ModifiedImportProfile.Delimiter.ToString();
         set
         {
@@ -44,8 +43,8 @@ public partial class Import : ComponentBase
 
     private string TextQualifierHelper
     {
-        get => _dataContext.ModifiedImportProfile.TextQualifier == '\0' ? 
-            string.Empty : _dataContext.ModifiedImportProfile.TextQualifier.ToString(); 
+        get => _dataContext.ModifiedImportProfile.TextQualifier == '\0' ?
+            string.Empty : _dataContext.ModifiedImportProfile.TextQualifier.ToString();
         set
         {
             if (value.Length > 1) return;
@@ -56,7 +55,7 @@ public partial class Import : ComponentBase
     private enum MaxStepLevel { Step1, Step2, Step3, Step4 }
     private MaxStepLevel _maxStepLevel = MaxStepLevel.Step1;
     private int _stepperIndex;
-    
+
     private DateOnlyMudFilter<CsvMappingResult<ParsedBankTransaction>> _validRecordsDateOnlyMudFilter = null!;
     private DateOnlyMudFilter<ImportPageViewModel.Duplicate> _duplicateRecordsDateOnlyMudFilter = null!;
     private CsvMappingErrorMudFilter<CsvMappingResult<ParsedBankTransaction>> _errorRecordsMudFilter = null!;
@@ -71,24 +70,24 @@ public partial class Import : ComponentBase
         _dataContext = new ImportPageViewModel(ServiceManager);
         _validRecordsDateOnlyMudFilter = new(new()
         {
-            FilterFunction = x => 
+            FilterFunction = x =>
                 DateOnly.FromDateTime(x.Result.TransactionDate).IsBetween(
-                    _validRecordsDateOnlyMudFilter.DateRange.Start, 
+                    _validRecordsDateOnlyMudFilter.DateRange.Start,
                     _validRecordsDateOnlyMudFilter.DateRange.End)
         });
         _duplicateRecordsDateOnlyMudFilter = new(new()
         {
-            FilterFunction = x => 
+            FilterFunction = x =>
                 DateOnly.FromDateTime(x.ParsedBankTransaction.Result.TransactionDate).IsBetween(
-                    _duplicateRecordsDateOnlyMudFilter.DateRange.Start, 
+                    _duplicateRecordsDateOnlyMudFilter.DateRange.Start,
                     _duplicateRecordsDateOnlyMudFilter.DateRange.End)
         });
         _errorRecordsMudFilter = new(new()
         {
-            FilterFunction = x => 
+            FilterFunction = x =>
                 _errorRecordsMudFilter.FilterItems.Contains(new EquatableCsvMappingError(x.Error))
         });
-        
+
         await LoadData();
     }
 
@@ -117,16 +116,12 @@ public partial class Import : ComponentBase
 
         return Task.CompletedTask;
     }
-    
+
     private async Task UploadFile(IBrowserFile? file)
     {
-        if (file is null)
-        {
-            _selectedFileName = null;
-            return;
-        }
+        if (file is null) return;
         await LoadData();
-        
+
         var parameters = new DialogParameters<InfoDialog>
         {
             { x => x.Title, "Import" },
@@ -134,11 +129,10 @@ public partial class Import : ComponentBase
             { x => x.IsInteractionEnabled, false }
         };
         var dialog = await DialogService.ShowAsync<InfoDialog>("Import", parameters);
-        
-        _selectedFileName = file.Name;
+
         await HandleResult(await _dataContext.HandleOpenFileAsync(file.OpenReadStream()));
         await SyncViewModelFileTextToPreviewTextAsync();
-        
+
         dialog.Close();
         _maxStepLevel = MaxStepLevel.Step2;
     }
@@ -160,17 +154,17 @@ public partial class Import : ComponentBase
         await streamWriter.FlushAsync();
         await _previewTextArea!.SetTextAsync(streamWriter);
     }
-    
+
     private async Task PreviewTextAreaChangedAsync(InputLargeTextAreaChangeEventArgs args)
     {
         // Cancel the previous task if it exists
         _previewOnChangeCancellationTokenSource?.Cancel();
         _previewOnChangeCancellationTokenSource = new();
 
-        await Task.Run(async () => await SyncPreviewTextToViewModelFileTextAsync(), 
+        await Task.Run(async () => await SyncPreviewTextToViewModelFileTextAsync(),
             _previewOnChangeCancellationTokenSource.Token);
     }
-    
+
     private void SelectedImportProfile_SelectionChanged()
     {
         _dataContext.ResetLoadFigures();
@@ -180,14 +174,14 @@ public partial class Import : ComponentBase
             _maxStepLevel = MaxStepLevel.Step3;
             CheckColumnMapping(); // Checks on Step 4
         }
-        
+
         StateHasChanged();
     }
 
     private async Task CreateProfile()
     {
         var result = _dataContext.CreateProfile();
-        
+
         if (result.IsSuccessful)
         {
             var parameters = new DialogParameters<InfoDialog>
@@ -207,7 +201,7 @@ public partial class Import : ComponentBase
     private async Task SaveProfile()
     {
         var result = _dataContext.SaveProfile();
-        
+
         if (result.IsSuccessful)
         {
             var parameters = new DialogParameters<InfoDialog>
@@ -223,7 +217,7 @@ public partial class Import : ComponentBase
             await HandleResult(result);
         }
     }
-    
+
     private async Task DeleteProfile()
     {
         var parameters = new DialogParameters<DeleteConfirmationDialog>
@@ -304,7 +298,7 @@ public partial class Import : ComponentBase
         {
             await HandleResult(importResult);
         }
-        
+
         _isImportRunning = false;
     }
 

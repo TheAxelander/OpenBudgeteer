@@ -36,7 +36,9 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
             Port = Port,
             Database = Database,
             Username = Username,
-            Password = Password
+            Password = Password,
+            // Npgsql 10 tries GSSAPI encryption by default, which can stall each new connection for seconds
+            GssEncryptionMode = GssEncryptionMode.Disable
         };
     }
 
@@ -47,7 +49,8 @@ public partial class PostgresConnector : BaseDatabaseConnector<NpgsqlConnectionS
             Host = Server,
             Port = Port,
             Username = "postgres",
-            Password = RootPassword
+            Password = RootPassword,
+            GssEncryptionMode = GssEncryptionMode.Disable
         };
     }
 
