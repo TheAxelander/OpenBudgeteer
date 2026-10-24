@@ -1,0 +1,29 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="CHANGELOG.md" />
+    <File Path="CODE_OF_CONDUCT.md" />
+    <File Path="LICENSE" />
+    <File Path="LICENSE-3RD-PARTY" />
+    <File Path="OpenBudgeteer.slnx.DotSettings" />
+    <File Path="README.md" />
+    <File Path="SECURITY.md" />
+  </Folder>
+  <Project Path="OpenBudgeteer.API/OpenBudgeteer.API.csproj" />
+  <Project Path="OpenBudgeteer.Blazor/OpenBudgeteer.Blazor.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data.Contracts/OpenBudgeteer.Core.Data.Contracts.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data.Entities/OpenBudgeteer.Core.Data.Entities.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data.MySql.Migrations/OpenBudgeteer.Core.Data.MySql.Migrations.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data.Postgres.Migrations/OpenBudgeteer.Core.Data.Postgres.Migrations.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data.Repository/OpenBudgeteer.Core.Data.Repository.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data.Services/OpenBudgeteer.Core.Data.Services.csproj" />
+  <Project Path="OpenBudgeteer.Core.Data/OpenBudgeteer.Core.Data.csproj" />
+  <Project Path="OpenBudgeteer.Core.Test/OpenBudgeteer.Core.Test.csproj" />
+  <Project Path="OpenBudgeteer.Core/OpenBudgeteer.Core.csproj" />
+  <Project Path="OpenBudgeteer.Desktop/OpenBudgeteer.Desktop.csproj" />
+</Solution>

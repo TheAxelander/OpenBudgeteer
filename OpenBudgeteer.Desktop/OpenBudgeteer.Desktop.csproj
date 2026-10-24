@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>OpenBudgeteer.Desktop</AssemblyName>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <Nullable>enable</Nullable>
+    <LangVersion>13</LangVersion>
+    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Photino.Blazor only ships net8/net9 builds, pin WebView to the version matching the rest of the solution -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="10.0.13" />
+    <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Photino serves files from wwwroot in the output directory and requires it to exist -->
+    <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reuse all Pages, Layouts, Dialogs and Services from the Web App -->
+    <ProjectReference Include="..\OpenBudgeteer.Blazor\OpenBudgeteer.Blazor.csproj" />
+  </ItemGroup>
+
+</Project>
