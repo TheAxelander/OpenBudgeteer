@@ -1,10 +1,9 @@
 ﻿@inherits LayoutComponentBase
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
 @using OpenBudgeteer.Core.Data
-@using OpenBudgeteer.Core.Data.Entities
-@inject IDbContextFactory<DatabaseContext> DbContextFactory
-@inject MudThemeService MudThemeService
+@using OpenBudgeteer.Core.Data.Connection
+@inject DatabaseConnectionInfo DatabaseConnectionInfo
+@inject IMudThemeService MudThemeService
 @inject IConfiguration Configuration
 
 <MudThemeProvider IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"
@@ -151,7 +150,7 @@
 
 @code {
     private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white";
-    private string CurrentDatabase => DbContextFactory.CreateDbContext().Database.GetDbConnection().Database;
+    private string CurrentDatabase => DatabaseConnectionInfo.Database;
     private bool _drawerOpen = true;
 
     private ErrorBoundary? _errorBoundary;

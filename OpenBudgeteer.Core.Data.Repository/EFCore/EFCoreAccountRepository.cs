@@ -3,26 +3,26 @@ using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class AccountRepository : IAccountRepository
+public class EFCoreAccountRepository : IAccountRepository
 {
     private DatabaseContext DatabaseContext { get; }
-    
-    public AccountRepository(DatabaseContext databaseContext)
+
+    public EFCoreAccountRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
 
     public IQueryable<Account> All() => DatabaseContext.Account
         .AsNoTracking();
-    
+
     public IQueryable<Account> AllWithIncludedEntities() => DatabaseContext.Account
         .AsNoTracking();
 
     public Account? ById(Guid id) => DatabaseContext.Account
         .FirstOrDefault(i => i.Id == id);
-    
+
     public Account? ByIdWithIncludedEntities(Guid id) => DatabaseContext.Account
         .FirstOrDefault(i => i.Id == id);
 
@@ -52,7 +52,7 @@ public class AccountRepository : IAccountRepository
 
     public int Delete(Guid id)
     {
-        var entity = DatabaseContext.Account.FirstOrDefault(i => i.Id == id);
+        var entity = ById(id);
         if (entity is null) throw new Exception($"Account with id {id} not found.");
 
         DatabaseContext.Account.Remove(entity);
@@ -61,8 +61,11 @@ public class AccountRepository : IAccountRepository
 
     public int DeleteRange(IEnumerable<Guid> ids)
     {
-        var entities = DatabaseContext.Account.Where(i => ids.Contains(i.Id));
-        if (!entities.Any()) throw new Exception($"No Account found with passed IDs.");
+        var entities = ids
+            .Select(ById)
+            .OfType<Account>()
+            .ToList();
+        if (entities.Count == 0) throw new Exception($"No Account found with passed IDs.");
 
         DatabaseContext.Account.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

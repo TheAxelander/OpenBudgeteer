@@ -1,16 +1,15 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class BudgetedTransactionRepository : IBudgetedTransactionRepository
+public class EFCoreBudgetedTransactionRepository : IBudgetedTransactionRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public BudgetedTransactionRepository(DatabaseContext databaseContext)
+    public EFCoreBudgetedTransactionRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }

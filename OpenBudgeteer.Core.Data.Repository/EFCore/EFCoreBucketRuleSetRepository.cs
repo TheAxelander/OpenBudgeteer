@@ -1,16 +1,15 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class BucketRuleSetRepository : IBucketRuleSetRepository
+public class EFCoreBucketRuleSetRepository : IBucketRuleSetRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public BucketRuleSetRepository(DatabaseContext databaseContext)
+    public EFCoreBucketRuleSetRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
@@ -58,7 +57,7 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.BucketRuleSet
-            .Include(i => i.MappingRules)
+            .Include(i => i.MappingRules) //Include mapping rules to delete them too
             .FirstOrDefault(i => i.Id == id);
         if (entity is null) throw new Exception($"BucketRuleSet with id {id} not found.");
 
@@ -69,9 +68,9 @@ public class BucketRuleSetRepository : IBucketRuleSetRepository
     public int DeleteRange(IEnumerable<Guid> ids)
     {
         var entities = DatabaseContext.BucketRuleSet
-            .Include(i => i.MappingRules)
+            .Include(i => i.MappingRules) //Include mapping rules to delete them too
             .Where(i => ids.Contains(i.Id));
-        if (!entities.Any()) throw new Exception($"No BucketRuleSets found with passed IDs.");
+        if (!entities.Any()) throw new Exception("No BucketRuleSets found with passed IDs.");
 
         DatabaseContext.BucketRuleSet.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

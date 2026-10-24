@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.Entities.Models;
@@ -5,18 +6,18 @@ using OpenBudgeteer.Core.Data.Services.Exceptions;
 
 namespace OpenBudgeteer.Core.Data.Services.Generic;
 
-public class GenericAccountService : GenericBaseService<Account>, IAccountService
+public abstract class GenericAccountService<TDatabase> : GenericBaseService<Account, TDatabase>, IAccountService
+    where TDatabase : class, IDisposable
 {
-    private readonly IAccountRepository _accountRepository;
-    private readonly IBankTransactionRepository _bankTransactionRepository;
+    private readonly ILogger _logger;
     
-    public GenericAccountService(
-        IAccountRepository accountRepository, 
-        IBankTransactionRepository bankTransactionRepository) : base(accountRepository)
+    public GenericAccountService(ILogger logger) : base(logger)
     {
-        _accountRepository = accountRepository;
-        _bankTransactionRepository = bankTransactionRepository;
+        _logger = logger;
     }
+
+    protected abstract override IAccountRepository CreateBaseRepository(TDatabase dbConnection);
+    protected abstract IBankTransactionRepository CreateBankTransactionRepository(TDatabase dbConnection);
 
     public override Account Get(Guid id)
     {
@@ -36,31 +37,59 @@ public class GenericAccountService : GenericBaseService<Account>, IAccountServic
         return result;
     }
 
-    public IEnumerable<Account> GetActiveAccounts()
+    public virtual IEnumerable<Account> GetActiveAccounts()
     {
-        return _accountRepository
-            .All()
-            .Where(i => i.IsActive == 1)
-            .OrderBy(i => i.Name)
-            .ToList();
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var accountRepository = CreateBaseRepository(dbConnection);
+            return accountRepository
+                .All()
+                .Where(i => i.IsActive == 1)
+                .OrderBy(i => i.Name)
+                .ToList();
+        }
+        catch (EntityNotFoundException e)
+        {
+            throw new ServiceException($"Error on querying database: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error on querying database.");
+            throw;
+        }
     }
     
     /// <summary>
     /// Sets Inactive flag for a record in the database based on <see cref="Account"/> id.
     /// </summary>
     /// <returns>Response containing details and success of the request</returns>
-    public Account CloseAccount(Guid id)
+    public virtual Account CloseAccount(Guid id)
     {
-        var balance = _bankTransactionRepository
-            .All()
-            .Where(i => i.AccountId == id)
-            .ToList()
-            .Sum(i => i.Amount);
+        try
+        {
+            using var dbConnection = CreateDbConnection();
+            var bankTransactionRepository = CreateBankTransactionRepository(dbConnection);
+            var balance = bankTransactionRepository
+                .All()
+                .Where(i => i.AccountId == id)
+                .ToList()
+                .Sum(i => i.Amount);
             
-        if (balance != 0) throw new EntityUpdateException("Balance must be 0 to close an Account");
+            if (balance != 0) throw new EntityUpdateException("Balance must be 0 to close an Account");
         
-        var account = Get(id);
-        account.IsActive = 0;
-        return Update(account);
+            var account = Get(id);
+            account.IsActive = 0;
+            return Update(account);
+        }
+        catch (EntityUpdateException e)
+        {
+            throw new ServiceException($"Unable to close Account: {e.Message}", _logger);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error during database update.");
+            throw;
+        }
     }
 }

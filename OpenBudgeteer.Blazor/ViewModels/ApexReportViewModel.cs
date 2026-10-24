@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OpenBudgeteer.Blazor.Common;
-using OpenBudgeteer.Blazor.Common.Services;
+using OpenBudgeteer.Core.Common.AppSettings;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.ViewModels.Helper;
 using OpenBudgeteer.Core.ViewModels.PageViewModels;
@@ -26,19 +26,19 @@ public class ApexReportViewModel : ReportPageViewModel
     public List<ApexRecord> ActivityDistributionBucket { get; } = [];
     public List<BucketGroupApexRecord> BucketGroupsBucketBudgets { get; } = [];
     public List<Tuple<string, List<ApexRecord>>> MonthBucketExpenses { get; } = [];
-    
-    private readonly AppSettingService _appSettingService;
+
+    private readonly IAppSettingService _appSettingService;
     private readonly YearMonthSelectorViewModel _yearMonthViewModel;
-    
+
     public ApexReportViewModel(
-        IServiceManager serviceManager, 
-        AppSettingService appSettingService, 
+        IServiceManager serviceManager,
+        IAppSettingService appSettingService,
         YearMonthSelectorViewModel yearMonthViewModel) : base(serviceManager)
     {
         _appSettingService = appSettingService;
         _yearMonthViewModel = yearMonthViewModel;
     }
-    
+
     public async Task LoadDataAsync()
     {
         var loadTasks = new List<Task>
@@ -57,7 +57,7 @@ public class ApexReportViewModel : ReportPageViewModel
     {
         await LoadBucketReportsAsync();
     }
-    
+
     private async Task LoadMonthBalancesReportAsync(int months)
     {
         MonthBalances.Clear();
@@ -75,7 +75,7 @@ public class ApexReportViewModel : ReportPageViewModel
             BankBalances.Add(new ApexRecord(month.ToString("yyyy-MM"), balance));
         }
     }
-    
+
     private async Task LoadMonthIncomeExpensesReportAsync(int months)
     {
         MonthIncome.Clear();
@@ -86,7 +86,7 @@ public class ApexReportViewModel : ReportPageViewModel
             MonthExpenses.Add(new ApexRecord(month.ToString("yyyy-MM"), expenses));
         }
     }
-    
+
     private async Task LoadYearIncomeExpensesReportAsync(int years)
     {
         YearIncome.Clear();
@@ -97,7 +97,7 @@ public class ApexReportViewModel : ReportPageViewModel
             YearExpenses.Add(new ApexRecord(year.ToString("yyyy"), expenses));
         }
     }
-    
+
     private async Task LoadMonthExpensesBucketReportAsync(int months)
     {
         MonthBucketExpenses.Clear();

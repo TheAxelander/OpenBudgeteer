@@ -3,13 +3,13 @@ using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class MappingRuleRepository : IMappingRuleRepository
+public class EFCoreMappingRuleRepository : IMappingRuleRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public MappingRuleRepository(DatabaseContext databaseContext)
+    public EFCoreMappingRuleRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
@@ -64,7 +64,7 @@ public class MappingRuleRepository : IMappingRuleRepository
     public int DeleteRange(IEnumerable<Guid> ids)
     {
         var entities = DatabaseContext.MappingRule.Where(i => ids.Contains(i.Id));
-        if (!entities.Any()) throw new Exception($"No MappingRules found with passed IDs.");
+        if (!entities.Any()) throw new Exception("No MappingRules found with passed IDs.");
 
         DatabaseContext.MappingRule.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

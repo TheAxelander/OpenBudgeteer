@@ -6,7 +6,7 @@ namespace OpenBudgeteer.Blazor.Pages;
 public partial class Login : ComponentBase
 {
     [Inject] private AppAuthenticationService AuthService { get; set; } = null!;
-    [Inject] private MudThemeService MudThemeService { get; set; } = null!;
+    [Inject] private IMudThemeService MudThemeService { get; set; } = null!;
     [Inject] private NavigationManager Navigation { get; set; } = null!;
 
     [SupplyParameterFromQuery(Name = "returnUrl")]
@@ -15,8 +15,8 @@ public partial class Login : ComponentBase
     [SupplyParameterFromQuery(Name = "error")]
     private string? Error { get; set; }
 
-    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white"; 
-    
+    private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white";
+
     protected override void OnInitialized()
     {
         // If auth is disabled, redirect to Home page

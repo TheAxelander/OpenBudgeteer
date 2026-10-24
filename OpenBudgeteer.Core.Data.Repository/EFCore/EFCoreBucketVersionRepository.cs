@@ -3,13 +3,13 @@ using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class BucketVersionRepository : IBucketVersionRepository
+public class EFCoreBucketVersionRepository : IBucketVersionRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public BucketVersionRepository(DatabaseContext databaseContext)
+    public EFCoreBucketVersionRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
@@ -64,7 +64,7 @@ public class BucketVersionRepository : IBucketVersionRepository
     public int DeleteRange(IEnumerable<Guid> ids)
     {
         var entities = DatabaseContext.BucketVersion.Where(i => ids.Contains(i.Id));
-        if (!entities.Any()) throw new Exception($"No BucketVersions found with passed IDs.");
+        if (!entities.Any()) throw new Exception("No BucketVersions found with passed IDs.");
 
         DatabaseContext.BucketVersion.RemoveRange(entities);
         return DatabaseContext.SaveChanges();

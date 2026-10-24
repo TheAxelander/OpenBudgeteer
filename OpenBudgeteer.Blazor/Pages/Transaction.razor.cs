@@ -28,11 +28,11 @@ public partial class Transaction : ComponentBase
     private TransactionViewModel _createTransactionDataContext = null!;
     private Tuple<TransactionViewModel, TransactionViewModel> _createTransferDataContext = null!;
     private bool _isEditModeEnabled;
-    
+
     private DateOnlyMudFilter<TransactionViewModel> _dateOnlyMudFilter = null!;
     private EntityViewModelMudFilter<AccountViewModel, TransactionViewModel> _accountMudFilter = null!;
     private EntityViewModelMudFilter<PartialBucketViewModel, TransactionViewModel> _bucketMudFilter = null!;
-    
+
     private HashSet<TransactionViewModel> _selectedTransactions = new();
 
     private RecurringTransactionHandlerViewModel? _recurringTransactionHandlerViewModel;
@@ -42,7 +42,7 @@ public partial class Transaction : ComponentBase
         _dataContext = new TransactionPageViewModel(ServiceManager, YearMonthDataContext);
         _dateOnlyMudFilter = new(new()
         {
-            FilterFunction = x => 
+            FilterFunction = x =>
                 x.TransactionDate.IsBetween(_dateOnlyMudFilter.DateRange.Start, _dateOnlyMudFilter.DateRange.End)
         });
         _accountMudFilter = new(new()
@@ -71,7 +71,7 @@ public partial class Transaction : ComponentBase
             TransactionViewModel.CreateEmpty(ServiceManager),
             TransactionViewModel.CreateEmpty(ServiceManager));
         _selectedTransactions.Clear();
-        
+
         _accountMudFilter.AvailableItems = _dataContext.Transactions
             .Select(i => i.SelectedAccount)
             .Distinct()
@@ -83,24 +83,24 @@ public partial class Transaction : ComponentBase
             .OrderBy(i => i.SelectedBucketName)
             .ToList();
         _bucketMudFilter.AvailableItems.Insert(0, PartialBucketViewModel.CreateNoSelection(ServiceManager));
-        
-        
+
+
         _accountMudFilter.ResetFilter();
         _dateOnlyMudFilter.ResetFilter();
         _bucketMudFilter.ResetFilter();
     }
-    
+
     private void TransactionDateChanged(DateTime? dateTime, TransactionViewModel context)
     {
         context.TransactionDate = DateOnly.FromDateTime(dateTime ?? DateTime.Today);
     }
-    
+
     private async Task ShowCreateTransactionDialog()
     {
         var reloadRequired = false;
-        var lastEnteredDate = YearMonthDataContext.IsTodayInCurrentMonth ? 
+        var lastEnteredDate = YearMonthDataContext.IsTodayInCurrentMonth ?
             DateOnly.FromDateTime(DateTime.Today) : YearMonthDataContext.CurrentMonth;
-        
+
         while (true)
         {
             _createTransactionDataContext.TransactionDate = lastEnteredDate;
@@ -120,6 +120,7 @@ public partial class Transaction : ComponentBase
                     if (createDialogResult.Data is CreateDialogResponse.CreateAnother)
                     {
                         lastEnteredDate = _createTransactionDataContext.TransactionDate;
+                        _createTransactionDataContext = TransactionViewModel.CreateEmpty(ServiceManager);
                         continue;
                     }
                 }
@@ -142,11 +143,11 @@ public partial class Transaction : ComponentBase
     private async Task ShowCreateTransferDialog()
     {
         var reloadRequired = false;
-        var lastEnteredDateSender = YearMonthDataContext.IsTodayInCurrentMonth ? 
+        var lastEnteredDateSender = YearMonthDataContext.IsTodayInCurrentMonth ?
             DateOnly.FromDateTime(DateTime.Today) : YearMonthDataContext.CurrentMonth;
-        var lastEnteredDateReceiver = YearMonthDataContext.IsTodayInCurrentMonth ? 
+        var lastEnteredDateReceiver = YearMonthDataContext.IsTodayInCurrentMonth ?
             DateOnly.FromDateTime(DateTime.Today) : YearMonthDataContext.CurrentMonth;
-        
+
         while (true)
         {
             var (sender, receiver) = _createTransferDataContext;
@@ -179,7 +180,7 @@ public partial class Transaction : ComponentBase
                 };
                 sender.Buckets.Add(PartialBucketViewModel.CreateFromBucket(ServiceManager, transferBucket, sender.Amount));
                 receiver.Buckets.Add(PartialBucketViewModel.CreateFromBucket(ServiceManager, transferBucket, receiver.Amount));
-                
+
                 var createItemResultSender = sender.PerformConsistencyCheck();
                 var createItemResultReceiver = receiver.PerformConsistencyCheck();
 
@@ -188,7 +189,7 @@ public partial class Transaction : ComponentBase
                     createItemResultSender = _dataContext.CreateItem(sender);
                     createItemResultReceiver = _dataContext.CreateItem(receiver);
                 }
-                
+
                 if (createItemResultSender.IsSuccessful && createItemResultReceiver.IsSuccessful)
                 {
                     reloadRequired = true;
@@ -196,6 +197,7 @@ public partial class Transaction : ComponentBase
                     {
                         lastEnteredDateSender = sender.TransactionDate;
                         lastEnteredDateReceiver = receiver.TransactionDate;
+                        _createTransactionDataContext = TransactionViewModel.CreateEmpty(ServiceManager);
                         continue;
                     }
                 }
@@ -213,7 +215,7 @@ public partial class Transaction : ComponentBase
                         messageStringBuilder.AppendLine("Receiving Transaction:");
                         messageStringBuilder.AppendLine(createItemResultReceiver.Message);
                     }
-                    
+
                     var errorDialogParameters = new DialogParameters<ErrorMessageDialog>
                     {
                         { x => x.Title, "Create Transfer" },
@@ -231,8 +233,8 @@ public partial class Transaction : ComponentBase
     private void SwitchToEditMode()
     {
         _isEditModeEnabled = true;
-        var transactionsToModify = _selectedTransactions.Count > 0 
-            ? _selectedTransactions.ToList() 
+        var transactionsToModify = _selectedTransactions.Count > 0
+            ? _selectedTransactions.ToList()
             : _dataContext.Transactions.ToList();
         foreach (var transaction in transactionsToModify)
         {
@@ -280,7 +282,7 @@ public partial class Transaction : ComponentBase
         _isEditModeEnabled = true;
         dialog.Close();
     }
-    
+
     private void Transactions_SelectionChanged(HashSet<TransactionViewModel> items)
     {
         _selectedTransactions = items;
@@ -303,11 +305,11 @@ public partial class Transaction : ComponentBase
     {
         await HandleResult(await _dataContext.AddRecurringTransactionsAsync());
     }
-    
+
     private bool Transactions_QuickFilter(TransactionViewModel transactionViewModel)
     {
-        if (!_isEditModeEnabled) return true; // Display all items if Edit Mode is not enabled 
-        
+        if (!_isEditModeEnabled) return true; // Display all items if Edit Mode is not enabled
+
         return transactionViewModel.InModification;
     }
 
@@ -331,7 +333,7 @@ public partial class Transaction : ComponentBase
     {
         var bucketSelectDialogDataContext = new BucketListingViewModel(ServiceManager, YearMonthDataContext);
         await HandleResult(await bucketSelectDialogDataContext.LoadDataForSelectionScreenAsync());
-        
+
         var parameters = new DialogParameters<BucketSelectDialog>
         {
             { x => x.DataContext, bucketSelectDialogDataContext }
@@ -348,14 +350,14 @@ public partial class Transaction : ComponentBase
             partialBucketViewModel.UpdateSelectedBucket(selectedBucket);
             if (partialBucketViewModel.Amount == 0)
             {
-                partialBucketViewModel.Amount = 
-                    transactionViewModel.Amount - 
+                partialBucketViewModel.Amount =
+                    transactionViewModel.Amount -
                     transactionViewModel.Buckets
                         .Where(i => i.SelectedBucketId != partialBucketViewModel.SelectedBucketId)
                         .Sum(i => i.Amount);
             }
         }
-      
+
         StateHasChanged();
     }
 

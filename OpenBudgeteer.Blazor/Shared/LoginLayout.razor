@@ -1,5 +1,5 @@
 @inherits LayoutComponentBase
-@inject MudThemeService MudThemeService
+@inject IMudThemeService MudThemeService
 
 <MudThemeProvider IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"
                   Theme="MudThemeService.CurrentThemeSetting.CurrentTheme"/>

@@ -1,16 +1,15 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities;
 using OpenBudgeteer.Core.Data.Entities.Models;
 
-namespace OpenBudgeteer.Core.Data.Repository;
+namespace OpenBudgeteer.Core.Data.Repository.EFCore;
 
-public class BankTransactionRepository : IBankTransactionRepository
+public class EFCoreBankTransactionRepository : IBankTransactionRepository
 {
     private DatabaseContext DatabaseContext { get; }
     
-    public BankTransactionRepository(DatabaseContext databaseContext)
+    public EFCoreBankTransactionRepository(DatabaseContext databaseContext)
     {
         DatabaseContext = databaseContext;
     }
@@ -57,7 +56,7 @@ public class BankTransactionRepository : IBankTransactionRepository
     public int Delete(Guid id)
     {
         var entity = DatabaseContext.BankTransaction
-            .Include(i => i.BudgetedTransactions)
+            .Include(i => i.BudgetedTransactions) //Include BudgetedTransactions to delete them too
             .FirstOrDefault(i => i.Id == id);
         if (entity is null) throw new Exception($"BankTransaction with id {id} not found.");
 
@@ -68,9 +67,9 @@ public class BankTransactionRepository : IBankTransactionRepository
     public int DeleteRange(IEnumerable<Guid> ids)
     {
         var entities = DatabaseContext.BankTransaction
-            .Include(i => i.BudgetedTransactions)
+            .Include(i => i.BudgetedTransactions) //Include BudgetedTransactions to delete them too
             .Where(i => ids.Contains(i.Id));
-        if (!entities.Any()) throw new Exception($"No BankTransactions found with passed IDs.");
+        if (!entities.Any()) throw new Exception("No BankTransactions found with passed IDs.");
 
         DatabaseContext.BankTransaction.RemoveRange(entities);
         return DatabaseContext.SaveChanges();
