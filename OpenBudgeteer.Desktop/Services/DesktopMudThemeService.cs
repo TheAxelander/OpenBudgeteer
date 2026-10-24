@@ -142,7 +142,7 @@ public class DesktopMudThemeService : IMudThemeService
             if (currentColor is null) return; // Unable to parse Color Property
             if (currentColor == defaultColor) return; // No custom setting, hence skip
 
-            settings.Add($"{prefix}{setting}", $"\"{currentColor.ToString(MudColorOutputFormats.HexA)}\"");
+            settings.Add($"{prefix}{setting}", currentColor.ToString(MudColorOutputFormats.HexA));
         }
     }
 
