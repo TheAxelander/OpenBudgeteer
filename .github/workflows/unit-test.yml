@@ -1,4 +1,4 @@
-name: Test
+name: Unit Test
 
 on:
   pull_request:
@@ -12,12 +12,12 @@ env:
   DOTNET_VERSION: '10.0.x' # The .NET SDK version to use
 
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
-    name: Run Test Cases
+    name: Run Unit Tests
     # Cancel outdated runs of the same PR, never runs called from other workflows
     concurrency:
-      group: test-${{ github.event.pull_request.number || github.run_id }}
+      group: unit-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
 
     services:
