@@ -17,12 +17,16 @@ using OpenBudgeteer.Core.Data.Services.DuckDb;
 using OpenBudgeteer.Core.ViewModels.Helper;
 using OpenBudgeteer.Desktop.Services;
 using Photino.Blazor;
+using Photino.NET;
 
 namespace OpenBudgeteer.Desktop;
 
 internal class Program
 {
     private const string DATABASE_FILE_NAME = "OpenBudgeteer.duckdb";
+    private const string LOCK_FILE_NAME = "OpenBudgeteer.lock";
+    // Windows requires an .ico file for the window icon, Linux uses a .png (macOS takes the icon from the App Bundle)
+    private static readonly string WINDOW_ICON_FILE_NAME = OperatingSystem.IsWindows() ? "openbudgeteer.ico" : "openbudgeteer.png";
 
     [STAThread]
     private static void Main(string[] args)
@@ -30,6 +34,14 @@ internal class Program
         // Settings are stored in a local config file (instead of .env and Redis like the Web App)
         var configFileService = new ConfigFileService();
         Console.WriteLine($"Configuration file: {configFileService.ConfigFilePath}");
+
+        // DuckDB allows only one process to open the database file, so block a second instance with a clear message
+        using var instanceLock = TryAcquireInstanceLock(configFileService.ConfigDirectory);
+        if (instanceLock == null)
+        {
+            ShowAlreadyRunningMessage();
+            return;
+        }
 
         // Shared Blazor components check if authentication is enabled. Desktop App is single-user, no login required
         var configuration = new ConfigurationBuilder()
@@ -90,6 +102,7 @@ internal class Program
 
         app.MainWindow
             .SetTitle("OpenBudgeteer")
+            .SetIconFile(Path.Combine(AppContext.BaseDirectory, WINDOW_ICON_FILE_NAME))
             .SetLogVerbosity(0) // Suppress Log Messages flooding the console output
             .SetSize(1400, 900)
             .Center();
@@ -100,6 +113,42 @@ internal class Program
         };
 
         app.Run();
+    }
+
+    /// <summary>
+    /// Opens the lock file exclusively, which is released by the OS once the process exits (also on a crash)
+    /// </summary>
+    /// <returns>Opened lock file or null if another instance holds the lock</returns>
+    private static FileStream? TryAcquireInstanceLock(string directory)
+    {
+        try
+        {
+            return new FileStream(Path.Combine(directory, LOCK_FILE_NAME), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+    }
+
+    private static void ShowAlreadyRunningMessage()
+    {
+        const string message = "OpenBudgeteer is already running.";
+        Console.WriteLine(message);
+
+        new PhotinoWindow()
+            .SetTitle("OpenBudgeteer")
+            .SetIconFile(Path.Combine(AppContext.BaseDirectory, WINDOW_ICON_FILE_NAME))
+            .SetSize(420, 160)
+            .SetResizable(false)
+            .Center()
+            .LoadRawString(
+                $"""
+                 <html><body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 90vh; margin: 0;">
+                 <p>{message}</p>
+                 </body></html>
+                 """)
+            .WaitForClose();
     }
 
     private static DuckDBConnection InitializeDatabase(ConfigFileService configFileService)
