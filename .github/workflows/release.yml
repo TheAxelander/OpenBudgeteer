@@ -1,4 +1,4 @@
-name: Docker Image (Release)
+name: Release
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 # Run releases one after another so the "latest" check always sees a consistent state
 concurrency:
-  group: docker-release
+  group: release
   cancel-in-progress: false
 
 permissions:
@@ -50,77 +50,41 @@ jobs:
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "is-latest=${IS_LATEST}" >> "$GITHUB_OUTPUT"
 
-  test:
-    name: Run Test Cases
+  unit-test:
+    name: Run Unit Tests
     needs: preflight
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/unit-test.yml
 
-  deploy-docker-app:
-    runs-on: ubuntu-latest
-    name: Build and Push Docker Image (App)
-    needs: [ preflight, test ]
-    if: success()
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v7
+  docker-app:
+    name: Docker Image (App)
+    needs: [ preflight, unit-test ]
+    uses: ./.github/workflows/docker-image.yml
+    with:
+      dockerfile: Dockerfile
+      tags: |
+        axelander/openbudgeteer:${{ needs.preflight.outputs.version }}
+        ${{ needs.preflight.outputs.is-latest == 'true' && 'axelander/openbudgeteer:latest' || '' }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Login
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: true
-          tags: |
-            axelander/openbudgeteer:${{ needs.preflight.outputs.version }}
-            ${{ needs.preflight.outputs.is-latest == 'true' && 'axelander/openbudgeteer:latest' || '' }}
-          platforms: linux/arm64,linux/amd64
-
-  deploy-docker-api:
-    runs-on: ubuntu-latest
-    name: Build and Push Docker Image (API)
-    needs: [ preflight, test ]
-    if: success() && needs.preflight.outputs.is-latest == 'true'
-    steps:
-      - name: Check out repo
-        uses: actions/checkout@v7
-
-      - name: Docker Login
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          push: true
-          tags: axelander/openbudgeteer-api:latest
-          file: API.Dockerfile
-          platforms: linux/arm64,linux/amd64
+  # The API image is only published as "latest"
+  docker-api:
+    name: Docker Image (API)
+    needs: [ preflight, unit-test ]
+    if: needs.preflight.outputs.is-latest == 'true'
+    uses: ./.github/workflows/docker-image.yml
+    with:
+      dockerfile: API.Dockerfile
+      tags: axelander/openbudgeteer-api:latest
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
   github-release:
     runs-on: ubuntu-latest
     name: Create GitHub Release
-    needs: [ preflight, deploy-docker-app ]
-    if: success()
+    needs: [ preflight, docker-app ]
     permissions:
       contents: write
     steps:
@@ -145,3 +109,16 @@ jobs:
             --title "${VERSION}" \
             --notes-file release-notes.md \
             --latest="${IS_LATEST}"
+
+  # Uploads into the GitHub Release created above. Only for the highest version, as Velopack takes the update feed
+  # from the newest GitHub Release
+  desktop:
+    name: Desktop App
+    needs: [ preflight, unit-test, github-release ]
+    if: needs.preflight.outputs.is-latest == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/desktop.yml
+    with:
+      tag: ${{ needs.preflight.outputs.version }}
+      publish: true
