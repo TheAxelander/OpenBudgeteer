@@ -17,6 +17,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <InternalsVisibleTo Include="OpenBudgeteer.Core.Test" />
+    </ItemGroup>
+
+    <ItemGroup>
       <EmbeddedResource Include="20251205000000_InitialCreate.sql" />
     </ItemGroup>
 
