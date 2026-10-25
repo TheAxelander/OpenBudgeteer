@@ -18,6 +18,7 @@ using OpenBudgeteer.Core.ViewModels.Helper;
 using OpenBudgeteer.Desktop.Services;
 using Photino.Blazor;
 using Photino.NET;
+using Velopack;
 
 namespace OpenBudgeteer.Desktop;
 
@@ -31,6 +32,10 @@ internal class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        // Handles install/update/uninstall hooks of the Velopack installer, which may exit the process. Must run first
+        VelopackApp.Build().Run();
+
+        // Handle App Id for Linux (also used for dotnet run)
         if (OperatingSystem.IsLinux()) LinuxDesktopIntegration.SetApplicationId();
 
         // Settings are stored in a local config file (instead of .env and Redis like the Web App)
@@ -90,6 +95,14 @@ internal class Program
             x => new DesktopAppSettingService(x.GetRequiredService<ConfigFileService>()));
         builder.Services.AddSingleton<IMudThemeService, DesktopMudThemeService>(
             x => new DesktopMudThemeService(x.GetRequiredService<ConfigFileService>()));
+
+        // Only available if installed via Velopack, otherwise the UI won't offer any updates
+        var updateManager = VelopackUpdateService.TryCreateUpdateManager();
+        if (updateManager != null)
+        {
+            builder.Services.AddSingleton<IAppUpdateService>(x =>
+                new VelopackUpdateService(updateManager, x.GetRequiredService<ILogger<VelopackUpdateService>>()));
+        }
 
         builder.RootComponents.Add<Routes>("#app");
         builder.RootComponents.Add<HeadOutlet>("head::after");
