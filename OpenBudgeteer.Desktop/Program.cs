@@ -31,6 +31,8 @@ internal class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        if (OperatingSystem.IsLinux()) LinuxDesktopIntegration.SetApplicationId();
+
         // Settings are stored in a local config file (instead of .env and Redis like the Web App)
         var configFileService = new ConfigFileService();
         Console.WriteLine($"Configuration file: {configFileService.ConfigFilePath}");
