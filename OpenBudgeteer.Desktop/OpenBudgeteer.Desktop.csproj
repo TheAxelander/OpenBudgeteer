@@ -30,6 +30,7 @@
     <PackageReference Include="Photino.Blazor" Version="4.0.13" />
 
     <PackageReference Include="DuckDB.NET.Data.Full" Version="1.5.6.1" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,8 +43,7 @@
   <!-- Don't publish the executable and runtime config of the referenced Web App, only OpenBudgeteer.Desktop is used -->
   <Target Name="RemoveWebAppHostFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
     <ItemGroup>
-      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
-                             Condition="'%(RelativePath)' == 'OpenBudgeteer' Or '%(RelativePath)' == 'OpenBudgeteer.exe' Or '%(RelativePath)' == 'OpenBudgeteer.runtimeconfig.json'" />
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(RelativePath)' == 'OpenBudgeteer' Or '%(RelativePath)' == 'OpenBudgeteer.exe' Or '%(RelativePath)' == 'OpenBudgeteer.runtimeconfig.json'" />
     </ItemGroup>
   </Target>
 
