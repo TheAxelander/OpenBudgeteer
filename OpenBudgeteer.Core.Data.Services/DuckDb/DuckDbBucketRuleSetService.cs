@@ -44,7 +44,7 @@ public class DuckDbBucketRuleSetService : GenericBucketRuleSetService<DbConnecti
                 WHERE BucketRuleSetId = $ruleSetId
                 """;
             var existingMappingRuleIds = dbContext
-                .Query<Guid>(sql, new { ruleSetId = entity.Id.ToString() })
+                .Query<Guid>(sql, new { ruleSetId = entity.Id })
                 .ToList();
 
             // Select which of the database IDs are no longer available in entity
@@ -99,7 +99,7 @@ public class DuckDbBucketRuleSetService : GenericBucketRuleSetService<DbConnecti
                 WHERE BucketRuleSetId = $ruleSetId
                 """;
             mappingRuleRepository.DeleteRange(dbContext
-                .Query<Guid>(sql, new { ruleSetId = id.ToString() })
+                .Query<Guid>(sql, new { ruleSetId = id })
                 .ToList());
 
             // Delete BucketRuleSet

@@ -12,22 +12,22 @@ CREATE TABLE IF NOT EXISTS __DuckDbMigrations (
 
 -- Account table
 CREATE TABLE IF NOT EXISTS Account (
-    AccountId VARCHAR PRIMARY KEY,
+    AccountId UUID PRIMARY KEY,
     Name VARCHAR,
     IsActive INTEGER NOT NULL
 );
 
 -- BucketGroup table
 CREATE TABLE IF NOT EXISTS BucketGroup (
-    BucketGroupId VARCHAR PRIMARY KEY,
+    BucketGroupId UUID PRIMARY KEY,
     Name VARCHAR,
     Position INTEGER NOT NULL
 );
 
 -- BankTransaction table
 CREATE TABLE IF NOT EXISTS BankTransaction (
-    TransactionId VARCHAR PRIMARY KEY,
-    AccountId VARCHAR NOT NULL,
+    TransactionId UUID PRIMARY KEY,
+    AccountId UUID NOT NULL,
     TransactionDate DATE NOT NULL,
     Payee VARCHAR,
     Memo VARCHAR,
@@ -39,9 +39,9 @@ CREATE TABLE IF NOT EXISTS BankTransaction (
 
 -- ImportProfile table
 CREATE TABLE IF NOT EXISTS ImportProfile (
-    ImportProfileId VARCHAR PRIMARY KEY,
+    ImportProfileId UUID PRIMARY KEY,
     ProfileName VARCHAR,
-    AccountId VARCHAR NOT NULL,
+    AccountId UUID NOT NULL,
     HeaderRow INTEGER NOT NULL,
     Delimiter VARCHAR(1) NOT NULL,
     TextQualifier VARCHAR(1) NOT NULL,
@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS ImportProfile (
 
 -- RecurringBankTransaction table
 CREATE TABLE IF NOT EXISTS RecurringBankTransaction (
-    TransactionId VARCHAR PRIMARY KEY,
-    AccountId VARCHAR NOT NULL,
+    TransactionId UUID PRIMARY KEY,
+    AccountId UUID NOT NULL,
     RecurrenceType INTEGER NOT NULL,
     RecurrenceAmount INTEGER NOT NULL,
     FirstOccurrenceDate DATE NOT NULL,
@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS RecurringBankTransaction (
 
 -- Bucket table
 CREATE TABLE IF NOT EXISTS Bucket (
-    BucketId VARCHAR PRIMARY KEY,
+    BucketId UUID PRIMARY KEY,
     Name VARCHAR,
-    BucketGroupId VARCHAR NOT NULL,
+    BucketGroupId UUID NOT NULL,
     ColorCode VARCHAR,
     TextColorCode VARCHAR,
     ValidFrom DATE NOT NULL,
@@ -95,8 +95,8 @@ CREATE TABLE IF NOT EXISTS Bucket (
 
 -- BucketMovement table
 CREATE TABLE IF NOT EXISTS BucketMovement (
-    BucketMovementId VARCHAR PRIMARY KEY,
-    BucketId VARCHAR NOT NULL,
+    BucketMovementId UUID PRIMARY KEY,
+    BucketId UUID NOT NULL,
     Amount DECIMAL(38, 2) NOT NULL,
     MovementDate DATE NOT NULL,
     --FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
@@ -106,10 +106,10 @@ CREATE TABLE IF NOT EXISTS BucketMovement (
 
 -- BucketRuleSet table
 CREATE TABLE IF NOT EXISTS BucketRuleSet (
-    BucketRuleSetId VARCHAR PRIMARY KEY,
+    BucketRuleSetId UUID PRIMARY KEY,
     Priority INTEGER NOT NULL,
     Name VARCHAR,
-    TargetBucketId VARCHAR NOT NULL,
+    TargetBucketId UUID NOT NULL,
     --FOREIGN KEY (TargetBucketId) REFERENCES Bucket(BucketId)
 );
 
@@ -117,8 +117,8 @@ CREATE TABLE IF NOT EXISTS BucketRuleSet (
 
 -- BucketVersion table
 CREATE TABLE IF NOT EXISTS BucketVersion (
-    BucketVersionId VARCHAR PRIMARY KEY,
-    BucketId VARCHAR NOT NULL,
+    BucketVersionId UUID PRIMARY KEY,
+    BucketId UUID NOT NULL,
     Version INTEGER NOT NULL,
     BucketType INTEGER NOT NULL,
     BucketTypeXParam INTEGER NOT NULL,
@@ -133,9 +133,9 @@ CREATE TABLE IF NOT EXISTS BucketVersion (
 
 -- BudgetedTransaction table
 CREATE TABLE IF NOT EXISTS BudgetedTransaction (
-    BudgetedTransactionId VARCHAR PRIMARY KEY,
-    TransactionId VARCHAR NOT NULL,
-    BucketId VARCHAR NOT NULL,
+    BudgetedTransactionId UUID PRIMARY KEY,
+    TransactionId UUID NOT NULL,
+    BucketId UUID NOT NULL,
     Amount DECIMAL(38, 2) NOT NULL,
     --FOREIGN KEY (TransactionId) REFERENCES BankTransaction(TransactionId),
     --FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
@@ -146,8 +146,8 @@ CREATE TABLE IF NOT EXISTS BudgetedTransaction (
 
 -- MappingRule table
 CREATE TABLE IF NOT EXISTS MappingRule (
-    MappingRuleId VARCHAR PRIMARY KEY,
-    BucketRuleSetId VARCHAR NOT NULL,
+    MappingRuleId UUID PRIMARY KEY,
+    BucketRuleSetId UUID NOT NULL,
     ComparisonField INTEGER NOT NULL,
     ComparisonType INTEGER NOT NULL,
     ComparisonValue VARCHAR NOT NULL,

@@ -80,7 +80,7 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
                   """;
 
         return _connection
-            .Query<RecurringBankTransaction>(sql, param: new { id = id.ToString() })
+            .Query<RecurringBankTransaction>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -110,7 +110,7 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -136,8 +136,8 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId));
         cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceType));
         cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceAmount));
         cmd.Parameters.Add(new DuckDBParameter(entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue)));
@@ -171,14 +171,14 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId));
         cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceType));
         cmd.Parameters.Add(new DuckDBParameter(entity.RecurrenceAmount));
         cmd.Parameters.Add(new DuckDBParameter(entity.FirstOccurrenceDate.ToDateTime(TimeOnly.MinValue)));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -203,7 +203,7 @@ public class DuckDbRecurringBankTransactionRepository : IRecurringBankTransactio
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

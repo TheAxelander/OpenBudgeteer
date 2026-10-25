@@ -92,7 +92,7 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
                   """;
 
         return _connection
-            .Query<BucketVersion>(sql, param: new { id = id.ToString() })
+            .Query<BucketVersion>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -129,7 +129,7 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -156,8 +156,8 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId));
         cmd.Parameters.Add(new DuckDBParameter(entity.Version));
         cmd.Parameters.Add(new DuckDBParameter(entity.BucketType));
         cmd.Parameters.Add(new DuckDBParameter(entity.BucketTypeXParam));
@@ -198,7 +198,7 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId));
         cmd.Parameters.Add(new DuckDBParameter(entity.Version));
         cmd.Parameters.Add(new DuckDBParameter(entity.BucketType));
         cmd.Parameters.Add(new DuckDBParameter(entity.BucketTypeXParam));
@@ -206,7 +206,7 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
         cmd.Parameters.Add(new DuckDBParameter(entity.BucketTypeZParam.ToDateTime(TimeOnly.MinValue)));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Notes ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.ValidFrom.ToDateTime(TimeOnly.MinValue)));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -232,7 +232,7 @@ public class DuckDbBucketVersionRepository : IBucketVersionRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

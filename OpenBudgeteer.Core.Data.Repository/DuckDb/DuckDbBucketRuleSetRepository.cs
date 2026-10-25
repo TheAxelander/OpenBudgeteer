@@ -80,7 +80,7 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
                   """;
 
         return _connection
-            .Query<BucketRuleSet>(sql, param: new { id = id.ToString() })
+            .Query<BucketRuleSet>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -118,7 +118,7 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id,Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -140,10 +140,10 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
         cmd.Parameters.Add(new DuckDBParameter(entity.Priority));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
-        cmd.Parameters.Add(new DuckDBParameter(entity.TargetBucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TargetBucketId));
 
         return cmd.ExecuteNonQuery();
     }
@@ -169,8 +169,8 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
 
         cmd.Parameters.Add(new DuckDBParameter(entity.Priority));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
-        cmd.Parameters.Add(new DuckDBParameter(entity.TargetBucketId.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TargetBucketId));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -205,7 +205,7 @@ public class DuckDbBucketRuleSetRepository : IBucketRuleSetRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         result += cmd.ExecuteNonQuery();
 

@@ -72,7 +72,7 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
                   """;
 
         return _connection
-            .Query<MappingRule>(sql, param: new { id = id.ToString() })
+            .Query<MappingRule>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -100,7 +100,7 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -123,8 +123,8 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.BucketRuleSetId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketRuleSetId));
         cmd.Parameters.Add(new DuckDBParameter(entity.ComparisonField));
         cmd.Parameters.Add(new DuckDBParameter(entity.ComparisonType));
         cmd.Parameters.Add(new DuckDBParameter(entity.ComparisonValue));
@@ -152,11 +152,11 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.BucketRuleSetId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketRuleSetId));
         cmd.Parameters.Add(new DuckDBParameter(entity.ComparisonField));
         cmd.Parameters.Add(new DuckDBParameter(entity.ComparisonType));
         cmd.Parameters.Add(new DuckDBParameter(entity.ComparisonValue));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -181,7 +181,7 @@ public class DuckDbMappingRuleRepository : IMappingRuleRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

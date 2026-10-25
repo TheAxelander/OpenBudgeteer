@@ -127,7 +127,7 @@ public class DuckDbBankTransactionService : GenericBankTransactionService<DbConn
                 {
                     periodStart = periodStart?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue,
                     periodEnd = periodEnd?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MaxValue,
-                    accountId = accountId.ToString(),
+                    accountId = accountId,
                     limit = limit
                 };
             }
@@ -137,7 +137,7 @@ public class DuckDbBankTransactionService : GenericBankTransactionService<DbConn
                 {
                     periodStart = periodStart?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue,
                     periodEnd = periodEnd?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MaxValue,
-                    accountId = accountId.ToString()
+                    accountId = accountId
                 };
             }
 
@@ -176,7 +176,7 @@ public class DuckDbBankTransactionService : GenericBankTransactionService<DbConn
                     WHERE TransactionId = $transactionId
                     """;
                 var deletedIds = dbConnection
-                    .Query<Guid>(deleteSql, new { transactionId = entity.Id.ToString() })
+                    .Query<Guid>(deleteSql, new { transactionId = entity.Id })
                     .ToList();
 
                 if (deletedIds.Count != 0)

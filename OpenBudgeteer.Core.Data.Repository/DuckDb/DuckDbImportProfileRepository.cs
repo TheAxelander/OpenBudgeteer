@@ -110,7 +110,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
                   """;
 
         return _connection
-            .Query<ImportProfile>(sql, param: new { id = id.ToString() })
+            .Query<ImportProfile>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -150,7 +150,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -186,9 +186,9 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.ProfileName ?? DBNull.Value));
-        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId));
         cmd.Parameters.Add(new DuckDBParameter(entity.HeaderRow));
         cmd.Parameters.Add(new DuckDBParameter(entity.Delimiter.ToString()));
         cmd.Parameters.Add(new DuckDBParameter(entity.TextQualifier.ToString()));
@@ -242,7 +242,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         cmd.CommandText = sql;
 
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.ProfileName ?? DBNull.Value));
-        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId));
         cmd.Parameters.Add(new DuckDBParameter(entity.HeaderRow));
         cmd.Parameters.Add(new DuckDBParameter(entity.Delimiter.ToString()));
         cmd.Parameters.Add(new DuckDBParameter(entity.TextQualifier.ToString()));
@@ -258,7 +258,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.CreditColumnIdentifierValue ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.AdditionalSettingAmountCleanup));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.AdditionalSettingAmountCleanupValue ?? DBNull.Value));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -283,7 +283,7 @@ public class DuckDbImportProfileRepository : IImportProfileRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

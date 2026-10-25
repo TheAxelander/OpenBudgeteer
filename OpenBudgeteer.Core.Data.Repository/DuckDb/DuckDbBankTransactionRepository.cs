@@ -74,7 +74,7 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
                   """;
 
         return _connection
-            .Query<BankTransaction>(sql, param: new { id = id.ToString() })
+            .Query<BankTransaction>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -102,7 +102,7 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
                 sql,
                 mapper.MapWithAccount,
                 splitOn: "Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -126,8 +126,8 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId));
         cmd.Parameters.Add(new DuckDBParameter(entity.TransactionDate.ToDateTime(TimeOnly.MinValue)));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
@@ -157,12 +157,12 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.AccountId));
         cmd.Parameters.Add(new DuckDBParameter(entity.TransactionDate.ToDateTime(TimeOnly.MinValue)));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Payee ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Memo ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -197,7 +197,7 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         result += cmd.ExecuteNonQuery();
 

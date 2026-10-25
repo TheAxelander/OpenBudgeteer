@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using Dapper;
 using DuckDB.NET.Data;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.Configuration;
@@ -14,7 +13,6 @@ using OpenBudgeteer.Core.Data;
 using OpenBudgeteer.Core.Data.Connection;
 using OpenBudgeteer.Core.Data.Contracts.Services;
 using OpenBudgeteer.Core.Data.DuckDb.Migrations;
-using OpenBudgeteer.Core.Data.Repository.DuckDb;
 using OpenBudgeteer.Core.Data.Services.DuckDb;
 using OpenBudgeteer.Core.ViewModels.Helper;
 using OpenBudgeteer.Desktop.Services;
@@ -106,8 +104,6 @@ internal class Program
 
     private static DuckDBConnection InitializeDatabase(ConfigFileService configFileService)
     {
-        SqlMapper.AddTypeHandler(new DuckDbGuidTypeHandler());
-
         var databasePath = Path.Combine(configFileService.ConfigDirectory, DATABASE_FILE_NAME);
         var connection = new DuckDBConnection($"DataSource={databasePath}");
         connection.Open();
