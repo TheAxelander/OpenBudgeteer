@@ -91,17 +91,22 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
                       ,a.AccountId AS Id
                       ,a.Name
                       ,a.IsActive
+                      ,b.BudgetedTransactionId AS Id
+                      ,b.TransactionId
+                      ,b.BucketId
+                      ,b.Amount
                   FROM BankTransaction bt
                   INNER JOIN Account a ON bt.AccountId = a.AccountId
+                  LEFT JOIN BudgetedTransaction b ON bt.TransactionId = b.TransactionId
                   WHERE bt.TransactionId = $id
                   """;
 
         var mapper = new BankTransactionMapper();
         _ = _connection
-            .Query<BankTransaction, Account, BankTransaction>(
+            .Query<BankTransaction, Account, BudgetedTransaction?, BankTransaction>(
                 sql,
-                mapper.MapWithAccount,
-                splitOn: "Id",
+                mapper.MapWithEverything,
+                splitOn: "Id,Id",
                 param: new { id = id })
             .ToList();
 
@@ -181,7 +186,7 @@ public class DuckDbBankTransactionRepository : IBankTransactionRepository
         var result = 0;
 
         // Delete related BudgetedTransactions
-        if (entity.BudgetedTransactions is not null)
+        if (entity.BudgetedTransactions is not null && entity.BudgetedTransactions.Count > 0)
         {
             var budgetedTransactionRepository = new DuckDbBudgetedTransactionRepository(_connection);
             result += budgetedTransactionRepository.DeleteRange(entity.BudgetedTransactions.Select(i  => i.Id));
