@@ -48,8 +48,11 @@ public static class DuckDbMigrationRunner
             }
 
             if (string.IsNullOrEmpty(migrationSql)) continue;
-            ExecuteMigration(connection, migrationSql);
-            RecordMigration(connection, migrationId);
+
+            using var transaction = connection.BeginTransaction();
+            ExecuteMigration(connection, transaction, migrationSql);
+            RecordMigration(connection, transaction, migrationId);
+            transaction.Commit();
         }
     }
 
@@ -83,11 +86,12 @@ public static class DuckDbMigrationRunner
         return appliedMigrations;
     }
 
-    private static void RecordMigration(DbConnection connection, string migrationId)
+    private static void RecordMigration(DbConnection connection, DbTransaction transaction, string migrationId)
     {
         var sql = $"INSERT INTO {MigrationsTableName} (MigrationId, AppliedOn) VALUES ($1, $2)";
 
         using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = sql;
 
         var p1 = command.CreateParameter();
@@ -117,9 +121,10 @@ public static class DuckDbMigrationRunner
         }
     }
 
-    private static void ExecuteMigration(DbConnection connection, string sql)
+    private static void ExecuteMigration(DbConnection connection, DbTransaction transaction, string sql)
     {
         using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = sql;
         command.ExecuteNonQuery();
     }
