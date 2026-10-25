@@ -1,7 +1,9 @@
 -- Initial schema creation for DuckDB
 
--- Foreign Keys have been disabled for now due to "Over-Eager Constraint Checking in Foreign Keys"
--- which leads to failing Database Unit Tests with "Duplicate Primary Key"
+-- DuckDB transforms an UPDATE on an indexed column into DELETE + INSERT. On a table that is itself
+-- referenced by a Foreign Key, this DELETE fails while the row is still referenced. Therefore the columns
+-- BankTransaction.AccountId, Bucket.BucketGroupId and BucketRuleSet.TargetBucketId have neither a
+-- Foreign Key nor an Index, as they can be updated and their tables are referenced by other tables.
 -- see: https://duckdb.org/docs/stable/sql/indexes#over-eager-constraint-checking-in-foreign-keys
 
 -- Migrations tracking table (similar to EF Core's __EFMigrationsHistory)
@@ -57,10 +59,10 @@ CREATE TABLE IF NOT EXISTS ImportProfile (
     CreditColumnIdentifierValue VARCHAR,
     AdditionalSettingAmountCleanup BOOLEAN NOT NULL,
     AdditionalSettingAmountCleanupValue VARCHAR,
-    --FOREIGN KEY (AccountId) REFERENCES Account(AccountId)
+    FOREIGN KEY (AccountId) REFERENCES Account(AccountId)
 );
 
---CREATE INDEX IF NOT EXISTS IX_ImportProfile_AccountId ON ImportProfile(AccountId);
+CREATE INDEX IF NOT EXISTS IX_ImportProfile_AccountId ON ImportProfile(AccountId);
 
 -- RecurringBankTransaction table
 CREATE TABLE IF NOT EXISTS RecurringBankTransaction (
@@ -72,10 +74,10 @@ CREATE TABLE IF NOT EXISTS RecurringBankTransaction (
     Payee VARCHAR,
     Memo VARCHAR,
     Amount DECIMAL(38, 2) NOT NULL,
-    --FOREIGN KEY (AccountId) REFERENCES Account(AccountId)
+    FOREIGN KEY (AccountId) REFERENCES Account(AccountId)
 );
 
---CREATE INDEX IF NOT EXISTS IX_RecurringBankTransaction_AccountId ON RecurringBankTransaction(AccountId);
+CREATE INDEX IF NOT EXISTS IX_RecurringBankTransaction_AccountId ON RecurringBankTransaction(AccountId);
 
 -- Bucket table
 CREATE TABLE IF NOT EXISTS Bucket (
@@ -99,10 +101,10 @@ CREATE TABLE IF NOT EXISTS BucketMovement (
     BucketId UUID NOT NULL,
     Amount DECIMAL(38, 2) NOT NULL,
     MovementDate DATE NOT NULL,
-    --FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
+    FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
 );
 
---CREATE INDEX IF NOT EXISTS IX_BucketMovement_BucketId ON BucketMovement(BucketId);
+CREATE INDEX IF NOT EXISTS IX_BucketMovement_BucketId ON BucketMovement(BucketId);
 
 -- BucketRuleSet table
 CREATE TABLE IF NOT EXISTS BucketRuleSet (
@@ -126,10 +128,10 @@ CREATE TABLE IF NOT EXISTS BucketVersion (
     BucketTypeZParam DATE NOT NULL,
     Notes VARCHAR,
     ValidFrom DATE NOT NULL,
-    --FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
+    FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
 );
 
---CREATE INDEX IF NOT EXISTS IX_BucketVersion_BucketId ON BucketVersion(BucketId);
+CREATE INDEX IF NOT EXISTS IX_BucketVersion_BucketId ON BucketVersion(BucketId);
 
 -- BudgetedTransaction table
 CREATE TABLE IF NOT EXISTS BudgetedTransaction (
@@ -137,12 +139,12 @@ CREATE TABLE IF NOT EXISTS BudgetedTransaction (
     TransactionId UUID NOT NULL,
     BucketId UUID NOT NULL,
     Amount DECIMAL(38, 2) NOT NULL,
-    --FOREIGN KEY (TransactionId) REFERENCES BankTransaction(TransactionId),
-    --FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
+    FOREIGN KEY (TransactionId) REFERENCES BankTransaction(TransactionId),
+    FOREIGN KEY (BucketId) REFERENCES Bucket(BucketId)
 );
 
---CREATE INDEX IF NOT EXISTS IX_BudgetedTransaction_BucketId ON BudgetedTransaction(BucketId);
---CREATE INDEX IF NOT EXISTS IX_BudgetedTransaction_TransactionId ON BudgetedTransaction(TransactionId);
+CREATE INDEX IF NOT EXISTS IX_BudgetedTransaction_BucketId ON BudgetedTransaction(BucketId);
+CREATE INDEX IF NOT EXISTS IX_BudgetedTransaction_TransactionId ON BudgetedTransaction(TransactionId);
 
 -- MappingRule table
 CREATE TABLE IF NOT EXISTS MappingRule (
@@ -151,10 +153,10 @@ CREATE TABLE IF NOT EXISTS MappingRule (
     ComparisonField INTEGER NOT NULL,
     ComparisonType INTEGER NOT NULL,
     ComparisonValue VARCHAR NOT NULL,
-    --FOREIGN KEY (BucketRuleSetId) REFERENCES BucketRuleSet(BucketRuleSetId)
+    FOREIGN KEY (BucketRuleSetId) REFERENCES BucketRuleSet(BucketRuleSetId)
 );
 
---CREATE INDEX IF NOT EXISTS IX_MappingRule_BucketRuleSetId ON MappingRule(BucketRuleSetId);
+CREATE INDEX IF NOT EXISTS IX_MappingRule_BucketRuleSetId ON MappingRule(BucketRuleSetId);
 
 -- Insert initial data
 -- System BucketGroup
