@@ -2,21 +2,53 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using DuckDB.NET.Data;
 
 namespace OpenBudgeteer.Core.Data.DuckDb.Migrations;
 
 public static class DuckDbMigrationRunner
 {
-    private const string MigrationsTableName = "__DuckDbMigrations";
+    private const string MIGRATIONS_TABLE_NAME = "__DuckDbMigrations";
 
     // Define all migrations in order
-    private static readonly List<string> Migrations = new()
-    {
+    private static readonly List<string> _migrations =
+    [
         "20251205000000_InitialCreate"
-    };
+    ];
 
-    public static void ApplyMigrations(DbConnection connection)
+    /// <summary>
+    /// Applies all pending migrations on the passed database file. If the database already contains applied
+    /// migrations, a backup of the file is created as ".bak" before any pending migration is applied.
+    /// </summary>
+    /// <param name="databasePath">Path to the DuckDB database file</param>
+    public static void ApplyMigrations(string databasePath) => ApplyMigrations(databasePath, _migrations);
+
+    public static void ApplyMigrations(DbConnection connection) => ApplyMigrations(connection, _migrations);
+
+    internal static void ApplyMigrations(string databasePath, IReadOnlyList<string> migrations)
+    {
+        if (File.Exists(databasePath))
+        {
+            bool isBackupRequired;
+            using (var connection = new DuckDBConnection($"DataSource={databasePath}"))
+            {
+                connection.Open();
+                EnsureMigrationsTableExists(connection);
+                var appliedMigrations = GetAppliedMigrations(connection);
+                isBackupRequired = appliedMigrations.Count > 0 && migrations.Any(i => !appliedMigrations.Contains(i));
+            }
+
+            // Connection has been closed so DuckDB has released the file, which allows a plain file copy
+            if (isBackupRequired) BackupDatabaseFile(databasePath);
+        }
+
+        using var migrationConnection = new DuckDBConnection($"DataSource={databasePath}");
+        ApplyMigrations(migrationConnection, migrations);
+    }
+
+    internal static void ApplyMigrations(DbConnection connection, IReadOnlyList<string> migrations)
     {
         if (connection.State != System.Data.ConnectionState.Open) connection.Open();
 
@@ -28,7 +60,7 @@ public static class DuckDbMigrationRunner
 
         // Apply pending migrations
         var assembly = Assembly.GetExecutingAssembly();
-        foreach (var migrationId in Migrations)
+        foreach (var migrationId in migrations)
         {
             if (appliedMigrations.Contains(migrationId)) continue; // Migration already applied
 
@@ -56,9 +88,21 @@ public static class DuckDbMigrationRunner
         }
     }
 
+    private static void BackupDatabaseFile(string databasePath)
+    {
+        var backupPath = $"{databasePath}.bak";
+        File.Copy(databasePath, backupPath, true);
+
+        // Include a remaining write-ahead log, otherwise remove a stale one from a previous backup
+        var walPath = $"{databasePath}.wal";
+        var backupWalPath = $"{backupPath}.wal";
+        if (File.Exists(walPath)) File.Copy(walPath, backupWalPath, true);
+        else if (File.Exists(backupWalPath)) File.Delete(backupWalPath);
+    }
+
     private static void EnsureMigrationsTableExists(DbConnection connection)
     {
-        var sql = $@"CREATE TABLE IF NOT EXISTS {MigrationsTableName} (
+        var sql = $@"CREATE TABLE IF NOT EXISTS {MIGRATIONS_TABLE_NAME} (
             MigrationId VARCHAR PRIMARY KEY,
             AppliedOn TIMESTAMP NOT NULL
         )";
@@ -72,7 +116,7 @@ public static class DuckDbMigrationRunner
     {
         var appliedMigrations = new HashSet<string>();
 
-        var sql = $"SELECT MigrationId FROM {MigrationsTableName}";
+        var sql = $"SELECT MigrationId FROM {MIGRATIONS_TABLE_NAME}";
 
         using var command = connection.CreateCommand();
         command.CommandText = sql;
@@ -88,7 +132,7 @@ public static class DuckDbMigrationRunner
 
     private static void RecordMigration(DbConnection connection, DbTransaction transaction, string migrationId)
     {
-        var sql = $"INSERT INTO {MigrationsTableName} (MigrationId, AppliedOn) VALUES ($1, $2)";
+        var sql = $"INSERT INTO {MIGRATIONS_TABLE_NAME} (MigrationId, AppliedOn) VALUES ($1, $2)";
 
         using var command = connection.CreateCommand();
         command.Transaction = transaction;

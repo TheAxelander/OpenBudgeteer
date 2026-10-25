@@ -105,9 +105,10 @@ internal class Program
     private static DuckDBConnection InitializeDatabase(ConfigFileService configFileService)
     {
         var databasePath = Path.Combine(configFileService.ConfigDirectory, DATABASE_FILE_NAME);
+        DuckDbMigrationRunner.ApplyMigrations(databasePath); // Runs before opening the connection to allow a file backup
+
         var connection = new DuckDBConnection($"DataSource={databasePath}");
         connection.Open();
-        DuckDbMigrationRunner.ApplyMigrations(connection);
 
         // TODO: Initialize demo data using DuckDB if APPSETTINGS_DEMO_DATA is set
 
