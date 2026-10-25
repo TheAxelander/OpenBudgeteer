@@ -114,7 +114,7 @@ jobs:
       - name: Pack
         run: |
           dotnet vpk pack --packId ${PACK_ID} --packTitle OpenBudgeteer --packAuthors TheAxelander \
-            --packVersion ${PACK_VERSION} --packDir publish --mainExe OpenBudgeteer.Desktop \
+            --packVersion ${PACK_VERSION} --packDir publish --mainExe OpenBudgeteer.Desktop${{ runner.os == 'Windows' && '.exe' || '' }} \
             --runtime ${{ matrix.rid }} --channel ${{ matrix.rid }} -o releases \
             ${{ matrix.pack-args }}
 
