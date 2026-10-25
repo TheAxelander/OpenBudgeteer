@@ -15,7 +15,7 @@ public class DuckDbBucketGroupService : GenericBucketGroupService<DbConnection>
     private readonly Func<DbConnection> _dbConnectionFactory;
     private readonly ILogger<DuckDbBucketGroupService> _logger;
 
-    private readonly string _systemBucketGroupId = "00000000-0000-0000-0000-000000000001";
+    private readonly Guid _systemBucketGroupId = Guid.Parse("00000000-0000-0000-0000-000000000001");
 
     public DuckDbBucketGroupService(
         Func<DbConnection> dbConnectionFactory,

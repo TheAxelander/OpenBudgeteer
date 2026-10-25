@@ -71,7 +71,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
                   """;
 
         return _connection
-            .Query<BucketGroup>(sql, param: new { id = id.ToString() })
+            .Query<BucketGroup>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -102,7 +102,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -123,7 +123,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.Position));
 
@@ -150,7 +150,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
 
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.Position));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -179,7 +179,7 @@ public class DuckDbBucketGroupRepository : IBucketGroupRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

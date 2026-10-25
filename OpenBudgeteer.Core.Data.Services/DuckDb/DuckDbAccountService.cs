@@ -61,7 +61,7 @@ public class DuckDbAccountService : GenericAccountService<DbConnection>
                              FROM BankTransaction
                              WHERE AccountId = $id
                              """;
-            var balance = dbConnection.ExecuteScalar<decimal>(balanceSql, new { id = id.ToString() });
+            var balance = dbConnection.ExecuteScalar<decimal>(balanceSql, new { id = id });
 
             if (balance != 0) throw new EntityUpdateException("Balance must be 0 to close an Account");
 

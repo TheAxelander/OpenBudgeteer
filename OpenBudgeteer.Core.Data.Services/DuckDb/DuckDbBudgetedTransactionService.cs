@@ -16,8 +16,8 @@ public class DuckDbBudgetedTransactionService : GenericBudgetedTransactionServic
     private readonly ILogger<DuckDbBudgetedTransactionService> _logger;
 
     // System bucket IDs
-    private readonly string _incomeBucketId = "00000000-0000-0000-0000-000000000001";
-    private readonly string _transferBucketId = "00000000-0000-0000-0000-000000000002";
+    private readonly Guid _incomeBucketId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    private readonly Guid _transferBucketId = Guid.Parse("00000000-0000-0000-0000-000000000002");
 
     public DuckDbBudgetedTransactionService(
         Func<DbConnection> dbConnectionFactory,
@@ -143,7 +143,7 @@ public class DuckDbBudgetedTransactionService : GenericBudgetedTransactionServic
             {
                 periodStart = periodStart.ToDateTime(TimeOnly.MinValue),
                 periodEnd = periodEnd.ToDateTime(TimeOnly.MinValue),
-                transactionId = transactionId.ToString()
+                transactionId = transactionId
             });
         }
         catch (Exception e)
@@ -170,7 +170,7 @@ public class DuckDbBudgetedTransactionService : GenericBudgetedTransactionServic
             {
                 periodStart = periodStart.ToDateTime(TimeOnly.MinValue),
                 periodEnd = periodEnd.ToDateTime(TimeOnly.MinValue),
-                bucketId = bucketId.ToString()
+                bucketId = bucketId
             });
         }
         catch (Exception e)

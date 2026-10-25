@@ -126,7 +126,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
                 sql,
                 new
                 {
-                    bucketId = bucketId.ToString(),
+                    bucketId = bucketId,
                     yearMonth = yearMonth.ToDateTime(TimeOnly.MinValue)
                 });
 
@@ -168,7 +168,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
                 sql,
                 new
                 {
-                    bucketId = bucketId.ToString(),
+                    bucketId = bucketId,
                     endOfMonth = endOfMonth.ToDateTime(TimeOnly.MinValue)
                 });
         }
@@ -208,7 +208,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
                 balanceSql,
                 new
                 {
-                    bucketId = bucketId.ToString(),
+                    bucketId = bucketId,
                     endOfMonth = endOfMonth.ToDateTime(TimeOnly.MinValue)
                 });
 
@@ -238,7 +238,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
                 inOutSql,
                 new
                 {
-                    bucketId = bucketId.ToString(),
+                    bucketId = bucketId,
                     startOfMonth = startOfMonth.ToDateTime(TimeOnly.MinValue),
                     endOfMonth = endOfMonth.ToDateTime(TimeOnly.MinValue)
                 });
@@ -285,7 +285,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
                 sql,
                 new
                 {
-                    bucketId = bucketId.ToString(),
+                    bucketId = bucketId,
                     startOfMonth = startOfMonth.ToDateTime(TimeOnly.MinValue),
                     endOfMonth = endOfMonth.ToDateTime(TimeOnly.MinValue)
                 });
@@ -409,7 +409,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
                     EXISTS(SELECT 1 FROM BudgetedTransaction WHERE BucketId = $id) OR
                     EXISTS(SELECT 1 FROM BucketMovement WHERE BucketId = $id)
                 """;
-            var hasAssignments = dbContext.ExecuteScalar<bool>(existsCheckSql, new { id = id.ToString() });
+            var hasAssignments = dbContext.ExecuteScalar<bool>(existsCheckSql, new { id = id });
 
             if (hasAssignments)
             {
@@ -428,7 +428,7 @@ public class DuckDbBucketService : GenericBucketService<DbConnection>
             var bucketRuleSetIds = dbContext
                 .Query<Guid>(
                     ruleSetIdsSql,
-                    new { id = id.ToString() })
+                    new { id = id })
                 .ToList();
             if (bucketRuleSetIds.Count != 0) bucketRuleSetRepository.DeleteRange(bucketRuleSetIds);
 

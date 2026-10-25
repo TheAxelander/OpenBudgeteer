@@ -124,7 +124,7 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                   """;
 
         return _connection
-            .Query<BudgetedTransaction>(sql, param: new { id = id.ToString() })
+            .Query<BudgetedTransaction>(sql, param: new { id = id })
             .FirstOrDefault();
     }
 
@@ -167,7 +167,7 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                 sql,
                 mapper.MapWithEverythingIncludingAccount,
                 splitOn: "Id,Id,Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -208,7 +208,7 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
                 sql,
                 mapper.MapWithEverything,
                 splitOn: "Id,Id",
-                param: new { id = id.ToString() })
+                param: new { id = id })
             .ToList();
 
         return mapper.Results.FirstOrDefault();
@@ -230,9 +230,9 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.TransactionId.ToString()));
-        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
+        cmd.Parameters.Add(new DuckDBParameter(entity.TransactionId));
+        cmd.Parameters.Add(new DuckDBParameter(entity.BucketId));
         cmd.Parameters.Add(new DuckDBParameter(entity.Amount));
 
         return cmd.ExecuteNonQuery();
@@ -270,7 +270,7 @@ public class DuckDbBudgetedTransactionRepository : IBudgetedTransactionRepositor
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

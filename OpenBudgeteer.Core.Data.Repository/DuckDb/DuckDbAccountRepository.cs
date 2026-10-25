@@ -41,7 +41,7 @@ public class DuckDbAccountRepository : IAccountRepository
                   """;
 
         return _connection
-            .Query<Account>(sql, new { id = id.ToString() })
+            .Query<Account>(sql, new { id = id })
             .FirstOrDefault();
     }
 
@@ -62,7 +62,7 @@ public class DuckDbAccountRepository : IAccountRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.IsActive));
 
@@ -86,7 +86,7 @@ public class DuckDbAccountRepository : IAccountRepository
 
         cmd.Parameters.Add(new DuckDBParameter((object?)entity.Name ?? DBNull.Value));
         cmd.Parameters.Add(new DuckDBParameter(entity.IsActive));
-        cmd.Parameters.Add(new DuckDBParameter(entity.Id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(entity.Id));
 
         return cmd.ExecuteNonQuery();
     }
@@ -108,7 +108,7 @@ public class DuckDbAccountRepository : IAccountRepository
         using var cmd = _connection.CreateCommand();
         cmd.CommandText = sql;
 
-        cmd.Parameters.Add(new DuckDBParameter(id.ToString()));
+        cmd.Parameters.Add(new DuckDBParameter(id));
 
         return cmd.ExecuteNonQuery();
     }

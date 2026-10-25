@@ -83,7 +83,7 @@ public class DuckDbBucketMovementService : GenericBucketMovementService<DbConnec
                     {
                         periodStart = periodStart.ToDateTime(TimeOnly.MinValue),
                         periodEnd = periodEnd.ToDateTime(TimeOnly.MinValue),
-                        bucketId = bucketId.ToString()
+                        bucketId = bucketId
                     })
                 .ToList();
         }
