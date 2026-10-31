@@ -1,0 +1,62 @@
+name: Unit Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '10.0.x' # The .NET SDK version to use
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    name: Run Unit Tests
+    # Cancel outdated runs of the same PR, never runs called from other workflows
+    concurrency:
+      group: unit-test-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306:3306
+        env:
+          MARIADB_DATABASE: openbudgeteer
+          MARIADB_USER: openbudgeteer
+          MARIADB_PASSWORD: openbudgeteer
+          MARIADB_ROOT_PASSWORD: openbudgeteer
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install Blazor dependencies
+        run: dotnet restore OpenBudgeteer.Blazor
+
+      - name: Build Blazor
+        run: dotnet build OpenBudgeteer.Blazor --configuration Release --no-restore
+
+      - name: Run Core Test Cases
+        env:
+          CONNECTION_PROVIDER: mariadb
+          CONNECTION_SERVER: localhost
+          CONNECTION_PORT: 3306
+          CONNECTION_USER: openbudgeteer
+          CONNECTION_PASSWORD: openbudgeteer
+          CONNECTION_DATABASE: openbudgeteer
+        run: dotnet test OpenBudgeteer.Core.Test

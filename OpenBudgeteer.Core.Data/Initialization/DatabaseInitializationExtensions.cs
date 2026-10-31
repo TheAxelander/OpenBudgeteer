@@ -28,6 +28,11 @@ public static class DatabaseInitializationExtensions
         
         // Register connector
         services.AddSingleton(databaseConnector);
+        services.AddSingleton(new DatabaseConnectionInfo(
+            databaseConnector.Provider,
+            databaseConnector.Server,
+            databaseConnector.Database,
+            databaseConnector.Username));
         
         // Register Db Factory
         services.AddDbContextFactory<DatabaseContext>((serviceProvider, options) =>

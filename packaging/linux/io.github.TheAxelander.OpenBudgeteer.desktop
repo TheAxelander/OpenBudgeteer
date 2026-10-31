@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=OpenBudgeteer
+GenericName=Budgeting App
+Comment=Budgeting app based on the Bucket Budgeting Principle
+Exec=OpenBudgeteer.Desktop
+Icon=io.github.TheAxelander.OpenBudgeteer
+StartupWMClass=io.github.TheAxelander.OpenBudgeteer
+Terminal=false
+Categories=Office;Finance;
+Keywords=budget;finance;money;bucket;

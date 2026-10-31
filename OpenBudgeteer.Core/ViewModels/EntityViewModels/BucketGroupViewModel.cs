@@ -97,10 +97,15 @@ public class BucketGroupViewModel : BaseEntityViewModel<BucketGroup>, IEquatable
         set => Set(ref _isCollapsed, value);
     }
 
+    private ObservableCollection<BucketViewModel> _buckets;
     /// <summary>
     /// Collection of Buckets assigned to this BucketGroup
     /// </summary>
-    public readonly ObservableCollection<BucketViewModel> Buckets;
+    public ObservableCollection<BucketViewModel> Buckets
+    {
+        get => _buckets;
+        private set => Set(ref _buckets, value);
+    }
 
     private bool _inModification;
     /// <summary>

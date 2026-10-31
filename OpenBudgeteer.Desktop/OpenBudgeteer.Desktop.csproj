@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>OpenBudgeteer.Desktop</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <Nullable>enable</Nullable>
+    <LangVersion>13</LangVersion>
+    <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
+    <ApplicationIcon>..\packaging\icons\openbudgeteer.ico</ApplicationIcon>
+    <Product>OpenBudgeteer</Product>
+    <Description>Budgeting app based on the Bucket Budgeting Principle</Description>
+  </PropertyGroup>
+
+  <!-- Publish settings for packaging (dotnet publish -r <rid>). Trimming stays disabled as MudBlazor, Dapper and Blazor rely on reflection -->
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishSingleFile>false</PublishSingleFile>
+    <!-- OpenBudgeteer.Blazor is a (framework-dependent) Web App but only used as a component library here -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Photino.Blazor only ships net8/net9 builds, pin WebView to the version matching the rest of the solution -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebView" Version="10.0.13" />
+    <PackageReference Include="Photino.Blazor" Version="4.0.13" />
+
+    <PackageReference Include="DuckDB.NET.Data.Full" Version="1.5.6.1" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Photino serves files from wwwroot in the output directory and requires it to exist -->
+    <Content Update="wwwroot\**" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Window icon -->
+    <Content Include="..\packaging\icons\openbudgeteer.ico;..\packaging\icons\openbudgeteer.png" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- Don't publish the executable and runtime config of the referenced Web App, only OpenBudgeteer.Desktop is used -->
+  <Target Name="RemoveWebAppHostFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(RelativePath)' == 'OpenBudgeteer' Or '%(RelativePath)' == 'OpenBudgeteer.exe' Or '%(RelativePath)' == 'OpenBudgeteer.runtimeconfig.json'" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OpenBudgeteer.Blazor\OpenBudgeteer.Blazor.csproj" />
+    <ProjectReference Include="..\OpenBudgeteer.Core.Data.DuckDb.Migrations\OpenBudgeteer.Core.Data.DuckDb.Migrations.csproj" />
+  </ItemGroup>
+
+</Project>

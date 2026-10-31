@@ -9,6 +9,9 @@
 
 * Bucket Page:
   * In/Out input value for a Bucket gets properly reset after hitting Enter (MudBlazor fix)
+* Transaction Page:
+  * While creating Transactions and Transfers, `Create another` button is now resetting the form (except the Transaction date) [#350](https://github.com/TheAxelander/OpenBudgeteer/issues/350)
+  * Unable to enter a decimal number for Amount while creating a new Recurring Transaction
 
 ### :hammer: Maintenance
 

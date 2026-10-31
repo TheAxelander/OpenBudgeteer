@@ -1,0 +1,137 @@
+name: Desktop App
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Git tag of the release (e.g. 1.12 or 1.12.1)
+        required: true
+        type: string
+      publish:
+        description: Upload the packages to the GitHub Release of the tag
+        required: false
+        default: false
+        type: boolean
+  # Pull Requests and manual runs only build the packages and store them as workflow artifacts
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'OpenBudgeteer.Desktop/**'
+      - 'packaging/**'
+      - 'dotnet-tools.json'
+      - '.github/workflows/desktop.yml'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Version used for the packages (e.g. 1.12 or 1.12.1)
+        required: true
+        default: '0.0.1'
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_VERSION: '10.0.x' # The .NET SDK version to use
+  REPOSITORY_URL: https://github.com/${{ github.repository }}
+  PACK_ID: io.github.TheAxelander.OpenBudgeteer
+
+jobs:
+  build:
+    name: Build and Pack (${{ matrix.rid }})
+    runs-on: ${{ matrix.runner }}
+    # Cancel outdated runs of the same PR, never runs called from other workflows
+    concurrency:
+      group: desktop-${{ matrix.rid }}-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            runner: windows-latest
+            pack-args: --icon packaging/icons/openbudgeteer.ico --framework webview2
+          - rid: win-arm64
+            runner: windows-11-arm
+            pack-args: --icon packaging/icons/openbudgeteer.ico --framework webview2
+          - rid: osx-x64
+            runner: macos-latest
+            pack-args: --icon packaging/icons/openbudgeteer.icns --bundleId io.github.TheAxelander.OpenBudgeteer
+          - rid: osx-arm64
+            runner: macos-latest
+            pack-args: --icon packaging/icons/openbudgeteer.icns --bundleId io.github.TheAxelander.OpenBudgeteer
+          - rid: linux-x64
+            runner: ubuntu-latest
+            pack-args: --icon packaging/icons/hicolor/512x512/apps/io.github.TheAxelander.OpenBudgeteer.png --categories "Office;Finance"
+          - rid: linux-arm64
+            runner: ubuntu-24.04-arm
+            pack-args: --icon packaging/icons/hicolor/512x512/apps/io.github.TheAxelander.OpenBudgeteer.png --categories "Office;Finance"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Determine package version
+        env:
+          TAG: ${{ inputs.tag || '0.0.1' }} # Pull Requests have no version
+        run: |
+          # Velopack requires SemVer, so a tag like 1.12 becomes 1.12.0
+          VERSION="${TAG}"
+          if [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            VERSION="${VERSION}.0"
+          fi
+          echo "Package version: ${VERSION}"
+          echo "PACK_VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Install AppImage dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools
+
+      - name: Install Velopack CLI
+        run: dotnet tool restore
+
+      - name: Publish
+        run: dotnet publish OpenBudgeteer.Desktop -c Release -r ${{ matrix.rid }} -p:Version=${PACK_VERSION} -o publish
+
+      - name: Download previous release for delta updates
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dotnet vpk download github --repoUrl "${REPOSITORY_URL}" --token "${GH_TOKEN}" \
+            --channel ${{ matrix.rid }} -o releases \
+            || echo "::warning::No previous release found for ${{ matrix.rid }}, skipping delta package"
+
+      - name: Pack
+        run: |
+          dotnet vpk pack --packId ${PACK_ID} --packTitle OpenBudgeteer --packAuthors TheAxelander \
+            --packVersion ${PACK_VERSION} --packDir publish --mainExe OpenBudgeteer.Desktop${{ runner.os == 'Windows' && '.exe' || '' }} \
+            --runtime ${{ matrix.rid }} --channel ${{ matrix.rid }} -o releases \
+            ${{ matrix.pack-args }}
+
+      - name: Upload to GitHub Release
+        if: inputs.publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        run: |
+          dotnet vpk upload github --repoUrl "${REPOSITORY_URL}" --token "${GH_TOKEN}" \
+            --channel ${{ matrix.rid }} -o releases \
+            --tag "${TAG}" --releaseName "${TAG}" --merge --publish
+
+      - name: Upload workflow artifact
+        if: ${{ !inputs.publish }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-${{ matrix.rid }}
+          path: releases/
+          retention-days: 7

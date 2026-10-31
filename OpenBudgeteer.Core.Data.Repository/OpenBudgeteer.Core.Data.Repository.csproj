@@ -11,4 +11,9 @@
       <ProjectReference Include="..\OpenBudgeteer.Core.Data.Contracts\OpenBudgeteer.Core.Data.Contracts.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Dapper" Version="2.1.89" />
+      <PackageReference Include="DuckDB.NET.Data" Version="1.5.6.1" />
+    </ItemGroup>
+
 </Project>

@@ -1,11 +1,13 @@
 ﻿@inherits LayoutComponentBase
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Configuration
+@using Microsoft.Extensions.DependencyInjection
 @using OpenBudgeteer.Core.Data
-@using OpenBudgeteer.Core.Data.Entities
-@inject IDbContextFactory<DatabaseContext> DbContextFactory
-@inject MudThemeService MudThemeService
+@using OpenBudgeteer.Core.Data.Connection
+@inject DatabaseConnectionInfo DatabaseConnectionInfo
+@inject IMudThemeService MudThemeService
 @inject IConfiguration Configuration
+@inject IServiceProvider ServiceProvider
+@inject ISnackbar Snackbar
 
 <MudThemeProvider IsDarkMode="@MudThemeService.CurrentThemeSetting.IsDarkMode"
                   Theme="MudThemeService.CurrentThemeSetting.CurrentTheme"/>
@@ -55,6 +57,29 @@
         <MudSpacer/>
 
         <!-- Right side  -->
+        @if (_appUpdateService?.AvailableVersion != null)
+        {
+            @if (_appUpdateService.DownloadProgress == null)
+            {
+                <MudTooltip Text="Download and install the update, OpenBudgeteer restarts afterwards">
+                    <MudButton Class="me-2"
+                               Color="Color.Inherit"
+                               OnClick="ApplyUpdateAsync"
+                               StartIcon="@Icons.Material.Filled.SystemUpdateAlt"
+                               Variant="Variant.Outlined">
+                        Update to @_appUpdateService.AvailableVersion
+                    </MudButton>
+                </MudTooltip>
+            }
+            else
+            {
+                <MudProgressCircular Class="me-2"
+                                     Color="Color.Inherit"
+                                     Size="Size.Small"
+                                     Value="@_appUpdateService.DownloadProgress.Value"/>
+                <MudText Class="me-2">Downloading update...</MudText>
+            }
+        }
         <MudIconButton Color="Color.Inherit"
                        Href="https://github.com/TheAxelander/OpenBudgeteer"
                        Icon="@Icons.Custom.Brands.GitHub"
@@ -94,7 +119,7 @@
                  Icon="@Icons.Material.Filled.HorizontalRule"
                  Style="rotate: 90deg"/>
         <MudText Class="ms-2 d-none d-md-block">
-            Version: 1.11.2 (<MudLink Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer/blob/main/CHANGELOG.md" Target="_blank">Change Log</MudLink>)
+            Version: 1.12.0 (<MudLink Color="Color.Inherit" Href="https://github.com/TheAxelander/OpenBudgeteer/blob/main/CHANGELOG.md" Target="_blank">Change Log</MudLink>)
         </MudText>
     </MudAppBar>
 
@@ -151,15 +176,37 @@
 
 @code {
     private string AppIconBackground => MudThemeService.CurrentThemeSetting.IsDarkMode ? "#616161" : "white";
-    private string CurrentDatabase => DbContextFactory.CreateDbContext().Database.GetDbConnection().Database;
+    private string CurrentDatabase => DatabaseConnectionInfo.Database;
     private bool _drawerOpen = true;
 
     private ErrorBoundary? _errorBoundary;
     bool _errorMessageExpanded;
 
+    // Optional, only registered by apps able to update themselves (Desktop App)
+    private IAppUpdateService? _appUpdateService;
+
     protected override void OnInitialized()
     {
         MudThemeService.ThemeChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+
+        _appUpdateService = ServiceProvider.GetService<IAppUpdateService>();
+        if (_appUpdateService != null)
+        {
+            _appUpdateService.StateChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+            _ = _appUpdateService.CheckForUpdatesAsync(); // Runs in background, errors are handled by the service
+        }
+    }
+
+    private async Task ApplyUpdateAsync()
+    {
+        try
+        {
+            await _appUpdateService!.DownloadAndApplyUpdateAsync();
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Unable to download update: {e.Message}", Severity.Error);
+        }
     }
 
     protected override void OnParametersSet()
