@@ -48,8 +48,8 @@ builder.Services.AddScoped<IServiceManager, EFCoreServiceManager>(x =>
         x.GetRequiredService<IDbContextFactory<DatabaseContext>>(),
         x.GetRequiredService<ILoggerFactory>()));
 builder.Services.AddScoped(x => new YearMonthSelectorViewModel(x.GetRequiredService<IServiceManager>()));
-builder.Services.AddSingleton(x => new AppSettingService(x.GetRequiredService<RedisService>()));
-builder.Services.AddSingleton(x => new MudThemeService(x.GetRequiredService<RedisService>()));
+builder.Services.AddSingleton(x => new AppSettingService(x.GetRequiredService<IRedisService>()));
+builder.Services.AddSingleton(x => new MudThemeService(x.GetRequiredService<IRedisService>()));
 builder.Services.AddHostedService<AppInitializerHostedService>(); // Initialize and get settings from Redis
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); // Required to read ANSI Text files

@@ -14,13 +14,13 @@ public class MudThemeService
     
     public event EventHandler<MudThemeSetting>? ThemeChanged;
 
-    private readonly RedisService _redisService;
+    private readonly IRedisService _redisService;
     
     private const string IS_DARK_MODE = "Theme:IsDarkMode";
     private const string PALETTE_LIGHT = "Theme:PaletteLight";
     private const string PALETTE_DARK = "Theme:PaletteDark";
     
-    public MudThemeService(RedisService redisService)
+    public MudThemeService(IRedisService redisService)
     {
         _redisService = redisService;
         CurrentThemeSetting = new(new MudTheme(), false);

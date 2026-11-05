@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Core.Data.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.API", "OpenBudgeteer.API\OpenBudgeteer.API.csproj", "{DBE045F5-B9C4-4A01-8317-A67BD6C6F606}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenBudgeteer.Blazor.Test", "OpenBudgeteer.Blazor.Test\OpenBudgeteer.Blazor.Test.csproj", "{1E2F5139-98AD-4DC0-83B2-83A5353C383D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{DBE045F5-B9C4-4A01-8317-A67BD6C6F606}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBE045F5-B9C4-4A01-8317-A67BD6C6F606}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBE045F5-B9C4-4A01-8317-A67BD6C6F606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E2F5139-98AD-4DC0-83B2-83A5353C383D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E2F5139-98AD-4DC0-83B2-83A5353C383D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E2F5139-98AD-4DC0-83B2-83A5353C383D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E2F5139-98AD-4DC0-83B2-83A5353C383D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,7 +18,7 @@ public class AppSettingService
 
     public AppSettings CurrentSettings { get; private set; }
     
-    private readonly RedisService _redisService;
+    private readonly IRedisService _redisService;
 
     private const string HOME_PAGE_TOP_COUNT = "HomePage:TopCount";
     private const string REPORT_PAGE_MONTH_BALANCE_COUNT = "ReportPage:MonthBalanceCount";
@@ -36,7 +36,7 @@ public class AppSettingService
     private const int REPORT_PAGE_MONTH_BUCKET_EXPENSES_COUNT_DEFAULT = 12;
     private const int TRANSACTION_PAGER_SIZE_DEFAULT = 25;
     
-    public AppSettingService(RedisService redisService)
+    public AppSettingService(IRedisService redisService)
     {
         _redisService = redisService;
         CurrentSettings = new(

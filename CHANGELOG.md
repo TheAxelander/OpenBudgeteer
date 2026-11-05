@@ -1,3 +1,15 @@
+## 1.11.3 (2026-11-05)
+
+### :beetle: Bug Fixes
+
+* Misc:
+  * Various fixes for Authentication:
+    * Fix Logout that doesn't revoke a previously copied authentication cookie [GHSA-rrjg-wp5v-r32j](https://github.com/TheAxelander/OpenBudgeteer/security/advisories/GHSA-rrjg-wp5v-r32j)
+    * Already connected sessions are re-validated every minute and lose access once their session has been revoked
+    * Changing `APPSETTINGS_AUTH_PASSWORD` now takes effect after restart and revokes all existing sessions
+    * Login only redirects to local URLs after successful authentication
+    * Authentication cookie lifetime now respects `APPSETTINGS_AUTH_SESSION_DAYS`
+
 ## 1.11.2 (2026-10-23)
 
 ### :hammer: Maintenance

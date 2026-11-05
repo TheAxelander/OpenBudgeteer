@@ -11,7 +11,7 @@ namespace OpenBudgeteer.Blazor.Common.Services;
 public class AppAuthenticationService
 {
     private readonly IConfiguration _configuration;
-    private readonly RedisService _redisService;
+    private readonly IRedisService _redisService;
     private readonly ILogger<AppAuthenticationService> _logger;
 
     // Redis Keys
@@ -20,7 +20,7 @@ public class AppAuthenticationService
 
     public AppAuthenticationService(
         IConfiguration configuration,
-        RedisService redisService,
+        IRedisService redisService,
         ILogger<AppAuthenticationService> logger)
     {
         _configuration = configuration;
@@ -44,7 +44,7 @@ public class AppAuthenticationService
                 return false;
             }
 
-            var hasher = new PasswordHasher<string>(); 
+            var hasher = new PasswordHasher<string>();
             var passwordHash = await GetPasswordHashAsync();
             var result = hasher.VerifyHashedPassword(username, passwordHash, password);
 
@@ -67,16 +67,13 @@ public class AppAuthenticationService
         }
     }
 
+    public const string SESSION_ID_CLAIM = "SessionId";
+
     public async Task<string> CreateSessionAsync(string username)
     {
         var sessionId = Guid.NewGuid().ToString();
         var sessionDays = _configuration.GetValue(ConfigurationKeyConstants.APPSETTINGS_AUTH_SESSION_DAYS, 7);
-        var sessionData = new
-        {
-            Username = username,
-            CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddDays(sessionDays)
-        };
+        var sessionData = new SessionData(username, DateTime.UtcNow, DateTime.UtcNow.AddDays(sessionDays));
 
         var sessionJson = JsonSerializer.Serialize(sessionData);
         await _redisService.SetStringValueWithExpirationAsync(
@@ -84,7 +81,7 @@ public class AppAuthenticationService
             sessionJson,
             TimeSpan.FromDays(sessionDays));
 
-        _logger.LogInformation($"Session created for user: {username}");
+        _logger.LogInformation("Session created for user: {username}", username);
         return sessionId;
     }
 
@@ -92,13 +89,34 @@ public class AppAuthenticationService
     {
         try
         {
-            var sessionKey = $"{SESSION_KEY_PREFIX}:{sessionId}";
-            return await _redisService.KeyExistsAsync(sessionKey);
+            var sessionJson = await _redisService.GetStringValueAsync($"{SESSION_KEY_PREFIX}:{sessionId}");
+            if (string.IsNullOrEmpty(sessionJson)) return false;
+
+            // Reject sessions that were created for a username which is no longer configured
+            var session = JsonSerializer.Deserialize<SessionData>(sessionJson);
+            var configUsername = _configuration.GetValue<string>(ConfigurationKeyConstants.APPSETTINGS_AUTH_USERNAME);
+            return session != null && !string.IsNullOrEmpty(configUsername) && session.Username == configUsername;
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error validating session");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Extends the lifetime of an existing session, used when the authentication cookie gets renewed
+    /// </summary>
+    public async Task RefreshSessionAsync(string sessionId)
+    {
+        try
+        {
+            var sessionDays = _configuration.GetValue(ConfigurationKeyConstants.APPSETTINGS_AUTH_SESSION_DAYS, 7);
+            await _redisService.KeyExpireAsync($"{SESSION_KEY_PREFIX}:{sessionId}", TimeSpan.FromDays(sessionDays));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error refreshing session");
         }
     }
 
@@ -108,7 +126,7 @@ public class AppAuthenticationService
         {
             var sessionKey = $"{SESSION_KEY_PREFIX}:{sessionId}";
             await _redisService.DeleteKeyAsync(sessionKey);
-            _logger.LogInformation($"Session removed: {sessionId}");
+            _logger.LogInformation("Session removed: {sessionId}", sessionId);
         }
         catch (Exception e)
         {
@@ -116,13 +134,34 @@ public class AppAuthenticationService
         }
     }
 
+    /// <summary>
+    /// Revokes all existing sessions
+    /// </summary>
+    public async Task RemoveAllSessionsAsync()
+    {
+        await _redisService.DeleteKeysByPatternAsync($"{SESSION_KEY_PREFIX}:*");
+        _logger.LogInformation("All sessions removed");
+    }
+
+    /// <summary>
+    /// Ensures that the cached password hash matches the currently configured password. Should be called
+    /// on startup so that a changed password takes effect (and revokes existing sessions) immediately.
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        if (!IsAuthenticationEnabled()) return;
+        try
+        {
+            await GetPasswordHashAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error initializing authentication");
+        }
+    }
+
     private async Task<string> GetPasswordHashAsync()
     {
-        // Check if hash exists in Redis
-        var existingHash = await _redisService.GetStringValueAsync(PASSWORD_HASH_KEY);
-        if (!string.IsNullOrEmpty(existingHash)) return existingHash;
-
-        // Hash user and password from .env and store in Redis
         var username = _configuration.GetValue<string>(ConfigurationKeyConstants.APPSETTINGS_AUTH_USERNAME);
         var plainPassword = _configuration.GetValue<string>(ConfigurationKeyConstants.APPSETTINGS_AUTH_PASSWORD);
 
@@ -130,10 +169,26 @@ public class AppAuthenticationService
             throw new InvalidOperationException("Authentication user and/or password not configured");
 
         var hasher = new PasswordHasher<string>();
+
+        // Check if hash exists in Redis and still matches the configured password
+        var existingHash = await _redisService.GetStringValueAsync(PASSWORD_HASH_KEY);
+        if (!string.IsNullOrEmpty(existingHash))
+        {
+            if (hasher.VerifyHashedPassword(username, existingHash, plainPassword) != PasswordVerificationResult.Failed)
+                return existingHash;
+
+            // Configured password has been changed, revoke all sessions created with the old password
+            _logger.LogWarning("Configured password has changed, existing sessions will be revoked");
+            await RemoveAllSessionsAsync();
+        }
+
+        // Hash password from configuration and store in Redis
         var hash = hasher.HashPassword(username, plainPassword);
         await _redisService.SetStringValueAsync(PASSWORD_HASH_KEY, hash);
 
         _logger.LogInformation("Password hash created and cached in Redis");
         return hash;
     }
+
+    private record SessionData(string Username, DateTime CreatedAt, DateTime ExpiresAt);
 }
