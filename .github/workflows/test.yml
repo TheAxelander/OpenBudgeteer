@@ -60,3 +60,6 @@ jobs:
           CONNECTION_PASSWORD: openbudgeteer
           CONNECTION_DATABASE: openbudgeteer
         run: dotnet test OpenBudgeteer.Core.Test
+
+      - name: Run Blazor Test Cases
+        run: dotnet test OpenBudgeteer.Blazor.Test
