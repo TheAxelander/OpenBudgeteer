@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -27,12 +28,13 @@ public class RecurringBankTransactionDatabaseTest : BaseDatabaseTest<RecurringBa
         Assert.Equal(expected.Amount, actual.Amount);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -40,8 +42,12 @@ public class RecurringBankTransactionDatabaseTest : BaseDatabaseTest<RecurringBa
                     new MockAccountRepository(mockDb)
                 ],
                 [
-                    new RecurringBankTransactionRepository(dbContext),
-                    new AccountRepository(dbContext)
+                    new EFCoreRecurringBankTransactionRepository(dbContext),
+                    new EFCoreAccountRepository(dbContext)
+                ],
+                [
+                    new DuckDbRecurringBankTransactionRepository(duckDbConnection),
+                    new DuckDbAccountRepository(duckDbConnection)
                 ]
             ];
         }
@@ -75,7 +81,7 @@ public class RecurringBankTransactionDatabaseTest : BaseDatabaseTest<RecurringBa
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IRecurringBankTransactionRepository recurringBankTransactionRepository,
         IAccountRepository accountRepository)
@@ -88,7 +94,7 @@ public class RecurringBankTransactionDatabaseTest : BaseDatabaseTest<RecurringBa
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IRecurringBankTransactionRepository recurringBankTransactionRepository,
         IAccountRepository accountRepository)
@@ -119,7 +125,7 @@ public class RecurringBankTransactionDatabaseTest : BaseDatabaseTest<RecurringBa
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IRecurringBankTransactionRepository recurringBankTransactionRepository,
         IAccountRepository accountRepository)

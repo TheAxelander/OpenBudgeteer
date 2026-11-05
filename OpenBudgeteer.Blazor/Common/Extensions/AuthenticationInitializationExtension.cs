@@ -44,6 +44,9 @@ public static class AuthenticationInitializationExtension
 
             // Periodically re-validates the session of already connected Blazor circuits
             services.AddScoped<AuthenticationStateProvider, SessionRevalidatingAuthenticationStateProvider>();
+
+            // Syncs cached password hash with configured password on startup (revokes sessions on change)
+            services.AddHostedService<AuthenticationInitializerHostedService>();
         }
         else
         {

@@ -1,0 +1,124 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+"
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+# Run releases one after another so the "latest" check always sees a consistent state
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    name: Validate Version
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-latest: ${{ steps.version.outputs.is-latest }}
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Required to compare against all existing tags
+
+      - name: Validate version and determine latest
+        id: version
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+
+          if ! grep -qF "Version: ${VERSION} (" OpenBudgeteer.Blazor/Shared/MainLayout.razor; then
+            echo "::error file=OpenBudgeteer.Blazor/Shared/MainLayout.razor::Version in MainLayout.razor does not match tag ${VERSION}"
+            exit 1
+          fi
+
+          if ! awk -v ver="${VERSION}" '/^## / && $2 == ver { found=1 } END { exit !found }' CHANGELOG.md; then
+            echo "::error file=CHANGELOG.md::No section '## ${VERSION}' found in CHANGELOG.md"
+            exit 1
+          fi
+
+          # Only the highest version gets "latest", so hotfixes for older versions don't replace it
+          HIGHEST=$(git tag -l | grep -E '^[0-9]+\.[0-9]+(\.[0-9]+)?$' | sort -V | tail -n 1)
+          IS_LATEST=$([ "${VERSION}" = "${HIGHEST}" ] && echo true || echo false)
+
+          echo "Version: ${VERSION}, highest tag: ${HIGHEST}, latest: ${IS_LATEST}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "is-latest=${IS_LATEST}" >> "$GITHUB_OUTPUT"
+
+  unit-test:
+    name: Run Unit Tests
+    needs: preflight
+    uses: ./.github/workflows/unit-test.yml
+
+  docker-app:
+    name: Docker Image (App)
+    needs: [ preflight, unit-test ]
+    uses: ./.github/workflows/docker-image.yml
+    with:
+      dockerfile: Dockerfile
+      tags: |
+        axelander/openbudgeteer:${{ needs.preflight.outputs.version }}
+        ${{ needs.preflight.outputs.is-latest == 'true' && 'axelander/openbudgeteer:latest' || '' }}
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  # The API image is only published as "latest"
+  docker-api:
+    name: Docker Image (API)
+    needs: [ preflight, unit-test ]
+    if: needs.preflight.outputs.is-latest == 'true'
+    uses: ./.github/workflows/docker-image.yml
+    with:
+      dockerfile: API.Dockerfile
+      tags: axelander/openbudgeteer-api:latest
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  github-release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+    needs: [ preflight, docker-app ]
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+
+      - name: Create release from CHANGELOG
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.preflight.outputs.version }}
+          IS_LATEST: ${{ needs.preflight.outputs.is-latest }}
+        run: |
+          if gh release view "${VERSION}" > /dev/null 2>&1; then
+            echo "::notice::Release ${VERSION} already exists, skipping"
+            exit 0
+          fi
+
+          awk -v ver="${VERSION}" '/^## / { if (found) exit; if ($2 == ver) { found=1; next } } found' CHANGELOG.md > release-notes.md
+
+          gh release create "${VERSION}" \
+            --verify-tag \
+            --title "${VERSION}" \
+            --notes-file release-notes.md \
+            --latest="${IS_LATEST}"
+
+  # Uploads into the GitHub Release created above. Only for the highest version, as Velopack takes the update feed
+  # from the newest GitHub Release
+  desktop:
+    name: Desktop App
+    needs: [ preflight, unit-test, github-release ]
+    if: needs.preflight.outputs.is-latest == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/desktop.yml
+    with:
+      tag: ${{ needs.preflight.outputs.version }}
+      publish: true

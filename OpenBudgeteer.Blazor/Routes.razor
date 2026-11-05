@@ -1,6 +1,8 @@
-@inject AppAuthenticationService AuthService
+@using Microsoft.Extensions.Configuration
+@using OpenBudgeteer.Core.Data
+@inject IConfiguration Configuration
 
-@if (AuthService.IsAuthenticationEnabled())
+@if (Configuration.GetValue(ConfigurationKeyConstants.APPSETTINGS_AUTH_ENABLED, false))
 {
     <CascadingAuthenticationState>
         <Router AppAssembly="@typeof(Program).Assembly">

@@ -89,7 +89,7 @@ public class AppAuthenticationService
     {
         try
         {
-            var sessionJson = await _redisService.GetStringValueAsync($"{SESSION_KEY_PREFIX}:{sessionId}");
+            var sessionJson = await _redisService.GetStringValueAsync($"{SESSION_KEY_PREFIX}:{sessionId}", string.Empty);
             if (string.IsNullOrEmpty(sessionJson)) return false;
 
             // Reject sessions that were created for a username which is no longer configured
@@ -171,7 +171,7 @@ public class AppAuthenticationService
         var hasher = new PasswordHasher<string>();
 
         // Check if hash exists in Redis and still matches the configured password
-        var existingHash = await _redisService.GetStringValueAsync(PASSWORD_HASH_KEY);
+        var existingHash = await _redisService.GetStringValueAsync(PASSWORD_HASH_KEY, string.Empty);
         if (!string.IsNullOrEmpty(existingHash))
         {
             if (hasher.VerifyHashedPassword(username, existingHash, plainPassword) != PasswordVerificationResult.Failed)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OpenBudgeteer.Core.Common.AppSettings;
 using StackExchange.Redis;
 
 namespace OpenBudgeteer.Blazor.Common.Services;
@@ -21,9 +22,26 @@ public class RedisService : IRedisService
 
     private string GetKey(string key) => string.IsNullOrEmpty(_prefix) ? key : $"{_prefix}:{key}";
 
-    public async Task<string?> GetStringValueAsync(string key)
+    public async Task<string> GetStringValueAsync(string key, string defaultValue)
     {
-        return await _database.StringGetAsync(GetKey(key));
+        var redisValue = await _database.StringGetAsync(GetKey(key));
+        return redisValue.HasValue ? redisValue.ToString() : defaultValue;
+    }
+
+    public async Task<int> GetIntValueAsync(string key, int defaultValue)
+    {
+        var stringValue = await GetStringValueAsync(key, string.Empty);
+        if (string.IsNullOrEmpty(stringValue)) return defaultValue;
+
+        return (int.TryParse(stringValue, out var convertedValue)) ? convertedValue : defaultValue;
+    }
+
+    public async Task<bool> GetBoolValueAsync(string key, bool defaultValue)
+    {
+        var stringValue = await GetStringValueAsync(key, string.Empty);
+        if (string.IsNullOrEmpty(stringValue)) return defaultValue;
+
+        return (bool.TryParse(stringValue, out var convertedValue)) ? convertedValue : defaultValue;
     }
 
     public async Task<HashEntry[]> GetHashEntriesAsync(string key)
@@ -35,7 +53,22 @@ public class RedisService : IRedisService
     {
         await _database.StringSetAsync(GetKey(key), value);
     }
-    
+
+    public async Task<bool> SetStringValueWithExpirationAsync(string key, string value, TimeSpan expiration)
+    {
+        return await _database.StringSetAsync(GetKey(key), value, expiration);
+    }
+
+    public async Task SetIntValueAsync(string key, int value)
+    {
+        await SetStringValueAsync(key, value.ToString());
+    }
+
+    public async Task SetBoolValueAsync(string key, bool value)
+    {
+        await SetStringValueAsync(key, value.ToString());
+    }
+
     public async Task SetHashValueAsync(string key, Dictionary<string, string> values)
     {
         var hashEntries = values
@@ -49,14 +82,9 @@ public class RedisService : IRedisService
         await _database.KeyDeleteAsync(GetKey(key));
     }
 
-    public async Task<bool> KeyExistsAsync(string key)
+    public async Task<bool> ContainsKeyAsync(string key)
     {
         return await _database.KeyExistsAsync(GetKey(key));
-    }
-
-    public async Task<bool> SetStringValueWithExpirationAsync(string key, string value, TimeSpan expiration)
-    {
-        return await _database.StringSetAsync(GetKey(key), value, expiration);
     }
 
     public async Task<bool> KeyExpireAsync(string key, TimeSpan expiration)

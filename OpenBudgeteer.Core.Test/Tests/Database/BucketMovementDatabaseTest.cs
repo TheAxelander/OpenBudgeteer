@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenBudgeteer.Core.Data.Contracts.Repositories;
 using OpenBudgeteer.Core.Data.Entities.Models;
-using OpenBudgeteer.Core.Data.Repository;
+using OpenBudgeteer.Core.Data.Repository.DuckDb;
+using OpenBudgeteer.Core.Data.Repository.EFCore;
 using OpenBudgeteer.Core.Test.Common;
 using OpenBudgeteer.Core.Test.Mocking;
 using OpenBudgeteer.Core.Test.Mocking.Repository;
@@ -24,12 +25,13 @@ public class BucketMovementDatabaseTest : BaseDatabaseTest<BucketMovement>
         Assert.Equal(expected.MovementDate, actual.MovementDate);
     }
     
-    public static IEnumerable<object[]> TestData_Repository
+    public static IEnumerable<object[]> TestDataRepository
     {
         get
         {
             var mockDb = new MockDatabase();
-            var dbContext = GetInMemoryContext();
+            var dbContext = GetEFCoreInMemoryContext();
+            var duckDbConnection = GetDuckDbInMemoryConnection();
             return
             [
                 [
@@ -38,9 +40,14 @@ public class BucketMovementDatabaseTest : BaseDatabaseTest<BucketMovement>
                     new MockBucketGroupRepository(mockDb)
                 ],
                 [
-                    new BucketMovementRepository(dbContext),
-                    new BucketRepository(dbContext),
-                    new BucketGroupRepository(dbContext)
+                    new EFCoreBucketMovementRepository(dbContext),
+                    new EFCoreBucketRepository(dbContext),
+                    new EFCoreBucketGroupRepository(dbContext)
+                ],
+                [
+                    new DuckDbBucketMovementRepository(duckDbConnection),
+                    new DuckDbBucketRepository(duckDbConnection),
+                    new DuckDbBucketGroupRepository(duckDbConnection)
                 ]
             ];
         }
@@ -79,7 +86,7 @@ public class BucketMovementDatabaseTest : BaseDatabaseTest<BucketMovement>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Create(
         IBucketMovementRepository bucketMovementRepository,
         IBucketRepository bucketRepository,
@@ -94,7 +101,7 @@ public class BucketMovementDatabaseTest : BaseDatabaseTest<BucketMovement>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Update(
         IBucketMovementRepository bucketMovementRepository,
         IBucketRepository bucketRepository,
@@ -122,7 +129,7 @@ public class BucketMovementDatabaseTest : BaseDatabaseTest<BucketMovement>
     }
     
     [Theory]
-    [MemberData(nameof(TestData_Repository))]
+    [MemberData(nameof(TestDataRepository))]
     public void Delete(
         IBucketMovementRepository bucketMovementRepository,
         IBucketRepository bucketRepository,

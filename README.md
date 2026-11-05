@@ -4,7 +4,7 @@
 
 <p align="center">
     <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml" target="_blank"><img alt="Docker Image pre-release" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-pre-release.yml/badge.svg"></a>
-    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-release.yml" target="_blank"><img alt="Docker Image latest" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/docker-image-release.yml/badge.svg"></a>
+    <a href="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/release.yml" target="_blank"><img alt="Release" src="https://github.com/TheAxelander/OpenBudgeteer/actions/workflows/release.yml/badge.svg"></a>
 </p>
 <p align="center">
     <a href="https://github.com/awesome-selfhosted/awesome-selfhosted#money-budgeting--management" target="_blank"><img alt="Mentioned in Awesome-Selfhosted" src="https://awesome.re/mentioned-badge.svg"></a>

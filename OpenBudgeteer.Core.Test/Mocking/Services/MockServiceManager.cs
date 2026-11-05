@@ -20,22 +20,22 @@ public class MockServiceManager : IServiceManager
 
     public MockServiceManager(MockDatabase mockDatabase)
     {
-        AccountService = new MockAccountService(mockDatabase);
-        BankTransactionService = new MockBankTransactionService(mockDatabase);
-        BucketGroupService = new MockBucketGroupService(mockDatabase);
-        BucketMovementService = new MockBucketMovementService(mockDatabase);
-        BucketService = new MockBucketService(mockDatabase);
-        BucketRuleSetService = new MockBucketRuleSetService(mockDatabase);
-        BudgetedTransactionService = new MockBudgetedTransactionService(mockDatabase);
-        ImportProfileService = new MockImportProfileService(mockDatabase);
-        RecurringBankTransactionService = new MockRecurringBankTransactionService(mockDatabase);
-        
         _loggerFactory = LoggerFactory.Create(builder =>
         {
             builder
                 .AddConsole()
                 .SetMinimumLevel(LogLevel.Debug);
         });
+        
+        AccountService = new MockAccountService(mockDatabase, new Logger<MockAccountService>(_loggerFactory));
+        BankTransactionService = new MockBankTransactionService(mockDatabase, new  Logger<MockBankTransactionService>(_loggerFactory));
+        BucketGroupService = new MockBucketGroupService(mockDatabase, new Logger<MockBucketGroupService>(_loggerFactory));
+        BucketMovementService = new MockBucketMovementService(mockDatabase, new Logger<MockBucketMovementService>(_loggerFactory));
+        BucketService = new MockBucketService(mockDatabase, new Logger<MockBucketService>(_loggerFactory));
+        BucketRuleSetService = new MockBucketRuleSetService(mockDatabase, new Logger<MockBucketRuleSetService>(_loggerFactory));
+        BudgetedTransactionService = new MockBudgetedTransactionService(mockDatabase, new Logger<MockBudgetedTransactionService>(_loggerFactory));
+        ImportProfileService = new MockImportProfileService(mockDatabase, new Logger<MockImportProfileService>(_loggerFactory));
+        RecurringBankTransactionService = new MockRecurringBankTransactionService(mockDatabase, new Logger<MockRecurringBankTransactionService>(_loggerFactory));
     }
     
     public ILogger CreateLogger(Type type)
