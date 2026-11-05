@@ -17,8 +17,14 @@ public class InMemoryRedisService : IRedisService
 
     public IEnumerable<string> KeysStartingWith(string prefix) => Store.Keys.Where(k => k.StartsWith(prefix));
 
-    public Task<string?> GetStringValueAsync(string key) =>
-        Task.FromResult(Store.GetValueOrDefault(key));
+    public Task<string> GetStringValueAsync(string key, string defaultValue) =>
+        Task.FromResult(Store.TryGetValue(key, out var value) ? value : defaultValue);
+
+    public Task<int> GetIntValueAsync(string key, int defaultValue) =>
+        Task.FromResult(Store.TryGetValue(key, out var value) && int.TryParse(value, out var result) ? result : defaultValue);
+
+    public Task<bool> GetBoolValueAsync(string key, bool defaultValue) =>
+        Task.FromResult(Store.TryGetValue(key, out var value) && bool.TryParse(value, out var result) ? result : defaultValue);
 
     public Task<HashEntry[]> GetHashEntriesAsync(string key) => throw new NotSupportedException();
 
@@ -28,6 +34,10 @@ public class InMemoryRedisService : IRedisService
         return Task.CompletedTask;
     }
 
+    public Task SetIntValueAsync(string key, int value) => SetStringValueAsync(key, value.ToString());
+
+    public Task SetBoolValueAsync(string key, bool value) => SetStringValueAsync(key, value.ToString());
+
     public Task SetHashValueAsync(string key, Dictionary<string, string> values) => throw new NotSupportedException();
 
     public Task DeleteKeyAsync(string key)
@@ -36,7 +46,7 @@ public class InMemoryRedisService : IRedisService
         return Task.CompletedTask;
     }
 
-    public Task<bool> KeyExistsAsync(string key) => Task.FromResult(Store.ContainsKey(key));
+    public Task<bool> ContainsKeyAsync(string key) => Task.FromResult(Store.ContainsKey(key));
 
     public Task<bool> SetStringValueWithExpirationAsync(string key, string value, TimeSpan expiration)
     {

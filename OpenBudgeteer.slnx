@@ -16,6 +16,7 @@
   </Folder>
   <Project Path="OpenBudgeteer.API/OpenBudgeteer.API.csproj" />
   <Project Path="OpenBudgeteer.Blazor/OpenBudgeteer.Blazor.csproj" />
+  <Project Path="OpenBudgeteer.Blazor.Test/OpenBudgeteer.Blazor.Test.csproj" />
   <Project Path="OpenBudgeteer.Core.Data.Contracts/OpenBudgeteer.Core.Data.Contracts.csproj" />
   <Project Path="OpenBudgeteer.Core.Data.DuckDb.Migrations/OpenBudgeteer.Core.Data.DuckDb.Migrations.csproj" />
   <Project Path="OpenBudgeteer.Core.Data.Entities/OpenBudgeteer.Core.Data.Entities.csproj" />

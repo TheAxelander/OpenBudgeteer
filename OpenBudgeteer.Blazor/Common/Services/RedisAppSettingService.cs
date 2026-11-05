@@ -13,5 +13,5 @@ public class RedisAppSettingService : BaseAppSettingService
     protected override string ReportPageYearIncomeExpensesCountKey => "ReportPage:YearIncomeExpensesCount";
     protected override string ReportPageMonthBucketExpensesCountKey => "ReportPage:MonthBucketExpensesCount";
 
-    public RedisAppSettingService(RedisService settingHandler) : base(settingHandler) { }
+    public RedisAppSettingService(IRedisService redisService) : base(redisService) { }
 }
